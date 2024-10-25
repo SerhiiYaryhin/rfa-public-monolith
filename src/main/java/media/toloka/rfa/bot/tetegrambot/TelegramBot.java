@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.BotSession;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -33,7 +34,7 @@ import java.util.Properties;
 //import static jdk.javadoc.internal.tool.Main.execute;
 
 
-//@Component
+@Component
 //@RequiredArgsConstructor
 @Slf4j
 public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
