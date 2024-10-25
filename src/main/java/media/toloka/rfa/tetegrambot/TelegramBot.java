@@ -1,4 +1,4 @@
-package media.toloka.rfa.bot.tetegrambot;
+package media.toloka.rfa.tetegrambot;
 
 // https://javarush.com/en/groups/posts/en.2959.create-a-telegram-bot-using-spring-boot
 
