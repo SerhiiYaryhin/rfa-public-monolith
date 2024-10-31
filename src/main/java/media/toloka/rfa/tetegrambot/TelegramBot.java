@@ -6,9 +6,10 @@ package media.toloka.rfa.tetegrambot;
 //import lombok.Value;
 
 import lombok.extern.slf4j.Slf4j;
+import media.toloka.rfa.tetegrambot.model.UserRequest;
+import media.toloka.rfa.tetegrambot.model.UserSession;
+import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
@@ -39,8 +40,6 @@ import java.util.Properties;
 @Slf4j
 public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
-    Logger logger = LoggerFactory.getLogger(TelegramBot.class);
-
     @Value("${media.toloka.rfa.telegram.token}")
     private String botToken;
 
@@ -48,11 +47,29 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     private String botName;
 
     private final TelegramClient telegramClient;
+//    @Autowired
+//    public final List<UserRequestHandler> handlers = new ArrayList<>();
+
+//    @Autowired
+    private Dispatcher dispatcher;// = new Dispatcher(handlers);
+
+//    @Autowired
+    private  UserSessionService userSessionService;
 
     private Properties prop;
 
-    public TelegramBot() {
+    public TelegramBot(/* Dispatcher dispatcher, */ UserSessionService userSessionService) {
         telegramClient = new OkHttpTelegramClient(getBotToken());
+//        this.dispatcher1 = dispatcher;
+        this.userSessionService = userSessionService;
+    }
+
+    public TelegramClient getTelegramClient() {
+        return telegramClient;
+    }
+
+    public void setDispatcher(Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
     }
 
     // витягуємо параметри бота з файла конфігурації Телеграму.
@@ -65,7 +82,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             prop.load(stream);
         } catch (IOException e) {
             e.printStackTrace();
-            logger.error("ERROR: Не можу завантажити файл з параметрами телеграму.");
+            log.error("ERROR: Не можу завантажити файл з параметрами телеграму.");
             return null;
         }
         String token = prop.getProperty("telegram.token");
@@ -87,11 +104,48 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     @Override
     public void consume(Update update) {
         // We check if the update has a message and the message has text
-        logger.info("=============== Start prepare");
+        log.info("=============== Start prepare message.");
+        if(update.hasMessage() && update.getMessage().hasText()) {
+            String textFromUser = update.getMessage().getText();
+
+            Long userId = update.getMessage().getFrom().getId();
+            String userFirstName = update.getMessage().getFrom().getFirstName();
+
+            log.info("[{}, {}] : {}", userId, userFirstName, textFromUser);
+
+            Long chatId = update.getMessage().getChatId();
+            UserSession session = userSessionService.getSession(chatId);
+
+            UserRequest userRequest = UserRequest
+                    .builder()
+                    .update(update)
+                    .userSession(session)
+                    .chatId(chatId)
+                    .build();
+
+            boolean dispatched = dispatcher.dispatch(userRequest);
+
+            if (!dispatched) {
+                log.warn("Unexpected update from user");
+            }
+            return;
+        } else {
+            log.warn("Unexpected update from user");
+        }
+
+
+
+
+
+
+
+
         if (update.hasMessage()) {
             long chat_id = update.getMessage().getChatId();
+            long user_id =update.getMessage().getFrom().getId();
+
             if (update.getMessage().hasText()) {
-                logger.info("=============== Text");
+                log.info("=============== Text");
                 // Set variables
                 String message_text = update.getMessage().getText();
 //                long chat_id = update.getMessage().getChatId();
@@ -108,10 +162,10 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             }
             // get photo
             else if (update.getMessage().hasPhoto()) {
-                logger.info("=============== Photo");
+                log.info("=============== Photo");
 //            String message_text = update.getMessage().getCaption();
                 List<PhotoSize> photos = update.getMessage().getPhoto();
-                logger.info("============== List quantity: {}", photos.size());
+                log.info("============== List quantity: {}", photos.size());
                 // Know file_id
                 String f_id = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                         .map(PhotoSize::getFileId)
@@ -135,10 +189,10 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
                     document.setFileSize(update.getMessage().getDocument().getFileSize());
                     document.setFileId(f_id);
                     downloadFile(document, "/home/ysv/Clients/bot/Photo_"+update.getMessage().getDocument().getFileId()+"_"+update.getMessage().getDocument().getFileName());
-                    logger.info("Записали документ.");
+                    log.info("Записали документ.");
                 } catch (IOException e) {
                     e.printStackTrace();
-                    logger.error("Помилка при запису документу.");
+                    log.error("Помилка при запису документу.");
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -172,7 +226,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 //            }
             else if (update.getMessage().hasDocument())
             {
-                logger.info("=============== Document");
+                log.info("=============== Document");
                 String doc_id = update.getMessage().getDocument().getFileId();
                 String doc_name = update.getMessage().getDocument().getFileName();
                 String doc_mine = update.getMessage().getDocument().getMimeType();
@@ -186,10 +240,10 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
                 document.setFileId(doc_id);
                 try {
                     downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
-                    logger.info("Записали документ.");
+                    log.info("Записали документ.");
                 } catch (IOException e) {
                     e.printStackTrace();
-                    logger.error("Помилка при запису документу.");
+                    log.error("Помилка при запису документу.");
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -197,7 +251,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
                 GetFile getFile = new GetFile(document.getFileId());
                 try {
                     org.telegram.telegrambots.meta.api.objects.File file = telegramClient.execute(getFile);
-                    logger.info("Відправили документ.");
+                    log.info("Відправили документ.");
 //                    downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
