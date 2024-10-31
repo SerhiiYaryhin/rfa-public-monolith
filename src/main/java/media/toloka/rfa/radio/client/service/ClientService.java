@@ -248,6 +248,8 @@ public class ClientService {
             tokenService.delete(myToken);
             Clientdetail cd = GetClientDetailByUser(user);
             cd.setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
+            cd.setTelegramuserchatid(userRequest.getUpdate().getMessage().getChatId().toString());
+            logger.info("Set Telegram Link. UserId: {} ChatId {}",cd.getTelegramuser(),cd.getTelegramuserchatid());
             SaveClientDetail(cd);
             return true;
         }

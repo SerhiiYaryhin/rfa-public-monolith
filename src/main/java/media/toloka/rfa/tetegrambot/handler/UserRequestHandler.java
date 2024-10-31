@@ -19,6 +19,15 @@ public abstract class UserRequestHandler {
         return update.hasMessage() && update.getMessage().hasText();
     }
 
+    public boolean isAudioMessage(Update update) {
+        return update.hasMessage() && update.getMessage().hasAudio();
+    }
+
+    public boolean isDocumentMessage(Update update) {
+        return update.hasMessage() && update.getMessage().hasDocument();
+    }
+
+
     public boolean isTextMessage(Update update, String text) {
         return update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals(text);
     }

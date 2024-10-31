@@ -105,7 +105,8 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     public void consume(Update update) {
         // We check if the update has a message and the message has text
         log.info("=============== Start prepare message.");
-        if(update.hasMessage() && update.getMessage().hasText()) {
+//        if(update.hasMessage() && update.getMessage().hasText()) {
+        if(update.hasMessage() ) {
             String textFromUser = update.getMessage().getText();
 
             Long userId = update.getMessage().getFrom().getId();
@@ -126,11 +127,11 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             boolean dispatched = dispatcher.dispatch(userRequest);
 
             if (!dispatched) {
-                log.warn("Unexpected update from user");
+                log.warn("Unexpected dispatch update from user internal");
             }
             return;
         } else {
-            log.warn("Unexpected update from user");
+            log.warn("Unexpected update from user external");
         }
 
 //        if (update.hasMessage()) {
