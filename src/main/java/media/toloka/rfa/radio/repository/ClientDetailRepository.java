@@ -30,6 +30,8 @@ public interface ClientDetailRepository extends JpaRepository<Clientdetail, Long
             + "LOWER(a.uuid) LIKE LOWER(CONCAT('%', ?1, '%')) OR "
             + "LOWER(a.firmname) LIKE LOWER(CONCAT('%', ?1, '%'))") // OR " +
     List<Clientdetail> findByTemplate(String template);
+
+    Clientdetail getUserByTelegramuser(String telegramUser);
 //    List<Clientdetail> findByTemplate(@Param("template")  String template);
 //            + "LOWER(a.firmname) LIKE LOWER(CONCAT('%', :template, '%'))") // OR " +
 //            + "LOWER(a.custname) LIKE LOWER(CONCAT('%', :template, '%')) OR "

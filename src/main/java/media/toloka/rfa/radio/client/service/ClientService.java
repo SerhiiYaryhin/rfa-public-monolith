@@ -1,8 +1,10 @@
 package media.toloka.rfa.radio.client.service;
 
+import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.model.Clientaddress;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.client.ClientHomeInfoController;
+import media.toloka.rfa.radio.model.Token;
 import media.toloka.rfa.radio.repository.ClientAddressRepository;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
 import media.toloka.rfa.radio.repository.UserRepository;
@@ -10,6 +12,7 @@ import media.toloka.rfa.radio.repository.DocumentRepository;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
+import media.toloka.rfa.tetegrambot.model.UserRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,8 @@ public class ClientService {
     private ClientDetailRepository clientDetailRepository;
     @Autowired
     private ClientAddressRepository clientAddressRepository;
+    @Autowired
+    private TokenService tokenService;
 
     @Autowired
     private DocumentRepository documentRepository;
@@ -40,8 +45,11 @@ public class ClientService {
 
 
     public Users GetUserByEmail(String email) {
-//        List<Users> usersList =
         return userRepository.getUserByEmail(email);
+    }
+
+    public Clientdetail GetUserFromTelegram(String telegramUser) {
+        return clientDetailRepository.getUserByTelegramuser(telegramUser);
     }
 
     public Users GetCurrentUser() {
@@ -229,6 +237,21 @@ public class ClientService {
             e.printStackTrace();
         }
         return json.toString();
+    }
+
+    // Записуємо ідентифікатор людини з Телеграму
+    // rfaTelegramUuid - повторюємо процедуру при поштовій реєстрації.
+    public boolean setTelegramLink(String rfaTelegramUuid, UserRequest userRequest) {
+        Token myToken = tokenService.findByToken(rfaTelegramUuid);
+        if (myToken != null) {
+            Users user = myToken.getUser();
+            tokenService.delete(myToken);
+            Clientdetail cd = GetClientDetailByUser(user);
+            cd.setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
+            SaveClientDetail(cd);
+            return true;
+        }
+        return false;
     }
 }
 

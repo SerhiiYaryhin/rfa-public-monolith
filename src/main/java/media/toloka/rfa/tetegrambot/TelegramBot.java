@@ -133,134 +133,71 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             log.warn("Unexpected update from user");
         }
 
-
-
-
-
-
-
-
-        if (update.hasMessage()) {
-            long chat_id = update.getMessage().getChatId();
-            long user_id =update.getMessage().getFrom().getId();
-
-            if (update.getMessage().hasText()) {
-                log.info("=============== Text");
-                // Set variables
-                String message_text = update.getMessage().getText();
-//                long chat_id = update.getMessage().getChatId();
-                SendMessage message = SendMessage // Create a message object
-                        .builder()
-                        .chatId(chat_id)
-                        .text(message_text)
-                        .build();
-                try {
-                    telegramClient.execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            }
-            // get photo
-            else if (update.getMessage().hasPhoto()) {
-                log.info("=============== Photo");
-//            String message_text = update.getMessage().getCaption();
-                List<PhotoSize> photos = update.getMessage().getPhoto();
-                log.info("============== List quantity: {}", photos.size());
-                // Know file_id
-                String f_id = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
-                        .map(PhotoSize::getFileId)
-                        .orElse("");
-                // Know photo width
-                int f_width = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
-                        .map(PhotoSize::getWidth)
-                        .orElse(0);
-                // Know photo height
-                int f_height = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
-                        .map(PhotoSize::getHeight)
-                        .orElse(0);
-                int f_size = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
-                        .map(PhotoSize::getFileSize)
-                        .orElse(0);
-                // Завантажуємо фото
-                try {
-                    Document document = new Document();
-                    document.setMimeType(update.getMessage().getDocument().getMimeType());
-                    document.setFileName(update.getMessage().getDocument().getFileName());
-                    document.setFileSize(update.getMessage().getDocument().getFileSize());
-                    document.setFileId(f_id);
-                    downloadFile(document, "/home/ysv/Clients/bot/Photo_"+update.getMessage().getDocument().getFileId()+"_"+update.getMessage().getDocument().getFileName());
-                    log.info("Записали документ.");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    log.error("Помилка при запису документу.");
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-
-                // Set photo caption "Message: "+message_text+
-                String caption = "file_id: " + f_id
-                        + "\nwidth: " + Integer.toString(f_width)
-                        + "\nheight: " + Integer.toString(f_height);
-                SendPhoto msg = SendPhoto
-                        .builder()
-                        .chatId(chat_id)
-                        .photo(new InputFile(f_id))
-                        .caption(caption)
-                        .build();
-                try {
-                    telegramClient.execute(msg); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            }
-//            else if (update.getMessage().hasAudio())
-//            {
-//                logger.info("=============== Audio");
-//                long chat_id = update.getMessage().getChatId();
-//                Audio audio = update.getMessage().getAudio();
-//                String a_id = audio.getFileId();
-//                String a_fn = audio.getFileName();
-//                String a_mime = audio.getMimeType();
-//                Long a_size = audio.getFileSize();
-//                Integer a_duration = audio.getDuration();
-//            }
-            else if (update.getMessage().hasDocument())
-            {
-                log.info("=============== Document");
-                String doc_id = update.getMessage().getDocument().getFileId();
-                String doc_name = update.getMessage().getDocument().getFileName();
-                String doc_mine = update.getMessage().getDocument().getMimeType();
-                Long doc_size = update.getMessage().getDocument().getFileSize();
-                String getID = String.valueOf(update.getMessage().getFrom().getId());
-
-                Document document = new Document();
-                document.setMimeType(doc_mine);
-                document.setFileName(doc_name);
-                document.setFileSize(doc_size);
-                document.setFileId(doc_id);
-                try {
-                    downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
-                    log.info("Записали документ.");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    log.error("Помилка при запису документу.");
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-
-                GetFile getFile = new GetFile(document.getFileId());
-                try {
-                    org.telegram.telegrambots.meta.api.objects.File file = telegramClient.execute(getFile);
-                    log.info("Відправили документ.");
-//                    downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-                String caption = "doc_id: " + doc_id + "\nname: " + doc_name + "\nmime: " + doc_mine ;
-//                SendPhoto msg = SendDocument
+//        if (update.hasMessage()) {
+//            long chat_id = update.getMessage().getChatId();
+//            long user_id =update.getMessage().getFrom().getId();
+//
+//            if (update.getMessage().hasText()) {
+//                log.info("=============== Text");
+//                // Set variables
+//                String message_text = update.getMessage().getText();
+////                long chat_id = update.getMessage().getChatId();
+//                SendMessage message = SendMessage // Create a message object
 //                        .builder()
 //                        .chatId(chat_id)
-//                        .document(new InputFile(doc_id))
+//                        .text(message_text)
+//                        .build();
+//                try {
+//                    telegramClient.execute(message); // Sending our message object to user
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            // get photo
+//            else if (update.getMessage().hasPhoto()) {
+//                log.info("=============== Photo");
+////            String message_text = update.getMessage().getCaption();
+//                List<PhotoSize> photos = update.getMessage().getPhoto();
+//                log.info("============== List quantity: {}", photos.size());
+//                // Know file_id
+//                String f_id = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
+//                        .map(PhotoSize::getFileId)
+//                        .orElse("");
+//                // Know photo width
+//                int f_width = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
+//                        .map(PhotoSize::getWidth)
+//                        .orElse(0);
+//                // Know photo height
+//                int f_height = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
+//                        .map(PhotoSize::getHeight)
+//                        .orElse(0);
+//                int f_size = photos.stream().max(Comparator.comparing(PhotoSize::getFileSize))
+//                        .map(PhotoSize::getFileSize)
+//                        .orElse(0);
+//                // Завантажуємо фото
+//                try {
+//                    Document document = new Document();
+//                    document.setMimeType(update.getMessage().getDocument().getMimeType());
+//                    document.setFileName(update.getMessage().getDocument().getFileName());
+//                    document.setFileSize(update.getMessage().getDocument().getFileSize());
+//                    document.setFileId(f_id);
+//                    downloadFile(document, "/home/ysv/Clients/bot/Photo_"+update.getMessage().getDocument().getFileId()+"_"+update.getMessage().getDocument().getFileName());
+//                    log.info("Записали документ.");
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    log.error("Помилка при запису документу.");
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                // Set photo caption "Message: "+message_text+
+//                String caption = "file_id: " + f_id
+//                        + "\nwidth: " + Integer.toString(f_width)
+//                        + "\nheight: " + Integer.toString(f_height);
+//                SendPhoto msg = SendPhoto
+//                        .builder()
+//                        .chatId(chat_id)
+//                        .photo(new InputFile(f_id))
 //                        .caption(caption)
 //                        .build();
 //                try {
@@ -268,13 +205,69 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 //                } catch (TelegramApiException e) {
 //                    e.printStackTrace();
 //                }
-
-            }
-//            else if (update.getMessage().hasVideo())
-//            {
-//                  logger.info("=============== Video");
 //            }
-        }
+////            else if (update.getMessage().hasAudio())
+////            {
+////                logger.info("=============== Audio");
+////                long chat_id = update.getMessage().getChatId();
+////                Audio audio = update.getMessage().getAudio();
+////                String a_id = audio.getFileId();
+////                String a_fn = audio.getFileName();
+////                String a_mime = audio.getMimeType();
+////                Long a_size = audio.getFileSize();
+////                Integer a_duration = audio.getDuration();
+////            }
+//            else if (update.getMessage().hasDocument())
+//            {
+//                log.info("=============== Document");
+//                String doc_id = update.getMessage().getDocument().getFileId();
+//                String doc_name = update.getMessage().getDocument().getFileName();
+//                String doc_mine = update.getMessage().getDocument().getMimeType();
+//                Long doc_size = update.getMessage().getDocument().getFileSize();
+//                String getID = String.valueOf(update.getMessage().getFrom().getId());
+//
+//                Document document = new Document();
+//                document.setMimeType(doc_mine);
+//                document.setFileName(doc_name);
+//                document.setFileSize(doc_size);
+//                document.setFileId(doc_id);
+//                try {
+//                    downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
+//                    log.info("Записали документ.");
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    log.error("Помилка при запису документу.");
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                GetFile getFile = new GetFile(document.getFileId());
+//                try {
+//                    org.telegram.telegrambots.meta.api.objects.File file = telegramClient.execute(getFile);
+//                    log.info("Відправили документ.");
+////                    downloadFile(document, "/home/ysv/Clients/bot/"+getID+"_"+doc_name);
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                }
+//                String caption = "doc_id: " + doc_id + "\nname: " + doc_name + "\nmime: " + doc_mine ;
+////                SendPhoto msg = SendDocument
+////                        .builder()
+////                        .chatId(chat_id)
+////                        .document(new InputFile(doc_id))
+////                        .caption(caption)
+////                        .build();
+////                try {
+////                    telegramClient.execute(msg); // Sending our message object to user
+////                } catch (TelegramApiException e) {
+////                    e.printStackTrace();
+////                }
+//
+//            }
+////            else if (update.getMessage().hasVideo())
+////            {
+////                  logger.info("=============== Video");
+////            }
+//        }
     }
 
     @AfterBotRegistration

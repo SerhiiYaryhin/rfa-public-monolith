@@ -1,13 +1,16 @@
 package media.toloka.rfa.tetegrambot.helper;
 
+import media.toloka.rfa.radio.client.service.ClientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.List;
 
-import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_CANCEL;
+import static media.toloka.rfa.tetegrambot.constant.Constants.*;
 
 
 //import static org.vladyka.constant.Constants.BTN_CANCEL;
@@ -35,8 +38,37 @@ public class KeyboardHelper {
     }
 
     public ReplyKeyboardMarkup buildMainMenu() {
+        List<KeyboardButton> buttons = List.of(
+                new KeyboardButton("Надіслати трек"),
+                new KeyboardButton("Надіслати опис до треку"));
+        KeyboardRow row1 = new KeyboardRow(buttons);
+        KeyboardRow row2 = new KeyboardRow(List.of(new KeyboardButton("Перелік треків")));
+        KeyboardRow row3 = new KeyboardRow(List.of(new KeyboardButton(BTN_CANCEL)));
+        KeyboardRow row4 = new KeyboardRow(List.of(new KeyboardButton("❗️Потрібна допомога")));
+
+        return ReplyKeyboardMarkup.builder()
+                .keyboard(List.of(row1, row2, row3, row4))
+                .selective(true)
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(false)
+                .build();
+
+//        KeyboardRow keyboardRow = new KeyboardRow();
+//        keyboardRow.add(" Надіслати трек");
+//        keyboardRow.add(" Надіслати опис до треку");
+//        keyboardRow.add("❗️Потрібна допомога");
+//
+//        return ReplyKeyboardMarkup.builder()
+//                .keyboard(List.of(keyboardRow))
+//                .selective(true)
+//                .resizeKeyboard(true)
+//                .oneTimeKeyboard(false)
+//                .build();
+    }
+
+    public ReplyKeyboardMarkup buildMenuWithCancel() {
         KeyboardRow keyboardRow = new KeyboardRow();
-        keyboardRow.add("❗️Потрібна допомога");
+        keyboardRow.add(BTN_CANCEL);
 
         return ReplyKeyboardMarkup.builder()
                 .keyboard(List.of(keyboardRow))
@@ -46,12 +78,16 @@ public class KeyboardHelper {
                 .build();
     }
 
-    public ReplyKeyboardMarkup buildMenuWithCancel() {
-        KeyboardRow keyboardRow = new KeyboardRow();
-        keyboardRow.add(BTN_CANCEL);
+    public ReplyKeyboard buildRegisterMenu() {
+        List<KeyboardButton> buttons = List.of(
+                new KeyboardButton(BTN_TO_RFA_REGISTERS),
+                new KeyboardButton(BTN_TELEGRAM_LINK));
+        KeyboardRow row1 = new KeyboardRow(buttons);
+        KeyboardRow row3 = new KeyboardRow(List.of(new KeyboardButton(BTN_CANCEL)));
+        KeyboardRow row4 = new KeyboardRow(List.of(new KeyboardButton("❗️Потрібна допомога")));
 
         return ReplyKeyboardMarkup.builder()
-                .keyboard(List.of(keyboardRow))
+                .keyboard(List.of(row1, row3, row4))
                 .selective(true)
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(false)

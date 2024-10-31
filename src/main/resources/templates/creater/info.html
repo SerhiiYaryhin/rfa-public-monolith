@@ -92,6 +92,8 @@
     </form>
         </div>
         <div class="col-lg-3 col-sm-12">
+          <!-- Генерація Токену для Телеграму -->
+          <div th:insert="~{/fragments/creater :: telegramtoken}">  </div>
           <!--                    вставляем Медіа Хаб-->
           <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
         </div>

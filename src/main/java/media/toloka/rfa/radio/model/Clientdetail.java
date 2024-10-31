@@ -32,6 +32,8 @@ public class Clientdetail {
     @Expose
     private String uuid;
     @Expose
+    private String telegramuser = null;
+    @Expose
     private Boolean confirminfo = false;
     @Expose
     private Date confirmDate;

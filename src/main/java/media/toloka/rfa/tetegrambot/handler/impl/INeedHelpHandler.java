@@ -10,14 +10,6 @@ import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-//import org.vladyka.enums.ConversationState;
-//import org.vladyka.handler.UserRequestHandler;
-//import org.vladyka.helper.KeyboardHelper;
-//import org.vladyka.model.UserRequest;
-//import org.vladyka.model.UserSession;
-//import org.vladyka.service.TelegramService;
-//import org.vladyka.service.UserSessionService;
-
 import java.util.List;
 
 @Component

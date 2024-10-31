@@ -1,10 +1,13 @@
 package media.toloka.rfa.tetegrambot.handler.impl;
 
 
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
 import media.toloka.rfa.tetegrambot.model.UserRequest;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 //import org.vladyka.handler.UserRequestHandler;
@@ -14,6 +17,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
 @Component
 public class StartCommandHandler extends UserRequestHandler {
+
+    @Autowired
+    private ClientService clientService;
 
     private static String command = "/start";
 
@@ -32,10 +38,25 @@ public class StartCommandHandler extends UserRequestHandler {
 
     @Override
     public void handle(UserRequest request) {
-        ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
-        telegramService.sendMessage(request.getChatId(),
-                "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете зробити запит про допомогу!",
-                replyKeyboard);
+
+        Clientdetail cd =  clientService.GetUserFromTelegram(request.getUpdate().getMessage().getFrom().getId().toString());
+        if (cd != null) {
+            ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
+            telegramService.sendMessage(request.getChatId(),
+                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете надіслати свої треки на портал \"Радіо для всіх!\"",
+                    replyKeyboard);
+        }
+        else {
+            ReplyKeyboard replyKeyboard = keyboardHelper.buildRegisterMenu();
+            telegramService.sendMessage(request.getChatId(),
+                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете надіслати свої треки на портал \"Радіо для всіх!\"",
+                    replyKeyboard);
+            telegramService.sendMessage(request.getChatId(),
+                    "Для цього Ви повинні бути зареєстровані на порталі https://rfa.toloka.media/ "
+                            +"та привʼязати свій Телеграм до облікового запису на порталі.");
+
+        }
+
         telegramService.sendMessage(request.getChatId(),
                 "Обирайте з меню нижче ⤵️");
     }
