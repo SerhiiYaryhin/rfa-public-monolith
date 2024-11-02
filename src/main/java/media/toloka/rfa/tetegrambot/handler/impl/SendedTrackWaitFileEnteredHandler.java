@@ -7,8 +7,10 @@ import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
 import media.toloka.rfa.tetegrambot.model.UserRequest;
 import media.toloka.rfa.tetegrambot.model.UserSession;
+import media.toloka.rfa.tetegrambot.service.TelegramFileService;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -17,6 +19,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 @Slf4j
 @Component
 public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
+    @Autowired
+    private TelegramFileService telegramFileService;
 
     private final TelegramService telegramService;
     private final KeyboardHelper keyboardHelper;
@@ -62,6 +66,9 @@ public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
                 +"\nSize: "+a_size.toString()
                 +"\nDuration: "+a_duration.toString()+"\n",
                 replyKeyboardMarkup);
+
+        // Завантажуємо файл mp3
+//        telegramFileService.
 
         ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
         telegramService.sendMessage(userRequest.getChatId(),

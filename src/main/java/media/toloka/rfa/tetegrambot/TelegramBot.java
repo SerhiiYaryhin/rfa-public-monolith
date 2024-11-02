@@ -276,19 +276,19 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
         System.out.println("Registered bot running state is: " + botSession.isRunning());
     }
 
-    public void downloadFile(Document document,  String localFilePath) throws IOException, TelegramApiException {
-        File file = getFilePath(document);
-
-        java.io.File localFile = new java.io.File(localFilePath);
-        InputStream is = new URL(file.getFileUrl(getBotToken())).openStream();
-//        InputStream is = new URL(file.get  getFileUrl(questionAnsweringBot.getBotToken())).openStream();
-        FileUtils.copyInputStreamToFile(is, localFile);
-    }
-
-    public File getFilePath(Document document) throws TelegramApiException {
-        GetFile getFile = new GetFile(document.getFileId());
-//        getFile.setFileId(document.getFileId());
-        File file = telegramClient.execute(getFile);
-        return file;
-    }
+//    public void downloadFile(Document document,  String localFilePath) throws IOException, TelegramApiException {
+//        File file = getFilePath(document);
+//
+//        java.io.File localFile = new java.io.File(localFilePath);
+//        InputStream is = new URL(file.getFileUrl(getBotToken())).openStream();
+////        InputStream is = new URL(file.get  getFileUrl(questionAnsweringBot.getBotToken())).openStream();
+//        FileUtils.copyInputStreamToFile(is, localFile);
+//    }
+//
+//    public File getFilePath(Document document) throws TelegramApiException {
+//        GetFile getFile = new GetFile(document.getFileId());
+////        getFile.setFileId(document.getFileId());
+//        File file = telegramClient.execute(getFile);
+//        return file;
+//    }
 }
