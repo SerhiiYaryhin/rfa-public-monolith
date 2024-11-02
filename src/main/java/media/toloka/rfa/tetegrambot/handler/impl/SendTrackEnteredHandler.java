@@ -40,7 +40,8 @@ public class SendTrackEnteredHandler extends UserRequestHandler {
 //        telegramService.sendMessage(userRequest.getChatId(),
 //                "✍️Тепер ми спробуємо привʼязати Ваш Телеграм та обліковий запис на порталі️");
         telegramService.sendMessage(userRequest.getChatId(),
-                "Прикрипіть Ваш трек до повідомлення і надішліть.",
+                "Прикрипіть Ваш один трек до повідомлення і надішліть.");
+        telegramService.sendMessage(userRequest.getChatId(),"\nЗверніть увагу! \nМожна надіслати один файл в одному повідомленні.",
                 replyKeyboardMarkup);
 
 

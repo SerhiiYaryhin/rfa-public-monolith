@@ -39,17 +39,19 @@ public class StartCommandHandler extends UserRequestHandler {
     @Override
     public void handle(UserRequest request) {
 
-        Clientdetail cd =  clientService.GetUserFromTelegram(request.getUpdate().getMessage().getFrom().getId().toString());
-        if (cd != null) {
+//        Clientdetail cd =  clientService.GetUserFromTelegram(request.getUpdate().getMessage().getFrom().getId().toString());
+        if (clientService.GetUserFromTelegram(request.getUpdate().getMessage().getFrom().getId().toString()) != null) {
             ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
             telegramService.sendMessage(request.getChatId(),
-                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете надіслати свої треки на портал \"Радіо для всіх!\"",
+                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете взаємодіяти з порталом \"Радіо для всіх!\""
+                            +" надіслати свої треки, додати опис треку, надіслати повідомлення в прямий ефір Студії Толока і багато всього іншого.",
                     replyKeyboard);
         }
         else {
             ReplyKeyboard replyKeyboard = keyboardHelper.buildRegisterMenu();
             telegramService.sendMessage(request.getChatId(),
-                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете надіслати свої треки на портал \"Радіо для всіх!\"",
+                    "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете взаємодіяти з порталом \"Радіо для всіх!\""
+                            +" надіслати свої треки, додати опис треку, надіслати повідомлення в прямий ефір Студії Толока і багато всього іншого.",
                     replyKeyboard);
             telegramService.sendMessage(request.getChatId(),
                     "Для цього Ви повинні бути зареєстровані на порталі https://rfa.toloka.media/ "

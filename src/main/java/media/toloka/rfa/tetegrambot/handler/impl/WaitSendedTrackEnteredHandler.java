@@ -46,30 +46,32 @@ public class WaitSendedTrackEnteredHandler extends UserRequestHandler {
         // Працюємо з завантаженням треку
                 log.info("=============== Audio");
                 long chat_id = userRequest.getUpdate().getMessage().getChatId();
+                String caption = userRequest.getUpdate().getMessage().getCaption();
                 Audio audio = userRequest.getUpdate().getMessage().getAudio();
                 String a_id = audio.getFileId();
                 String a_fn = audio.getFileName();
                 String a_mime = audio.getMimeType();
                 Long a_size = audio.getFileSize();
                 Integer a_duration = audio.getDuration();
-                log.info("FileID: {}, FileName: {} , Mime: {}, Size: {}, Duration: {} ",a_id, a_fn,a_mime,a_size,a_duration);
+                log.info("\nCaption: {}\nFileID: {}\nFileName: {}\nMime: {}\nSize: {}\nDuration: {} ",caption ,a_id, a_fn,a_mime,a_size,a_duration);
 
         // Таки вдалося завантажити
         telegramService.sendMessage(userRequest.getChatId(),
                 "Ваш трек отримано."
+                +"\nCaption: "+caption
                 +"\nFileID: "+a_id
                 +"\nFileName: "+ a_fn
                 +"\nMime: "+a_mime
                 +"\nSize: "+a_size.toString()
-                +"\nDuration: "+a_duration.toString(),
+                +"\nDuration: "+a_duration.toString()+"\n",
                 replyKeyboardMarkup);
 
         ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
         telegramService.sendMessage(userRequest.getChatId(),
-                "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете надіслати свої треки на портал \"Радіо для всіх!\"",
+                "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете взаємодіяти з порталом \"Радіо для всіх!\""
+                        +" надіслати свої треки, додати опис треку, надіслати повідомлення в прямий ефір Студії Толока і багато всього іншого.",
                 replyKeyboard);
-//        String RFA_Telegram_UUID = userRequest.getUpdate().getMessage().getText();
-////        log.info("RFA_Telegram_UUID: ",RFA_Telegram_UUID);
+
         UserSession session = userRequest.getUserSession();
 ////        session.setCity(city);
         session.setState(ConversationState.CONVERSATION_STARTED);
