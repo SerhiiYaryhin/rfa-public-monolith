@@ -14,18 +14,15 @@ import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_TELEGRAM_LINK;
-import static media.toloka.rfa.tetegrambot.enums.ConversationState.WAITING_SEND_TRACK;
-
 @Slf4j
 @Component
-public class WaitSendedTrackEnteredHandler extends UserRequestHandler {
+public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
 
     private final TelegramService telegramService;
     private final KeyboardHelper keyboardHelper;
     private final UserSessionService userSessionService;
 
-    public WaitSendedTrackEnteredHandler(TelegramService telegramService, KeyboardHelper keyboardHelper, UserSessionService userSessionService) {
+    public SendedTrackWaitFileEnteredHandler(TelegramService telegramService, KeyboardHelper keyboardHelper, UserSessionService userSessionService) {
         this.telegramService = telegramService;
         this.keyboardHelper = keyboardHelper;
         this.userSessionService = userSessionService;
