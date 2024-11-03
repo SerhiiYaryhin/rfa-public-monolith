@@ -11,7 +11,8 @@ public enum ERole {
     ROLE_CREATER("ROLE_CREATER"),       // 2
     ROLE_MODERATOR("ROLE_MODERATOR"),   // 3
     ROLE_EDITOR("ROLE_EDITOR"),         // 4
-    ROLE_ADMIN("ROLE_ADMIN");           // 5
+    ROLE_ADMIN("ROLE_ADMIN"),           // 5
+    ROLE_TELEGRAM("ROLE_TELEGRAM");
 
     public final String label;
 

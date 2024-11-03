@@ -1,8 +1,7 @@
-package media.toloka.rfa.tetegrambot.handler.impl;
+package media.toloka.rfa.tetegrambot.handler.impl.global;
 
 
 import media.toloka.rfa.radio.client.service.ClientService;
-import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
 import media.toloka.rfa.tetegrambot.model.UserRequest;

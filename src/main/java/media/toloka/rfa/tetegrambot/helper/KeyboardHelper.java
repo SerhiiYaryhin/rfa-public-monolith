@@ -93,4 +93,20 @@ public class KeyboardHelper {
                 .oneTimeKeyboard(false)
                 .build();
     }
+
+    public ReplyKeyboardMarkup buildYesNoCancelMenu() {
+        List<KeyboardButton> buttons = List.of(
+                new KeyboardButton("Так"),
+                new KeyboardButton("Ні"));
+        KeyboardRow row1 = new KeyboardRow(buttons);
+        KeyboardRow row2 = new KeyboardRow(List.of(new KeyboardButton(BTN_CANCEL)));
+
+        return ReplyKeyboardMarkup.builder()
+                .keyboard(List.of(row1, row2))
+                .selective(true)
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(false)
+                .build();
+    }
+
 }

@@ -1,11 +1,10 @@
-package media.toloka.rfa.tetegrambot.handler.impl;
+package media.toloka.rfa.tetegrambot.handler.impl.link2rfa;
 
 
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.security.model.Users;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
@@ -18,11 +17,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_TELEGRAM_LINK;
-
 @Slf4j
 @Component
-public class GetLinkTelegramEnteredHandler extends UserRequestHandler {
+public class LinkTelegramGetUUIDTokenEnteredHandler extends UserRequestHandler {
 
     @Autowired
     private ClientService clientService;
@@ -33,7 +30,7 @@ public class GetLinkTelegramEnteredHandler extends UserRequestHandler {
     private final KeyboardHelper keyboardHelper;
     private final UserSessionService userSessionService;
 
-    public GetLinkTelegramEnteredHandler(TelegramService telegramService, KeyboardHelper keyboardHelper, UserSessionService userSessionService) {
+    public LinkTelegramGetUUIDTokenEnteredHandler(TelegramService telegramService, KeyboardHelper keyboardHelper, UserSessionService userSessionService) {
         this.telegramService = telegramService;
         this.keyboardHelper = keyboardHelper;
         this.userSessionService = userSessionService;

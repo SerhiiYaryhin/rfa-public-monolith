@@ -25,25 +25,12 @@ public class Dispatcher {
     public Dispatcher(List<UserRequestHandler> handlers,TelegramBot telegramBot) {
 //        this.handlers = handlers;
         telegramBot.setDispatcher(this);
-//    }
-
-//    public Dispatcher(List<UserRequestHandler> handlers) {
-//    public   Dispatcher() {
-//        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-//        scanner.addIncludeFilter(new AnnotationTypeFilter(Component.class));
-//        scanner.addIncludeFilter(new AnnotationTypeFilter(Controller.class));
-//        for (BeanDefinition beanDefinition : scanner.findCandidateComponents("media.toloka.rfa.tetegrambot.handler.impl")){
-//            System.out.println(beanDefinition.getBeanClassName());
-////            System.out.println(beanDefinition.getParentName());
-//            //handlers.add(beanDefinition);
-//        }
-
-                List<UserRequestHandler> handlers1 = handlers
-                    .stream()
-                    .sorted(Comparator
-                            .comparing(UserRequestHandler::isGlobal)
-                            .reversed())
-                    .collect(Collectors.toList());
+        List<UserRequestHandler> handlers1 = handlers
+                .stream()
+                .sorted(Comparator
+                        .comparing(UserRequestHandler::isGlobal)
+                        .reversed())
+                .collect(Collectors.toList());
 //                log.info ("{}",handlers);
         this.handlers = handlers1;
     }

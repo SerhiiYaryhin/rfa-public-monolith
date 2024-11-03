@@ -1,4 +1,4 @@
-package media.toloka.rfa.tetegrambot.handler.impl;
+package media.toloka.rfa.tetegrambot.handler.impl.global;
 
 
 import media.toloka.rfa.tetegrambot.enums.ConversationState;

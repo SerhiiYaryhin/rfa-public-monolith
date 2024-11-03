@@ -1,4 +1,4 @@
-package media.toloka.rfa.tetegrambot.handler.impl;
+package media.toloka.rfa.tetegrambot.handler.impl.creator;
 
 
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.IOException;
 
 @Slf4j
 @Component
@@ -68,7 +71,17 @@ public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
                 replyKeyboardMarkup);
 
         // Завантажуємо файл mp3
-//        telegramFileService.
+        String storePath = "/home/ysv/Clients/bot/"+a_id+"_"+a_fn;
+        try {
+            telegramFileService.downloadFile(a_id,storePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("Помилка при запису документу.");
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+            log.error("Помилка інтерфейсу Телеграма.");
+        }
+
 
         ReplyKeyboard replyKeyboard = keyboardHelper.buildMainMenu();
         telegramService.sendMessage(userRequest.getChatId(),

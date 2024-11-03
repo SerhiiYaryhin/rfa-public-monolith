@@ -1,4 +1,4 @@
-package media.toloka.rfa.tetegrambot.handler.impl;
+package media.toloka.rfa.tetegrambot.handler.impl.global;
 
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.radio.client.service.ClientService;

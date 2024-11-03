@@ -169,7 +169,7 @@ public class UserLoginController {
             mail = new Mail();
             mail.setTo(newUser.getEmail());
             mail.setFrom("info@toloka.kiev.ua");
-            mail.setSubject("Радіо для Всіх! Підтвердження реєстрації Вашої радіостанції на сервісі.");
+            mail.setSubject("Радіо для Всіх! Підтвердження реєстрації Вашої радіостанції на порталі \"Радіо для Всіх!\".");
             Map<String, Object> map1 = new HashMap<String, Object>();
 //                map1.put("name",(Object) userDTO.getEmail());
                 map1.put("name", (Object) newUser.getClientdetail().getCustname() + " " + newUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
@@ -186,7 +186,8 @@ public class UserLoginController {
 
             // Готуємо інформацію для відображення для користувача у формі
             model.addAttribute("success", "Користувача '" + email + "' успішно збережено! Для продовження реєстрації перевірте свою пошту.");
-        } else { // знайшли таку пошту
+        } else {
+            // знайшли таку пошту
             // формуємо повідомлення для форми
             // Готуємо інформацію для відображення для користувача у формі
             model.addAttribute("danger", "Користувача '" + email + "' знайдено в базі.");

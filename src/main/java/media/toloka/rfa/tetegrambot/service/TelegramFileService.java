@@ -19,8 +19,9 @@ public class TelegramFileService {
     @Autowired
     private TelegramBot telegramBot;
 
-    public void downloadFile(Document document, String localFilePath) throws IOException, TelegramApiException {
-        File file = getFilePath(document);
+//    public void downloadFile(Document document, String localFilePath) throws IOException, TelegramApiException {
+    public void downloadFile(String file_id, String localFilePath) throws IOException, TelegramApiException {
+        File file = getFilePath(file_id);
 
         java.io.File localFile = new java.io.File(localFilePath);
         InputStream is = new URL(file.getFileUrl(telegramBot.getBotToken())).openStream();
@@ -28,9 +29,8 @@ public class TelegramFileService {
         FileUtils.copyInputStreamToFile(is, localFile);
     }
 
-    public File getFilePath(Document document) throws TelegramApiException {
-        GetFile getFile = new GetFile(document.getFileId());
-//        getFile.setFileId(document.getFileId());
+    public File getFilePath(String file_id) throws TelegramApiException {
+        GetFile getFile = new GetFile(file_id);
         File file = telegramBot.getTelegramClient().execute(getFile);
         return file;
     }
