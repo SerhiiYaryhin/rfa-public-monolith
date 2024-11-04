@@ -45,8 +45,6 @@ public class LoginS5GetEmailEnteredHandler extends UserRequestHandler {
                 "Ви ввели:"
                         +"\nІмʼя: "+session.getUserFName()
                         +"\nПризвище: "+session.getUserSName()
-                        +"\nКомпанія: "+ session.getUserFName()
-                        +"\nПароль: "+session.getUserPassword()
                         +"\nПошта: "+session.getUserEmail()
         );
 

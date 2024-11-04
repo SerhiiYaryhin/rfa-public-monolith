@@ -2,6 +2,11 @@ package media.toloka.rfa.tetegrambot.handler.impl.createlogin;
 
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.email.service.EmailSenderService;
+import media.toloka.rfa.radio.login.service.TokenService;
+import media.toloka.rfa.radio.model.Mail;
+import media.toloka.rfa.security.model.Roles;
+import media.toloka.rfa.security.model.Users;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
@@ -10,10 +15,19 @@ import media.toloka.rfa.tetegrambot.model.UserSession;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static media.toloka.rfa.security.model.ERole.ROLE_CREATER;
+import static media.toloka.rfa.security.model.ERole.ROLE_TELEGRAM;
 import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_SEND_YES;
 import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_TO_RFA_REGISTERS;
 
@@ -23,10 +37,18 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
 
     @Autowired
     private ClientService clientService;
+    @Autowired
+    private TokenService serviceToken;
+    @Autowired
+    private EmailSenderService emailSenderService;
+
+    @Autowired
+    private SpringTemplateEngine templateEngine;
 
     private final TelegramService telegramService;
     private final KeyboardHelper keyboardHelper;
     private final UserSessionService userSessionService;
+//    private final
 
     public LoginS7CheckReplyEnteredHandler(TelegramService telegramService, KeyboardHelper keyboardHelper, UserSessionService userSessionService) {
         this.telegramService = telegramService;
@@ -48,10 +70,55 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
             // Вся Інформація корректна
             telegramService.sendMessage(userRequest.getChatId(),
                     "Все правильно. \nВідправляємо Вам листа для встановлення паролю.");
+
+            Users newUser = clientService.GetUserByEmail(session.getUserEmail());
+
+            if (newUser == null) {
+                newUser = new Users();
+                Roles role = new Roles();
+                role.setRole(ROLE_TELEGRAM);
+                newUser.setRoles(new ArrayList<Roles>());
+                newUser.getRoles().add(role);
+                newUser.setPassword("*");
+                newUser.setEmail(session.getUserEmail());
+                clientService.CreateClientsDetail(newUser,session.getUserFName(),session.getUserSName());
+                clientService.SaveUser(newUser);
+                String token = UUID.randomUUID().toString();
+                serviceToken.createVerificationToken(newUser, token);
+
+                // формуємо повідомлення для встановлення паролю
+                Mail mail;
+                mail = new Mail();
+                mail.setTo(newUser.getEmail());
+                mail.setFrom("info@toloka.kiev.ua");
+                mail.setSubject("Радіо для Всіх! Підтвердження реєстрації на порталі \"Радіо для Всіх!\".");
+                Map<String, Object> map1 = new HashMap<String, Object>();
+//                map1.put("name",(Object) userDTO.getEmail());
+                map1.put("name", (Object) newUser.getClientdetail().getCustname() + " " + newUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
+//            map1.put("name", (Object) "УВАГА!!! Штучно Сформоване імʼя"); // сформували імʼя та призвище для листа
+                map1.put("confirmationUrl", (Object) "https://rfa.toloka.media/login/setUserPassword?token=" + token); // сформували для переходу адресу з токеном
+                mail.setHtmlTemplate(new Mail.HtmlTemplate("/mail/registerTelegramSetPassword", map1)); // заповнили обʼєкт для відсилання пошти
+                try {
+                    emailSenderService.sendEmail(mail);
+                    telegramService.sendMessage(userRequest.getChatId(),
+                            "Лист з інструкціями для встановлення паролю надіслано на Вашу пошту."
+                                    +"\nБудь ласка, виконайте необхідні дії і встановіть пароль для можливості повноцінно користуватися порталом.");
+                } catch (MessagingException e) {
+                    telegramService.sendMessage(userRequest.getChatId(),
+                            "Щось пішло не так :(\nПеревірте введену поштову адресу або зверніться до нас."
+                                    +"\nПомилка.\nПочинаємо з початку.");
+                    throw new RuntimeException(e);
+                }
+            } else {
+            // користувач з такою поштою вже зареєстрований на порталі
+                telegramService.sendMessage(userRequest.getChatId(),
+                        "користувач з такою поштою вже зареєстрований на порталі"
+                                +"\nЗайдіть на портал. На сторінці Вашого профайлу Ви знайдете унікальний ключ для привʼязки до телеграму."
+                                +"Скопіюйте його і привʼяжіть свій аккаунт на порталі до телеграму.\nПочинаємо з початку.");            }
         } else {
             // помилка в інформації
             telegramService.sendMessage(userRequest.getChatId(),
-                    "Помилка. \nПочинаємо з початку.");
+                    "Починаємо з початку.");
         }
 
         // Встановлюємо стан для наступного кроку
@@ -75,14 +142,9 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
             telegramService.sendMessage(userRequest.getChatId(),
                     "Для цього Ви повинні бути зареєстровані на порталі https://rfa.toloka.media/ "
                             +"та привʼязати свій Телеграм до облікового запису на порталі.");
-
         }
-
         telegramService.sendMessage(userRequest.getChatId(),
                 "Обирайте з меню нижче ⤵️");
-
-
-
     }
 
     @Override

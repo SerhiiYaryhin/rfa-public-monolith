@@ -51,7 +51,7 @@ public class LoginS2GetSNameEnteredHandler extends UserRequestHandler {
         userSessionService.saveSession(userRequest.getChatId(), session);
         // Повідомлення про наступний крок
         ReplyKeyboardMarkup replyKeyboardMarkup = keyboardHelper.buildMenuWithCancel();
-        telegramService.sendMessage(userRequest.getChatId(),"Будь ласка, введіть назву вашої організації або залиште рядок пустим.",
+        telegramService.sendMessage(userRequest.getChatId(),"Будь ласка, введіть Ваш e-mail",
                 replyKeyboardMarkup);
 
 
