@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Привʼязати Телеграм. Толока - радіо для всіх! </title>
+  <!-- Favicon-->
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <!-- Font Awesome icons (free version)-->
+<!--  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
+  <!-- Google fonts-->
+<!--  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
+<!--  <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
+  <!-- Core theme CSS (includes Bootstrap)-->
+  <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+  <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+  <!--    TinyMCE-->
+<!--  <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>-->
+
+</head>
+
+<body>
+<header>
+  <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
+  <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+</header>
+<div style="padding-top: 100px">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-12 col-sm-12">
+        <div th:insert="~{/fragments/user :: user_service}"> </div>
+      </div>
+    </div>
+    <div class="row text-center" style="padding-top: 20px">
+      <div class="col align-center">
+        <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+      </div>
+    </div>
+    Тут світимо ідентифікатор для привʼязки Телеграму<br>
+    <div th:if="${clientdetail.user.isTelegramToken()} != null">
+      <span th:text="${clientdetail.user.getTelegramToken()}"
+    </div>
+
+  </div>
+</div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

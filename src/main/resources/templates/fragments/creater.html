@@ -358,7 +358,23 @@
         Ідентифікатор користувача Телеграму <span th:text="${clientdetail.telegramuser}"/>
      </div>
     <div th:if="${clientdetail.telegramuser} == null">
-        Ви ще не зʼєднані з Телеграмом.
+        <div class="row text-center" style="padding-top: 20px">
+            <div class="col align-center">
+                <div th:if="${clientdetail.telegramuser} == null">
+                    Ви ще не зʼєднані з Телеграмом.<br>
+                    <div th:if="!${createrService.checkTelegramTooken()}">
+                        <a th:href="@{'/creater/createtelegramtoken/'+${createrService.getTelegramToken()}}">
+                            <button type="button" class="btn btn-primary">Приєднати Телеграм</button>
+                        </a>
+                    </div>
+                    <div th:if="${createrService.checkTelegramTooken()}">
+                        скопіюйте цей токен для того, щоб привʼязати свій аккаунт до телеграму.<br>
+                        <span th:text="${createrService.getTelegramToken()}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 </div>

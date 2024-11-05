@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.creater.service;
 
 
+import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.repository.AlbumCoverRepository;
 import media.toloka.rfa.radio.creater.repository.AlbumRepository;
 import media.toloka.rfa.radio.creater.repository.TrackRepository;
@@ -9,11 +10,13 @@ import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.media.messanger.model.ChatMessage;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType;
 import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.model.*;
 import media.toloka.rfa.radio.model.enumerate.EDocumentStatus;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
+import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,12 @@ public class CreaterService {
 
     @Autowired
     private StoreService storeService;
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private TokenService serviceToken;
 
     private SimpMessagingTemplate template;
 
@@ -130,12 +139,6 @@ public class CreaterService {
 
     public void SaveAlbumCoverUploadInfo(String storeUUID, Clientdetail cd ) {
         Albumсover albumсover = new Albumсover();
-//        albumсover.setAlbumcoverfile(destination.getFileName().toString());
-//        String mediatype = filesService.GetMediatype(destination);
-//        = Optional.ofNullable(destination.getFileName().toString())
-//                .filter(f -> f.contains("."))
-//                .map(f -> f.substring(destination.getFileName().toString().lastIndexOf(".") + 1));
-//        albumсover.setPatch(destination.toString());
         albumсover.setClientdetail(cd);
         albumсover.setStoreuuid(storeUUID);
         albumсover.setStoreitem(storeService.GetStoreByUUID(storeUUID)); //
@@ -143,7 +146,6 @@ public class CreaterService {
     }
 
     public List<Track> GetLastUploadTracks() {
-//        return trackRepository.findAllByOrderByUploaddateAsc();
         return trackRepository.findAllTop10ByOrderByUploaddateAsc();
     }
 
@@ -228,6 +230,25 @@ public class CreaterService {
 
     public Store GetStoreByStoreuuid(String storeUUID) {
         return storeService.GetStoreByUUID(storeUUID);
+    }
+
+    public boolean checkTelegramTooken() {
+        // Перевіряємо наявність Токена для привʼязки Телеграму в базі токенів для поточного Users
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return false;
+        Token token = serviceToken.findByUser(user);
+        if (token == null) return false;
+
+        return true;
+    }
+
+    public String getTelegramToken() {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return null;
+//        return user.getClientdetail().getUuid();
+        Token token = serviceToken.findByUser(user);
+        if (token == null) return null;
+        return token.getToken();
     }
 
 }

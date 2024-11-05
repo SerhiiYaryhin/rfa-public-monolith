@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.ArrayList;
@@ -26,10 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static media.toloka.rfa.security.model.ERole.ROLE_CREATER;
 import static media.toloka.rfa.security.model.ERole.ROLE_TELEGRAM;
 import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_SEND_YES;
-import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_TO_RFA_REGISTERS;
 
 @Slf4j
 @Component
@@ -67,34 +64,35 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
         UserSession session = userRequest.getUserSession();
         session.setUserId(userRequest.getUserSession().getUserId());
         if (userRequest.getUpdate().getMessage().getText().equals(BTN_SEND_YES)) {
-            // Вся Інформація корректна
+
             telegramService.sendMessage(userRequest.getChatId(),
                     "Все правильно. \nВідправляємо Вам листа для встановлення паролю.");
-
-            Users newUser = clientService.GetUserByEmail(session.getUserEmail());
-
-            if (newUser == null) {
-                newUser = new Users();
+            // Вся Інформація корректна
+            // шукаємо користувача серед зареєстрованих
+            Users potencialUser = clientService.GetUserByEmail(session.getUserEmail());
+            if (potencialUser == null) {
+                // не знайшли цей e-mail у базі
+                potencialUser = new Users();
                 Roles role = new Roles();
                 role.setRole(ROLE_TELEGRAM);
-                newUser.setRoles(new ArrayList<Roles>());
-                newUser.getRoles().add(role);
-                newUser.setPassword("*");
-                newUser.setEmail(session.getUserEmail());
-                clientService.CreateClientsDetail(newUser,session.getUserFName(),session.getUserSName());
-                clientService.SaveUser(newUser);
+                potencialUser.setRoles(new ArrayList<Roles>());
+                potencialUser.getRoles().add(role);
+                potencialUser.setPassword("*");
+                potencialUser.setEmail(session.getUserEmail());
+                clientService.CreateClientsDetail(potencialUser,session.getUserFName(),session.getUserSName());
+                clientService.SaveUser(potencialUser);
                 String token = UUID.randomUUID().toString();
-                serviceToken.createVerificationToken(newUser, token);
+                serviceToken.createVerificationToken(potencialUser, token);
 
                 // формуємо повідомлення для встановлення паролю
                 Mail mail;
                 mail = new Mail();
-                mail.setTo(newUser.getEmail());
+                mail.setTo(potencialUser.getEmail());
                 mail.setFrom("info@toloka.kiev.ua");
                 mail.setSubject("Радіо для Всіх! Підтвердження реєстрації на порталі \"Радіо для Всіх!\".");
                 Map<String, Object> map1 = new HashMap<String, Object>();
 //                map1.put("name",(Object) userDTO.getEmail());
-                map1.put("name", (Object) newUser.getClientdetail().getCustname() + " " + newUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
+                map1.put("name", (Object) potencialUser.getClientdetail().getCustname() + " " + potencialUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
 //            map1.put("name", (Object) "УВАГА!!! Штучно Сформоване імʼя"); // сформували імʼя та призвище для листа
                 map1.put("confirmationUrl", (Object) "https://rfa.toloka.media/login/setUserPassword?token=" + token); // сформували для переходу адресу з токеном
                 mail.setHtmlTemplate(new Mail.HtmlTemplate("/mail/registerTelegramSetPassword", map1)); // заповнили обʼєкт для відсилання пошти
@@ -102,7 +100,7 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
                     emailSenderService.sendEmail(mail);
                     telegramService.sendMessage(userRequest.getChatId(),
                             "Лист з інструкціями для встановлення паролю надіслано на Вашу пошту."
-                                    +"\nБудь ласка, виконайте необхідні дії і встановіть пароль для можливості повноцінно користуватися порталом.");
+                                    +"\nБудь ласка, виконайте необхідні дії і встановіть пароль для можливості повноцінного користування порталом.");
                 } catch (MessagingException e) {
                     telegramService.sendMessage(userRequest.getChatId(),
                             "Щось пішло не так :(\nПеревірте введену поштову адресу або зверніться до нас."
@@ -112,9 +110,15 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
             } else {
             // користувач з такою поштою вже зареєстрований на порталі
                 telegramService.sendMessage(userRequest.getChatId(),
-                        "користувач з такою поштою вже зареєстрований на порталі"
+                        " Будь ласка привʼяжіть свій обликовий запис на порталі до свого телеграму.");
+
+                telegramService.sendMessage(userRequest.getChatId(),
+                        "На порталі вже є користувач з такою поштою."
                                 +"\nЗайдіть на портал. На сторінці Вашого профайлу Ви знайдете унікальний ключ для привʼязки до телеграму."
-                                +"Скопіюйте його і привʼяжіть свій аккаунт на порталі до телеграму.\nПочинаємо з початку.");            }
+                                +"\nСкопіюйте його і привʼяжіть свій аккаунт на порталі до телеграму."
+                                +"Якщо Ви втратили пароль, то відновіть його - це дуже просто \uD83D\uDE0A"
+                                +"\nПочинаємо з початку.");
+            }
         } else {
             // помилка в інформації
             telegramService.sendMessage(userRequest.getChatId(),

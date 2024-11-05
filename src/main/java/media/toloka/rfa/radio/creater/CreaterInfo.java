@@ -3,6 +3,7 @@ package media.toloka.rfa.radio.creater;
 
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
+import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.post.service.PostService;
@@ -18,12 +19,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class CreaterInfo {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private TokenService serviceToken;
 
     @Autowired
     private CreaterService createrService;
@@ -33,6 +38,25 @@ public class CreaterInfo {
 
     final Logger logger = LoggerFactory.getLogger(CreaterInfo.class);
 
+
+    @GetMapping(value="/creater/createtelegramtoken/{cduuid}")
+    public String getTelegramToken(
+            @PathVariable String cduuid,
+            Model model ) {
+//        Users user = clientService.GetClientDetailByUuid(cduuid);
+//        if (user == null) {
+//            return "redirect:/creater/info";
+//        }
+        Clientdetail cd = clientService.GetClientDetailByUuid(cduuid);
+        Users user = cd.getUser();
+        if (cd.getUuid().equals(cduuid)) {
+            String token = UUID.randomUUID().toString();
+            serviceToken.createVerificationToken(user, token);
+//            cd = clientService.GetClientDetailByUser(user);
+            model.addAttribute("clientdetail", cd );
+        }
+        return "redirect:/creater/info";
+    }
 
     @GetMapping(value = "/creater/info")
     public String getUserInfo(
@@ -44,6 +68,8 @@ public class CreaterInfo {
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         model.addAttribute("clientdetail", cd );
+        model.addAttribute("createrService",createrService);
+
 
         return "/creater/info";
     }
