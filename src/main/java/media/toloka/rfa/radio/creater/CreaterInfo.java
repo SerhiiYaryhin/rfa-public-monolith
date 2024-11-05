@@ -47,14 +47,12 @@ public class CreaterInfo {
 //        if (user == null) {
 //            return "redirect:/creater/info";
 //        }
+//        Users user =
         Clientdetail cd = clientService.GetClientDetailByUuid(cduuid);
         Users user = cd.getUser();
-        if (cd.getUuid().equals(cduuid)) {
-            String token = UUID.randomUUID().toString();
-            serviceToken.createVerificationToken(user, token);
-//            cd = clientService.GetClientDetailByUser(user);
-            model.addAttribute("clientdetail", cd );
-        }
+        String token = UUID.randomUUID().toString();
+        serviceToken.createVerificationToken(user, token);
+        model.addAttribute("clientdetail", cd );
         return "redirect:/creater/info";
     }
 

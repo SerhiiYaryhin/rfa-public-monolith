@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 
+import static media.toloka.rfa.security.model.ERole.ROLE_TELEGRAM;
+
 @Service
 public class ClientService {
 
@@ -243,10 +245,24 @@ public class ClientService {
     // rfaTelegramUuid - повторюємо процедуру при поштовій реєстрації.
     public boolean setTelegramLink(String rfaTelegramUuid, UserRequest userRequest) {
         Token myToken = tokenService.findByToken(rfaTelegramUuid);
-        if (myToken != null) {
+        if (myToken != null) { // Знайшли токен для реєстрації
             Users user = myToken.getUser();
             tokenService.delete(myToken);
             Clientdetail cd = GetClientDetailByUser(user);
+            // додаємо ROLE_TELEGRAM якщо його він відсутній
+            Roles role = null;
+            List<Roles> lroles = user.getRoles();
+            for (Roles crole : lroles) {
+                if (crole.getRole().equals(ROLE_TELEGRAM)) {
+                    role = crole;
+                }
+            }
+            if (role == null) { //в ролях не знайшли ROLE_TELEGRAM та дадаємо його
+                role = new Roles();
+                role.setRole(ROLE_TELEGRAM);
+                user.getRoles().add(role);
+                SaveUser(user);
+            }
             cd.setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
             cd.setTelegramuserchatid(userRequest.getUpdate().getMessage().getChatId().toString());
             logger.info("Set Telegram Link. UserId: {} ChatId {}",cd.getTelegramuser(),cd.getTelegramuserchatid());

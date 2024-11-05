@@ -363,7 +363,8 @@
                 <div th:if="${clientdetail.telegramuser} == null">
                     Ви ще не зʼєднані з Телеграмом.<br>
                     <div th:if="!${createrService.checkTelegramTooken()}">
-                        <a th:href="@{'/creater/createtelegramtoken/'+${createrService.getTelegramToken()}}">
+                        <a th:href="@{'/creater/createtelegramtoken/'+${clientdetail.uuid}}">
+<!--                        <a th:href="@{'/creater/createtelegramtoken/'+${createrService.getTelegramToken()}}">-->
                             <button type="button" class="btn btn-primary">Приєднати Телеграм</button>
                         </a>
                     </div>
