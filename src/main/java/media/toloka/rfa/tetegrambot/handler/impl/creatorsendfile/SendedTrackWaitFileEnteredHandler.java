@@ -1,4 +1,4 @@
-package media.toloka.rfa.tetegrambot.handler.impl.creator;
+package media.toloka.rfa.tetegrambot.handler.impl.creatorsendfile;
 
 
 import lombok.extern.slf4j.Slf4j;
