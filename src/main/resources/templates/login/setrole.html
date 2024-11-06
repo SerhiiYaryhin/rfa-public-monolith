@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Відновлення паролю.</title>
+
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <!-- Font Awesome icons (free version)-->
+  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+  <!-- Google fonts-->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+  <!-- Core theme CSS (includes Bootstrap)-->
+  <link th:href = "@{/css/bootstrap.min.css}" rel="stylesheet">
+  <!--    <link href="css/styles.css" rel="stylesheet" />-->
+  <!--    <link href="/css/my.css" rel="stylesheet" />-->
+</head>
+
+<body>
+<p>Ви зареєструвалися через Телеграм і тепер Вам потрібно обрати основну роль: розміщення треків чи створення інтернет радіостанцій.</p>
+<p>Розміщення треків</p>
+<p>Створення радіостанцій</p>
+<form action="#" th:action="@{/login/setrole}" th:object="${chooserole}" method="post">
+<!--  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
+  <fieldset>
+    <legend>Визначтеся хто Ви:</legend>
+      <div th:each="role : ${chooserole.lChooseRole}">
+        <input type="radio" th:value="${role.type}"  th:field="${chooserole.value}" th:name="${chooserole.value}"/>
+        <label th:for="${role.type}" th:text="${role.value}"></label>
+      </div>
+    <div>
+      <input type="submit" value="Register"/>
+    </div>
+  </fieldset>
+</form>
+
+
+
+</body>
+</html>

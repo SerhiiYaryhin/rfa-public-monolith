@@ -354,9 +354,6 @@
     </table>
 </div>
 <div th:fragment="telegramtoken" >
-     <div th:if="${clientdetail.telegramuser} != null">
-        Ідентифікатор користувача Телеграму <span th:text="${clientdetail.telegramuser}"/>
-     </div>
     <div th:if="${clientdetail.telegramuser} == null">
         <div class="row text-center" style="padding-top: 20px">
             <div class="col align-center">
@@ -369,8 +366,9 @@
                         </a>
                     </div>
                     <div th:if="${createrService.checkTelegramTooken()}">
-                        скопіюйте цей токен для того, щоб привʼязати свій аккаунт до телеграму.<br>
-                        <span th:text="${createrService.getTelegramToken()}"></span>
+                        скопіюйте цей токен для того, щоб привʼязати свій аккаунт до телеграму:<br>
+                        <b><span th:text="${createrService.getTelegramToken()}"></span></b><br>
+                        Перейдіть до <a href="https://t.me/TolokaMediaBot" target="_blank">Телеграму</a> за цим посиланням, натисніть кнопку "Привʼязати Телеграм", вставте скопійований токен та надішліть. Вам прийде лист з посиланням на встановлення паролю. Виконайте вказані в ньому інструкції.
                     </div>
                 </div>
             </div>

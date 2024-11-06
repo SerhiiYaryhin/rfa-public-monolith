@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.email.service.EmailSenderService;
 import media.toloka.rfa.radio.login.service.TokenService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Mail;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
@@ -80,6 +81,8 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
                 potencialUser.setPassword("*");
                 potencialUser.setEmail(session.getUserEmail());
                 clientService.CreateClientsDetail(potencialUser,session.getUserFName(),session.getUserSName());
+                potencialUser.getClientdetail().setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
+                potencialUser.getClientdetail().setTelegramuserchatid(userRequest.getChatId().toString());;
                 clientService.SaveUser(potencialUser);
                 String token = UUID.randomUUID().toString();
                 serviceToken.createVerificationToken(potencialUser, token);

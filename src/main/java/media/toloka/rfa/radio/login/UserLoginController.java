@@ -15,6 +15,7 @@ import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Token;
 import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.root.RootController;
+import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -78,6 +79,21 @@ public class UserLoginController {
         String group;
     }
 
+    @Getter
+    @Setter
+    public class lineChooseRole {
+        ERole type;
+        String value;
+    }
+    @Getter
+    @Setter
+    public class listLineChooseRole {
+        List<lineChooseRole> lChooseRole = new ArrayList<>();
+        ERole value;
+    }
+
+
+
     @GetMapping(value = "/login/route")
     public String userRouter (
             HttpServletRequest request,
@@ -111,10 +127,49 @@ public class UserLoginController {
             return "redirect:/user/user_page";
         } else if (clientService.checkRole(ROLE_UNKNOWN)) {
             return "redirect:/messenger";
-        };
+        } else if (clientService.checkRole(ROLE_TELEGRAM)) {
+            if (user.getRoles().size() == 1) {
+                // Тільки одна роль у списку
+                // Тож, потрібно зробити вибір між ROLE_CREATER та ROLE_USER
+                return "redirect:/login/setrole";
+            }
+        } ;
         // Йой! Щлсь пішло не так
         logger.info("============ redirect to Logout page");
         return "redirect:/logout";
+    }
+    // Якщо користуач зареєструвався через телеграм, то він повинен обрати між радіо та музикантом.
+    // ROLE_CREATER та ROLE_USER
+    @GetMapping("/login/setrole")
+    public String registerChooseRoleUser(
+            Model model
+    ) {
+        listLineChooseRole lradio = new listLineChooseRole();
+//        List<lineChooseRole> chooserole = new ArrayList<>();
+        lineChooseRole lChooseRole1 = new lineChooseRole();
+        lChooseRole1.setType(ROLE_CREATER);
+        lChooseRole1.setValue("Музикант");
+        lradio.getLChooseRole().add(lChooseRole1);
+        lineChooseRole lChooseRole2 = new lineChooseRole();
+        lChooseRole2.setType(ROLE_USER);
+        lChooseRole2.setValue("Радіостанція");
+        lradio.getLChooseRole().add(lChooseRole2);
+        model.addAttribute("chooserole", lradio);
+        return "/login/setrole";
+    }
+
+    @PostMapping("/login/setrole")
+    public String chooseUserTypeRoleRegisterTelegram(
+            @ModelAttribute listLineChooseRole chooserole,
+            Model model
+    ) {
+        logger.info("==========: {}",chooserole.getValue());
+        Users user = clientService.GetCurrentUser();
+        Roles roles = new Roles();
+        roles.setRole(chooserole.getValue());
+        user.getRoles().add(roles);
+        clientService.SaveUser(user);
+        return "redirect:/login/route";
     }
 
     @GetMapping("/login/registerRadioUser")
@@ -126,6 +181,8 @@ public class UserLoginController {
         model.addAttribute("user", new Users());
         return "/login/registerRadioUser";
     }
+
+
 
     @GetMapping("/login/registerCreater")
     public String registerCreater(
@@ -205,9 +262,7 @@ public class UserLoginController {
     ) {
         // Забираємо з форми email користувача
         String email = formuser.getEmail();
-//        String frmgrp = userDTO.getEmail();
-        // намагаємося знайти пошту в базі
-//        Optional<Users> opt = clientService.findUserByEmail(email);
+
         Users newUser = clientService.GetUserByEmail(email);
 
         // перевіряємо, чи є цей емайл в базі
@@ -217,22 +272,9 @@ public class UserLoginController {
             // додали групу для користувача
             // Роль беремо зі форми. Визначається статусом радіобутона.
             Roles role = new Roles();
-//            switch (formuser.getGroup()) {
-//                case "User":
-//                    role.setRole(ROLE_USER);
-//                    newUser.setRoles(new ArrayList<Roles>());
-//                    newUser.getRoles().add(role);
-//                    break;
-//                case "Creater":
                     role.setRole(ROLE_CREATER);
                     newUser.setRoles(new ArrayList<Roles>());
                     newUser.getRoles().add(role);
-//                    break;
-//                default:
-//                    role.setRole(ROLE_UNKNOWN);
-//                    newUser.setRoles(new ArrayList<Roles>());
-//                    newUser.getRoles().add(role);
-//            }
             // зберігаємо користувача в базу
             newUser.setPassword("*");
             newUser.setEmail(formuser.getEmail());
