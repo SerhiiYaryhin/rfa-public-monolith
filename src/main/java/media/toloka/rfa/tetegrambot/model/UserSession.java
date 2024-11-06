@@ -2,6 +2,7 @@ package media.toloka.rfa.tetegrambot.model;
 
 import lombok.Builder;
 import lombok.Data;
+import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
 
 @Data
@@ -17,4 +18,5 @@ public class UserSession {
     private ConversationState state;
     private String city;
     private String text;
+    private MessageRoom RFA_Chat_Choose;
 }

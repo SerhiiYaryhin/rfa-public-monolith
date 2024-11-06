@@ -45,7 +45,7 @@ public class SendTrackEnteredHandler extends UserRequestHandler {
                 replyKeyboardMarkup);
 
 
-        String RFA_Telegram_UUID = userRequest.getUpdate().getMessage().getText();
+//        String RFA_Telegram_UUID = userRequest.getUpdate().getMessage().getText();
 //        log.info("RFA_Telegram_UUID: ",RFA_Telegram_UUID);
         UserSession session = userRequest.getUserSession();
 //        session.setCity(city);

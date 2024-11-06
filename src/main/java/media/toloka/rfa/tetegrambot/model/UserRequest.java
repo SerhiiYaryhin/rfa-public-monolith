@@ -2,6 +2,7 @@ package media.toloka.rfa.tetegrambot.model;
 
 import lombok.Builder;
 import lombok.Data;
+import media.toloka.rfa.media.messanger.model.MessageRoom;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Data
@@ -10,4 +11,5 @@ public class UserRequest {
     private Update update;
     private Long chatId;
     private UserSession userSession;
+
 }

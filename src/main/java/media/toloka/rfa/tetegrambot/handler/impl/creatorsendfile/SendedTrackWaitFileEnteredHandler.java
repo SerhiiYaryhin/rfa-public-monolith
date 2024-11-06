@@ -76,10 +76,10 @@ public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
             telegramFileService.downloadFile(a_id,storePath);
         } catch (IOException e) {
             e.printStackTrace();
-            log.error("Помилка при запису документу.");
+            log.error("SendedTrackWaitFileEnteredHandler. Помилка при запису документу.");
         } catch (TelegramApiException e) {
             e.printStackTrace();
-            log.error("Помилка інтерфейсу Телеграма.");
+            log.error("SendedTrackWaitFileEnteredHandler. Помилка інтерфейсу Телеграма.");
         }
 
 

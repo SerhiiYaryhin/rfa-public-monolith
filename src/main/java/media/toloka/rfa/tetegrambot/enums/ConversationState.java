@@ -13,6 +13,9 @@ public enum ConversationState {
     WAITING_LOGIN_PASSWORD, // Create Login Step 4
     WAITING_LOGIN_EMAIL, // Create Login Step 5
     WAITING_LOGIN_CHECK_INFOMATION, // Create Login Step 6
-    WAITING_LOGIN_CHECK_REPLY // Create Login Step 7
+    WAITING_LOGIN_CHECK_REPLY, // Create Login Step 7
     // Кінець процесу Реєстрації
+    // Робота зі студійними чатами
+    WAITING_CHAT_CHOOSE,
+    WAITING_CHAT_MESSAGE
 }

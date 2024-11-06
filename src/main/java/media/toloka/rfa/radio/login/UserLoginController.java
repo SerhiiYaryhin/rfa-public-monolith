@@ -266,7 +266,6 @@ public class UserLoginController {
         Users newUser = clientService.GetUserByEmail(email);
 
         // перевіряємо, чи є цей емайл в базі
-//        if (opt.isEmpty()) {
         if (newUser == null) {
             newUser = new Users();
             // додали групу для користувача
@@ -309,16 +308,10 @@ public class UserLoginController {
             }
 
             // Готуємо інформацію для відображення для користувача у формі
-//                String message = "Користувача '" + email + "' успішно збережено! Для продовження реєстрації перевірте свою пошту.";
-//                model.addAttribute("msg", message);
             model.addAttribute("success", "Користувача '" + email + "' успішно збережено! Для продовження реєстрації перевірте свою пошту.");
         } else { // знайшли таку пошту
             // формуємо повідомлення для форми
             // Готуємо інформацію для відображення для користувача у формі
-//            String message = "Користувача '" + email + "' знайдено в базі.";
-//            model.addAttribute("msg", message);
-//            userDTO.setRoles(Arrays.asList(userDTO.getName()));
-//            System.out.println("========================= Group " + userDTO.getName() + " ====================");
             model.addAttribute("danger", "Користувача '" + email + "' знайдено в базі.");
             String restorePSW = "Відновити пароль?";
             model.addAttribute("restorepsw", restorePSW);

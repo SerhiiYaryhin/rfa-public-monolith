@@ -42,12 +42,16 @@ public class KeyboardHelper {
                 new KeyboardButton("Надіслати трек"),
                 new KeyboardButton("Надіслати опис до треку"));
         KeyboardRow row1 = new KeyboardRow(buttons);
+        KeyboardRow row5 = new KeyboardRow(List.of(
+                new KeyboardButton(BTN_SEND_TO_CHAT),
+                new KeyboardButton(BTN_LISTEN_RADIO))
+        );
         KeyboardRow row2 = new KeyboardRow(List.of(new KeyboardButton("Перелік треків")));
         KeyboardRow row3 = new KeyboardRow(List.of(new KeyboardButton(BTN_CANCEL)));
         KeyboardRow row4 = new KeyboardRow(List.of(new KeyboardButton("❗️Потрібна допомога")));
 
         return ReplyKeyboardMarkup.builder()
-                .keyboard(List.of(row1, row2, row3, row4))
+                .keyboard(List.of(row1, row5,row2, row3, row4))
                 .selective(true)
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(false)
@@ -83,6 +87,7 @@ public class KeyboardHelper {
                 new KeyboardButton(BTN_TO_RFA_REGISTERS),
                 new KeyboardButton(BTN_TELEGRAM_LINK));
         KeyboardRow row1 = new KeyboardRow(buttons);
+
         KeyboardRow row3 = new KeyboardRow(List.of(new KeyboardButton(BTN_CANCEL)));
         KeyboardRow row4 = new KeyboardRow(List.of(new KeyboardButton("❗️Потрібна допомога")));
 

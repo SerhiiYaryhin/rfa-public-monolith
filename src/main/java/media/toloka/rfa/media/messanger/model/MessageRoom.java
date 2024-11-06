@@ -19,5 +19,8 @@ public class MessageRoom {
     private String uuid= UUID.randomUUID().toString();
     @Expose
     private String roomname;
+    @Expose
+    private Boolean roomOnlineStatus = false;
+
 
 }
