@@ -86,10 +86,10 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     // витягуємо параметри бота з файла конфігурації Телеграму.
     @Override
     public String getBotToken() {
-//        Map<String, String> env = System.getenv();
-//        for (String key : env.keySet()) {
-//            log.info("key + : {} = {}",key, env.get(key)  );
-//        }
+        Map<String, String> env = System.getenv();
+        for (String key : env.keySet()) {
+            log.info("key + : {} = {}",key, env.get(key)  );
+        }
         String varValue = System.getenv("TELEGRAMBOTNAME");
         log.info("Current TELEGRAM BOT: {}",varValue);
         varValue = System.getenv("TELEGRAMBOTKEY");
