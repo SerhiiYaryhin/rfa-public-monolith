@@ -33,7 +33,7 @@ public class Track {
     private String autor;
 
     @Expose
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "store_id")
     private Store storeitem;
 
@@ -51,10 +51,13 @@ public class Track {
     private Boolean notnormalvocabulary = false;
 
     @Expose
-    private Boolean tochat = true;
+    private Boolean tochat = true; // можливість опублікувати в чаті RFA
 
     @Expose
     private EDocumentStatus status;
+
+    @Expose
+    private Boolean publishstatus = false;  // публікація треку на порталі. Інакше - режим редагування інформації
 
     @ToString.Exclude
     @ManyToOne(optional = true, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
@@ -62,7 +65,7 @@ public class Track {
     private Album album;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 }

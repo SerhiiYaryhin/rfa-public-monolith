@@ -42,7 +42,7 @@ public class Store {
 
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 

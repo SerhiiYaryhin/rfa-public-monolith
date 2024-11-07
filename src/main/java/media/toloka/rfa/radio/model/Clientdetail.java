@@ -86,7 +86,7 @@ public class Clientdetail {
     private List<Albumсover> albumсoverList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)
     private List<Store> filesinstore = new ArrayList<>();
 
     @ToString.Exclude

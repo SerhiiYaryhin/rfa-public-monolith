@@ -42,13 +42,13 @@ public class TelegramFileService {
 //        java.io.File localFile = new java.io.File(localFilePath);
         InputStream is = new URL(file.getFileUrl(telegramBot.getBotToken())).openStream();
 
-        try {
-            String storeUUID = storeService.PutFileToStore(is,filename,cd,STORE_TRACK);
-            createrService.SaveTrackUploadInfo(storeUUID, cd);
-        } catch (IOException e) {
-            log.info("Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
-        }
+        String storeUUID = storeService.PutFileToStore(is,filename,cd,STORE_TRACK);
+        createrService.SaveTrackUploadInfo(storeUUID, cd);
+//        try {
+//        } catch (IOException e) {
+//            log.info("Завантаження файлу: Проблема збереження");
+//            e.printStackTrace();
+//        }
 
 //        InputStream is = new URL(file.get  getFileUrl(questionAnsweringBot.getBotToken())).openStream();
 //        FileUtils.copyInputStreamToFile(is, localFile);
