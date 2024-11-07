@@ -5,12 +5,16 @@ package media.toloka.rfa.tetegrambot;
 
 //import lombok.Value;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.tetegrambot.model.UserRequest;
 import media.toloka.rfa.tetegrambot.model.UserSession;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.BotSession;
@@ -30,7 +34,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
 
 //import static jdk.javadoc.internal.tool.Main.execute;
 
@@ -40,10 +46,15 @@ import java.util.Properties;
 @Slf4j
 public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
-    @Value("${media.toloka.rfa.telegram.token}")
+//    @Value("${media.toloka.rfa.telegram.token}")
+
+    @Autowired
+    private Environment env;
+
+    @Value("${telegramtoken}")
     private String botToken;
 
-    @Value("${media.toloka.rfa.telegram.name}")
+    @Value("${telegramname}")
     private String botName;
 
     private final TelegramClient telegramClient;
@@ -75,6 +86,15 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     // витягуємо параметри бота з файла конфігурації Телеграму.
     @Override
     public String getBotToken() {
+//        Map<String, String> env = System.getenv();
+//        for (String key : env.keySet()) {
+//            log.info("key + : {} = {}",key, env.get(key)  );
+//        }
+        String varValue = System.getenv("TELEGRAMBOTNAME");
+        log.info("Current TELEGRAM BOT: {}",varValue);
+        varValue = System.getenv("TELEGRAMBOTKEY");
+//        String tt = env.getProperty("telegramtoken");
+        if (varValue != null) return varValue;
         Properties prop = new Properties();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         InputStream stream = loader.getResourceAsStream("telegram.properties");
@@ -85,6 +105,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             log.error("ERROR: Не можу завантажити файл з параметрами телеграму.");
             return null;
         }
+
         String token = prop.getProperty("telegram.token");
         if (token != null) {
             return token;
