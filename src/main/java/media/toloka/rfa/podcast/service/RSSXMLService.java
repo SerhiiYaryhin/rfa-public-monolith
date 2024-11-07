@@ -119,7 +119,7 @@ public class RSSXMLService {
 
 
         List<PodcastItem> podcastItems = podcastChannel.getItem();
-        logger.info("============= List Item length: {}",podcastItems.size());
+//        logger.info("============= List Item length: {}",podcastItems.size());
 //        for (PodcastItem item : podcastItems) {
         for ( int i = 0; i < podcastItems.size(); i++ ) {
             if (podcastItems.get(i).getTimetrack() == null ) {

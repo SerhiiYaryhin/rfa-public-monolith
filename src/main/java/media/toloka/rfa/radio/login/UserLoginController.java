@@ -99,7 +99,7 @@ public class UserLoginController {
             HttpServletRequest request,
             Model model
     ) {
-        logger.info("============ ROUTE to Group page ");
+//        logger.info("============ ROUTE to Group page ");
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -129,7 +129,7 @@ public class UserLoginController {
             return "redirect:/messenger";
         } else if (clientService.checkRole(ROLE_TELEGRAM)) {
             if (user.getRoles().size() == 1) {
-                // Тільки одна роль у списку
+                // Тільки одна роль для Телеграму у списку
                 // Тож, потрібно зробити вибір між ROLE_CREATER та ROLE_USER
                 return "redirect:/login/setrole";
             }

@@ -2,6 +2,10 @@ package media.toloka.rfa.tetegrambot.handler.impl.creatorsendfile;
 
 
 import lombok.extern.slf4j.Slf4j;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.dropfile.service.FilesService;
+import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
@@ -11,6 +15,7 @@ import media.toloka.rfa.tetegrambot.service.TelegramFileService;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -18,12 +23,25 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
 
 @Slf4j
 @Component
 public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
+
+    @Value("${media.toloka.rfa.upload_directory}")
+    private String PATHuploadDirectory;
+
     @Autowired
     private TelegramFileService telegramFileService;
+
+    @Autowired
+    private ClientService clientService;
+
+
 
     private final TelegramService telegramService;
     private final KeyboardHelper keyboardHelper;
@@ -71,9 +89,14 @@ public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
                 replyKeyboardMarkup);
 
         // Завантажуємо файл mp3
-        String storePath = "/home/ysv/Clients/bot/"+a_id+"_"+a_fn;
+        // отримуємо cd користувача в телеграмі
+        Clientdetail cd = clientService.GetUserFromTelegram(userRequest.getUpdate().getMessage().getFrom().getId().toString());
+        String filename = a_fn;
+
+//        String storePath = "/home/ysv/Clients/bot/"+a_id+"_"+a_fn;
+
         try {
-            telegramFileService.downloadFile(a_id,storePath);
+            telegramFileService.downloadFile(a_id,a_fn,cd);
         } catch (IOException e) {
             e.printStackTrace();
             log.error("SendedTrackWaitFileEnteredHandler. Помилка при запису документу.");

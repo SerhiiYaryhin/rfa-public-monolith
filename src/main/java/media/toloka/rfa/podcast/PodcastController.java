@@ -118,7 +118,7 @@ public class PodcastController {
             @PathVariable String puuid,
             Model model ) {
         // формуємо RSS для конкретного подкасту.
-        logger.info("Get RSS for podcast {}",puuid);
+//        logger.info("Get RSS for podcast {}",puuid);
         byte[] byteArray = rssxmlService.MakeRSSXMLService(podcastService.GetChanelByUUID(puuid)).getBytes(StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-type", MediaType.TEXT_XML_VALUE);
