@@ -83,39 +83,15 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
         this.dispatcher = dispatcher;
     }
 
-    // витягуємо параметри бота з файла конфігурації Телеграму.
+    // витягуємо параметри бота для конфігурації Телеграму.
     @Override
     public String getBotToken() {
-        Map<String, String> env = System.getenv();
-        for (String key : env.keySet()) {
-            log.info("key + : {} = {}",key, env.get(key)  );
-        }
         String varValue = System.getenv("TELEGRAMBOTNAME");
         log.info("Current TELEGRAM BOT: {}",varValue);
         varValue = System.getenv("TELEGRAMBOTKEY");
-//        String tt = env.getProperty("telegramtoken");
         if (varValue != null) return varValue;
-        Properties prop = new Properties();
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        InputStream stream = loader.getResourceAsStream("telegram.properties");
-        try {
-            prop.load(stream);
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("ERROR: Не можу завантажити файл з параметрами телеграму.");
-            return null;
-        }
-
-        String token = prop.getProperty("telegram.token");
-        if (token != null) {
-            return token;
-        }
         return null;
-//        return "1856110317:AAEem1mOzK96bRDWPO9amEctmUF8dtTXBWM";
-//        return botToken;
     }
-//    public String getBotToken() {
-//    }
 
     @Override
     public LongPollingUpdateConsumer getUpdatesConsumer() {
