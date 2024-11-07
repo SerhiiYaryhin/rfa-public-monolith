@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.MessageDigest;
 import java.util.Date;
@@ -65,6 +62,20 @@ public class ClientHomeStationController {
     RabbitTemplate template;
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeStationController.class);
+
+
+    @GetMapping(value = "/user/stationslivebroadcast/{sid}")
+    public String userHomeStationLiveBroadcast(
+            @PathVariable Long sid,
+            Model model ) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        // розібратися з передачей параметру для переходу на сторінку
+        return "redirect:/user/controlstation?id="+sid.toString();
+    }
 
     @GetMapping(value = "/user/stations")
     public String userHomeStation(

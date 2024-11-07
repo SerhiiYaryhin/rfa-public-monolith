@@ -48,7 +48,7 @@ public class Track {
     private String style;
 
     @Expose
-    private Boolean notnormalvocabulary = false;
+    private Boolean notnormalvocabulary = false; // присутня ненормативна лексика
 
     @Expose
     private Boolean tochat = true; // можливість опублікувати в чаті RFA
