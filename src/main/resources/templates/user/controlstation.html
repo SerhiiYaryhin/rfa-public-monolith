@@ -60,16 +60,20 @@
                             <div>
                                 <div th:if="${station.roomuuid == null}">
                                     <b>Створення кімнати в чаті для прямого ефіру.</b><br>
-                                    Надіслати повідомлення можна буде і з чату, і з <a href="https://t.me/TestTolokaMediaBot">Телеграм бота</a><br>
+                                    Надіслати повідомлення можна буде і з чату, і з <a href="https://t.me/TolokaMediaBot">Телеграм бота</a><br>
                                     <a   th:href="'/user/stationcreateroom/'+${station.uuid}" id="liveCreateBroadcast" class="btn btn-primary" >Створити кімнату</a>
                                 </div>
                                 <div th:if="!${station.roomuuid == null}">
-                                    <a th:if="!${stationstateonline}"
-                                       th:href="'/user/stationslivebroadcast/'+${station.uuid}"
-                                       id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
-                                    <a th:if="${stationstateonline}"
-                                       th:href="'/user/stationslivebroadcast/'+${station.uuid}"
-                                       id="liveBroadcastOn" class="btn btn-danger" >Прямий ефір</a>
+                                    <div th:if="!${stationstateonline}">
+                                        Ви можете запустити та зупинити можливість в чаті та <a href="https://t.me/TolokaMediaBot">Телеграмі</a> надсилати повідомлення під час прямого ефіру.<br>
+                                        <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
+                                           id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
+                                    </div>
+                                    <div th:if="${stationstateonline}">
+                                        <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
+                                           id="liveBroadcastOn" class="btn btn-danger" >Прямий ефір</a>
+                                        <span th:text="' Прямий ефір стартував: ' +${#dates.format(roomstart, 'dd-MM-yyyy HH:mm')}"></span>
+                                    </div>
                                 </div>
                                 <hr>
                             </div>

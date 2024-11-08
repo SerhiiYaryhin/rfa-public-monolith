@@ -232,6 +232,7 @@ public class ClientHomeStationController {
         model.addAttribute("station",  mstation);
         Boolean stationstateonline = stationService.GetStationRoomStatus(mstation.getRoomuuid());
         model.addAttribute("stationstateonline", stationstateonline) ;
+        model.addAttribute("roomstart", messangerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline()) ;
         return "/user/controlstation";
     }
 
