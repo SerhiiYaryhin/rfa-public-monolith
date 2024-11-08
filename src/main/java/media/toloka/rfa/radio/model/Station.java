@@ -61,6 +61,8 @@ public class Station {
     private String icecastgenre;
     @Expose
     private Boolean stationstate; // true if station runing state
+    @Expose
+    private String roomuuid = null;
 
 //    private transient Contract contract;
 

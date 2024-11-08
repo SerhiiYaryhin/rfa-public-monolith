@@ -4,6 +4,9 @@ package media.toloka.rfa.radio.station;
 import com.google.gson.Gson;
 import lombok.Data;
 import media.toloka.rfa.config.gson.service.GsonService;
+import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
+import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.history.service.HistoryService;
@@ -61,20 +64,59 @@ public class ClientHomeStationController {
     @Autowired
     RabbitTemplate template;
 
+    @Autowired
+    private MessangerService messangerService;
+
     final Logger logger = LoggerFactory.getLogger(ClientHomeStationController.class);
 
+    // Створюємо кімнату в чаті для радіостанції
+    @GetMapping(value = "/user/stationcreateroom/{suuid}")
+    public String userHomeStationCreateChatRoom(
+            @PathVariable String suuid,
+            Model model ) {
 
-    @GetMapping(value = "/user/stationslivebroadcast/{sid}")
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Station station = stationService.GetStationByUUID(suuid);
+        if (station == null) {
+            return "redirect:/";
+        }
+        if (station.getRoomuuid() == null) {
+            MessageRoom stRoom = new MessageRoom();
+            stRoom.setRoomname(station.getName());
+            stRoom.setRoomtype(EChatRoomType.CHATROOM_TYPE_STATION);
+            messangerService.SaveRoom(stRoom);
+            station.setRoomuuid(stRoom.getUuid());
+            stationService.saveStation(station);
+        }
+        return "redirect:/user/controlstation?id=" + station.getId().toString();
+    }
+
+    // Інвертуємо стан кімнати радіостанції OnLine/OffLine
+    @GetMapping(value = "/user/stationslivebroadcast/{suuid}")
     public String userHomeStationLiveBroadcast(
-            @PathVariable Long sid,
+            @PathVariable String suuid,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        model.addAttribute("stations",  stationService.GetListStationByUser(user));
-        // розібратися з передачей параметру для переходу на сторінку
-        return "redirect:/user/controlstation?id="+sid.toString();
+        Station station = stationService.GetStationByUUID(suuid);
+        if (station == null) {
+            return "redirect:/";
+        }
+        MessageRoom msgroom = messangerService.GetChatRoomByUUID(station.getRoomuuid());
+        msgroom.setRoomOnlineStatus(!msgroom.getRoomOnlineStatus());
+        if (msgroom.getRoomOnlineStatus()) {
+            msgroom.setStartonline(new Date());
+        } else {
+            msgroom.setStartonline(null);
+        }
+        messangerService.SaveRoom(msgroom);
+//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        return "redirect:/user/controlstation?id="+station.getId().toString();
     }
 
     @GetMapping(value = "/user/stations")
@@ -188,6 +230,8 @@ public class ClientHomeStationController {
         model.addAttribute("contracts",  contractService.ListContractByUser(user));
         model.addAttribute("linkstation",  stationService.GetURLStation(mstation));
         model.addAttribute("station",  mstation);
+        Boolean stationstateonline = stationService.GetStationRoomStatus(mstation.getRoomuuid());
+        model.addAttribute("stationstateonline", stationstateonline) ;
         return "/user/controlstation";
     }
 

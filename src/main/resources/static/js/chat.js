@@ -44,17 +44,7 @@ function connect() {
 }
 
 function onCloseEventCallback(str) {
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
     console.log("========== CLOSE EVENT "+str);
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
-    console.log("===================================================================");
 }
 
 function debugToConsole (str) {
@@ -146,7 +136,6 @@ function onUserList(payload) {
 
 function onRoomList(payload) {
 // roomlist
-//    console.log("==== onRoomList ==========================================");
     let jbody = JSON.parse(payload.body);
     // clear userlist
     document.getElementById('roomlist').innerHTML = '';
@@ -162,8 +151,6 @@ function onRoomList(payload) {
         spanname.textContent = ejson.name;
         ejson.uuid.includes(curroom) ? spanname.style.color = 'green' : spanname.style.color = 'black';
         spanname.id = ejson.uuid;
-
-
         spanname.onclick= function () {selectroom(ejson.uuid)};
         // create div with id = userUuid from
         let iDiv = document.createElement('div');
@@ -244,12 +231,7 @@ function unsubscribeRoom(lcurroom) {subcurroom.unsubscribe();}
 
 function subscribeRoom(lcurroom) {
 //        console.log("subscribeRoom");
-//        console.log("curroom="+lcurroom);
         subcurroom = stompClient.subscribe('/topic/'+lcurroom, onPublicMessageReceived);
-
-//        console.log("curroom="+lcurroom);
-        // get content public room
-//        console.log("+++ subscribeRoom Enter to room ++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             stompClient.send("/app/hello",{},
                 JSON.stringify({
                     uuid: curuuid,
@@ -257,24 +239,14 @@ function subscribeRoom(lcurroom) {
                     send: Date.now()
                 })
             );
-//        console.log("=== curroom="+subcurroom);
-//        console.log("+++ Enter to room ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
 
 function LigthOffRoom(lcurroom) {
         document.getElementById(lcurroom).style.color = 'black';
-//        myNode.style.color = "#000000";
-//        myNode.setAttribute("style","color:black;");
-//        console.log("LigthOffRoom");
-//        console.log("curroom="+lcurroom);
     }
 
 function ligthOnRoom(lcurroom) {
         document.getElementById(lcurroom).style.color = 'green';
-//        myNode.style.color = "#ff0000";
-//        lcurroom.setAttribute("style","color:orange;");
-//        console.log("ligthOnRoom");
-//        console.log("curroom="+lcurroom);
     }
 
 function selectroom(toroom) {
@@ -296,8 +268,6 @@ function selectroom(toroom) {
 }
 
 function sendpublic(event) {
-//myinput = document.getElementById('newmessage');
-
     stompClient.send("/app/public",
         {},
         JSON.stringify({
@@ -313,12 +283,8 @@ function sendpublic(event) {
 }
 
 function sendprivate(event) {
-//myinput = document.getElementById('newmessage');
-
     let sinput = document.getElementById('newmessage').value;
-
     if (sinput.length === 0 ) {return}
-
     stompClient.send("/app/private",
         {},
         JSON.stringify({uuid: curuuid,
@@ -328,7 +294,6 @@ function sendprivate(event) {
         toname: toclientname,
         touuid: clientuuid,
         body: sinput
-//        body: document.getElementById('newmessage').value
         })
     );
     document.getElementById('newmessage').value = "";

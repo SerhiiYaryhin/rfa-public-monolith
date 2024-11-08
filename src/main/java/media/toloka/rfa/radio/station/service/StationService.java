@@ -1,5 +1,6 @@
 package media.toloka.rfa.radio.station.service;
 
+import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientaddress;
@@ -32,6 +33,9 @@ public class StationService {
 
     @Autowired
     private StationRepo stationRepo;
+
+    @Autowired
+    private MessangerService messangerService;
 
     @Autowired
     private ClientService clientService;
@@ -280,6 +284,12 @@ public class StationService {
 
     public Station GetStationByUUID(String uuid) {
         return stationRepo.getStationByUuid(uuid);
+    }
+
+    public Boolean GetStationRoomStatus(String roomuuid) {
+        if (roomuuid == null) return false;
+        return messangerService.GetChatRoomByUUID(roomuuid).getRoomOnlineStatus();
+
     }
 
 //    public void saveStation(Station station) {

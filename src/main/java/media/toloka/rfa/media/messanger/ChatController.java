@@ -2,6 +2,7 @@ package media.toloka.rfa.media.messanger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
 import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.media.messanger.model.ChatListElement;
@@ -123,11 +124,16 @@ public class ChatController {
             List<String > usersListMap =  new ArrayList<>();
 
             Map<String, String> roomList =  chatReference.GetRoomsMap();
+            roomList.clear();
+
             if (roomList.size() == 0) {
                 // Init list rooms
                 List<MessageRoom> messageRoomList = messangerService.GetChatRoomList();
                 for (MessageRoom entry : messageRoomList) {
-                    roomList.put(entry.getUuid(), entry.getRoomname());
+                    // Вибираємо Публічні кімнати і кімнати радіостанцій в онлайні
+                    if ((entry.getRoomtype() == EChatRoomType.CHATROOM_TYPE_PUBLIC) || ((entry.getRoomtype() == EChatRoomType.CHATROOM_TYPE_STATION) && entry.getRoomOnlineStatus() ) ) {
+                        roomList.put(entry.getUuid(), entry.getRoomname());
+                    }
                 }
             }
             Gson gson = new GsonBuilder().create();

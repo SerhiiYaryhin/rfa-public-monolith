@@ -126,6 +126,14 @@ public class MessangerService {
         return 0;
     }
 
+    public void SaveRoom(MessageRoom stRoom) {
+        messageRoomRepository.save(stRoom);
+    }
+
+    public MessageRoom GetChatRoomByUUID(String roomuuid) {
+        return messageRoomRepository.getByUuid(roomuuid);
+    }
+
 //    public String GetChatRoomByUUID(String roomuuid) {
 //        return chatRepository.getByUuid(roomuuid);
 //    }

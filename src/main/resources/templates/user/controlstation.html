@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
+<html lang ="uk" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
@@ -58,9 +58,19 @@
                         </div>
                         <div class="col">
                             <div>
-                                Створення кімнати в чаті для прямого ефіру.<br>
-                                Поки не працює. Але ця функція є в планах.<br>
-                                <a th:href="'/user/stationslivebroadcast/'+${station.id}" id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
+                                <div th:if="${station.roomuuid == null}">
+                                    <b>Створення кімнати в чаті для прямого ефіру.</b><br>
+                                    Надіслати повідомлення можна буде і з чату, і з <a href="https://t.me/TestTolokaMediaBot">Телеграм бота</a><br>
+                                    <a   th:href="'/user/stationcreateroom/'+${station.uuid}" id="liveCreateBroadcast" class="btn btn-primary" >Створити кімнату</a>
+                                </div>
+                                <div th:if="!${station.roomuuid == null}">
+                                    <a th:if="!${stationstateonline}"
+                                       th:href="'/user/stationslivebroadcast/'+${station.uuid}"
+                                       id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
+                                    <a th:if="${stationstateonline}"
+                                       th:href="'/user/stationslivebroadcast/'+${station.uuid}"
+                                       id="liveBroadcastOn" class="btn btn-danger" >Прямий ефір</a>
+                                </div>
                                 <hr>
                             </div>
                             <div class="form-outline">
