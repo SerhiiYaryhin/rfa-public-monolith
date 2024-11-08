@@ -61,7 +61,7 @@ public class MessangerService {
     }
 
     public MessageRoom GetChatRoomById(long l) {
-        return messageRoomRepository.getById(l);
+        return messageRoomRepository.getById(l); //
     }
 
     public List<MessageRoom> GetChatRoomList() {
