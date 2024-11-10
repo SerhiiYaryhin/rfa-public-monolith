@@ -231,4 +231,8 @@ public class PodcastService {
     public void ItunesCategoryClear(PodcastItunesCategory toclear) {
         itunesCategoryRepository.delete(toclear);
     }
+
+    public List<PodcastItem> GetListByTitle(String title) {
+        return episodeRepository.findByTitle(title);
+    }
 }

@@ -16,5 +16,6 @@ public interface EpisodeRepository
     PodcastItem save(PodcastItem episode);
 
     List<PodcastItem> findByClientdetailOrderByIdDesc(Clientdetail cd);
+    List<PodcastItem> findByTitle(String title);
 
 }

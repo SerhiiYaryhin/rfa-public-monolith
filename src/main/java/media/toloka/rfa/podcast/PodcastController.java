@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.lang.reflect.Array;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.Format;
@@ -125,13 +126,22 @@ public class PodcastController {
         // хтось довбиться за назвою епізодів
         // 66.249.66.167 => http://rfa.toloka.media/podcast/rss/%D0%9B%D0%98%D0%A1%D0%98%D0%A6%D0%AF%20%D0%86%20%D0%A0%D0%90%D0%9A
         // ЛИСИЦЯ І РАК
+        String decodedUrl;
         if (pc == null ) {
-            logger.info("========== хтось довбиться за назвою епізодів");
-            String is = "ERROR";
-            byte[] byteArray = is.getBytes();
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-type", MediaType.TEXT_XML_VALUE);
-            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
+            decodedUrl = URLDecoder.decode(puuid, StandardCharsets.UTF_8);
+            System.out.println(decodedUrl);
+//            logger.info("========== хтось довбиться за назвою епізоду");
+            List<PodcastItem> podcastItemList =  podcastService.GetListByTitle(decodedUrl);
+            if (podcastItemList.size() != 1) {
+                String is = "ERROR";
+                byte[] byteArray = is.getBytes();
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Content-type", MediaType.TEXT_XML_VALUE);
+                return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
+            } else {
+                pc = podcastItemList.get(0).getChanel();
+                logger.info("========== хтось довбиться за назвою епізоду: "+decodedUrl);
+            }
         }
         byte[] byteArray = rssxmlService.MakeRSSXMLService(pc).getBytes(StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
