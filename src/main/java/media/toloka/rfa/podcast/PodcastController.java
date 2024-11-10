@@ -119,7 +119,12 @@ public class PodcastController {
             Model model ) {
         // формуємо RSS для конкретного подкасту.
 //        logger.info("Get RSS for podcast {}",puuid);
-        byte[] byteArray = rssxmlService.MakeRSSXMLService(podcastService.GetChanelByUUID(puuid)).getBytes(StandardCharsets.UTF_8);
+        PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
+        // хтось довбиться за назвою епізодів
+        // 66.249.66.167 => http://rfa.toloka.media/podcast/rss/%D0%9B%D0%98%D0%A1%D0%98%D0%A6%D0%AF%20%D0%86%20%D0%A0%D0%90%D0%9A
+        // ЛИСИЦЯ І РАК
+        if (pc == null ) return null;
+        byte[] byteArray = rssxmlService.MakeRSSXMLService(pc).getBytes(StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-type", MediaType.TEXT_XML_VALUE);
 
