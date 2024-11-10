@@ -32,6 +32,8 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+
 @Controller
 public class PodcastController {
 // стандарт RSS для подкаста
@@ -123,7 +125,14 @@ public class PodcastController {
         // хтось довбиться за назвою епізодів
         // 66.249.66.167 => http://rfa.toloka.media/podcast/rss/%D0%9B%D0%98%D0%A1%D0%98%D0%A6%D0%AF%20%D0%86%20%D0%A0%D0%90%D0%9A
         // ЛИСИЦЯ І РАК
-        if (pc == null ) return null;
+        if (pc == null ) {
+            logger.info("хтось довбиться за назвою епізодів");
+            String is = "ERROR";
+            byte[] byteArray = is.getBytes();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-type", MediaType.TEXT_XML_VALUE);
+            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
+        }
         byte[] byteArray = rssxmlService.MakeRSSXMLService(pc).getBytes(StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-type", MediaType.TEXT_XML_VALUE);
