@@ -57,6 +57,7 @@ public class SecurityConfig {
 //                        "/rfachat/**",
                         "/sendmail",
                         "/setUserPassword").permitAll()
+                .requestMatchers("/robots.txt").permitAll()
                 .requestMatchers("/admin/**").hasAuthority("Admin")
                 .requestMatchers("/user/**").hasAuthority("User")
                 .requestMatchers("/creater/**").hasAuthority("Creator")
