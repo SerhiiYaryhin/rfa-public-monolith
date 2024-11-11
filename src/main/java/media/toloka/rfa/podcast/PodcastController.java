@@ -77,10 +77,14 @@ public class PodcastController {
     public String podcastview(
             @PathVariable String puuid,
             Model model ) {
-        logger.info("Зайшли на /podcast/view/{puuid}");
+        logger.info("Зайшли на /podcast/view/{}",puuid);
 
 
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(puuid);
+        if (podcastChannel == null) {
+            logger.info("Хтось помилився посиланням. Знов довбляться на сайт.");
+            return "redirect:/";
+        }
 
         model.addAttribute("podcast",  podcastChannel);
 
