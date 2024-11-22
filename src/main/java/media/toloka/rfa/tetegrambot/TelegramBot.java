@@ -51,10 +51,10 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     @Autowired
     private Environment env;
 
-    @Value("${telegramtoken}")
+    @Value("${TELEGRAMBOTKEY}")
     private String botToken;
 
-    @Value("${telegramname}")
+    @Value("${TELEGRAMBOTNAME}")
     private String botName;
 
     private final TelegramClient telegramClient;
@@ -86,9 +86,15 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     // витягуємо параметри бота для конфігурації Телеграму.
     @Override
     public String getBotToken() {
+//         varValue = botName;
+//        log.info("Current botName TELEGRAM BOT: {}",botName);
         String varValue = System.getenv("TELEGRAMBOTNAME");
         log.info("Current TELEGRAM BOT: {}",varValue);
+//        varValue = botToken;
+//        log.info("Current botToken TELEGRAM BOT: {}",varValue);
+//        if (varValue != null) return varValue;
         varValue = System.getenv("TELEGRAMBOTKEY");
+//        log.info("Current env TELEGRAM BOT: {}",varValue);
         if (varValue != null) return varValue;
         return null;
     }
