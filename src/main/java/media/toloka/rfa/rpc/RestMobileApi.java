@@ -62,7 +62,13 @@ public class RestMobileApi {
         List<Post> setPosts = postService.GetPostsByCategory(postCategory);
         if (setPosts.isEmpty())
             return setPosts;
-        return setPosts;
+        List<Post> set1Posts = new ArrayList<>();
+        for (Post post : setPosts) {
+            post.setClientdetail(null);
+            post.setStore(null);
+            set1Posts.add(post);
+        }
+        return set1Posts;
     }
 
 
