@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.post.service;
 
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,5 +34,9 @@ public class PostService {
 
     public Post GetByUiid(String uuidpost) {
         return postRepositore.getByUuid(uuidpost);
+    }
+
+    public List<Post> GetPostsByCategory(EPostCategory postCategory) {
+        return postRepositore.getByCategory(postCategory);
     }
 }

@@ -1,19 +1,26 @@
 package media.toloka.rfa.rpc;
 
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import media.toloka.rfa.radio.post.service.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
+//@RequestMapping(path="/mapi",produces="application/json")
 public class RestMobileApi {
+
+    @Autowired
+    private PostService postService;
 
     @ToString(includeFieldNames=true)
     @Getter
@@ -25,8 +32,8 @@ public class RestMobileApi {
         private Boolean rootPage;
 
     }
-
-    @GetMapping ("/mapi/1.0/public/getpostcategory") //, consumes = "application/json", produces = "application/json")
+//
+    @RequestMapping ("/mapi/1.0/public/getpostcategory") //, consumes = "application/json", produces = "application/json")
     public Set<String> GetGroupsinPosts() {
         Integer key = 0;
         Set<String> setEPostCategory = new HashSet<>();
@@ -38,22 +45,25 @@ public class RestMobileApi {
         return setEPostCategory;
     }
 
-    @GetMapping ("/mapi/1.0/public/getpostcategorymap") //, consumes = "application/json", produces = "application/json")
-    public Map<Integer, GroupEnum> GetGroupsinPostsMap() {
+    ///mapi
+
+//    @RequestMapping ("/mapi/1.0/public/getpostbycategory/{category}") //, consumes = "application/json", produces = "application/json")
+    @RequestMapping(value = "/mapi/1.0/public/getpostbycategory/{category}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody List<Post> GetPostsByGroups(
+//    public DataResponse GetGroupsinPostsMap(
+            HttpServletResponse response,
+            @PathVariable String category,
+            Model model) {
         Integer key = 0;
-        Map<Integer, GroupEnum> mapEPostCategory = new HashMap();
-        for (EPostCategory category : EnumSet.allOf(EPostCategory.class)) {
-            if (category.rootPage) {
-                GroupEnum tgrp = new GroupEnum();
-                tgrp.setCategory(category);
-                tgrp.setCount(key.toString());
-                tgrp.setLabel(category.label);
-                tgrp.setRootPage(category.rootPage);
-                mapEPostCategory.put(key++, tgrp);
-            }
-//                    category.toString());
-            System.out.println(category);
+        EPostCategory postCategory = null; // = EPostCategory.POST_NEWS;
+        for (EPostCategory ccategory : EnumSet.allOf(EPostCategory.class)) {
+            if (category.equals(ccategory.toString())) postCategory = ccategory;
         }
-        return mapEPostCategory;
+        List<Post> setPosts = postService.GetPostsByCategory(postCategory);
+        if (setPosts.isEmpty())
+            return setPosts;
+        return setPosts;
     }
+
+
 }
