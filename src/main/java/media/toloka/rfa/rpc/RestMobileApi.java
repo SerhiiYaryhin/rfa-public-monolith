@@ -26,7 +26,7 @@ public class RestMobileApi {
     @Getter
     @Setter
     private class GroupEnum {
-        private String count;
+        private Integer count;
         private EPostCategory category;
         private String label;
         private Boolean rootPage;
@@ -34,12 +34,18 @@ public class RestMobileApi {
     }
 //
     @RequestMapping ("/mapi/1.0/public/getpostcategory") //, consumes = "application/json", produces = "application/json")
-    public Set<String> GetGroupsinPosts() {
+    public Set<GroupEnum> GetGroupsinPosts() {
         Integer key = 0;
-        Set<String> setEPostCategory = new HashSet<>();
+        Set<GroupEnum> setEPostCategory = new HashSet<>();
         for (EPostCategory category : EnumSet.allOf(EPostCategory.class)) {
-            if (category.rootPage) setEPostCategory.add(
-                    category.toString());
+            if (category.rootPage) {
+                GroupEnum egrp = new GroupEnum();
+                egrp.setCount(key++);
+                egrp.setLabel(category.label);
+                egrp.setRootPage(category.rootPage);
+                egrp.setCategory(category);
+                setEPostCategory.add(egrp);
+            }
             System.out.println(category);
         }
         return setEPostCategory;
