@@ -55,9 +55,7 @@ public class RestMobileApi {
 
 //    @RequestMapping ("/mapi/1.0/public/getpostbycategory/{category}") //, consumes = "application/json", produces = "application/json")
     @RequestMapping(value = "/mapi/1.0/public/getpostbycategory/{category}", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
-//    produces = "application/json;charset=utf-8"
     public @ResponseBody List<Post> GetPostsByGroups(
-//    public DataResponse GetGroupsinPostsMap(
             HttpServletResponse response,
             @PathVariable String category,
             Model model) {
