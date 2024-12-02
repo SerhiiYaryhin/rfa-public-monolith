@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
+@CrossOrigin
 //@RequestMapping(path="/mapi",produces="application/json")
 public class RestMobileApi {
 
@@ -33,7 +34,8 @@ public class RestMobileApi {
 
     }
 //
-    @RequestMapping ("/mapi/1.0/public/getpostcategory") //, consumes = "application/json", produces = "application/json")
+    @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
     public Set<GroupEnum> GetGroupsinPosts() {
         Integer key = 0;
         Set<GroupEnum> setEPostCategory = new HashSet<>();
