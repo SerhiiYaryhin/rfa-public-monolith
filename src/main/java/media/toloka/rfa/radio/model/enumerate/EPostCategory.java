@@ -1,12 +1,12 @@
 package media.toloka.rfa.radio.model.enumerate;
 
 public enum EPostCategory {
-    POST_ANONCE("Анонс",true),
+    POST_ANONCE("Анонс",false),
     POST_MUSIC("Музична стаття"),
     POST_GRANTS("Гранти"),
     POST_OTG("Новини громади"),
     POST_NEWS("Новина сайту", true),
-    POST_FREE("Будь що");
+    POST_FREE("Будь що",true);
 
     public final String label;
     public final Boolean rootPage;
