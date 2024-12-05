@@ -6,7 +6,7 @@ public enum EPostCategory {
     POST_GRANTS("Гранти"),
     POST_OTG("Новини громади"),
     POST_NEWS("Новина сайту", true),
-    POST_FREE("Будь що",true);
+    POST_FREE("Будь що");
 
     public final String label;
     public final Boolean rootPage;
