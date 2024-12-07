@@ -37,6 +37,6 @@ public class PostService {
     }
 
     public List<Post> GetPostsByCategory(EPostCategory postCategory) {
-        return postRepositore.getByCategoryOrderByCreatedateDesc(postCategory);
+        return postRepositore.getByCategoryOrderByPublishdateDesc(postCategory);
     }
 }
