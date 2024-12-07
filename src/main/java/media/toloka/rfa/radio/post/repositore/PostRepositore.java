@@ -21,5 +21,5 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
 
     Post getByUuid(String postUuid);
 
-    List<Post> getByCategory(EPostCategory postCategory);
+    List<Post> getByCategoryOrderByCreatedateDesc(EPostCategory postCategory);
 }
