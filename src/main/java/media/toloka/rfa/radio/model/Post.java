@@ -6,9 +6,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
+//import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostStatus;
 import media.toloka.rfa.radio.store.model.Store;
-import media.toloka.rfa.security.model.Users;
+//import media.toloka.rfa.security.model.Users;
 
 import java.util.Date;
 import java.util.UUID;
@@ -40,6 +41,9 @@ public class Post {
     private EPostCategory category;
     @Expose
     private String coverstoreuuid;
+    @Expose
+    @ManyToOne(cascade = {CascadeType.ALL})
+    private PostCategory postcategory;
 
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
