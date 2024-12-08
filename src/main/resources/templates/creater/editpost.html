@@ -55,6 +55,12 @@
                                 th:value="${item.name}"
                                 th:text="${item.label}" />
                     </select>
+                    <select th:field="*{postcategory}" >
+                        <option value="--------" text="--------------"/>
+                        <option th:each="item: ${firstpostcategoryslist}"
+                                th:value="${item}"
+                                th:text="${item.label}" />
+                    </select>
                     <script>
                     tinymce.init({
                       selector: 'textarea',

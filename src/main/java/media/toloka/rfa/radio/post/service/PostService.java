@@ -52,4 +52,8 @@ public class PostService {
     public List<PostCategory> getChildPostCategory(PostCategory category) {
         return postCategoryRepositore.findByParent(category);
     }
+
+    public PostCategory getCategoryByUUID(String uuid) {
+        return postCategoryRepositore.getByUuid(uuid);
+    }
 }
