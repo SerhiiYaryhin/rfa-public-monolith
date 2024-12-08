@@ -1,7 +1,9 @@
 package media.toloka.rfa.radio.post.service;
 
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
+import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,9 @@ public class PostService {
 
     @Autowired
     private PostRepositore postRepositore;
+
+    @Autowired
+    private PostCategoryRepositore postCategoryRepositore;
 
 
     public Post GetPostById(Long idPost) {
@@ -38,5 +43,13 @@ public class PostService {
 
     public List<Post> GetPostsByCategory(EPostCategory postCategory) {
         return postRepositore.getByCategoryOrderByPublishdateDesc(postCategory);
+    }
+
+    public List<PostCategory> getPostCategory() {
+        return postCategoryRepositore.findAll();
+    }
+
+    public List<PostCategory> getChildPostCategory(PostCategory category) {
+        return postCategoryRepositore.findByParent(category);
     }
 }

@@ -16,7 +16,9 @@ public class PostCategory {
     @Expose
     private String uuid= UUID.randomUUID().toString();
     @Expose
-    private String title;
+    private String label;
+    @Expose
+    private Boolean rootPage;
     @Expose
     @ManyToOne(cascade = {CascadeType.ALL})
     private PostCategory parent = null;

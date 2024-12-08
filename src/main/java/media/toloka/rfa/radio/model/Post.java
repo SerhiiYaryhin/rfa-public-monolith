@@ -43,7 +43,7 @@ public class Post {
     private String coverstoreuuid;
     @Expose
     @ManyToOne(cascade = {CascadeType.ALL})
-    private PostCategory postcategory;
+    private PostCategory postcategory = null;
 
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})

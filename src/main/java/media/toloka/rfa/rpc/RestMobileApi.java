@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,19 @@ public class RestMobileApi {
         private Boolean rootPage;
 
     }
-//
+
+    @ToString(includeFieldNames=true)
+    @Getter
+    @Setter
+    private class LGroup {
+        private Integer count;
+        private PostCategory category;
+        private String label;
+        private Boolean rootPage;
+        private List<PostCategory> child;
+    }
+
+    //
     @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 //    @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
     public Set<GroupEnum> GetGroupsinPosts() {
@@ -79,5 +92,25 @@ public class RestMobileApi {
         return set1Posts;
     }
 
+    @RequestMapping (value = "/mapi/1.1/public/getpostcategory", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
+    public Set<LGroup> GetPostGroup() {
+        Integer key = 0;
+        Set<LGroup> setPostCategory = new HashSet<>();
+        for (PostCategory category : postService.getPostCategory()) {
+            if (category.getRootPage()) {
+                LGroup egrp = new LGroup();
+                egrp.setCount(key++);
+                egrp.setLabel(category.getLabel());
+                egrp.setRootPage(category.getRootPage());
+                egrp.setCategory(category);
+                List<PostCategory> listparent = postService.getChildPostCategory(category);
+                egrp.setChild(listparent);
+                setPostCategory.add(egrp);
+            }
+            System.out.println(category);
+        }
+        return setPostCategory;
+    }
 
 }
