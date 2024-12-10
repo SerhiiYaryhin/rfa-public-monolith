@@ -45,6 +45,7 @@ public class RestMobileApi {
         private PostCategory category;
         private String label;
         private Boolean rootPage;
+        private String uuid;
         private List<PostCategory> child;
     }
 
@@ -110,7 +111,7 @@ public class RestMobileApi {
                 List<PostCategory> listparent = postService.getChildPostCategory(category);
                 egrp.setChild(null);
 //                egrp.setChild(listparent);
-                egrp.set
+                egrp.setUuid(category.getUuid());
                 setPostCategory.add(egrp);
             }
             System.out.println(category);
