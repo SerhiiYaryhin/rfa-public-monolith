@@ -23,4 +23,5 @@ public class PostCategory {
     @Expose
     @ManyToOne(cascade = {CascadeType.ALL})
     private PostCategory parent = null;
+
 }
