@@ -103,9 +103,12 @@ public class RestMobileApi {
                 egrp.setCount(key++);
                 egrp.setLabel(category.getLabel());
                 egrp.setRootPage(category.getRootPage());
-                egrp.setCategory(category);
+                egrp.setCategory(null);
+//                egrp.setCategory(category);
                 List<PostCategory> listparent = postService.getChildPostCategory(category);
-                egrp.setChild(listparent);
+                egrp.setChild(null);
+//                egrp.setChild(listparent);
+                egrp.set
                 setPostCategory.add(egrp);
             }
             System.out.println(category);
