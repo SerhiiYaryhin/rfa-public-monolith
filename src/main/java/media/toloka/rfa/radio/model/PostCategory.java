@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.UUID;
 
+
 @Data
 @Entity
 @Table(indexes = @Index(columnList = "uuid"))
