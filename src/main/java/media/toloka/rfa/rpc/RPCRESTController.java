@@ -162,7 +162,7 @@ public class RPCRESTController {
             return null;
         }
         // todo Перевірити. передбачити маршрутизацію на сервер, на якому виконується докер
-        // application.properties: media.toloka.rfa.server.libretime.guiserver=localhost
+        // application-default.properties: media.toloka.rfa.server.libretime.guiserver=localhost
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
 
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep "+station.getUuid());

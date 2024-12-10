@@ -147,7 +147,7 @@ public class PostController {
         post.setPostbody(fPost.getPostbody());
         post.setPosttitle(fPost.getPosttitle());
         post.setCategory(fPost.getCategory());
-        PostCategory pc = postService.getCategoryByUUID(fPost.getPostcategory().getUuid());
+//        PostCategory pc = postService.getCategoryByUUID(fPost.getPostcategory().getUuid());
         post.setPostcategory(fPost.getPostcategory());
         post.setClientdetail(cd);
 

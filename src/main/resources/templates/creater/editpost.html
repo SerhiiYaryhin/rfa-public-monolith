@@ -50,15 +50,15 @@
                     <br>
                     <span>Розділ:</span>
                     <select th:field="*{category}" >
-                        <option value="--------" text="--------------"/>
+<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
                         <option th:each="item: ${categorys}"
                                 th:value="${item.name}"
                                 th:text="${item.label}" />
                     </select>
                     <select th:field="*{postcategory}" >
-                        <option value="--------" text="--------------"/>
+<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
                         <option th:each="item: ${firstpostcategoryslist}"
-                                th:value="${item}"
+                                th:value="${item.id}"
                                 th:text="${item.label}" />
                     </select>
                     <script>

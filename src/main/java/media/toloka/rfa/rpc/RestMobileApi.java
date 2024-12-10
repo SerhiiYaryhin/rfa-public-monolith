@@ -113,4 +113,30 @@ public class RestMobileApi {
         return setPostCategory;
     }
 
+    @RequestMapping(value = "/mapi/1.1/public/getpostbycategory/{uuid_category}", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
+    public @ResponseBody List<Post> GetPostsByGroupsnew(
+            HttpServletResponse response,
+            @PathVariable String uuid_category,
+            Model model) {
+        Integer key = 0;
+        PostCategory postCategory = null; // = EPostCategory.POST_NEWS;
+        for (PostCategory ccategory : postService.getPostCategory()) {
+            if (uuid_category.equals(ccategory.getUuid())) {
+                postCategory = postService.getCategoryByUUID(uuid_category);
+            }
+        }
+
+        List<Post> setPosts = postService.GetPostsByCategory(postCategory);
+        if (setPosts.isEmpty())
+            return setPosts;
+        List<Post> set1Posts = new ArrayList<>();
+        for (Post post : setPosts) {
+            post.setClientdetail(null);
+            post.setStore(null);
+            post.setPostbody(null);
+            set1Posts.add(post);
+        }
+        return set1Posts;
+    }
+
 }

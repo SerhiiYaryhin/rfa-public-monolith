@@ -44,9 +44,12 @@ public class PostService {
     public List<Post> GetPostsByCategory(EPostCategory postCategory) {
         return postRepositore.getByCategoryOrderByPublishdateDesc(postCategory);
     }
+    public List<Post> GetPostsByCategory(PostCategory postCategory) {
+        return postRepositore.getByPostcategoryOrderByPublishdateDesc(postCategory);
+    }
 
     public List<PostCategory> getPostCategory() {
-        return postCategoryRepositore.findAll();
+        return postCategoryRepositore.findAllByOrderByIdAsc();
     }
 
     public List<PostCategory> getChildPostCategory(PostCategory category) {

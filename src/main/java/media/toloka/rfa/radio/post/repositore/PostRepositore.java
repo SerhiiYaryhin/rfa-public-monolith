@@ -2,6 +2,7 @@ package media.toloka.rfa.radio.post.repositore;
 
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,4 +23,6 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
     Post getByUuid(String postUuid);
 
     List<Post> getByCategoryOrderByPublishdateDesc(EPostCategory postCategory);
+
+    List<Post> getByPostcategoryOrderByPublishdateDesc(PostCategory postCategory);
 }
