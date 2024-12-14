@@ -9,6 +9,8 @@ import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.service.PostService;
+import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
+import media.toloka.rfa.radio.station.service.StationOnlineList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
@@ -143,6 +145,28 @@ public class RestMobileApi {
             set1Posts.add(post);
         }
         return set1Posts;
+    }
+
+    @RequestMapping (value = "/mapi/1.1/public/getstationonline", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<ListOnlineFront> GetStationOnline() {
+        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
+//        Integer key = 0;
+//        Set<LGroup> setPostCategory = new HashSet<>();
+//        for (PostCategory category : postService.getPostCategory()) {
+//            if (category.getRootPage()) {
+//                LGroup egrp = new LGroup();
+//                egrp.setCount(key++);
+//                egrp.setLabel(category.getLabel());
+//                egrp.setRootPage(category.getRootPage());
+//                egrp.setCategory(null);
+//                List<PostCategory> listparent = postService.getChildPostCategory(category);
+//                egrp.setChild(null);
+//                egrp.setUuid(category.getUuid());
+//                setPostCategory.add(egrp);
+//            }
+//            System.out.println(category);
+//        }
+        return stationOnlineList;
     }
 
 }
