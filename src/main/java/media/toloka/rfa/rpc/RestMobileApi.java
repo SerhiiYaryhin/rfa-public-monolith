@@ -97,7 +97,7 @@ public class RestMobileApi {
         return set1Posts;
     }
 
-    @RequestMapping (value = "/mapi/1.1/public/getpostcategory", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping (value = "/mapi/1.1/public/getpostcategory", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
 //    @RequestMapping (value = "/mapi/1.0/public/getpostcategory", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
     public Set<LGroup> GetPostGroup() {
         Integer key = 0;
@@ -121,7 +121,7 @@ public class RestMobileApi {
         return setPostCategory;
     }
 
-    @RequestMapping(value = "/mapi/1.1/public/getpostbycategory/{uuid_category}", method = RequestMethod.GET, /*produces = MediaType.APPLICATION_JSON_VALUE*/ produces = "application/json;charset=utf-8")
+    @RequestMapping(value = "/mapi/1.1/public/getpostbycategory/{uuid_category}", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
     public @ResponseBody List<Post> GetPostsByGroupsnew(
             HttpServletResponse response,
             @PathVariable String uuid_category,
@@ -147,25 +147,10 @@ public class RestMobileApi {
         return set1Posts;
     }
 
-    @RequestMapping (value = "/mapi/1.1/public/getstationonline", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping (value = "/mapi/1.1/public/getstationonline", method = RequestMethod.GET, produces = "application/json;charset=utf-8" /*produces = MediaType.APPLICATION_JSON_VALUE*/)
     public List<ListOnlineFront> GetStationOnline() {
         List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
-//        Integer key = 0;
-//        Set<LGroup> setPostCategory = new HashSet<>();
-//        for (PostCategory category : postService.getPostCategory()) {
-//            if (category.getRootPage()) {
-//                LGroup egrp = new LGroup();
-//                egrp.setCount(key++);
-//                egrp.setLabel(category.getLabel());
-//                egrp.setRootPage(category.getRootPage());
-//                egrp.setCategory(null);
-//                List<PostCategory> listparent = postService.getChildPostCategory(category);
-//                egrp.setChild(null);
-//                egrp.setUuid(category.getUuid());
-//                setPostCategory.add(egrp);
-//            }
-//            System.out.println(category);
-//        }
+
         return stationOnlineList;
     }
 
