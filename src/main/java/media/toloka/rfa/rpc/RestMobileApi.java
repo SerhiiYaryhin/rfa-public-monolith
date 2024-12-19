@@ -140,8 +140,8 @@ public class RestMobileApi {
         List<Post> set1Posts = new ArrayList<>();
         for (Post post : setPosts) {
             post.setClientdetail(null);
-//            post.setStore(null);
-            post.setPostbody(null);
+            post.setStore(null);
+//            post.setPostbody(null);
             set1Posts.add(post);
         }
         return set1Posts;
