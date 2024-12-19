@@ -154,4 +154,15 @@ public class RestMobileApi {
         return stationOnlineList;
     }
 
+
+    @RequestMapping (value = "/mapi/1.1/public/getpostbyuuid/{postUUID}", method = RequestMethod.GET, produces = "application/json;charset=utf-8" /*produces = MediaType.APPLICATION_JSON_VALUE*/)
+    public Post GetPostByUUID(            HttpServletResponse response,
+                                          @PathVariable String postUUID,
+                                          Model model) {
+        Post curPost = postService.GetByUiid(postUUID);
+//        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
+
+        return curPost;
+    }
+
 }
