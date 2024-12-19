@@ -160,6 +160,8 @@ public class RestMobileApi {
                                           @PathVariable String postUUID,
                                           Model model) {
         Post curPost = postService.GetByUiid(postUUID);
+        curPost.setClientdetail(null);
+        curPost.setStore(null);
 //        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
         return curPost;
