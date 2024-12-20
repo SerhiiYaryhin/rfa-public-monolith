@@ -141,7 +141,7 @@ public class RestMobileApi {
         for (Post post : setPosts) {
             post.setClientdetail(null);
             post.setStore(null);
-//            post.setPostbody(null);
+            post.setPostbody(null);
             set1Posts.add(post);
         }
         return set1Posts;
@@ -155,7 +155,7 @@ public class RestMobileApi {
     }
 
 
-    @RequestMapping (value = "/mapi/1.1/public/getpostbyuuid/{postUUID}", method = RequestMethod.GET, produces = "application/json;charset=utf-8" /*produces = MediaType.APPLICATION_JSON_VALUE*/)
+    @RequestMapping (value = "/mapi/1.1/public/getpostbodybyuuid/{postUUID}", method = RequestMethod.GET, produces = "application/json;charset=utf-8" /*produces = MediaType.APPLICATION_JSON_VALUE*/)
     public Post GetPostByUUID(            HttpServletResponse response,
                                           @PathVariable String postUUID,
                                           Model model) {
