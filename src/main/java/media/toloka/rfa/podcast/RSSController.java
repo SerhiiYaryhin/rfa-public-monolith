@@ -64,6 +64,7 @@ public class RSSController {
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
     /* Формуємо RSS для подкасту */
+    /* Що це таке і де воно використовується - взагалі не зрозуміло */
     @GetMapping(value = "/rss/{puuid}", produces = "application/xml")
     public String PodcastChanel(
             @PathVariable String puuid,
@@ -94,6 +95,7 @@ public class RSSController {
 
         /* цикл по епізодам */
     }
+
     private static void writeXml(Document doc,
                                  OutputStream output)
             throws TransformerException {

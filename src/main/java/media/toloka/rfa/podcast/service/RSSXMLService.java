@@ -513,7 +513,8 @@ public class RSSXMLService {
         StreamResult result = new StreamResult(outputStream);
 
         try {
-            outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes("UTF-8"));
+//            outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes("UTF-8"));
+            outputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes(StandardCharsets.UTF_8));
         } catch (UnsupportedEncodingException e) {
             System.out.println ("Щось пішло не так при перекодуванні XML :( ");
         } catch (IOException exception) {

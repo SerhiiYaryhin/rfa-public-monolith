@@ -106,26 +106,28 @@ public class PodcastController {
         return "redirect:/podcast/home";
     }
 
+    /*
+    Сторінка з переліком наявних на порталі подкастів з пагінацією
+
+ */
     @GetMapping(value = "/podcast/all")
     public String podcastAllview(
 //            @PathVariable String puuid,
             Model model ) {
-/*
-    Сторінка з переліком наявних на порталі подкастів з пагінацією
 
- */
         List<PodcastChannel> podcastChList = podcastService.GetAllChanel();
         model.addAttribute("podcastList",  podcastChList);
 
         return "/guest/podcastall";
     }
 
+    // формуємо RSS для конкретного подкасту.
     @GetMapping(value = "/podcast/rss/{puuid}")
     public ResponseEntity<byte[]> podcastRss(
             @PathVariable String puuid,
             Model model ) {
-        // формуємо RSS для конкретного подкасту.
-//        logger.info("Get RSS for podcast {}",puuid);
+
+//        logger.info("Get RSS for RFA podcast {}",puuid);
         PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
         // хтось довбиться за назвою епізодів
         // 66.249.66.167 => http://rfa.toloka.media/podcast/rss/%D0%9B%D0%98%D0%A1%D0%98%D0%A6%D0%AF%20%D0%86%20%D0%A0%D0%90%D0%9A
@@ -154,19 +156,26 @@ public class PodcastController {
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
     }
 
+    // відображаємо епізод подкасту
     @GetMapping(value = "/podcast/episode/{euuid}")
     public String podcastEpisodeView(
             @PathVariable String euuid,
             Model model ) {
-/*
-    Сторінка з переліком наявних на порталі подкастів з пагінацією
 
- */
         PodcastItem podcastItem = podcastService.GetEpisodeByUUID(euuid);
         model.addAttribute("podcastItem",  podcastItem);
 
         return "/podcast/episode";
     }
 
+    /* Працюємо із завантаженням подкасту з RSS URL */
+
+    /* забираємо подкаст за посиланням на RSS */
+    @GetMapping(value = "/podcast/GetRSSFromUrl")
+    public String GetRssFromUrl(            @PathVariable String euuid,
+                                     Model model ) {
+
+        return "/podcast/GetRSSFromUrl";
+    }
 
 }
