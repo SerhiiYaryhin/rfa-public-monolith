@@ -48,6 +48,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+//import static org.jcp.xml.dsig.internal.dom.DOMUtils.getAttributeValue;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 @Controller
@@ -239,6 +240,8 @@ public class PodcastController {
             logger.info("Title {} : {}",i,title);
             String link = getElementValue(item, "link");
             logger.info("Link:{}",link);
+            String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
+            logger.info("audioUrl:{}",audioUrl);
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
 
             // Перевірка чи епізод вже є в базі
@@ -297,4 +300,14 @@ public class PodcastController {
         }
         return null;
     }
+    private String getAttributeValue(Element parent, String tagName, String attributeName) {
+        NodeList nodeList = parent.getElementsByTagName(tagName);
+        if (nodeList.getLength() > 0) {
+            Element element = (Element) nodeList.item(0);
+            return element.getAttribute(attributeName); // Повертаємо значення атрибута
+        }
+        return null;
+    }
+
+
 }
