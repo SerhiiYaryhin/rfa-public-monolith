@@ -37,6 +37,24 @@
 <!--    <a class="btn btn-primary" th:href="'/podcast/pedit/'+${podcast.uuid}">Повернутися</a>-->
 </form>
 <!-- форма для ввода URL для RSS -->
+
+<div th:if="${strUrl.podcastChannel}">
+    <h1 th:text="${strUrl.podcastChannel.title}"></h1>
+    <p th:text="${strUrl.podcastChannel.description}"></p>
+    <img th:src="${strUrl.podcastChannel.link}" alt="Podcast Image">
+<!--    <p><b>Author:</b> <span th:text="${podcast.author}"></span></p>-->
+<!--    <p><b>Link:</b> <a th:href="${podcast.link}" th:text="${podcast.link}" target="_blank"></a></p>-->
+
+    <h2>Episodes</h2>
+    <ul>
+        <li th:each="episode : ${strUrl.podcastChannel.item}">
+            <h3 th:utext="${episode.title}"></h3>
+            <p th:utext="${episode.description}"></p>
+            <audio th:src="${episode.enclosure}" controls></audio>
+<!--            <p th:text="'Published: ' + ${episode.publishDate}"></p>-->
+        </li>
+    </ul>
+</div>
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

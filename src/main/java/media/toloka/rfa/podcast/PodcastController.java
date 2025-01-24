@@ -69,7 +69,7 @@ public class PodcastController {
     @Setter
     public class strUrl {
         String RSSFromUrl = "";
-        PodcastChannel podcastChannel = new PodcastChannel();
+        PodcastChannel podcastChannel = null;// = new PodcastChannel();
         Boolean fill = false;
     }
 
@@ -216,6 +216,7 @@ public class PodcastController {
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         logger.info("===== {}", tmpstrUrl.RSSFromUrl);
         String rssContent = fetchRssContent(tmpstrUrl.RSSFromUrl);
+        tmpstrUrl.setPodcastChannel(null);
         // Парсинг RSS в DOM
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
@@ -241,54 +242,78 @@ public class PodcastController {
         org.w3c.dom.Node channelNode = doc.getElementsByTagName("channel").item(0);
         org.w3c.dom.Element channelElement = (org.w3c.dom.Element) channelNode;
 
+        // todo тут буде губитися памʼять бо можливо у нас вже був створений подкаст, а ми його просто затерли.
+        //  Для етапу розробки - нормально
+        tmpstrUrl.setPodcastChannel(new PodcastChannel());
+
         String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
         logger.info("podcastTitle:{}",podcastTitle);
+        tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
+
         String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
         logger.info("podcastDescription:{}",podcastDescription);
-        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
-        logger.info("podcastLink:{}",podcastLink);
-        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
-        logger.info("podcastLanguage:{}",podcastLanguage);
+        tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
+
         String podcastImageUrl = channelElement.getElementsByTagName("image").item(0) != null ?
                 channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
         logger.info("podcastImageUrl:{}",podcastImageUrl);
-        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
-                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
-        logger.info("podcastCopyright:{}",podcastCopyright);
-        String podcastLastBuildDate = channelElement.getElementsByTagName("lastBuildDate").item(0).getTextContent();
-        logger.info("podcastLastBuildDate:{}",podcastLastBuildDate);
-        String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
-                channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
-        logger.info("podcastAuthor:{}",podcastAuthor);
+        tmpstrUrl.getPodcastChannel().setLink(podcastImageUrl);
+
+//        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
+//        logger.info("podcastLink:{}",podcastLink);
+//        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
+//        logger.info("podcastLanguage:{}",podcastLanguage);
+//
+//
+//        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
+//                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+//
+//        logger.info("podcastCopyright:{}",podcastCopyright);
+//        String podcastLastBuildDate = channelElement.getElementsByTagName("lastBuildDate").item(0).getTextContent();
+//        logger.info("podcastLastBuildDate:{}",podcastLastBuildDate);
+//        String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
+//                channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
+//        logger.info("podcastAuthor:{}",podcastAuthor);
 
 
-        gstrUrl.setPodcastChannel(new PodcastChannel());
 
 
         NodeList items = doc.getElementsByTagName("item");
         for (Integer i = 0; i < items.getLength(); i++) {
 
+            PodcastItem podcastItem = new PodcastItem();
+
+//            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
+
             Element item = (Element) items.item(i);
 
             String title = getElementValue(item, "title");
             logger.info("Title {} : {}",i,title);
+            podcastItem.setTitle(title);
 //            String link = getElementValue(item, "link");
 //            logger.info("Link:{}",link);
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
             logger.info("audioUrl:{}",audioUrl);
+            podcastItem.setEnclosure(audioUrl);
+            podcastItem.setDescription(getElementValue(item, "description"));
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
-            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
-                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
-                         +"."+i.toString()+"."+title+".mp3")) {
-                byte dataBuffer[] = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                logger.info("IOException: Помилка запису чи читання файлу");
-                return null;
-            }
+
+
+//            // завантажуємо епізоди
+//            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
+//                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
+//                         +"."+i.toString()+"."+title+".mp3")) {
+//                byte dataBuffer[] = new byte[1024];
+//                int bytesRead;
+//                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+//                    fileOutputStream.write(dataBuffer, 0, bytesRead);
+//                }
+//            } catch (IOException e) {
+//                logger.info("IOException: Помилка запису чи читання файлу");
+//                return null;
+//            }
+
+
             // Перевірка чи епізод вже є в базі
 //            if (episodeRepository.findByTitle(title).isEmpty()) {
 //                Episode episode = new Episode();
@@ -299,6 +324,7 @@ public class PodcastController {
 //                episodeRepository.save(episode);
 //                System.out.println("Додано новий епізод: " + title);
 //            }
+            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
         }
 //    }
 //    catch (Exception e) {
