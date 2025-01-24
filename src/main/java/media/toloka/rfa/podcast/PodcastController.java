@@ -254,10 +254,12 @@ public class PodcastController {
         logger.info("podcastDescription:{}",podcastDescription);
         tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
 
-        String podcastImageUrl = channelElement.getElementsByTagName("image").item(0) != null ?
-                channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
-        logger.info("podcastImageUrl:{}",podcastImageUrl);
-        tmpstrUrl.getPodcastChannel().setLink(podcastImageUrl);
+//         podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
+//        String podcastImageUrl = getElementValue(podcastImageNode, "url");
+//        String podcastImageUrl = podcastImageNode.getElementsByTagName("image").item(0) != null ?
+//                channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
+//        logger.info("podcastImageUrl:{}",podcastImageUrl);
+//        tmpstrUrl.getPodcastChannel().setLink(podcastImageUrl);
 
 //        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
 //        logger.info("podcastLink:{}",podcastLink);
