@@ -1,125 +1,158 @@
+package com.example.podcast;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.*;
-import org.xml.sax.InputSource;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.*;
-import javax.transaction.Transactional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @SpringBootApplication
-public class RssPodcastReaderApplication implements CommandLineRunner {
-
-    @Autowired
-    private PodcastService podcastService;
+@EnableScheduling
+public class PodcastApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RssPodcastReaderApplication.class, args);
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
-        String rssUrl = "https://example.com/podcast/rss"; // Замініть на URL вашого RSS
-        podcastService.updateEpisodesFromRss(rssUrl);
+        SpringApplication.run(PodcastApplication.class, args);
     }
 }
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-class Episode {
-
+class Podcast {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
-
+    private String description;
     private String link;
+    private String language;
+    private String imageUrl;
+    private String copyright;
+    private String lastBuildDate;
+    private String author;
+}
 
-    private LocalDateTime publicationDate;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+class Episode {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String title;
+    private String description;
+    private String audioUrl;
+    private LocalDateTime publishDate;
 
-    // Геттери і сеттери
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne
+    private Podcast podcast;
+}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
-    }
-
-    public LocalDateTime getPublicationDate() {
-        return publicationDate;
-    }
-
-    public void setPublicationDate(LocalDateTime publicationDate) {
-        this.publicationDate = publicationDate;
-    }
+interface PodcastRepository extends JpaRepository<Podcast, Long> {
+    Optional<Podcast> findByLink(String link);
 }
 
 interface EpisodeRepository extends JpaRepository<Episode, Long> {
-    Optional<Episode> findByTitle(String title);
+    List<Episode> findByPodcast(Podcast podcast);
+    Optional<Episode> findByPodcastAndAudioUrl(Podcast podcast, String audioUrl);
 }
 
 @Service
 class PodcastService {
 
     @Autowired
+    private PodcastRepository podcastRepository;
+
+    @Autowired
     private EpisodeRepository episodeRepository;
 
-    @Transactional
-    public void updateEpisodesFromRss(String rssUrl) {
-        try {
-            // Завантаження RSS
-            String rssContent = fetchRssContent(rssUrl);
+    private static final String RSS_FEED_URL = "your_rss_feed_url_here"; // Вставити ваш URL
 
-            // Парсинг RSS в DOM
+    public void downloadAndSavePodcast() {
+        try {
+            // Зчитуємо RSS-фід
+            RestTemplate restTemplate = new RestTemplate();
+            String rssFeed = restTemplate.getForObject(RSS_FEED_URL, String.class);
+
+            // Парсимо RSS (XML) за допомогою DOM
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(rssContent)));
+            InputStream inputStream = new URL(RSS_FEED_URL).openStream();
+            org.w3c.dom.Document document = builder.parse(inputStream);
+            document.getDocumentElement().normalize();
 
-            NodeList items = doc.getElementsByTagName("item");
+            // Отримуємо елементи <channel>
+            org.w3c.dom.Node channelNode = document.getElementsByTagName("channel").item(0);
+            org.w3c.dom.Element channelElement = (org.w3c.dom.Element) channelNode;
 
+            // Зчитуємо всі атрибути подкасту
+            String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
+            String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
+            String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
+            String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
+            String podcastImageUrl = channelElement.getElementsByTagName("image").item(0) != null ?
+                    channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
+            String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
+                    channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+            String podcastLastBuildDate = channelElement.getElementsByTagName("lastBuildDate").item(0).getTextContent();
+            String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
+                    channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
+
+            // Перевіряємо, чи вже є подкаст в базі
+            Podcast podcast = podcastRepository.findByLink(podcastLink)
+                    .orElse(new Podcast(podcastTitle, podcastDescription, podcastLink, podcastLanguage,
+                            podcastImageUrl, podcastCopyright, podcastLastBuildDate, podcastAuthor));
+
+            // Зберігаємо або оновлюємо подкаст
+            podcastRepository.save(podcast);
+
+            // Обробляємо кожен епізод
+            org.w3c.dom.NodeList items = channelElement.getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
-                Element item = (Element) items.item(i);
+                org.w3c.dom.Node itemNode = items.item(i);
+                org.w3c.dom.Element itemElement = (org.w3c.dom.Element) itemNode;
 
-                String title = getElementValue(item, "title");
-                String link = getElementValue(item, "link");
-                LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
+                String episodeTitle = itemElement.getElementsByTagName("title").item(0).getTextContent();
+                String episodeDescription = itemElement.getElementsByTagName("description").item(0).getTextContent();
+                String episodeAudioUrl = itemElement.getElementsByTagName("enclosure").item(0).getAttributes()
+                        .getNamedItem("url").getTextContent();
+                String episodePublishDateString = itemElement.getElementsByTagName("pubDate").item(0).getTextContent();
+                LocalDateTime episodePublishDate = LocalDateTime.parse(episodePublishDateString);
 
-                // Перевірка чи епізод вже є в базі
-                if (episodeRepository.findByTitle(title).isEmpty()) {
-                    Episode episode = new Episode();
-                    episode.setTitle(title);
-                    episode.setLink(link);
-                    episode.setPublicationDate(pubDate);
+                // Перевірка, чи є такий епізод у базі
+                if (episodeRepository.findByPodcastAndAudioUrl(podcast, episodeAudioUrl).isEmpty()) {
+                    // Завантажуємо аудіофайл
+                    downloadAudioFile(episodeAudioUrl, episodeTitle);
 
+                    // Створюємо новий епізод
+                    Episode episode = new Episode(episodeTitle, episodeDescription, episodeAudioUrl, episodePublishDate);
+                    episode.setPodcast(podcast);
+
+                    // Зберігаємо новий епізод
                     episodeRepository.save(episode);
-                    System.out.println("Додано новий епізод: " + title);
                 }
             }
         } catch (Exception e) {
@@ -127,35 +160,49 @@ class PodcastService {
         }
     }
 
-    private String fetchRssContent(String rssUrl) throws Exception {
-        URL url = new URL(rssUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream()))) {
-            StringBuilder content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
-            }
-            return content.toString();
-        }
-    }
-
-    private String getElementValue(Element parent, String tagName) {
-        NodeList nodeList = parent.getElementsByTagName(tagName);
-        if (nodeList.getLength() > 0) {
-            return nodeList.item(0).getTextContent();
-        }
-        return null;
-    }
-
-    private LocalDateTime parsePubDate(String pubDate) {
-        // Припустимо, що формат дати стандартний для RSS
+    private void downloadAudioFile(String audioUrl, String episodeTitle) {
         try {
-            return LocalDateTime.parse(pubDate, java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME);
-        } catch (Exception e) {
-            return LocalDateTime.now(); // Якщо парсинг не вдався, повертаємо поточний час
+            URL url = new URL(audioUrl);
+            try (InputStream in = url.openStream()) {
+                // Тут потрібно реалізувати збереження аудіофайлу на диск або в базу даних
+                String fileName = episodeTitle.replaceAll("[^a-zA-Z0-9]", "_") + ".mp3";
+                Files.copy(in, Paths.get("audio/" + fileName), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    public void checkForNewEpisodes() {
+        List<Podcast> podcasts = podcastRepository.findAll();
+        for (Podcast podcast : podcasts) {
+            // Завантажуємо і перевіряємо нові епізоди для кожного подкасту
+            downloadAndSavePodcast();
+        }
+    }
+}
+
+@Component
+class PodcastScheduler {
+
+    @Autowired
+    private PodcastService podcastService;
+
+    @Scheduled(fixedRate = 3600000)  // Перевіряти кожну годину
+    public void fetchAndSavePodcast() {
+        podcastService.checkForNewEpisodes();
+    }
+}
+
+@Component
+class CommandLineAppStartupRunner implements CommandLineRunner {
+
+    @Autowired
+    private PodcastService podcastService;
+
+    @Override
+    public void run(String... args) throws Exception {
+        // Викликаємо завантаження подкастів одразу при запуску додатка
+        podcastService.checkForNewEpisodes();
     }
 }

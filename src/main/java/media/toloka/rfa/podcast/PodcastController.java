@@ -35,6 +35,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Array;
@@ -47,8 +49,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-//import static org.jcp.xml.dsig.internal.dom.DOMUtils.getAttributeValue;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 @Controller
@@ -69,6 +69,7 @@ public class PodcastController {
     @Setter
     public class strUrl {
         String RSSFromUrl = "";
+        PodcastChannel podcastChannel;
     }
 
     public strUrl tmpstrUrl = new strUrl();
@@ -231,9 +232,11 @@ public class PodcastController {
             logger.info("IOException: Помилка перетворення на XML");
             return null;
         }
+        gstrUrl.setPodcastChannel(new PodcastChannel());
 
         NodeList items = doc.getElementsByTagName("item");
-        for (int i = 0; i < items.getLength(); i++) {
+        for (Integer i = 0; i < items.getLength(); i++) {
+
             Element item = (Element) items.item(i);
 
             String title = getElementValue(item, "title");
@@ -243,7 +246,17 @@ public class PodcastController {
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
             logger.info("audioUrl:{}",audioUrl);
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
-
+            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
+                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"+title+"."+i.toString()+".mp3")) {
+                byte dataBuffer[] = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                    fileOutputStream.write(dataBuffer, 0, bytesRead);
+                }
+            } catch (IOException e) {
+                logger.info("IOException: Помилка запису чи читання файлу");
+                return null;
+            }
             // Перевірка чи епізод вже є в базі
 //            if (episodeRepository.findByTitle(title).isEmpty()) {
 //                Episode episode = new Episode();
