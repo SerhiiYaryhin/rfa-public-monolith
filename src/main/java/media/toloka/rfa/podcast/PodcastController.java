@@ -209,6 +209,8 @@ public class PodcastController {
         return "/podcast/getRSSFromUrl";
     }
 
+
+    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
     @PostMapping(value = "/podcast/getRSSFromUrl")
     public String PostPodcastFromRSSUrl(
             @ModelAttribute strUrl gstrUrl,
