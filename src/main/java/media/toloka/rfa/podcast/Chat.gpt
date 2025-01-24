@@ -1,0 +1,161 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+
+import javax.persistence.*;
+import javax.transaction.Transactional;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@SpringBootApplication
+public class RssPodcastReaderApplication implements CommandLineRunner {
+
+    @Autowired
+    private PodcastService podcastService;
+
+    public static void main(String[] args) {
+        SpringApplication.run(RssPodcastReaderApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        String rssUrl = "https://example.com/podcast/rss"; // Замініть на URL вашого RSS
+        podcastService.updateEpisodesFromRss(rssUrl);
+    }
+}
+
+@Entity
+class Episode {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    private String link;
+
+    private LocalDateTime publicationDate;
+
+    // Геттери і сеттери
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public LocalDateTime getPublicationDate() {
+        return publicationDate;
+    }
+
+    public void setPublicationDate(LocalDateTime publicationDate) {
+        this.publicationDate = publicationDate;
+    }
+}
+
+interface EpisodeRepository extends JpaRepository<Episode, Long> {
+    Optional<Episode> findByTitle(String title);
+}
+
+@Service
+class PodcastService {
+
+    @Autowired
+    private EpisodeRepository episodeRepository;
+
+    @Transactional
+    public void updateEpisodesFromRss(String rssUrl) {
+        try {
+            // Завантаження RSS
+            String rssContent = fetchRssContent(rssUrl);
+
+            // Парсинг RSS в DOM
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(rssContent)));
+
+            NodeList items = doc.getElementsByTagName("item");
+
+            for (int i = 0; i < items.getLength(); i++) {
+                Element item = (Element) items.item(i);
+
+                String title = getElementValue(item, "title");
+                String link = getElementValue(item, "link");
+                LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
+
+                // Перевірка чи епізод вже є в базі
+                if (episodeRepository.findByTitle(title).isEmpty()) {
+                    Episode episode = new Episode();
+                    episode.setTitle(title);
+                    episode.setLink(link);
+                    episode.setPublicationDate(pubDate);
+
+                    episodeRepository.save(episode);
+                    System.out.println("Додано новий епізод: " + title);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String fetchRssContent(String rssUrl) throws Exception {
+        URL url = new URL(rssUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream()))) {
+            StringBuilder content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+            return content.toString();
+        }
+    }
+
+    private String getElementValue(Element parent, String tagName) {
+        NodeList nodeList = parent.getElementsByTagName(tagName);
+        if (nodeList.getLength() > 0) {
+            return nodeList.item(0).getTextContent();
+        }
+        return null;
+    }
+
+    private LocalDateTime parsePubDate(String pubDate) {
+        // Припустимо, що формат дати стандартний для RSS
+        try {
+            return LocalDateTime.parse(pubDate, java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME);
+        } catch (Exception e) {
+            return LocalDateTime.now(); // Якщо парсинг не вдався, повертаємо поточний час
+        }
+    }
+}

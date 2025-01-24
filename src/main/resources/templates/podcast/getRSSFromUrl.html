@@ -15,12 +15,27 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
-<header>
+<!--<header>-->
     <!-- Navigation-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-</header>
+<!--    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>-->
+    <!-- Navigation-->
+<!--</header>-->
+<!-- MessageBox -->
+<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+<!-- Header для главной сторінки подкастов -->
 <!-- форма для ввода URL для RSS -->
-
+<span style="padding-top: 100px">Працюємо з посиланням на RSS подкасту</span>
+<!--<form action="#" th:action="@{'/podcast/getRSSFromUrl'}" method="post">-->
+<span th:text="${strUrl.RSSFromUrl}"></span>
+<form action="#" th:action="@{'/podcast/getRSSFromUrl'}" th:object="${strUrl}" method="post">
+    <div class="mb-3">
+        <label for="RSSFromUrl" class="form-label">Посилання на RSS подкасту</label>
+        <input type="text" th:field="*{RSSFromUrl}" class="form-control">
+<!--        <input type="text" th:field="${strRSSPodcast}" th:value="${strRSSPodcast}" class="form-control">-->
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+<!--    <a class="btn btn-primary" th:href="'/podcast/pedit/'+${podcast.uuid}">Повернутися</a>-->
+</form>
 <!-- форма для ввода URL для RSS -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
