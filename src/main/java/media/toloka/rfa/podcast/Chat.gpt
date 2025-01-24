@@ -283,3 +283,363 @@ class CommandLineAppStartupRunner implements CommandLineRunner {
 3. Запустіть Spring Boot додаток.
 
 Це дозволить автоматично зчитувати, завантажувати та зберігати подкасти з усіма атрибутами, а також перевіряти нові епізоди.
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Podcast Details</title>
+</head>
+<body>
+    <h1 th:text="${podcast.title}"></h1>
+    <img th:src="${podcast.imageUrl}" alt="Podcast Image">
+    <p th:text="${podcast.description}"></p>
+    <a th:href="${podcast.link}" target="_blank">Visit Podcast Website</a>
+
+    <h2>Episodes</h2>
+    <ul>
+        <li th:each="episode : ${podcast.episodes}">
+            <h3 th:text="${episode.title}"></h3>
+            <p th:text="${episode.description}"></p>
+            <audio th:src="${episode.audioUrl}" controls></audio>
+        </li>
+    </ul>
+
+    <a href="/">Back to All Podcasts</a>
+</body>
+</html>
+
+
+
+Ось оновлений приклад програми, який включає функцію завантаження подкасту з RSS-посилання, збереження всіх атрибутів подкасту та його епізодів у базу даних, а також відображення всіх полів і атрибутів на одній HTML-сторінці за допомогою Thymeleaf.
+
+---
+
+### Структура проекту:
+```
+src/main/
+├── java/com/example/podcast/
+│   ├── PodcastApplication.java
+│   ├── model/
+│   │   ├── Podcast.java
+│   │   ├── Episode.java
+│   ├── repository/
+│   │   ├── PodcastRepository.java
+│   │   ├── EpisodeRepository.java
+│   ├── controller/
+│   │   ├── PodcastController.java
+│   ├── service/
+│   │   ├── PodcastService.java
+├── resources/
+│   ├── templates/
+│   │   ├── podcast.html
+│   ├── application.properties
+```
+
+---
+
+### Код програми
+
+#### `PodcastApplication.java`
+```java
+package com.example.podcast;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class PodcastApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(PodcastApplication.class, args);
+    }
+}
+```
+
+---
+
+#### Моделі
+
+##### `Podcast.java`
+```java
+package com.example.podcast.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Podcast {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    private String description;
+    private String link;
+    private String imageUrl;
+    private String author;
+
+    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
+    private List<Episode> episodes;
+}
+```
+
+##### `Episode.java`
+```java
+package com.example.podcast.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Episode {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    private String description;
+    private String audioUrl;
+    private LocalDateTime publishDate;
+
+    @ManyToOne
+    private Podcast podcast;
+}
+```
+
+---
+
+#### Репозиторії
+
+##### `PodcastRepository.java`
+```java
+package com.example.podcast.repository;
+
+import com.example.podcast.model.Podcast;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PodcastRepository extends JpaRepository<Podcast, Long> {
+}
+```
+
+##### `EpisodeRepository.java`
+```java
+package com.example.podcast.repository;
+
+import com.example.podcast.model.Episode;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface EpisodeRepository extends JpaRepository<Episode, Long> {
+}
+```
+
+---
+
+#### Сервіс для роботи з RSS
+
+##### `PodcastService.java`
+```java
+package com.example.podcast.service;
+
+import com.example.podcast.model.Episode;
+import com.example.podcast.model.Podcast;
+import com.example.podcast.repository.PodcastRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class PodcastService {
+
+    @Autowired
+    private PodcastRepository podcastRepository;
+
+    public Podcast fetchPodcastFromRSS(String rssUrl) throws Exception {
+        // Парсинг RSS
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(rssUrl);
+
+        Element channel = (Element) document.getElementsByTagName("channel").item(0);
+
+        // Створення подкасту
+        Podcast podcast = new Podcast();
+        podcast.setTitle(getElementValue(channel, "title"));
+        podcast.setDescription(getElementValue(channel, "description"));
+        podcast.setLink(getElementValue(channel, "link"));
+        podcast.setImageUrl(getImageUrl(channel));
+        podcast.setAuthor(getElementValue(channel, "itunes:author"));
+
+        // Додавання епізодів
+        NodeList items = document.getElementsByTagName("item");
+        List<Episode> episodes = new ArrayList<>();
+        for (int i = 0; i < items.getLength(); i++) {
+            Node node = items.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element item = (Element) node;
+                Episode episode = new Episode();
+                episode.setTitle(getElementValue(item, "title"));
+                episode.setDescription(getElementValue(item, "description"));
+                episode.setAudioUrl(getElementValue(item, "enclosure"));
+                String pubDate = getElementValue(item, "pubDate");
+                episode.setPublishDate(parseDate(pubDate));
+                episode.setPodcast(podcast);
+                episodes.add(episode);
+            }
+        }
+        podcast.setEpisodes(episodes);
+
+        return podcastRepository.save(podcast);
+    }
+
+    private String getElementValue(Element parent, String tagName) {
+        Node node = parent.getElementsByTagName(tagName).item(0);
+        return node != null ? node.getTextContent() : null;
+    }
+
+    private String getImageUrl(Element channel) {
+        Node imageNode = channel.getElementsByTagName("itunes:image").item(0);
+        if (imageNode != null && imageNode.getNodeType() == Node.ELEMENT_NODE) {
+            Element imageElement = (Element) imageNode;
+            return imageElement.getAttribute("href");
+        }
+        return null;
+    }
+
+    private LocalDateTime parseDate(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+        return LocalDateTime.parse(date, formatter);
+    }
+}
+```
+
+---
+
+#### Контролер
+
+##### `PodcastController.java`
+```java
+package com.example.podcast.controller;
+
+import com.example.podcast.model.Podcast;
+import com.example.podcast.service.PodcastService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+public class PodcastController {
+
+    @Autowired
+    private PodcastService podcastService;
+
+    @GetMapping("/")
+    public String showForm() {
+        return "podcast";
+    }
+
+    @PostMapping("/fetch")
+    public String fetchPodcast(@RequestParam String rssUrl, Model model) {
+        try {
+            Podcast podcast = podcastService.fetchPodcastFromRSS(rssUrl);
+            model.addAttribute("podcast", podcast);
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to fetch podcast: " + e.getMessage());
+        }
+        return "podcast";
+    }
+}
+```
+
+---
+
+#### Шаблон Thymeleaf
+
+##### `podcast.html`
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Podcast Viewer</title>
+</head>
+<body>
+    <h1>Fetch Podcast</h1>
+    <form method="post" action="/fetch">
+        <label for="rssUrl">RSS URL:</label>
+        <input type="text" id="rssUrl" name="rssUrl" required>
+        <button type="submit">Fetch</button>
+    </form>
+
+    <div th:if="${podcast}">
+        <h1 th:text="${podcast.title}"></h1>
+        <p th:text="${podcast.description}"></p>
+        <img th:src="${podcast.imageUrl}" alt="Podcast Image">
+        <p><b>Author:</b> <span th:text="${podcast.author}"></span></p>
+        <p><b>Link:</b> <a th:href="${podcast.link}" th:text="${podcast.link}" target="_blank"></a></p>
+
+        <h2>Episodes</h2>
+        <ul>
+            <li th:each="episode : ${podcast.episodes}">
+                <h3 th:text="${episode.title}"></h3>
+                <p th:text="${episode.description}"></p>
+                <audio th:src="${episode.audioUrl}" controls></audio>
+                <p th:text="'Published: ' + ${episode.publishDate}"></p>
+            </li>
+        </ul>
+    </div>
+
+    <div th:if="${error}">
+        <p th:text="${error}" style="color: red;"></p>
+    </div>
+</body>
+</html>
+```
+
+---
+
+### `application.properties`
+```properties
+spring.datasource.url=jdbc:h2:mem:podcastdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.hibernate.ddl-auto=create
+spring.h2.console.enabled=true
+spring.thymeleaf.cache=false
+```
+
+---
+
+### Як запустити:
+
+1. Запустіть програму за допомогою `mvn spring-boot:run`.
+2. Відкрийте [http://localhost:8080](http://localhost:8080) у браузері.
+3. Введіть URL RSS-каналу подкасту та натисніть "Fetch".
+4. Перегляньте інформацію про подкаст і список його епізодів.
