@@ -238,8 +238,8 @@ public class PodcastController {
 
             String title = getElementValue(item, "title");
             logger.info("Title {} : {}",i,title);
-            String link = getElementValue(item, "link");
-            logger.info("Link:{}",link);
+//            String link = getElementValue(item, "link");
+//            logger.info("Link:{}",link);
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
             logger.info("audioUrl:{}",audioUrl);
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
