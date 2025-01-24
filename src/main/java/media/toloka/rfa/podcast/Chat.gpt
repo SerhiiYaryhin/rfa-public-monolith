@@ -1,3 +1,6 @@
+Ось детально прокоментований код програми, яка зчитує RSS з URL, завантажує аудіофайли епізодів та зберігає подкасти з усіма атрибутами в базі даних. Програма також перевіряє нові епізоди для всіх подкастів в базі.
+
+```java
 package com.example.podcast;
 
 import lombok.AllArgsConstructor;
@@ -27,15 +30,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+// Основний клас Spring Boot додатка
 @SpringBootApplication
-@EnableScheduling
+@EnableScheduling  // Дозволяє планування завдань
 public class PodcastApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PodcastApplication.class, args);
+        SpringApplication.run(PodcastApplication.class, args); // Запуск Spring Boot додатка
     }
 }
 
+// Модель для зберігання інформації про подкаст у базі даних
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,17 +48,29 @@ public class PodcastApplication {
 class Podcast {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String title;
-    private String description;
-    private String link;
-    private String language;
-    private String imageUrl;
-    private String copyright;
-    private String lastBuildDate;
-    private String author;
+    private Long id;  // Унікальний ідентифікатор подкасту
+
+    private String title;  // Назва подкасту
+    private String description;  // Опис подкасту
+    private String link;  // URL подкасту
+    private String language;  // Мова подкасту
+    private String imageUrl;  // URL зображення подкасту
+    private String copyright;  // Авторські права
+    private String lastBuildDate;  // Остання дата побудови подкасту
+    private String author;  // Автор подкасту
+
+    // Атрибути iTunes
+    private String itunesAuthor;  // Автор для iTunes
+    private String itunesCategory;  // Категорія iTunes
+    private String itunesExplicit;  // Позначка для явного контенту
+    private String itunesImageUrl;  // URL зображення для iTunes
+
+    // Атрибути Atom
+    private String atomLink;  // Atom link для подкасту
+    private String generator;  // Генератор RSS
 }
 
+// Модель для зберігання епізодів подкасту
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -61,25 +78,29 @@ class Podcast {
 class Episode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String title;
-    private String description;
-    private String audioUrl;
-    private LocalDateTime publishDate;
+    private Long id;  // Унікальний ідентифікатор епізоду
+
+    private String title;  // Назва епізоду
+    private String description;  // Опис епізоду
+    private String audioUrl;  // URL аудіофайлу епізоду
+    private LocalDateTime publishDate;  // Дата публікації епізоду
 
     @ManyToOne
-    private Podcast podcast;
+    private Podcast podcast;  // Подкаст, до якого належить цей епізод
 }
 
+// Репозиторій для роботи з подкастами
 interface PodcastRepository extends JpaRepository<Podcast, Long> {
-    Optional<Podcast> findByLink(String link);
+    Optional<Podcast> findByLink(String link);  // Знайти подкаст за його URL
 }
 
+// Репозиторій для роботи з епізодами
 interface EpisodeRepository extends JpaRepository<Episode, Long> {
-    List<Episode> findByPodcast(Podcast podcast);
-    Optional<Episode> findByPodcastAndAudioUrl(Podcast podcast, String audioUrl);
+    List<Episode> findByPodcast(Podcast podcast);  // Знайти всі епізоди певного подкасту
+    Optional<Episode> findByPodcastAndAudioUrl(Podcast podcast, String audioUrl);  // Знайти епізод за URL аудіофайлу
 }
 
+// Сервіс для завантаження та збереження подкастів та епізодів
 @Service
 class PodcastService {
 
@@ -89,26 +110,27 @@ class PodcastService {
     @Autowired
     private EpisodeRepository episodeRepository;
 
-    private static final String RSS_FEED_URL = "your_rss_feed_url_here"; // Вставити ваш URL
+    private static final String RSS_FEED_URL = "your_rss_feed_url_here";  // URL для зчитування RSS (замінити на ваш)
 
+    // Завантаження і збереження подкасту та епізодів
     public void downloadAndSavePodcast() {
         try {
-            // Зчитуємо RSS-фід
+            // Використовуємо RestTemplate для отримання RSS-фіду
             RestTemplate restTemplate = new RestTemplate();
             String rssFeed = restTemplate.getForObject(RSS_FEED_URL, String.class);
 
-            // Парсимо RSS (XML) за допомогою DOM
+            // Ініціалізуємо фабрику для парсингу XML
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             InputStream inputStream = new URL(RSS_FEED_URL).openStream();
             org.w3c.dom.Document document = builder.parse(inputStream);
-            document.getDocumentElement().normalize();
+            document.getDocumentElement().normalize();  // Нормалізуємо XML (видаляємо зайві пробіли)
 
-            // Отримуємо елементи <channel>
+            // Отримуємо елементи <channel> для парсингу
             org.w3c.dom.Node channelNode = document.getElementsByTagName("channel").item(0);
             org.w3c.dom.Element channelElement = (org.w3c.dom.Element) channelNode;
 
-            // Зчитуємо всі атрибути подкасту
+            // Зчитуємо основні атрибути подкасту
             String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
             String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
             String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
@@ -121,20 +143,32 @@ class PodcastService {
             String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
                     channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
 
-            // Перевіряємо, чи вже є подкаст в базі
+            // Зчитуємо атрибути для iTunes
+            String itunesAuthor = getElementValue(channelElement, "itunes:author");
+            String itunesCategory = getElementValue(channelElement, "itunes:category");
+            String itunesExplicit = getElementValue(channelElement, "itunes:explicit");
+            String itunesImageUrl = getElementValue(channelElement, "itunes:image");
+
+            // Зчитуємо атрибути для Atom
+            String atomLink = getElementValue(channelElement, "atom:link");
+            String generator = getElementValue(channelElement, "generator");
+
+            // Перевірка наявності подкасту в базі
             Podcast podcast = podcastRepository.findByLink(podcastLink)
                     .orElse(new Podcast(podcastTitle, podcastDescription, podcastLink, podcastLanguage,
-                            podcastImageUrl, podcastCopyright, podcastLastBuildDate, podcastAuthor));
+                            podcastImageUrl, podcastCopyright, podcastLastBuildDate, podcastAuthor,
+                            itunesAuthor, itunesCategory, itunesExplicit, itunesImageUrl, atomLink, generator));
 
-            // Зберігаємо або оновлюємо подкаст
+            // Зберігаємо або оновлюємо подкаст у базі даних
             podcastRepository.save(podcast);
 
-            // Обробляємо кожен епізод
+            // Обробка всіх епізодів
             org.w3c.dom.NodeList items = channelElement.getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
                 org.w3c.dom.Node itemNode = items.item(i);
                 org.w3c.dom.Element itemElement = (org.w3c.dom.Element) itemNode;
 
+                // Зчитуємо атрибути епізоду
                 String episodeTitle = itemElement.getElementsByTagName("title").item(0).getTextContent();
                 String episodeDescription = itemElement.getElementsByTagName("description").item(0).getTextContent();
                 String episodeAudioUrl = itemElement.getElementsByTagName("enclosure").item(0).getAttributes()
@@ -142,16 +176,14 @@ class PodcastService {
                 String episodePublishDateString = itemElement.getElementsByTagName("pubDate").item(0).getTextContent();
                 LocalDateTime episodePublishDate = LocalDateTime.parse(episodePublishDateString);
 
-                // Перевірка, чи є такий епізод у базі
+                // Перевірка, чи епізод вже існує в базі
                 if (episodeRepository.findByPodcastAndAudioUrl(podcast, episodeAudioUrl).isEmpty()) {
                     // Завантажуємо аудіофайл
                     downloadAudioFile(episodeAudioUrl, episodeTitle);
 
-                    // Створюємо новий епізод
+                    // Створюємо та зберігаємо новий епізод
                     Episode episode = new Episode(episodeTitle, episodeDescription, episodeAudioUrl, episodePublishDate);
                     episode.setPodcast(podcast);
-
-                    // Зберігаємо новий епізод
                     episodeRepository.save(episode);
                 }
             }
@@ -160,11 +192,18 @@ class PodcastService {
         }
     }
 
+    // Метод для отримання значення елемента, якщо він існує
+    private String getElementValue(org.w3c.dom.Element parentElement, String tagName) {
+        org.w3c.dom.NodeList nodes = parentElement.getElementsByTagName(tagName);
+        return nodes.getLength() > 0 ? nodes.item(0).getTextContent() : "";
+    }
+
+    // Метод для завантаження аудіофайлу епізоду
     private void downloadAudioFile(String audioUrl, String episodeTitle) {
         try {
             URL url = new URL(audioUrl);
             try (InputStream in = url.openStream()) {
-                // Тут потрібно реалізувати збереження аудіофайлу на диск або в базу даних
+                // Завантажуємо файл на диск
                 String fileName = episodeTitle.replaceAll("[^a-zA-Z0-9]", "_") + ".mp3";
                 Files.copy(in, Paths.get("audio/" + fileName), StandardCopyOption.REPLACE_EXISTING);
             }
@@ -173,27 +212,30 @@ class PodcastService {
         }
     }
 
+    // Перевірка нових епізодів для всіх подкастів в базі
     public void checkForNewEpisodes() {
         List<Podcast> podcasts = podcastRepository.findAll();
         for (Podcast podcast : podcasts) {
-            // Завантажуємо і перевіряємо нові епізоди для кожного подкасту
+            // Завантажуємо та перевіряємо нові епізоди для кожного подкасту
             downloadAndSavePodcast();
         }
     }
 }
 
+// Планувальник для виконання завдань з регулярними інтервалами
 @Component
 class PodcastScheduler {
 
     @Autowired
     private PodcastService podcastService;
 
-    @Scheduled(fixedRate = 3600000)  // Перевіряти кожну годину
+    @Scheduled(fixedRate = 3600000)  // Виконувати кожну годину
     public void fetchAndSavePodcast() {
         podcastService.checkForNewEpisodes();
     }
 }
 
+// Клас для запуску завдання при старті додатка
 @Component
 class CommandLineAppStartupRunner implements CommandLineRunner {
 
@@ -202,7 +244,42 @@ class CommandLineAppStartupRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Викликаємо завантаження подкастів одразу при запуску додатка
+        // Завантаження подкастів та епізодів при запуску програми
         podcastService.checkForNewEpisodes();
     }
 }
+```
+
+### Пояснення коду:
+
+1. **Основний клас `PodcastApplication`**:
+   - Запускає Spring Boot додаток.
+   - Використовує анотацію `@EnableScheduling` для запуску запланованих завдань.
+
+2. **Моделі `Podcast` та `Episode`**:
+   - `Podcast`: Містить всю необхідну інформацію про подкаст, включаючи атрибути iTunes та Atom.
+   - `Episode`: Містить інформацію про кожен епізод подкасту.
+
+3. **Репозиторії `PodcastRepository` та `EpisodeRepository`**:
+   - Вони використовуються для взаємодії з базою даних: знаходження та збереження подкастів та епізодів.
+
+4. **Сервіс `PodcastService`**:
+   - Зчитує RSS фід за допомогою `RestTemplate` і парсить його через DOM.
+   - Завантажує та зберігає подкасти та епізоди, перевіряє, чи є нові епізоди в базі.
+
+5. **Методи `getElementValue` і `downloadAudioFile`**:
+   - `getElementValue` дозволяє отримати значення з елементів XML, якщо вони присутні.
+   - `downloadAudioFile` завантажує аудіофайл епізоду з URL на диск.
+
+6. **Планувальник `PodcastScheduler`**:
+   - Використовує анотацію `@Scheduled` для виконання перевірки нових епізодів кожну годину.
+
+7. **Командний рядок `CommandLineAppStartupRunner`**:
+   - Запускає перевірку нових епізодів одразу при старті програми.
+
+### Запуск програми:
+1. Вставте ваш RSS URL у змінну `RSS_FEED_URL`.
+2. Переконайтесь, що база даних налаштована (наприклад, H2 або MySQL).
+3. Запустіть Spring Boot додаток.
+
+Це дозволить автоматично зчитувати, завантажувати та зберігати подкасти з усіма атрибутами, а також перевіряти нові епізоди.

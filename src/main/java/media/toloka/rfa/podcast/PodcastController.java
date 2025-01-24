@@ -69,7 +69,8 @@ public class PodcastController {
     @Setter
     public class strUrl {
         String RSSFromUrl = "";
-        PodcastChannel podcastChannel;
+        PodcastChannel podcastChannel = new PodcastChannel();
+        Boolean fill = false;
     }
 
     public strUrl tmpstrUrl = new strUrl();
@@ -222,6 +223,7 @@ public class PodcastController {
         try {
             builder = factory.newDocumentBuilder();
             doc = builder.parse(new InputSource(new StringReader(rssContent)));
+            doc.getDocumentElement().normalize();
         } catch (ParserConfigurationException e) {
             logger.info("ParserConfigurationException: Помилка перетворення на XML");
             return null;
@@ -232,7 +234,36 @@ public class PodcastController {
             logger.info("IOException: Помилка перетворення на XML");
             return null;
         }
+
+        // Зчитуємо атрибути подкасту
+        // Зчитуємо всі атрибути подкасту
+        // Отримуємо елементи <channel>
+        org.w3c.dom.Node channelNode = doc.getElementsByTagName("channel").item(0);
+        org.w3c.dom.Element channelElement = (org.w3c.dom.Element) channelNode;
+
+        String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
+        logger.info("podcastTitle:{}",podcastTitle);
+        String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
+        logger.info("podcastDescription:{}",podcastDescription);
+        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
+        logger.info("podcastLink:{}",podcastLink);
+        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
+        logger.info("podcastLanguage:{}",podcastLanguage);
+        String podcastImageUrl = channelElement.getElementsByTagName("image").item(0) != null ?
+                channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
+        logger.info("podcastImageUrl:{}",podcastImageUrl);
+        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
+                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+        logger.info("podcastCopyright:{}",podcastCopyright);
+        String podcastLastBuildDate = channelElement.getElementsByTagName("lastBuildDate").item(0).getTextContent();
+        logger.info("podcastLastBuildDate:{}",podcastLastBuildDate);
+        String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
+                channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
+        logger.info("podcastAuthor:{}",podcastAuthor);
+
+
         gstrUrl.setPodcastChannel(new PodcastChannel());
+
 
         NodeList items = doc.getElementsByTagName("item");
         for (Integer i = 0; i < items.getLength(); i++) {
@@ -247,7 +278,8 @@ public class PodcastController {
             logger.info("audioUrl:{}",audioUrl);
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
             try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
-                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"+title+"."+i.toString()+".mp3")) {
+                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
+                         +"."+i.toString()+"."+title+".mp3")) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
