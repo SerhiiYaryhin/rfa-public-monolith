@@ -363,7 +363,7 @@ public class PodcastController {
 
 
 //            // завантажуємо епізоди
-
+              // зберігаємо в базі
 //            PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
 //            log.info("Current episode {} {}",puuid, podcast.getTitle());
 //            try {
@@ -375,6 +375,24 @@ public class PodcastController {
 //            }
 //            log.info("uploaded file " + file.getOriginalFilename());
 
+              // витягуємо оригінальне імʼя файлу
+//            try {
+//                // URL на файл
+//                String fileUrl = "https://example.com/files/document.pdf";
+//
+//                // Створюємо об'єкт URL
+//                URL url = new URL(fileUrl);
+//
+//                // Отримуємо шлях із URL
+//                String path = url.getPath();
+//
+//                // Витягуємо ім'я файлу з шляху
+//                String fileName = path.substring(path.lastIndexOf('/') + 1);
+//
+//                System.out.println("Ім'я файлу: " + fileName);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
 //            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
 //                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
