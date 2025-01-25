@@ -235,4 +235,10 @@ public class PodcastService {
     public List<PodcastItem> GetListByTitle(String title) {
         return episodeRepository.findByTitle(title);
     }
+
+    public List<PodcastChannel> GetChanelByTitle(String podcastTitle) {
+        List<PodcastChannel> podcastChannelList = chanelRepository.findByTitle(podcastTitle);
+        if( podcastChannelList.isEmpty() ) return null;
+        return podcastChannelList;
+    }
 }

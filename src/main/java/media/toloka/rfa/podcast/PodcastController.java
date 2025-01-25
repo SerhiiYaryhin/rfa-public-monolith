@@ -12,6 +12,7 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.service.PodcastService;
+import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 @Controller
@@ -206,6 +209,20 @@ public class PodcastController {
         // https://anchor.fm/s/89f5c40c/podcast/rss
         model.addAttribute("strUrl", tmpstrUrl);
 
+        List<Users> usersList = clientService.GetAllUsers();
+        for (Users usr : usersList) {
+            if (usr.getClientdetail() != null) {
+                logger.info("===== User: {} {} {}", usr.getEmail(), usr.getClientdetail().getCustname(), usr.getClientdetail().getCustsurname());
+                List<Roles> rolesList = usr.getRoles();
+                for (Roles rls :rolesList) {
+                    logger.info("=========   Role: {} - {}", rls.getId(), rls.getRole().label);
+                }
+
+            }
+        }
+
+
+
         return "/podcast/getRSSFromUrl";
     }
 
@@ -215,6 +232,14 @@ public class PodcastController {
     public String PostPodcastFromRSSUrl(
             @ModelAttribute strUrl gstrUrl,
             Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) { return "redirect:/"; }
+
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         logger.info("===== {}", tmpstrUrl.RSSFromUrl);
         String rssContent = fetchRssContent(tmpstrUrl.RSSFromUrl);
@@ -246,15 +271,49 @@ public class PodcastController {
 
         // todo тут буде губитися памʼять бо можливо у нас вже був створений подкаст, а ми його просто затерли.
         //  Для етапу розробки - нормально
-        tmpstrUrl.setPodcastChannel(new PodcastChannel());
+
+        // дивимося, чи пустий подкаст
+        if (tmpstrUrl.getPodcastChannel() != null) {
+            /* Подкаст не пустий. Чистимо поточний перелік епізодів подкасту */
+            tmpstrUrl.getPodcastChannel().getItem().clear();
+        } else {
+            // подкаст ще пустий. Створюємо подкаст
+            tmpstrUrl.setPodcastChannel(new PodcastChannel());
+        }
 
         String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
         logger.info("podcastTitle:{}",podcastTitle);
-        tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
+
+        // шукаємо в базі подкастів з такою назвою
+        List<PodcastChannel> podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
+
+        if (podcastChannelList != null) {
+            logger.info("===== Подкаст з такою назвою вже існує!!!");
+        }
 
         String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
         logger.info("podcastDescription:{}",podcastDescription);
+
+        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
+        logger.info("podcastLink:{}", podcastLink);
+        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
+        logger.info("podcastLanguage:{}", podcastLanguage);
+        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
+                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+
+        /* Створили подкаст та заповнили необхідні атрибути подкасту */
+
         tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
+        tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
+        tmpstrUrl.getPodcastChannel().setLastbuilddate(new Date());
+        tmpstrUrl.getPodcastChannel().setClientdetail(cd);
+        tmpstrUrl.getPodcastChannel().setLinktoimporturl(tmpstrUrl.RSSFromUrl);
+        tmpstrUrl.getPodcastChannel().setLanguage(podcastLanguage);
+        tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
+        /* зберегли подкаст без епізодів */
+        PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
+//        podcastService.SavePodcast(podcastChannel);
+
 
 //         podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
 //        String podcastImageUrl = getElementValue(podcastImageNode, "url");
@@ -304,6 +363,19 @@ public class PodcastController {
 
 
 //            // завантажуємо епізоди
+
+//            PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
+//            log.info("Current episode {} {}",puuid, podcast.getTitle());
+//            try {
+//                String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_EPISODETRACK);
+//                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
+//            } catch (IOException e) {
+//                logger.info("Завантаження файлу: Проблема збереження");
+//                e.printStackTrace();
+//            }
+//            log.info("uploaded file " + file.getOriginalFilename());
+
+
 //            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
 //                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
 //                         +"."+i.toString()+"."+title+".mp3")) {
@@ -337,6 +409,9 @@ public class PodcastController {
 
 
 //        model.addAttribute("gstrUrl",  gstrUrl);
+//        PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
+        /* зберегли весь подкаст з епізодами */
+//        podcastService.SavePodcast(podcastChannel);
         return "redirect:/podcast/getRSSFromUrl";
     }
 

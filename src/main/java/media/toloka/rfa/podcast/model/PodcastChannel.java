@@ -31,6 +31,10 @@ public class PodcastChannel {
     private String description; // опис подкасту
     @Expose
     private String link; // Напевно, посилання на RSS подкасту на іншому ресурсі
+    // linktoimporturl - посилання на RSS подкасту на ресурсі, з якого ми імпортували
+    // використовується для оновлення епізодів
+    @Expose
+    private String linktoimporturl;
     @Expose
     @DateTimeFormat(pattern = "dd-MM-yy")
     private Date lastbuilddate = new Date(); // дата останього оновлення.

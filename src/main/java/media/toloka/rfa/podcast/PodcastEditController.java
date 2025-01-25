@@ -148,6 +148,7 @@ public class PodcastEditController {
         return "redirect:/podcast/pedit/"+tpodcast.getUuid();
     }
 
+    /* Зберігаємо подкаст */
     @PostMapping(value = "/podcast/chanelsave")
     public String PodcastChanelSave (
             @ModelAttribute PodcastChannel podcast,
