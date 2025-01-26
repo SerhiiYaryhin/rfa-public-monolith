@@ -1,8 +1,6 @@
 package media.toloka.rfa.podcast;
 
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.Setter;
 import media.toloka.rfa.podcast.model.PodcastItem;
@@ -12,6 +10,7 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.service.PodcastService;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -36,23 +35,16 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 @Controller
 public class PodcastController {
@@ -66,6 +58,8 @@ public class PodcastController {
     private RSSXMLService rssxmlService;
     @Autowired
     private ClientService clientService;
+    @Autowired
+    private StoreService storeService;
 
     // клас для форми urla
     @Getter
@@ -312,7 +306,7 @@ public class PodcastController {
         tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
         /* зберегли подкаст без епізодів */
         PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
-//        podcastService.SavePodcast(podcastChannel);
+        podcastService.SavePodcast(podcastChannel);
 
 
 //         podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
@@ -357,55 +351,17 @@ public class PodcastController {
 //            logger.info("Link:{}",link);
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
             logger.info("audioUrl:{}",audioUrl);
-            podcastItem.setEnclosure(audioUrl);
+
+            /* Завантажуємо файл для відтворення епізода у сховище */
+            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem,cd)) {
+
+            }
+
+
+//            podcastItem.setEnclosure(audioUrl);
             podcastItem.setDescription(getElementValue(item, "description"));
 //            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
 
-
-//            // завантажуємо епізоди
-              // зберігаємо в базі
-//            PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
-//            log.info("Current episode {} {}",puuid, podcast.getTitle());
-//            try {
-//                String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_EPISODETRACK);
-//                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
-//            } catch (IOException e) {
-//                logger.info("Завантаження файлу: Проблема збереження");
-//                e.printStackTrace();
-//            }
-//            log.info("uploaded file " + file.getOriginalFilename());
-
-              // витягуємо оригінальне імʼя файлу
-//            try {
-//                // URL на файл
-//                String fileUrl = "https://example.com/files/document.pdf";
-//
-//                // Створюємо об'єкт URL
-//                URL url = new URL(fileUrl);
-//
-//                // Отримуємо шлях із URL
-//                String path = url.getPath();
-//
-//                // Витягуємо ім'я файлу з шляху
-//                String fileName = path.substring(path.lastIndexOf('/') + 1);
-//
-//                System.out.println("Ім'я файлу: " + fileName);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-
-//            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
-//                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
-//                         +"."+i.toString()+"."+title+".mp3")) {
-//                byte dataBuffer[] = new byte[1024];
-//                int bytesRead;
-//                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-//                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-//                }
-//            } catch (IOException e) {
-//                logger.info("IOException: Помилка запису чи читання файлу");
-//                return null;
-//            }
 
 
             // Перевірка чи епізод вже є в базі
@@ -432,6 +388,66 @@ public class PodcastController {
 //        podcastService.SavePodcast(podcastChannel);
         return "redirect:/podcast/getRSSFromUrl";
     }
+
+    private boolean ImportedEpisodeEnclosureToStore(String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
+//            // завантажуємо епізоди
+
+        // витягуємо оригінальне імʼя файлу
+        String fileName = "";
+        URL url = null;
+            try {
+                // Створюємо об'єкт URL
+                url = new URL(audioUrl);
+                // Отримуємо шлях із URL
+                String path = url.getPath();
+                // Витягуємо ім'я файлу з шляху
+                fileName = path.substring(path.lastIndexOf('/') + 1);
+
+                System.out.println("Ім'я файлу епізоду : " + fileName);
+            } catch (Exception e) {
+                logger.warn("===== помилка при роботі з URL для enclosure елементу подкасту");
+                return false;
+//                e.printStackTrace();
+            }
+
+
+
+        // зберігаємо в базі
+        PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
+//            log.info("Current episode {} {}",puuid, podcast.getTitle());
+            try {
+                url.openStream();
+                String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_EPISODETRACK);
+//                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
+                podcastItem.setChanel(podcast);
+                podcastItem.setStoreuuid(storeUUID);
+                podcastItem.setStoreitem(storeService.GetStoreByUUID(storeUUID));
+                podcastItem.setClientdetail(cd);
+                podcastItem.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+//                podcast.getItem().add(episode);
+            } catch (IOException e) {
+                logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
+                return false;
+//                e.printStackTrace();
+            }
+            logger.info("uploaded file {}", fileName);
+
+
+//            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
+//                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
+//                         +"."+i.toString()+"."+title+".mp3")) {
+//                byte dataBuffer[] = new byte[1024];
+//                int bytesRead;
+//                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+//                    fileOutputStream.write(dataBuffer, 0, bytesRead);
+//                }
+//            } catch (IOException e) {
+//                logger.info("IOException: Помилка запису чи читання файлу");
+//                return null;
+//            }
+        return true;
+    }
+
 
     private String fetchRssContent(String rssUrl) {
         URL url = null;
