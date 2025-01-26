@@ -236,7 +236,8 @@ public class PodcastController {
 
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         logger.info("===== {}", tmpstrUrl.RSSFromUrl);
-        String rssContent = fetchRssContent(tmpstrUrl.RSSFromUrl);
+        String rssContent;
+        rssContent = fetchRssContent(tmpstrUrl.RSSFromUrl);
         tmpstrUrl.setPodcastChannel(null);
         // Парсинг RSS в DOM
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -354,7 +355,7 @@ public class PodcastController {
 
             /* Завантажуємо файл для відтворення епізода у сховище */
             if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem,cd)) {
-
+                // потрібно щось зробити при помилці завантаження файлу з епізодом
             }
 
 
@@ -416,9 +417,11 @@ public class PodcastController {
         PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
 //            log.info("Current episode {} {}",puuid, podcast.getTitle());
             try {
-                url.openStream();
+//                url.openStream();
                 String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_EPISODETRACK);
 //                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
+
+                // заносимо інформацію в епізод
                 podcastItem.setChanel(podcast);
                 podcastItem.setStoreuuid(storeUUID);
                 podcastItem.setStoreitem(storeService.GetStoreByUUID(storeUUID));
