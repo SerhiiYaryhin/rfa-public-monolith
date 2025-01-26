@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -37,6 +38,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_PODCASTCOVER;
 
 @Controller
 public class PodcastController {
@@ -295,7 +298,29 @@ public class PodcastController {
         logger.info("podcastLanguage:{}", podcastLanguage);
         String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
                 channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+        // витягуємо картинку подкасту
+//        org.w3c.dom.Node imgNode = channelElement.getElementsByTagName("image").item(0);
+//        NodeList imgElementList = imgNode.getChildNodes();
+        org.w3c.dom.Node imgNode = doc.getElementsByTagName("image").item(0);
+        org.w3c.dom.Element imgElement = (org.w3c.dom.Element) imgNode;
+        String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
 
+        // завантажуємо обкладинку подкасту
+        if (!ImportedEpisodeCoverToStore(imgUrl, cd)) {
+            logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
+        }
+//
+//        logger.info("img: {} ", imgUrl);
+//        try {
+//            String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PODCASTCOVER);
+//            podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
+//        } catch (IOException e) {
+//            logger.info("Завантаження файлу: Проблема збереження");
+//            e.printStackTrace();
+//        }
+//        logger.info("uploaded file " + file.getOriginalFilename());
+
+//        String img = getElementValue(imgNode, "url");
         /* Створили подкаст та заповнили необхідні атрибути подкасту */
 
         tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
@@ -307,10 +332,13 @@ public class PodcastController {
         tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
         /* зберегли подкаст без епізодів */
         PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
-        podcastService.SavePodcast(podcastChannel);
+//        podcastService.SavePodcast(podcastChannel);
 
 
-//         podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
+
+
+//        Node podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
+//        NodeList podcastImageNode =  ((NodeList) channelNode).getElementsByTagName("image").;
 //        String podcastImageUrl = getElementValue(podcastImageNode, "url");
 //        String podcastImageUrl = podcastImageNode.getElementsByTagName("image").item(0) != null ?
 //                channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
@@ -337,7 +365,8 @@ public class PodcastController {
 
 
         NodeList items = doc.getElementsByTagName("item");
-        for (Integer i = 0; i < items.getLength(); i++) {
+//        for (Integer i = 0; i < items.getLength(); i++) {
+        for (Integer i = 0; i < 2; i++) {
 
             PodcastItem podcastItem = new PodcastItem();
 
@@ -354,9 +383,9 @@ public class PodcastController {
             logger.info("audioUrl:{}",audioUrl);
 
             /* Завантажуємо файл для відтворення епізода у сховище */
-            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem,cd)) {
-                // потрібно щось зробити при помилці завантаження файлу з епізодом
-            }
+//            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem,cd)) {
+//                // потрібно щось зробити при помилці завантаження файлу з епізодом
+//            }
 
 
 //            podcastItem.setEnclosure(audioUrl);
@@ -390,6 +419,43 @@ public class PodcastController {
         return "redirect:/podcast/getRSSFromUrl";
     }
 
+    // завантажуємо картинку подкасту до сховища
+    private boolean ImportedEpisodeCoverToStore(String audioUrl, Clientdetail cd) {
+//            // завантажуємо картинку
+
+        // витягуємо оригінальне імʼя файлу
+        String fileName = "";
+        URL url = null;
+        try {
+            // Створюємо об'єкт URL
+            url = new URL(audioUrl);
+            // Отримуємо шлях із URL
+            String path = url.getPath();
+            // Витягуємо ім'я файлу з шляху
+            fileName = path.substring(path.lastIndexOf('/') + 1);
+
+            System.out.println("Ім'я файлу обкладинки : " + fileName);
+        } catch (Exception e) {
+            logger.warn("===== помилка при роботі з URL для обкладинки подкасту");
+            return false;
+//                e.printStackTrace();
+        }
+
+        // зберігаємо в базі
+        PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
+        try {
+            String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_PODCASTCOVER);
+            podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
+        } catch (IOException e) {
+            logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
+            return false;
+//                e.printStackTrace();
+        }
+        logger.info("uploaded file {}", fileName);
+        return true;
+    }
+
+    // завантажуємо епізод до сховища
     private boolean ImportedEpisodeEnclosureToStore(String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
 //            // завантажуємо епізоди
 
