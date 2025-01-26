@@ -411,13 +411,9 @@ public class PodcastController {
 //                e.printStackTrace();
             }
 
-
-
         // зберігаємо в базі
         PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
-//            log.info("Current episode {} {}",puuid, podcast.getTitle());
             try {
-//                url.openStream();
                 String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_EPISODETRACK);
 //                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
 
@@ -427,14 +423,12 @@ public class PodcastController {
                 podcastItem.setStoreitem(storeService.GetStoreByUUID(storeUUID));
                 podcastItem.setClientdetail(cd);
                 podcastItem.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
-//                podcast.getItem().add(episode);
             } catch (IOException e) {
                 logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
                 return false;
 //                e.printStackTrace();
             }
             logger.info("uploaded file {}", fileName);
-
 
 //            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
 //                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
