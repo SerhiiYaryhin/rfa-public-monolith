@@ -301,14 +301,6 @@ public class PodcastController {
         // витягуємо картинку подкасту
 //        org.w3c.dom.Node imgNode = channelElement.getElementsByTagName("image").item(0);
 //        NodeList imgElementList = imgNode.getChildNodes();
-        org.w3c.dom.Node imgNode = doc.getElementsByTagName("image").item(0);
-        org.w3c.dom.Element imgElement = (org.w3c.dom.Element) imgNode;
-        String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
-
-        // завантажуємо обкладинку подкасту
-        if (!ImportedEpisodeCoverToStore(imgUrl, cd)) {
-            logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
-        }
 //
 //        logger.info("img: {} ", imgUrl);
 //        try {
@@ -331,10 +323,16 @@ public class PodcastController {
         tmpstrUrl.getPodcastChannel().setLanguage(podcastLanguage);
         tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
         /* зберегли подкаст без епізодів */
-        PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
-//        podcastService.SavePodcast(podcastChannel);
+        podcastService.SavePodcast(tmpstrUrl.getPodcastChannel());
+// зберігаємо обкладинку
+        org.w3c.dom.Node imgNode = doc.getElementsByTagName("image").item(0);
+        org.w3c.dom.Element imgElement = (org.w3c.dom.Element) imgNode;
+        String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
 
-
+        // завантажуємо обкладинку подкасту
+        if (!ImportedEpisodeCoverToStore(imgUrl, cd)) {
+            logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
+        }
 
 
 //        Node podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
