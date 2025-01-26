@@ -445,7 +445,7 @@ public class PodcastController {
             String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_PODCASTCOVER);
             podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
         } catch (IOException e) {
-            logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
+            logger.info("Завантаження файлу Cover подкасту: Проблема збереження");
             return false;
 //                e.printStackTrace();
         }
