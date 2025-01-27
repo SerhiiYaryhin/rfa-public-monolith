@@ -40,6 +40,8 @@ public class PodcastItem {
     @Expose
     private String enclosure;
     @Expose
+    private String originalenclosure;
+    @Expose
     @DateTimeFormat(pattern = "dd-MM-yy")
     private Date date = new Date();
     @Expose

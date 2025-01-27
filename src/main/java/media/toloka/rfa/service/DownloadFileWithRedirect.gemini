@@ -1,0 +1,123 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class FileDownloader {
+
+    /**
+     * Клас для представлення результату завантаження: вхідний потік та ім'я файлу.
+     */
+    public static class DownloadResult {
+        public final InputStream inputStream;
+        public final String fileName;
+
+        public DownloadResult(InputStream inputStream, String fileName) {
+            this.inputStream = inputStream;
+            this.fileName = fileName;
+        }
+    }
+
+    /**
+     * Рекурсивна функція для завантаження файлу за URL, з обробкою редиректів.
+     * Ім'я файлу визначається з останньої частини URL.
+     *
+     * @param urlString URL файлу для завантаження
+     * @return Об'єкт DownloadResult, що містить вхідний потік та ім'я файлу
+     * @throws DownloadException Якщо виникла помилка під час завантаження
+     */
+    public static DownloadResult downloadFile(String urlString) throws DownloadException {
+        try {
+            // Створюємо об'єкт URL
+            URL url = new URL(urlString);
+            // Відкриваємо з'єднання з сервером
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            // Отримуємо код відповіді сервера
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode >= 300 && responseCode <= 399) { // Редирект
+                // Отримуємо новий URL з заголовка Location
+                String newUrl = connection.getHeaderField("Location");
+                System.out.println("Перенаправлено на: " + newUrl);
+                // Рекурсивно викликаємо функцію для нового URL
+                return downloadFile(newUrl);
+            } else if (responseCode == 200) { // Успішне завантаження
+                // Визначаємо ім'я файлу з URL
+                String fileName = extractFileNameFromUrl(urlString);
+                // Повертаємо результат, що містить вхідний потік та ім'я файлу
+                return new DownloadResult(connection.getInputStream(), fileName);
+            } else {
+                // Кидаємо виключення при несподіваному коді відповіді
+                throw new DownloadException("Несподіваний HTTP статус: " + responseCode);
+            }
+        } catch (IOException e) {
+            // Обробляємо виключення введення-виведення
+            throw new DownloadException("Помилка при завантаженні файлу: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Витягує ім'я файлу з URL.
+     *
+     * @param urlString URL файлу
+     * @return Ім'я файлу або "default_filename.bin" за замовчуванням
+     */
+    private static String extractFileNameFromUrl(String urlString) {
+        // Використовуємо URI для зручного парсингу URL
+        URI uri = URI.create(urlString);
+        String path = uri.getPath();
+        // Отримуємо останню частину шляху (ім'я файлу)
+        int lastSlashIndex = path.lastIndexOf('/');
+        return lastSlashIndex >= 0 ? path.substring(lastSlashIndex + 1) : "default_filename.bin";
+    }
+
+    /**
+     * Зберігає файл на диск за вказаним шляхом.
+     *
+     * @param result Результат завантаження (вхідний потік та ім'я файлу)
+     * @param outputPath Шлях для збереження файлу
+     * @throws IOException Якщо виникла помилка при записі у файл
+     */
+    public static void saveFile(DownloadResult result, String outputPath) throws IOException {
+        AtomicLong downloadedBytes = new AtomicLong();
+        try (InputStream is = result.inputStream;
+             Files.newOutputStream(Paths.get(outputPath)) output) {
+            byte[] buffer = new byte[1024 * 8];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+                downloadedBytes.addAndGet(bytesRead);
+                // Тут можна додати логіку для відображення прогресу завантаження
+                // наприклад, використовуючи ProgressBar або інший механізм
+            }
+        }
+    }
+
+    public static class DownloadException extends Exception {
+        public DownloadException(String message) {
+            super(message);
+        }
+
+        public DownloadException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            String url = "https://example.com/downloads/my_file.zip";
+            String outputPath = "downloaded_file.zip";
+
+            DownloadResult result = downloadFile(url);
+            saveFile(result, outputPath);
+
+            System.out.println("Файл успішно завантажено: " + outputPath);
+        } catch (DownloadException | IOException e) {
+            System.err.println("Помилка: " + e.getMessage());
+        }
+    }
+}

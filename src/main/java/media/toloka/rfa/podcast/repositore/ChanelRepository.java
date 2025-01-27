@@ -18,4 +18,5 @@ public interface ChanelRepository
     List<PodcastChannel> findByApruve(boolean b);
     List<PodcastChannel> findByPublishing(boolean b);
     List<PodcastChannel> findByTitle(String title);
+
 }

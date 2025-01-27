@@ -11,8 +11,11 @@ import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
+import media.toloka.rfa.service.DownloadFileException;
+import media.toloka.rfa.service.DownloadFileResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +30,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -38,7 +40,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,6 +49,7 @@ import java.util.*;
 
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_PODCASTCOVER;
+import static media.toloka.rfa.service.FileDownloader.downloadFile;
 
 @Controller
 public class PodcastController {
@@ -203,7 +205,18 @@ public class PodcastController {
     @GetMapping(value = "/podcast/getRSSFromUrl")
     public String GetPodcastFromRSSUrl(            //@PathVariable String euuid,
                                                    Model model) {
-        // https://anchor.fm/s/89f5c40c/podcast/rss
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return "redirect:/";
+        }
+
+        // https://anchor.fm/s/89f5c40c/podcast/rss  Казки Суспільне
+        // https://anchor.fm/s/ff57ac9c/podcast/rss
+
         model.addAttribute("strUrl", tmpstrUrl);
 
         List<Users> usersList = clientService.GetAllUsers();
@@ -211,13 +224,12 @@ public class PodcastController {
             if (usr.getClientdetail() != null) {
                 logger.info("===== User: {} {} {}", usr.getEmail(), usr.getClientdetail().getCustname(), usr.getClientdetail().getCustsurname());
                 List<Roles> rolesList = usr.getRoles();
-                for (Roles rls :rolesList) {
+                for (Roles rls : rolesList) {
                     logger.info("=========   Role: {} - {}", rls.getId(), rls.getRole().label);
                 }
 
             }
         }
-
 
 
         return "/podcast/getRSSFromUrl";
@@ -235,7 +247,9 @@ public class PodcastController {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (cd == null) { return "redirect:/"; }
+        if (cd == null) {
+            return "redirect:/";
+        }
 
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         logger.info("===== {}", tmpstrUrl.RSSFromUrl);
@@ -280,176 +294,154 @@ public class PodcastController {
         }
 
         String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
-        logger.info("podcastTitle:{}",podcastTitle);
+        logger.info("podcastTitle:{}", podcastTitle);
 
         // шукаємо в базі подкастів з такою назвою
         List<PodcastChannel> podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
-
+        Boolean updatePodcast = false;
         if (podcastChannelList != null) {
-            logger.info("===== Подкаст з такою назвою вже існує!!!");
+            updatePodcast = true;
+            if (podcastChannelList.size() == 1) {
+                logger.info("===== Подкаст з такою назвою вже існує!!!");
+                tmpstrUrl.setPodcastChannel(podcastChannelList.get(0));
+            } else {
+                logger.info("Йой! Подкастів з такою назвою декілька!!!");
+                for (PodcastChannel pc : podcastChannelList) {
+                    logger.info("==== {} \n    url:{}", pc.getTitle(), pc.getLinktoimporturl());
+                }
+            }
         }
 
-        String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
-        logger.info("podcastDescription:{}",podcastDescription);
+        if (!updatePodcast) {
 
-        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
-        logger.info("podcastLink:{}", podcastLink);
-        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
-        logger.info("podcastLanguage:{}", podcastLanguage);
-        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
-                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
-        // витягуємо картинку подкасту
-//        org.w3c.dom.Node imgNode = channelElement.getElementsByTagName("image").item(0);
-//        NodeList imgElementList = imgNode.getChildNodes();
-//
-//        logger.info("img: {} ", imgUrl);
-//        try {
-//            String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PODCASTCOVER);
-//            podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
-//        } catch (IOException e) {
-//            logger.info("Завантаження файлу: Проблема збереження");
-//            e.printStackTrace();
-//        }
-//        logger.info("uploaded file " + file.getOriginalFilename());
+            String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
+            logger.info("podcastDescription:{}", podcastDescription);
 
-//        String img = getElementValue(imgNode, "url");
-        /* Створили подкаст та заповнили необхідні атрибути подкасту */
+            String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
+            logger.info("podcastLink:{}", podcastLink);
+            String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
+            logger.info("podcastLanguage:{}", podcastLanguage);
+            String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
+                    channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
+            // витягуємо картинку подкасту
+            /* Створили подкаст та заповнили необхідні атрибути подкасту */
 
-        tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
-        tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
-        tmpstrUrl.getPodcastChannel().setLastbuilddate(new Date());
-        tmpstrUrl.getPodcastChannel().setClientdetail(cd);
-        tmpstrUrl.getPodcastChannel().setLinktoimporturl(tmpstrUrl.RSSFromUrl);
-        tmpstrUrl.getPodcastChannel().setLanguage(podcastLanguage);
-        tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
-        /* зберегли подкаст без епізодів */
-        podcastService.SavePodcast(tmpstrUrl.getPodcastChannel());
-// зберігаємо обкладинку
-        org.w3c.dom.Node imgNode = doc.getElementsByTagName("image").item(0);
-        org.w3c.dom.Element imgElement = (org.w3c.dom.Element) imgNode;
-        String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
+            tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
+            tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
+            tmpstrUrl.getPodcastChannel().setLastbuilddate(new Date());
+            tmpstrUrl.getPodcastChannel().setClientdetail(cd);
+            tmpstrUrl.getPodcastChannel().setLinktoimporturl(tmpstrUrl.RSSFromUrl);
+            tmpstrUrl.getPodcastChannel().setLanguage(podcastLanguage);
+            tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
+            /* зберегли подкаст без епізодів */
+            podcastService.SavePodcast(tmpstrUrl.getPodcastChannel());
+            // зберігаємо обкладинку
+            org.w3c.dom.Node imgNode = doc.getElementsByTagName("image").item(0);
+            org.w3c.dom.Element imgElement = (org.w3c.dom.Element) imgNode;
+            String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
 
-        // завантажуємо обкладинку подкасту
-        if (!ImportedEpisodeCoverToStore(imgUrl, cd)) {
-            logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
+            // завантажуємо обкладинку подкасту
+            if (!ImportedPodcastCoverToStore(imgUrl, cd)) {
+                logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
+            }
         }
-
-
-//        Node podcastImageNode =  ((Element) channelNode).getElementsByTagName("image").item(0);
-//        NodeList podcastImageNode =  ((NodeList) channelNode).getElementsByTagName("image").;
-//        String podcastImageUrl = getElementValue(podcastImageNode, "url");
-//        String podcastImageUrl = podcastImageNode.getElementsByTagName("image").item(0) != null ?
-//                channelElement.getElementsByTagName("image").item(0).getTextContent() : "";
-//        logger.info("podcastImageUrl:{}",podcastImageUrl);
-//        tmpstrUrl.getPodcastChannel().setLink(podcastImageUrl);
-
-//        String podcastLink = channelElement.getElementsByTagName("link").item(0).getTextContent();
-//        logger.info("podcastLink:{}",podcastLink);
-//        String podcastLanguage = channelElement.getElementsByTagName("language").item(0).getTextContent();
-//        logger.info("podcastLanguage:{}",podcastLanguage);
-//
-//
-//        String podcastCopyright = channelElement.getElementsByTagName("copyright").item(0) != null ?
-//                channelElement.getElementsByTagName("copyright").item(0).getTextContent() : "";
-//
-//        logger.info("podcastCopyright:{}",podcastCopyright);
-//        String podcastLastBuildDate = channelElement.getElementsByTagName("lastBuildDate").item(0).getTextContent();
-//        logger.info("podcastLastBuildDate:{}",podcastLastBuildDate);
-//        String podcastAuthor = channelElement.getElementsByTagName("author").item(0) != null ?
-//                channelElement.getElementsByTagName("author").item(0).getTextContent() : "";
-//        logger.info("podcastAuthor:{}",podcastAuthor);
-
-
-
 
         NodeList items = doc.getElementsByTagName("item");
 //        for (Integer i = 0; i < items.getLength(); i++) {
         for (Integer i = 0; i < 2; i++) {
 
-            PodcastItem podcastItem = new PodcastItem();
-
-//            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
-
-            Element item = (Element) items.item(i);
-
+            Element item = (Element) items.item(i); // взяли епізод з RSS
             String title = getElementValue(item, "title");
-            logger.info("Title {} : {}",i,title);
+            logger.info("Title {} : {}", i, title);
+            // Перевіряємо, чи є епізод з такою назвою
+            if (podcastService.CheckEpisodeWithTitle(title) != null) {
+                logger.info("Епізод вже завантажено: {}",title);
+                continue;
+            }
+
+            PodcastItem podcastItem = new PodcastItem();
+            podcastItem.setClientdetail(cd);
+            // зберегли новий епізод в базу, щоб можна було додавати файли
+            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
+
             podcastItem.setTitle(title);
-//            String link = getElementValue(item, "link");
-//            logger.info("Link:{}",link);
+
+            podcastItem.setDescription(getElementValue(item, "description"));
+
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
-            logger.info("audioUrl:{}",audioUrl);
+            logger.info("audioUrl:{}", audioUrl);
 
             /* Завантажуємо файл для відтворення епізода у сховище */
-//            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem,cd)) {
-//                // потрібно щось зробити при помилці завантаження файлу з епізодом
-//            }
+            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem, cd)) {
+                // не зберігаємо епізод при помилці завантаження файлу з епізодом
+                logger.info("===== Щось пішло не так при завантаженні епізоду\n"
+                        + "     enclosure url: {}"
+                        + "     Епізод: {}"
+                        + "     Подкаст: {}", audioUrl, title, podcastTitle);
+                continue;
+            }
+            // зберегли оригінальне посилання на enclosure
+            podcastItem.setOriginalenclosure(audioUrl);
 
+            // itunes:image
+            String episodeImageUrl = getAttributeValue(item, "itunes:image", "href"); // Посилання на аудіофайл
+            logger.info("episodeImageUrl:{}", episodeImageUrl);
+            if (!ImportedEpisodeImageToStore(episodeImageUrl, podcastItem, cd)) {
+                // не зберігаємо епізод при помилці завантаження файлу з епізодом
+                logger.info("===== Щось пішло не так при завантаженні картинки епізоду\n"
+                        + "     image url: {}"
+                        + "     Епізод: {}"
+                        + "     Подкаст: {}", episodeImageUrl, title, podcastTitle);
+                continue;
+            }
+//            podcastItem.set(episodeImageUrl);
 
-//            podcastItem.setEnclosure(audioUrl);
-            podcastItem.setDescription(getElementValue(item, "description"));
-//            LocalDateTime pubDate = parsePubDate(getElementValue(item, "pubDate"));
-
-
-
-            // Перевірка чи епізод вже є в базі
-//            if (episodeRepository.findByTitle(title).isEmpty()) {
-//                Episode episode = new Episode();
-//                episode.setTitle(title);
-//                episode.setLink(link);
-//                episode.setPublicationDate(pubDate);
-//
-//                episodeRepository.save(episode);
-//                System.out.println("Додано новий епізод: " + title);
-//            }
-            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
+//            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
         }
-//    }
-//    catch (Exception e) {
-//        e.printStackTrace();
-//    }
 
-
-//        model.addAttribute("gstrUrl",  gstrUrl);
-//        PodcastChannel podcastChannel = tmpstrUrl.getPodcastChannel();
         /* зберегли весь подкаст з епізодами */
-//        podcastService.SavePodcast(podcastChannel);
+        podcastService.SavePodcast(tmpstrUrl.getPodcastChannel());
         return "redirect:/podcast/getRSSFromUrl";
     }
 
-    // завантажуємо картинку подкасту до сховища
-    private boolean ImportedEpisodeCoverToStore(String audioUrl, Clientdetail cd) {
-//            // завантажуємо картинку
-
+    private boolean ImportedEpisodeImageToStore(String episodeImageUrl, PodcastItem podcastItem, Clientdetail cd) {
         // витягуємо оригінальне імʼя файлу
-        String fileName = "";
-        URL url = null;
-        try {
-            // Створюємо об'єкт URL
-            url = new URL(audioUrl);
-            // Отримуємо шлях із URL
-            String path = url.getPath();
-            // Витягуємо ім'я файлу з шляху
-            fileName = path.substring(path.lastIndexOf('/') + 1);
-
-            System.out.println("Ім'я файлу обкладинки : " + fileName);
-        } catch (Exception e) {
-            logger.warn("===== помилка при роботі з URL для обкладинки подкасту");
-            return false;
-//                e.printStackTrace();
-        }
-
+        DownloadFileResult resultDownloadFile;
         // зберігаємо в базі
-        PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
         try {
-            String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_PODCASTCOVER);
-            podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
-        } catch (IOException e) {
+            // завантажуємо картинку
+            resultDownloadFile = downloadFile(episodeImageUrl);
+            PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
+            String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_PODCASTCOVER);
+            podcastService.SaveCoverEpisodeUploadfile(storeUUID, podcastItem, cd);
+            podcastItem.getImage().setOriginalurl(episodeImageUrl);
+
+        } catch (DownloadFileException e) {
             logger.info("Завантаження файлу Cover подкасту: Проблема збереження");
             return false;
 //                e.printStackTrace();
         }
-        logger.info("uploaded file {}", fileName);
+        logger.info("uploaded file {}", resultDownloadFile.fileName);
+        return true;
+    }
+
+    // завантажуємо картинку подкасту до сховища
+    private boolean ImportedPodcastCoverToStore(String coverurl, Clientdetail cd) {
+        // витягуємо оригінальне імʼя файлу
+        DownloadFileResult resultDownloadFile;
+        // зберігаємо в базі
+        try {
+            // завантажуємо картинку
+            resultDownloadFile = downloadFile(coverurl);
+            PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
+            String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_PODCASTCOVER);
+            podcastService.SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
+        } catch (DownloadFileException e) {
+            logger.info("Завантаження файлу Cover подкасту: Проблема збереження");
+            return false;
+//                e.printStackTrace();
+        }
+        logger.info("uploaded file {}", resultDownloadFile.fileName);
         return true;
     }
 
@@ -458,59 +450,31 @@ public class PodcastController {
 //            // завантажуємо епізоди
 
         // витягуємо оригінальне імʼя файлу
-        String fileName = "";
-        URL url = null;
-            try {
-                // Створюємо об'єкт URL
-                url = new URL(audioUrl);
-                // Отримуємо шлях із URL
-                String path = url.getPath();
-                // Витягуємо ім'я файлу з шляху
-                fileName = path.substring(path.lastIndexOf('/') + 1);
-
-                System.out.println("Ім'я файлу епізоду : " + fileName);
-            } catch (Exception e) {
-                logger.warn("===== помилка при роботі з URL для enclosure елементу подкасту");
-                return false;
-//                e.printStackTrace();
-            }
-
+        DownloadFileResult resultDownloadFile;
         // зберігаємо в базі
         PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
-            try {
-                String storeUUID = storeService.PutFileToStore(url.openStream(),fileName,cd,STORE_EPISODETRACK);
+        try {
+            resultDownloadFile = downloadFile(audioUrl);
+            String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_EPISODETRACK);
 //                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
 
-                // заносимо інформацію в епізод
-                podcastItem.setChanel(podcast);
-                podcastItem.setStoreuuid(storeUUID);
-                podcastItem.setStoreitem(storeService.GetStoreByUUID(storeUUID));
-                podcastItem.setClientdetail(cd);
-                podcastItem.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
-            } catch (IOException e) {
-                logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
-                return false;
-//                e.printStackTrace();
-            }
-            logger.info("uploaded file {}", fileName);
+            // заносимо інформацію в епізод
+            podcastItem.setChanel(podcast);
+            podcastItem.setStoreuuid(storeUUID);
+            podcastItem.setStoreitem(storeService.GetStoreByUUID(storeUUID));
+            podcastItem.setClientdetail(cd);
+            podcastItem.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+        } catch (DownloadFileException e) {
+            logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
+            return false;
+        }
 
-//            try (BufferedInputStream in = new BufferedInputStream(new URL(audioUrl).openStream());
-//                 FileOutputStream fileOutputStream = new FileOutputStream("/home/ysv/123/fairy_tales_"
-//                         +"."+i.toString()+"."+title+".mp3")) {
-//                byte dataBuffer[] = new byte[1024];
-//                int bytesRead;
-//                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-//                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-//                }
-//            } catch (IOException e) {
-//                logger.info("IOException: Помилка запису чи читання файлу");
-//                return null;
-//            }
         return true;
     }
 
-
+    // Читаємо RSS
     private String fetchRssContent(String rssUrl) {
+        DownloadFileResult resultDownloadFile;
         URL url = null;
         HttpURLConnection connection;
         try {
@@ -545,6 +509,7 @@ public class PodcastController {
         }
         return null;
     }
+
     private String getAttributeValue(Element parent, String tagName, String attributeName) {
         NodeList nodeList = parent.getElementsByTagName(tagName);
         if (nodeList.getLength() > 0) {

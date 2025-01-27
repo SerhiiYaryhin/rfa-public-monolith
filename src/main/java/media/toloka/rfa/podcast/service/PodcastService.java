@@ -241,4 +241,8 @@ public class PodcastService {
         if( podcastChannelList.isEmpty() ) return null;
         return podcastChannelList;
     }
+
+    public PodcastItem CheckEpisodeWithTitle(String title) {
+        return episodeRepository.getByTitle(title);
+    }
 }

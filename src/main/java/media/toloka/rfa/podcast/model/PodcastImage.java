@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.model.Store;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -17,10 +19,19 @@ public class PodcastImage {
     @GeneratedValue
     @Expose
     private Long id;
+    @Expose
     private String uuid = UUID.randomUUID().toString();
+    @Expose
     private String title = "";
+    @Expose
     private String url = "";
+    @Expose
+    private String originalurl = "";
+    @Expose
     private String link ="";
+    @Expose
+    @DateTimeFormat(pattern = "dd-MM-yy")
+    private Date date = new Date();
 
     @ManyToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "store_id")
