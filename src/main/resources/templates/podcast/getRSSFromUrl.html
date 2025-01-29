@@ -29,8 +29,13 @@
 <span th:text="${strUrl.RSSFromUrl}"></span>
 <form action="#" th:action="@{'/podcast/getRSSFromUrl'}" th:object="${strUrl}" method="post">
     <div class="mb-3">
+        <label for="tested" class="form-label">Режим тестування RSS посилання</label>
+        <input type="checkbox" name="tested" th:checked="*{tested}" /><br>
         <label for="RSSFromUrl" class="form-label">Посилання на RSS подкасту</label>
         <input type="text" th:field="*{RSSFromUrl}" class="form-control">
+        <label for="clrpodcast" class="form-label">Видалити подкаст на RFA?</label>
+        <input type="checkbox" name="clrpodcast" th:checked="*{clrpodcast}" />
+<!--        <input type="checkbox" name="clrpodcast" th:field="*{clrpodcast}" th:checked="*{clrpodcast}" />-->
 <!--        <input type="text" th:field="${strRSSPodcast}" th:value="${strRSSPodcast}" class="form-control">-->
     </div>
     <button type="submit" class="btn btn-primary">Зберегти</button>

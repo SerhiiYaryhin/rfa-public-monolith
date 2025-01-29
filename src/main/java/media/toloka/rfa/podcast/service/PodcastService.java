@@ -89,29 +89,29 @@ public class PodcastService {
 
     public String GetTimeTrack(String storeUUID) {
         // Беремо в сховищі завантажений трек і визначаємо його тривалість
-        String cursFile = storeService.GetStoreByUUID (storeUUID).getFilepatch ();
+        String cursFile = storeService.GetStoreByUUID(storeUUID).getFilepatch();
         String resultLength;
 
 
         try {
 //            File file =
             AudioFile audioMetadata = AudioFileIO.read(new File(cursFile));
-            logger.info("Audio file {}",cursFile);
-            logger.info("Audio TrackLength {}",audioMetadata.getAudioHeader().getTrackLength ());
-            Integer iii = audioMetadata.getAudioHeader().getTrackLength ();
+            logger.info("Audio file {}", cursFile);
+            logger.info("Audio TrackLength {}", audioMetadata.getAudioHeader().getTrackLength());
+            Integer iii = audioMetadata.getAudioHeader().getTrackLength();
             Long lll = Long.valueOf(iii * 1000);
             Date ddd = new Date(lll);
 
-            Integer hours = audioMetadata.getAudioHeader().getTrackLength () / 3600;
-            Integer minutes = (audioMetadata.getAudioHeader().getTrackLength () % 3600) / 60;
-            Integer seconds = audioMetadata.getAudioHeader().getTrackLength () % 60;
+            Integer hours = audioMetadata.getAudioHeader().getTrackLength() / 3600;
+            Integer minutes = (audioMetadata.getAudioHeader().getTrackLength() % 3600) / 60;
+            Integer seconds = audioMetadata.getAudioHeader().getTrackLength() % 60;
 
             resultLength = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
-            logger.info("Audio bitrate {}",audioMetadata.getAudioHeader().getBitRate());
+            logger.info("Audio bitrate {}", audioMetadata.getAudioHeader().getBitRate());
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException
                  | InvalidAudioFrameException e) {
-            throw new RuntimeException("Error while getting metadata for audio file. Error " +  e.getLocalizedMessage());
+            throw new RuntimeException("Error while getting metadata for audio file. Error " + e.getLocalizedMessage());
         }
         return resultLength;
     }
@@ -119,26 +119,26 @@ public class PodcastService {
     /**
      * This method is to get the language code from given language name
      * as locale can't be instantiate from a language name.
-     *
+     * <p>
      * You can specify which language you are at : Locale loc=new Locale("en") use whatever your language is
      *
      * @param lng -> given language name eg.: English
      * @return -> will return "eng"
-     *
+     * <p>
      * Wilson M Penha Jr.
      * https://stackoverflow.com/questions/29632342/converting-language-names-to-iso-639-language-codes
      */
-    public String GetLanguageCode(String lng){
+    public String GetLanguageCode(String lng) {
         if (lng == null) return "ukr";
         Locale loc = new Locale("en");
         String[] name = loc.getISOLanguages(); // list of language codes
 
         for (int i = 0; i < name.length; i++) {
-            Locale locale = new Locale(name[i],"US");
+            Locale locale = new Locale(name[i], "US");
             // get the language name in english for comparison
 //            String langLocal = itemLang.toLowerCase();
             String langLocal = locale.getDisplayLanguage(loc).toLowerCase();
-            if (lng.toLowerCase().equals(langLocal)){
+            if (lng.toLowerCase().equals(langLocal)) {
                 return locale.getISO3Language();
             }
         }
@@ -165,7 +165,7 @@ public class PodcastService {
         itemImage.setClientdetail(cd);
         episode.setImage(itemImage);
         for (PodcastItem item : episode.getChanel().getItem()) {
-            if (item.getId() == episode.getId() ) {
+            if (item.getId() == episode.getId()) {
                 item.setImage(itemImage);
                 break;
             }
@@ -204,13 +204,13 @@ public class PodcastService {
     }
 
     // читаємо категорії itunes для подкасту з файлу, який розташовано в ресурсах
-    public Map<String,List<String>> ItunesCategory() {
+    public Map<String, List<String>> ItunesCategory() {
 
         String resource = "itunes.json";
         String jsonString;
         try {
             ClassLoader cl = ClassUtils.getDefaultClassLoader();
-            File file = ResourceUtils.getFile("classpath:"+resource);
+            File file = ResourceUtils.getFile("classpath:" + resource);
             logger.info(file.toString());
             jsonString = new String(Files.readAllBytes(file.toPath()));
         } catch (FileNotFoundException e) {
@@ -221,7 +221,8 @@ public class PodcastService {
             return null;
         }
         // отримали рядок з файлу
-        return new Gson().fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {}.getType());
+        return new Gson().fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {
+        }.getType());
     }
 
     public void SaveItunesCategory(PodcastItunesCategory pic) {
@@ -238,11 +239,59 @@ public class PodcastService {
 
     public List<PodcastChannel> GetChanelByTitle(String podcastTitle) {
         List<PodcastChannel> podcastChannelList = chanelRepository.findByTitle(podcastTitle);
-        if( podcastChannelList.isEmpty() ) return null;
+        if (podcastChannelList.isEmpty()) return null;
         return podcastChannelList;
     }
 
     public PodcastItem CheckEpisodeWithTitle(String title) {
         return episodeRepository.getByTitle(title);
+    }
+
+    /*
+    Видаляємо подкаст та вичіщаємо всі записи і файли
+     */
+    public void ClearAndDeletePodcastChanel(PodcastChannel lChannel) {
+        List<PodcastItem> podcastItemList = lChannel.getItem();
+//        lChannel.getItem().clear();
+        for (PodcastItem pi : podcastItemList) { // Get подкаст айтем
+            Store st = pi.getStoreitem();  // Взяли посилання на епізод у сховищі
+            if (st != null) {
+                if (storeService.DeleteInStore(st)) {
+                    pi.setStoreitem(null);
+                }
+            }
+            PodcastImage piImage = pi.getImage();
+            if (piImage != null) {
+                st = piImage.getStoreidimage();
+                if (st != null) {
+                    if (storeService.DeleteInStore(st)) {
+                        DelPodcastImage(piImage);
+                        piImage.setStoreidimage(null);
+                    }
+                }
+            }
+
+            // почистили все в елементі
+            // видаляємо його.
+//            podcastItemList.remove(pi);
+        } // Закінчили працювати з епізодами
+
+        // видаляємо cover для подкасту
+        if (lChannel.getImage() != null) {
+            Store simg = lChannel.getImage().getStoreidimage(); // Взяли посилання на картинку подкасту у сховищі
+            if (simg != null) {
+                if (storeService.DeleteInStore(simg)) {
+                    lChannel.setImage(null);
+                }
+            }
+        }
+        lChannel.setClientdetail(null);
+//        SavePodcast(lChannel);
+        chanelRepository.delete(lChannel);
+
+    }
+
+    private void DelPodcastImage(PodcastImage piImage) {
+        coverPodcastRepository.delete(piImage);
     }
 }

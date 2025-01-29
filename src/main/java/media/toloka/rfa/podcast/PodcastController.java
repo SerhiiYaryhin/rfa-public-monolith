@@ -73,9 +73,11 @@ public class PodcastController {
         String RSSFromUrl = "";
         PodcastChannel podcastChannel = null;// = new PodcastChannel();
         Boolean fill = false;
+        Boolean tested = true;
+        Boolean clrpodcast = false;
     }
 
-    public strUrl tmpstrUrl = new strUrl();
+//    public strUrl tmpstrUrl = new strUrl();
 
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
@@ -118,7 +120,12 @@ public class PodcastController {
 
         model.addAttribute("podcast", podcastChannel);
 
-        model.addAttribute("ogimage", podcastChannel.getImage().getStoreidimage().getUuid());
+        if (podcastChannel.getImage() != null){
+            model.addAttribute("ogimage", podcastChannel.getImage().getStoreidimage().getUuid());
+        } else {
+            // todo Вставити нормальне посилання на cover за замовчуванням
+            model.addAttribute("ogimage", "------------");
+        }
 
         return "/podcast/view";
     }
@@ -205,6 +212,7 @@ public class PodcastController {
     @GetMapping(value = "/podcast/getRSSFromUrl")
     public String GetPodcastFromRSSUrl(            //@PathVariable String euuid,
                                                    Model model) {
+        strUrl tmpstrUrl = new strUrl();
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -217,21 +225,20 @@ public class PodcastController {
         // https://anchor.fm/s/89f5c40c/podcast/rss  Казки Суспільне
         // https://anchor.fm/s/ff57ac9c/podcast/rss
 
+
+//        List<Users> usersList = clientService.GetAllUsers();
+//        for (Users usr : usersList) {
+//            if (usr.getClientdetail() != null) {
+//                logger.info("===== User: {} {} {}", usr.getEmail(), usr.getClientdetail().getCustname(), usr.getClientdetail().getCustsurname());
+//                List<Roles> rolesList = usr.getRoles();
+//                for (Roles rls : rolesList) {
+//                    logger.info("=========   Role: {} - {}", rls.getId(), rls.getRole().label);
+//                }
+//
+//            }
+//        }
+
         model.addAttribute("strUrl", tmpstrUrl);
-
-        List<Users> usersList = clientService.GetAllUsers();
-        for (Users usr : usersList) {
-            if (usr.getClientdetail() != null) {
-                logger.info("===== User: {} {} {}", usr.getEmail(), usr.getClientdetail().getCustname(), usr.getClientdetail().getCustsurname());
-                List<Roles> rolesList = usr.getRoles();
-                for (Roles rls : rolesList) {
-                    logger.info("=========   Role: {} - {}", rls.getId(), rls.getRole().label);
-                }
-
-            }
-        }
-
-
         return "/podcast/getRSSFromUrl";
     }
 
@@ -251,11 +258,37 @@ public class PodcastController {
             return "redirect:/";
         }
 
+        if (gstrUrl.getRSSFromUrl().length() < 5) {
+            model.addAttribute("warning", "Заповніть поле адреси.");
+
+            return "/podcast/getRSSFromUrl";
+        }
+
+        // Створили пусту структуру
+        gstrUrl.setTested(false);
+        if (gstrUrl.getTested()) {
+            PodcastChannel mypc = podcastService.GetChanelByUUID("402f655b-addb-4faa-952d-e444952a8dc7");
+            List<PodcastItem> mypodcastItem = mypc.getItem();
+            PodcastItem mypi;
+            mypi = podcastService.GetEpisodeByUUID("bde7528c-f1d0-4860-9485-5b7b886e8a2b");
+            mypodcastItem.add(mypi);
+            mypi = podcastService.GetEpisodeByUUID("8fcd627f-30d8-43a8-8001-8051e941a8ab");
+            mypodcastItem.add(mypi);
+            podcastService.SavePodcast(mypc);
+
+            model.addAttribute("strUrl", gstrUrl);
+            return "/podcast/getRSSFromUrl";
+        }
+
+        strUrl tmpstrUrl = new strUrl();
+
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
+        tmpstrUrl.setClrpodcast(gstrUrl.getClrpodcast());
         logger.info("===== {}", tmpstrUrl.RSSFromUrl);
+
         String rssContent;
         rssContent = fetchRssContent(tmpstrUrl.RSSFromUrl);
-        tmpstrUrl.setPodcastChannel(null);
+//        tmpstrUrl.setPodcastChannel(null);
         // Парсинг RSS в DOM
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
@@ -275,7 +308,6 @@ public class PodcastController {
             return null;
         }
 
-        // Зчитуємо атрибути подкасту
         // Зчитуємо всі атрибути подкасту
         // Отримуємо елементи <channel>
         org.w3c.dom.Node channelNode = doc.getElementsByTagName("channel").item(0);
@@ -284,20 +316,52 @@ public class PodcastController {
         // todo тут буде губитися памʼять бо можливо у нас вже був створений подкаст, а ми його просто затерли.
         //  Для етапу розробки - нормально
 
-        // дивимося, чи пустий подкаст
-        if (tmpstrUrl.getPodcastChannel() != null) {
-            /* Подкаст не пустий. Чистимо поточний перелік епізодів подкасту */
-            tmpstrUrl.getPodcastChannel().getItem().clear();
-        } else {
-            // подкаст ще пустий. Створюємо подкаст
-            tmpstrUrl.setPodcastChannel(new PodcastChannel());
+        List<PodcastChannel> podcastChannelList;
+        String podcastTitle;
+
+        // отримали заголовок контенту з RSS
+        podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
+        logger.info("Взяли з RSS podcastTitle:{}", podcastTitle);
+        // шукаємо в базі подкастів з такою назвою
+        podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
+
+        // Чи видаляємо подкаст?
+        if (gstrUrl.getClrpodcast()) {
+            /* Delete podcast */
+            // шукаємо в базі подкастів подкаст з такою назвою
+//            podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
+            if (podcastChannelList != null) {
+                for (PodcastChannel lChannel : podcastChannelList) { // пробігаємося по отриманих подкастах з такою назвою
+                    if (cd == lChannel.getClientdetail()) { // якщо подкаст належить цьому користувачу, то чистимо його
+                        podcastService.ClearAndDeletePodcastChanel(lChannel);
+                    }
+                }
+            } else {
+                model.addAttribute("warning", "Такий подкаст не знайдено.");
+            }
+            model.addAttribute("strUrl", gstrUrl);
+
+            return "/podcast/getRSSFromUrl";
         }
 
-        String podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
-        logger.info("podcastTitle:{}", podcastTitle);
+        // дивимося, чи пустий подкаст
+        // Навіщо ми це дивимося?
+        // у цій процедурі створили tmpstrUrl і тому не має потреби нічого перевіряти
+//        if (tmpstrUrl.getPodcastChannel() != null) {
+//            /* Подкаст не пустий. Чистимо поточний перелік епізодів подкасту */
+//            // Навіщо ми це чистимо? Може варто оновити?
+//            tmpstrUrl.getPodcastChannel().getItem().clear();
+//        } else {
+//            // подкаст ще пустий. Створюємо подкаст
+//            tmpstrUrl.setPodcastChannel(new PodcastChannel());
+//        }
 
+        // раніше вже взяли актуальний з RSS
+//        podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
+
+        tmpstrUrl.setPodcastChannel(new PodcastChannel());
         // шукаємо в базі подкастів з такою назвою
-        List<PodcastChannel> podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
+        podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
         Boolean updatePodcast = false;
         if (podcastChannelList != null) {
             updatePodcast = true;
@@ -307,11 +371,14 @@ public class PodcastController {
             } else {
                 logger.info("Йой! Подкастів з такою назвою декілька!!!");
                 for (PodcastChannel pc : podcastChannelList) {
+
                     logger.info("==== {} \n    url:{}", pc.getTitle(), pc.getLinktoimporturl());
                 }
             }
         }
 
+        // тимчасово. Завантажуємо інформацію та cover подкасту
+        updatePodcast = false;
         if (!updatePodcast) {
 
             String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
@@ -341,7 +408,7 @@ public class PodcastController {
             String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
 
             // завантажуємо обкладинку подкасту
-            if (!ImportedPodcastCoverToStore(imgUrl, cd)) {
+            if (!ImportedPodcastCoverToStore(tmpstrUrl, imgUrl, cd)) {
                 logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
             }
         }
@@ -355,7 +422,7 @@ public class PodcastController {
             logger.info("Title {} : {}", i, title);
             // Перевіряємо, чи є епізод з такою назвою
             if (podcastService.CheckEpisodeWithTitle(title) != null) {
-                logger.info("Епізод вже завантажено: {}",title);
+                logger.info("Епізод вже завантажено: {}", title);
                 continue;
             }
 
@@ -372,7 +439,7 @@ public class PodcastController {
             logger.info("audioUrl:{}", audioUrl);
 
             /* Завантажуємо файл для відтворення епізода у сховище */
-            if (!ImportedEpisodeEnclosureToStore(audioUrl, podcastItem, cd)) {
+            if (!ImportedEpisodeEnclosureToStore(tmpstrUrl, audioUrl, podcastItem, cd)) {
                 // не зберігаємо епізод при помилці завантаження файлу з епізодом
                 logger.info("===== Щось пішло не так при завантаженні епізоду\n"
                         + "     enclosure url: {}"
@@ -386,7 +453,7 @@ public class PodcastController {
             // itunes:image
             String episodeImageUrl = getAttributeValue(item, "itunes:image", "href"); // Посилання на аудіофайл
             logger.info("episodeImageUrl:{}", episodeImageUrl);
-            if (!ImportedEpisodeImageToStore(episodeImageUrl, podcastItem, cd)) {
+            if (!ImportedEpisodeImageToStore(tmpstrUrl, episodeImageUrl, podcastItem, cd)) {
                 // не зберігаємо епізод при помилці завантаження файлу з епізодом
                 logger.info("===== Щось пішло не так при завантаженні картинки епізоду\n"
                         + "     image url: {}"
@@ -401,10 +468,12 @@ public class PodcastController {
 
         /* зберегли весь подкаст з епізодами */
         podcastService.SavePodcast(tmpstrUrl.getPodcastChannel());
-        return "redirect:/podcast/getRSSFromUrl";
+
+        model.addAttribute("strUrl", tmpstrUrl);
+        return "/podcast/getRSSFromUrl";
     }
 
-    private boolean ImportedEpisodeImageToStore(String episodeImageUrl, PodcastItem podcastItem, Clientdetail cd) {
+    private boolean ImportedEpisodeImageToStore(strUrl tmpstrUrl, String episodeImageUrl, PodcastItem podcastItem, Clientdetail cd) {
         // витягуємо оригінальне імʼя файлу
         DownloadFileResult resultDownloadFile;
         // зберігаємо в базі
@@ -426,7 +495,7 @@ public class PodcastController {
     }
 
     // завантажуємо картинку подкасту до сховища
-    private boolean ImportedPodcastCoverToStore(String coverurl, Clientdetail cd) {
+    private boolean ImportedPodcastCoverToStore(strUrl tmpstrUrl, String coverurl, Clientdetail cd) {
         // витягуємо оригінальне імʼя файлу
         DownloadFileResult resultDownloadFile;
         // зберігаємо в базі
@@ -446,7 +515,7 @@ public class PodcastController {
     }
 
     // завантажуємо епізод до сховища
-    private boolean ImportedEpisodeEnclosureToStore(String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
+    private boolean ImportedEpisodeEnclosureToStore(strUrl tmpstrUrl, String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
 //            // завантажуємо епізоди
 
         // витягуємо оригінальне імʼя файлу

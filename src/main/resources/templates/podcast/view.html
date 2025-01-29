@@ -121,8 +121,10 @@
                             </a>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${item.image != null}" th:src="'/store/thrumbal/w/100/' + ${item.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                                 th:id="${item.image.uuid}"/>
+<!--                            <div th:if="" >-->
+                                <img class="img-fluid" th:if="${item.image != null} OR ${podcast.image} != null" th:src="'/store/thrumbal/w/100/' + ${item.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
+                                     th:id="${item.image.uuid}"/>
+<!--                            </div>-->
                             <div th:if="${item.title != null}">
                                 <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
                             </div>

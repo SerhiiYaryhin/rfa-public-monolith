@@ -9,6 +9,7 @@ import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,31 @@ public class StoreFileImplementation implements StoreInterface {
         // todo зробити видалення файлів у сховищі
         return true;
     }
+
+    public Boolean DeleteInStore(Store store) {
+        // todo зробити видалення файлів у сховищі
+        String sPatch = store.getFilepatch();
+        logger.info("===== Видалення файла зі сховища {}",sPatch);
+//        File deleteFile = new File(sPatch);
+        // boolean delete = deleteFile.delete();
+        try {
+            FileUtils.forceDelete(FileUtils.getFile(sPatch));
+        }
+        catch (IOException e) {
+            Path path = Paths.get(sPatch);
+            boolean exists = Files.isRegularFile(path);
+            if (exists) {
+                logger.info("===== Помилка - Файл існує. Patch {}", sPatch);
+                return false;
+            }
+            else {
+                logger.info("===== Файл не існує. Patch {}", sPatch);
+            }
+           }
+        storeRepositore.delete(store);
+        return true;
+    }
+
 
     public Store SaveStoreItemInfo(Store storeitem, Path destination, EStoreFileType eStoreFileType, Clientdetail cd) {
         if (storeitem == null) {
