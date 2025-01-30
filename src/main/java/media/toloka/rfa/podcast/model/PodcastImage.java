@@ -38,6 +38,7 @@ public class PodcastImage {
     private Store storeidimage;
 
     @ToString.Exclude
+//    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;

@@ -36,7 +36,8 @@ public class SecurityConfig {
                         "/seveform/**",
                         "/post/**",
                         "/rss/**",
-                        "/**"
+                        "/**",
+                        "/error/**"
                 ).permitAll()
                 .requestMatchers(
                         "/css/**",

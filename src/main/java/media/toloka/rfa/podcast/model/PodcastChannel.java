@@ -2,9 +2,11 @@ package media.toloka.rfa.podcast.model;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
+//import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.ArrayList;
@@ -60,11 +62,11 @@ public class PodcastChannel {
     private PodcastImage image; // картинка подкасту
 
     @ElementCollection
-    @OneToMany( fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<PodcastItem> item = new ArrayList<>(); // перелік епізодів
 
 //    @ElementCollection
-    @OneToMany(mappedBy = "chanel", fetch=FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(orphanRemoval = true, mappedBy = "chanel", fetch=FetchType.LAZY)
 //    @JoinColumn(name = "podcast_itunes_category_id")
     private List<PodcastItunesCategory> itunescategory = new ArrayList<>();  // категорія подкасту
 
@@ -77,7 +79,8 @@ public class PodcastChannel {
 //    private String imagestoreuuid;
 
     @ToString.Exclude
+//    @NotNull
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "clientdetail_id")
+    @JoinColumn(name = "clientdetail_id", nullable = true )
     private Clientdetail clientdetail;  // посилання на запис аутентифікації автора подкасту.
 }

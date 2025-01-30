@@ -51,6 +51,7 @@ public class PodcastItem {
     @Expose
     private Long looked = 0L; // скільки разів подивилися
 
+//    @OneToOne(cascade = {CascadeType.ALL})
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "store_id")
     private Store storeitem;
@@ -63,7 +64,7 @@ public class PodcastItem {
     private PodcastChannel chanel;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 

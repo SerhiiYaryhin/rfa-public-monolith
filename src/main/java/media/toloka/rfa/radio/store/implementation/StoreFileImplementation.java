@@ -97,11 +97,8 @@ public class StoreFileImplementation implements StoreInterface {
 
     }
 
-    public Boolean DeleteFileInStore(String uuid) {
-        // todo зробити видалення файлів у сховищі
-        return true;
-    }
 
+    /// Видаляємо зі сховища
     public Boolean DeleteInStore(Store store) {
         // todo зробити видалення файлів у сховищі
         String sPatch = store.getFilepatch();
@@ -115,11 +112,11 @@ public class StoreFileImplementation implements StoreInterface {
             Path path = Paths.get(sPatch);
             boolean exists = Files.isRegularFile(path);
             if (exists) {
-                logger.info("===== Помилка - Файл існує. Patch {}", sPatch);
+                logger.info("===== Store ID: {} Помилка - Файл існує. Patch {}", store.getId(), sPatch);
                 return false;
             }
             else {
-                logger.info("===== Файл не існує. Patch {}", sPatch);
+                logger.info("===== Store ID: {} Файл не існує. Patch {}", store.getId(), sPatch);
             }
            }
         storeRepositore.delete(store);

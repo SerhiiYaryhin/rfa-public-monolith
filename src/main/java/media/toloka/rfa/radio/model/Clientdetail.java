@@ -81,9 +81,9 @@ public class Clientdetail {
     @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Post> postList  = new ArrayList<>();
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Albumсover> albumсoverList = new ArrayList<>();
+//    @ToString.Exclude
+//    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+//    private List<Albumсover> albumсoverList = new ArrayList<>();
 
     @ToString.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)
