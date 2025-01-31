@@ -78,7 +78,7 @@
                     </div>
             </div>
             <div class="row">
-                <audio-player id="rfapodcastlayer" th:data-src="'/podcast/audio/'+${podcast.item[0].storeitem.uuid}+'/'+${podcast.item[0].storeitem.filename}"></audio-player>
+                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].storeitem" th:data-src="'/podcast/audio/'+${podcast.item[0].storeitem.uuid}+'/'+${podcast.item[0].storeitem.filename}"></audio-player>
             </div>
         </div>
     </section>
