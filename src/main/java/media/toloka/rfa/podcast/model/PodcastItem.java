@@ -77,5 +77,4 @@ public class PodcastItem {
     @JoinColumn(name = "store_uuid")
     private Store storeimage;
 
-
 }
