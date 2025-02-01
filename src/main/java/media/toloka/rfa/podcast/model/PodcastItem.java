@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = {@Index(columnList = "uuid"),@Index(columnList = "id"),@Index(columnList = "storeuuid")})
 public class PodcastItem {
     @Id
     @GeneratedValue
@@ -72,4 +72,10 @@ public class PodcastItem {
     @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
     @JoinColumn(name = "podcast_image_id")
     private PodcastImage image;
+
+    @OneToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "store_uuid")
+    private Store storeimage;
+
+
 }
