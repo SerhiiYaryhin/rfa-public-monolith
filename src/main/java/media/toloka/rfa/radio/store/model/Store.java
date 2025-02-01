@@ -13,7 +13,10 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = {
+        @Index(columnList = "uuid"),
+        @Index(columnList = "id")
+})
 public class Store {
     @Id
     @GeneratedValue
