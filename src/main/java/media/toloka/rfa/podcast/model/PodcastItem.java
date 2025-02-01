@@ -13,7 +13,11 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {@Index(columnList = "uuid"),@Index(columnList = "id"),@Index(columnList = "storeuuid")})
+@Table(indexes = {
+        @Index(columnList = "uuid"),
+        @Index(columnList = "id"),
+        @Index(columnList = "storeuuid")
+})
 public class PodcastItem {
     @Id
     @GeneratedValue
