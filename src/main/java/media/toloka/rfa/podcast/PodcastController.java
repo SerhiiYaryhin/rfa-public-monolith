@@ -120,8 +120,8 @@ public class PodcastController {
 
         model.addAttribute("podcast", podcastChannel);
 
-        if (podcastChannel.getImage() != null){
-            model.addAttribute("ogimage", podcastChannel.getImage().getStoreidimage().getUuid());
+        if (podcastChannel.getImagestoreitem() != null){
+            model.addAttribute("ogimage", podcastChannel.getImagestoreitem().getUuid());
         } else {
             // todo Вставити нормальне посилання на cover за замовчуванням
             model.addAttribute("ogimage", "------------");

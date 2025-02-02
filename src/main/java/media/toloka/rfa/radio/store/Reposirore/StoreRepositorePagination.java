@@ -17,9 +17,6 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
 {
     List<Store> findAllByClientdetail(Clientdetail clientdetail);
     Store getByFilenameAndClientdetail(String filename, Clientdetail cd);
-//    Pageable PageRequest.of(int pagenumber, int pagecount);
-//    Store getById(Long id);
-//    void save(Store store);
 
 //    List<Store> findByClientdetailByStorefiletypeOrederByCreatedateByAsc(Clientdetail clientdetail, EStoreFileType storefiletype);
     Page<Store> findByStorefiletype(Pageable pageable, EStoreFileType storefiletype);

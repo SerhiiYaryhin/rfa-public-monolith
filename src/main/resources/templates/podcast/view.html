@@ -45,8 +45,8 @@
                             <div class="row">
                                 <!-- картинка подкасту та RSS-->
                                     <div class="col-9">
-                                        <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcast.image != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                                             th:id="${podcast.image.uuid}"/>
+                                        <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcast.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagestoreitem.uuid} + '/' + ${podcast.imagestoreitem.filename}"
+                                             th:id="${podcast.imagestoreitem.uuid}"/>
                                     </div>
                                     <div class="col-3 text-center">
                                     <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
@@ -78,7 +78,7 @@
                     </div>
             </div>
             <div class="row">
-                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].storeitem" th:data-src="'/podcast/audio/'+${podcast.item[0].storeitem.uuid}+'/'+${podcast.item[0].storeitem.filename}"></audio-player>
+                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].storeenclosure} != null" th:data-src="'/podcast/audio/'+${podcast.item[0].storeenclosure.uuid}+'/'+${podcast.item[0].storeenclosure.filename}"></audio-player>
             </div>
         </div>
     </section>
@@ -114,7 +114,7 @@
                     <div class="card bg-light border-0 h-100">
                         <div class="card-header">
                             <!-- запускаємо програвач на цей епізод-->
-                            <span th:id="${item.uuid}" class="badge rounded-pill bg-primary episodePlayer" th:onclick="setEpisodToPlayer([[${item.uuid}]],[[${item.title}]],[[${item.storeitem.uuid}]],[[${item.storeitem.filename}]])">Слухати</span>
+                            <span th:id="${item.uuid}" class="badge rounded-pill bg-primary episodePlayer" th:onclick="setEpisodToPlayer([[${item.uuid}]],[[${item.title}]],[[${item.storeenclosure.uuid}]],[[${item.storeenclosure.filename}]])">Слухати</span>
                             <!-- запускаємо програвач на цей епізод-->
                             <a class="mx-auto" th:href="'/podcast/episode/'+${item.uuid}">
                                 <span class="badge rounded-pill bg-primary">Детальніше</span>
@@ -122,8 +122,8 @@
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
 <!--                            <div th:if="" >-->
-                                <img class="img-fluid" th:if="${item.image != null} OR ${podcast.image} != null" th:src="'/store/thrumbal/w/100/' + ${item.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                                     th:id="${item.image.uuid}"/>
+                                <img class="img-fluid" th:if="${item.imagestoreitem != null} OR ${podcast.imagestoreitem} != null" th:src="'/store/thrumbal/w/100/' + ${item.imagestoreitem.uuid} + '/' + ${podcast.imagestoreitem.filename}"
+                                     th:id="${item.imagestoreitem.uuid}"/>
 <!--                            </div>-->
                             <div th:if="${item.title != null}">
                                 <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>

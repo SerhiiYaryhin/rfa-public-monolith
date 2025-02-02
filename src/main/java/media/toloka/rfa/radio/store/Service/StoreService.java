@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
+import static media.toloka.rfa.radio.store.model.EStoreFileType.*;
 
 @Service
 public class StoreService extends StoreFileImplementation {
@@ -65,5 +64,9 @@ public class StoreService extends StoreFileImplementation {
         Page ttt = storeRepositore.findByStorelAllPictures(storePage, cd);
         return ttt;
 //        return storeRepositore.findByStorelAllPictures(cd.getId());
+    }
+
+    public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
+        return storeRepositore.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
     }
 }

@@ -11,9 +11,10 @@ import com.rometools.rome.io.FeedException;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.podcast.model.PodcastChannel;
-import media.toloka.rfa.podcast.model.PodcastImage;
+//import media.toloka.rfa.podcast.model.PodcastImage;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.PodcastService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +62,13 @@ public class PodcastEditController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
-        logger.info("Зайшли на /podcast/pedit/{puuid}");
+        logger.info("Зайшли на /podcast/pedit/",puuid);
         PodcastChannel podcast;
         if (puuid.length() < 3) {
             // створюємо новий подкаст
             podcast = new PodcastChannel();
-//            podcast.setClientdetail(cd); // todo повернути після отладки
-//            podcastService.SavePodcast(podcast);
+            podcast.setClientdetail(cd); // todo повернути після отладки
+            podcastService.SavePodcast(podcast);
             model.addAttribute("success",  "Створили новий подкаст."
                     +" Збережіть його і після цього додайте епізоди до подкасту.");
         } else {
@@ -302,10 +303,10 @@ public class PodcastEditController {
         if (cd == null) { return "redirect:/"; }
 
         // витягуємо епізод
-        PodcastImage image = podcastService.GetImageByUUID(iuuid);
+        Store image = podcastService.GetStoreByUUID(iuuid);
         PodcastChannel podcastTarget = podcastService.GetChanelByUUID(puuid);
 
-        podcastTarget.setImage(image);
+        podcastTarget.setImagestoreitem(image);
 
         podcastService.SavePodcast(podcastTarget);
         model.addAttribute("podcast",  podcastTarget);

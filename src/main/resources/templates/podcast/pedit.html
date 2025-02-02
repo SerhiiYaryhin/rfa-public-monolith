@@ -41,10 +41,10 @@
 <!--                <div class="m-4 m-lg-5">-->
                     <h1 class="display-5 fw-bold" th:text="${podcast.title} "/>
                     <p>Завантажте файли з епізодами подкасту, додайте обкладинку епізоду та його опис.</p>
-                    <div th:if="${podcast.id != null}">
+                    <div th:if="${podcast.uuid != null}">
                         <a class="btn btn-primary btn-sm mx-auto" th:href="'/podcast/episodeupload/'+${podcast.uuid}">Завантажити епізод</a>
                     </div>
-                    <div th:if="${podcast.image == null}">
+                    <div th:if="${podcast.imagestoreitem == null}">
                         <a class="btn btn-primary btn-lg btn-sm mx-auto" th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">Завантажити обкладинку</a>
                     </div>
                 </div>
@@ -60,13 +60,13 @@
     </div>
 
     <!-- Обкладинка альбому -->
-    <div th:if="${podcast.image != null}" class="container px-lg-5 form-control-sm">
+    <div th:if="${podcast.imagestoreitem != null}" class="container px-lg-5 form-control-sm">
         <div class="row" style="padding-top: 40px">
             <div class="col" >
                 <!-- Обкладинка альбому -->
-                <img th:src="'/store/thrumbal/w/300/' + ${podcast.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                      th:id="${podcast.image.uuid}"/>
-                <br><span th:text="${podcast.image.storeidimage.filename}"/>
+                <img th:src="'/store/thrumbal/w/300/' + ${podcast.imagestoreitem.uuid} + '/' + ${podcast.imagestoreitem.filename}"
+                      th:id="${podcast.imagestoreitem.uuid}"/>
+                <br><span th:text="${podcast.imagestoreitem.filename}"/>
                 <br><a th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">
                     <span class="badge rounded-pill bg-primary">Змінити обкладинку</span>
                 </a>
@@ -271,8 +271,8 @@
                             </a>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${item.image != null}" th:src="'/store/thrumbal/w/300/' + ${item.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                                 th:id="${item.image.uuid}"/>
+                            <img class="img-fluid" th:if="${item.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${podcast.imagestoreitem.filename}"
+                                 th:id="${item.imagestoreitem.uuid}"/>
                             <div th:if="${item.title != null}">
                                 <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
                             </div>
@@ -282,7 +282,8 @@
                             </div>
 <!--                            <p class="mb-0" th:text="${item.description}"></p>-->
 <!--                            <a class="btn btn-primary btn-lg col-6 mx-auto" th:href="'/podcast/episodeedit/'+${item.uuid}">Редагувати</a>-->
-                            <p class="mb-0" >Файл:<span th:text="' '+${item.storeitem.filename}"/></p>
+<!--                            <p class="mb-0" >Файл: _________</p>-->
+                            <p class="mb-0" >Файл: <span th:if="${item.storeenclosure} != null" th:text="${item.storeenclosure.filename}"/></p>
                         </div>
                     </div>
                 </div>

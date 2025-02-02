@@ -23,7 +23,9 @@ public class Store {
     @Expose
     private Long id;
     @Expose
-    private String uuid = UUID.randomUUID().toString();
+    private String uuid;
+
+
     @Expose
     private Long previd = 0L;
     @Expose
@@ -48,5 +50,12 @@ public class Store {
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
+
+    @PrePersist
+    public void generateUUID() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+    }
 
 }

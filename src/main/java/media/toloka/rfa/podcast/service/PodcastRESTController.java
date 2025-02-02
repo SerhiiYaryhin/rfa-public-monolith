@@ -41,8 +41,8 @@ public class PodcastRESTController {
             mr.setCurrent(curuuid);
             mr.setNext(nextuuid);
             mr.setAdv(false);
-            mr.setStoreuuid(ep.getStoreitem().getUuid());
-            mr.setFile(ep.getStoreitem().getFilename());
+            mr.setStoreuuid(ep.getStoreenclosure().getUuid());
+            mr.setFile(ep.getStoreenclosure().getFilename());
             mr.setTitle(ep.getTitle());
         }
 

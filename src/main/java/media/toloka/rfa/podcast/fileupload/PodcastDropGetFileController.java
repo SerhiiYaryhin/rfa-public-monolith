@@ -4,9 +4,10 @@ package media.toloka.rfa.podcast.fileupload;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.podcast.model.PodcastChannel;
-import media.toloka.rfa.podcast.model.PodcastImage;
+//import media.toloka.rfa.podcast.model.PodcastImage;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.PodcastService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public class PodcastDropGetFileController {
                     +" Зверніться будь ласка до служби підтримки");
         }
 
-        List<PodcastImage> podcastImageList = podcastService.GetPodcastCoverListByCd(cd);
+        List<Store> podcastImageList = podcastService.GetPodcastCoverListByCd(cd);
 
         model.addAttribute("podcastImageList",  podcastImageList);
         model.addAttribute("podcast",  podcast);
@@ -111,8 +112,7 @@ public class PodcastDropGetFileController {
                     +" Зверніться будь ласка до служби підтримки");
         }
 
-        List<PodcastImage> podcastImageList = podcastService.GetPodcastCoverListByCd(cd);
-        model.addAttribute("podcastImageList",  podcastImageList);
+        model.addAttribute("podcastImageList",  podcastService.GetPodcastCoverListByCd(cd));
         model.addAttribute("podcast",  podcast);
         return "/podcast/podcastcoverupload";
     }

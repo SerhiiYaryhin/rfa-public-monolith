@@ -8,7 +8,7 @@ import dev.stalla.model.Episode;
 import dev.stalla.model.Podcast;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.model.PodcastItem;
-import media.toloka.rfa.podcast.model.PodcastImage;
+//import media.toloka.rfa.podcast.model.PodcastImage;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import org.slf4j.Logger;

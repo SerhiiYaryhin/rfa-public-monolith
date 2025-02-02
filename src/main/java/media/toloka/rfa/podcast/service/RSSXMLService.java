@@ -124,7 +124,7 @@ public class RSSXMLService {
         for ( int i = 0; i < podcastItems.size(); i++ ) {
             if (podcastItems.get(i).getTimetrack() == null ) {
                 PodcastItem pi = podcastItems.get(i);
-                pi.setTimetrack(podcastService.GetTimeTrack(pi.getStoreitem().getUuid()));
+                pi.setTimetrack(podcastService.GetTimeTrack(pi.getStoreenclosure().getUuid()));
                 podcastService.SaveEpisode(pi);
             }
         }
@@ -226,10 +226,10 @@ public class RSSXMLService {
                 element.setTextContent(item.getTimetrack());
             }
             else {
-                element.setTextContent(podcastService.GetTimeTrack(item.getStoreitem().getUuid()));
+                element.setTextContent(podcastService.GetTimeTrack(item.getStoreenclosure().getUuid()));
             }
         } else {
-            element.setTextContent(podcastService.GetTimeTrack(item.getStoreitem().getUuid()));
+            element.setTextContent(podcastService.GetTimeTrack(item.getStoreenclosure().getUuid()));
         }
         return element;
     }
@@ -238,9 +238,9 @@ public class RSSXMLService {
         Element element = document.createElement("enclosure");
 //        element.appendChild(document.createCDATASection(item.getDescription()));
         element.setAttribute("url","https://rfa.toloka.media/podcast/audio/"
-                + item.getStoreuuid() + "/" + item.getStoreitem().getFilename());
-        element.setAttribute("length",item.getStoreitem().getFilelength().toString());
-        element.setAttribute("type",item.getStoreitem().getContentMimeType());
+                + item.getStoreuuid() + "/" + item.getStoreenclosure().getFilename());
+        element.setAttribute("length",item.getStoreenclosure().getFilelength().toString());
+        element.setAttribute("type",item.getStoreenclosure().getContentMimeType());
 //        element.setTextContent(item.getDescription());
         return element;
     }
@@ -348,8 +348,8 @@ public class RSSXMLService {
     private Node EChannel_Itunes_Image(PodcastChannel podcastChannel) {
         Element element = document.createElement("itunes:image");
         element.setAttribute("href","https://rfa.toloka.media/store/thrumbal/w/1500/"
-                +podcastChannel.getImage().getStoreidimage().getUuid()+"/"
-                +podcastChannel.getImage().getStoreidimage().getFilename());
+                +podcastChannel.getImagestoreitem().getUuid()+"/"
+                +podcastChannel.getImagestoreitem().getFilename());
         return element;
     }
 
@@ -385,11 +385,11 @@ public class RSSXMLService {
         Element element = document.createElement("image");
         Element url = document.createElement("url");
 
-        if (podcastChannel.getImage() != null) {
+        if (podcastChannel.getImagestoreitem() != null) {
 
             url.setTextContent("https://rfa.toloka.media/store/thrumbal/w/1500/"
-                    +podcastChannel.getImage().getStoreidimage().getUuid()+"/"
-                    +podcastChannel.getImage().getStoreidimage().getFilename());
+                    +podcastChannel.getImagestoreitem().getUuid()+"/"
+                    +podcastChannel.getImagestoreitem().getFilename());
         }
 //        else {
         element.appendChild(url);

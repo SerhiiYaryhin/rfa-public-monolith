@@ -86,6 +86,9 @@ public class StoreFileImplementation implements StoreInterface {
                 storeitem = SaveStoreItemInfo(null,destination, storeFileType, cd);
             } else {
                 storeitem = GetStoreItemByFilenameByClientDetail(destination.getFileName().toString(), cd);
+                if (storeitem == null) { // є файл, але немає у сховищі запису про це
+                    storeitem = SaveStoreItemInfo(null,destination, storeFileType, cd);
+                }
             }
             historyService.saveHistory(History_DocumentCreate, " Завантажено файл: " + filename, cd.getUser());
         }

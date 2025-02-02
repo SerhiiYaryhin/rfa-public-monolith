@@ -20,11 +20,13 @@ import java.util.UUID;
 })
 public class PodcastItem {
     @Id
+    @Expose
+    private String uuid;
+
+    @Expose
     @GeneratedValue
-    @Expose
     private Long id;
-    @Expose
-    private String uuid = UUID.randomUUID().toString();
+
     @Expose
     private String title;
     @Expose
@@ -56,15 +58,17 @@ public class PodcastItem {
     private Long looked = 0L; // скільки разів подивилися
 
 //    @OneToOne(cascade = {CascadeType.ALL})
+    // аудіофайл подкасту
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "store_id")
-    private Store storeitem;
+    private Store storeenclosure;
 
 
     @ElementCollection
 //    @ManyToOne(cascade = CascadeType.ALL)
+    @ToString.Exclude
     @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "podcast_channel_id")
+    @JoinColumn(name = "podcast_channel_uuid")
     private PodcastChannel chanel;
 
     @ToString.Exclude
@@ -72,13 +76,21 @@ public class PodcastItem {
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
-    @ElementCollection
-    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "podcast_image_id")
-    private PodcastImage image;
-
-    @OneToOne(cascade = {CascadeType.ALL})
+    @ManyToOne (cascade = {CascadeType.ALL})
     @JoinColumn(name = "store_uuid")
-    private Store storeimage;
+    private Store imagestoreitem;
 
+    // тимчасове поле. PodcastImage буде видалено
+//    @ElementCollection
+//    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+//    @JoinColumn(name = "podcast_image_id")
+//    private PodcastImage image;
+
+
+    @PrePersist
+    public void generateUUID() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+    }
 }

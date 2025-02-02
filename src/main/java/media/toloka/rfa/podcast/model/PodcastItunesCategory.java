@@ -10,13 +10,13 @@ import java.util.UUID;
 @Entity
 @Table
 public class PodcastItunesCategory {
-    @Id
     @GeneratedValue
     @Expose
     private Long id;
 
     @Expose
-    private String uuid = UUID.randomUUID().toString();
+    @Id
+    private String uuid;
 
     @Expose
     private String firstlevel;
@@ -27,7 +27,14 @@ public class PodcastItunesCategory {
 //    @ElementCollection
 //    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.ALL})
     @ManyToOne(fetch=FetchType.EAGER)
-    @JoinColumn(name = "podcast_channel_id")
+    @JoinColumn(name = "podcast_channel_uuid")
     private PodcastChannel chanel;
+
+    @PrePersist
+    public void generateUUID() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+    }
 
 }

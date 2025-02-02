@@ -72,8 +72,8 @@
                             <span th:unless="${podcast.publishing}" class="badge rounded-pill bg-dark"th:text="'  '+Чорнетка+'  '">  Чорнетка  </span>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${podcast.image != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"
-                                 th:id="${podcast.image.uuid}"/>
+                            <img class="img-fluid" th:if="${podcast.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagestoreitem.uuid} + '/' + ${podcast.imagestoreitem.filename}"
+                                 th:id="${podcast.imagestoreitem.uuid}"/>
 <!--                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"><i class="bi bi-collection"></i></div>-->
                             <h3 class="fs-4 fw-bold" th:text="${podcast.title}"></h3> <!-- назва подкасту -->
 <!--                                <small th:each="report : ${user.reports}" th:utext="${#strings.substringAfter(report.name,'_'}></small>-->

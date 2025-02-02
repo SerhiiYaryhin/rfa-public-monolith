@@ -9,7 +9,7 @@ public enum EStoreFileType {
     STORE_POSTCOVER("Обкладинка посту"),
     STORE_PHOTO("Фото профайлу"),
     STORE_PODCASTCOVER("Обкладинка подкасту"),
-    STORE_EPISODECOVER("Обкладинка епізоду"), // не використовую. Замісь неї використовую STORE_PODCASTCOVER
+    STORE_EPISODECOVER_FREE("Обкладинка епізоду"), // не використовую. Замісь неї використовую STORE_PODCASTCOVER
     STORE_EPISODETRACK("Трек епізоду");
     public final String label;
 

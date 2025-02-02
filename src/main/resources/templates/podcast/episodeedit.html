@@ -40,7 +40,7 @@
                 <p class="fs-6">Заповніть необхідні поля, додайте обкладинку епізоду та його опис.</p>
                 <p><b>Назва епізоду:</b><br><span th:text="${episode.title}"></span><br>
                     <b>Подкаст:</b><br><span th:text="${podcast.title}"></span></p><br>
-                <div th:if="${episode.image == null}">
+                <div th:if="${episode.imagestoreitem == null}">
                     <a class="btn btn-primary btn-lg col-6 mx-auto" th:href="'/podcast/coverepisodeupload/'+${podcast.uuid}+'/'+${episode.uuid}">Завантажити обкладинку</a>
                 </div>
             </div>
@@ -51,14 +51,14 @@
 <!-- Page Content-->
 <section class="pt-4">
     <div class="container-fluid px-lg-5 form-control-sm">
-        <div th:if="${episode.image}">
+        <div th:if="${episode.imagestoreitem}">
             <!--            <div th:if="${episode.image != null}">-->
             <span><b>Обкладинка</b></span><br>
             <!-- Обкладинка епізоду -->
-            <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.image.storeidimage.uuid} + '/' + ${episode.image.storeidimage.filename}"
-                 th:id="${episode.image.uuid}"/>
+            <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.imagestoreitem.uuid} + '/' + ${episode.imagestoreitem.filename}"
+                 th:id="${episode.imagestoreitem.uuid}"/>
             <br>
-            <span th:text="${episode.image.storeidimage.filename}"></span><br>
+            <span th:text="${episode.imagestoreitem.filename}"></span><br>
             <a th:href="'/podcast/coverepisodeupload/'+${podcast.uuid}+'/'+${episode.uuid}">
                 <span class="badge rounded-pill bg-primary">Змінити обкладинку</span>
             </a>
@@ -68,6 +68,8 @@
             <div class="mb-3">
                 <input type="hidden" th:field="*{uuid}" />
                 <input type="hidden" th:field="*{id}" />
+<!--                <input type="hidden" th:field="*{chanel}" />-->
+                <input type="text" th:field="*{chanel}" />
                 <label for="title" class="form-label">Назва епізоду</label>
                 <input type="text" th:field="*{title}"  class="form-control">
                 <!--                    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
