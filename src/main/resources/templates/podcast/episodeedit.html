@@ -51,8 +51,7 @@
 <!-- Page Content-->
 <section class="pt-4">
     <div class="container-fluid px-lg-5 form-control-sm">
-        <div th:if="${episode.imagestoreitem}">
-            <!--            <div th:if="${episode.image != null}">-->
+        <div th:if="${episode.uuid != null}">
             <span><b>Обкладинка</b></span><br>
             <!-- Обкладинка епізоду -->
             <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.imagestoreitem.uuid} + '/' + ${episode.imagestoreitem.filename}"
@@ -68,8 +67,6 @@
             <div class="mb-3">
                 <input type="hidden" th:field="*{uuid}" />
                 <input type="hidden" th:field="*{id}" />
-<!--                <input type="hidden" th:field="*{chanel}" />-->
-                <input type="text" th:field="*{chanel}" />
                 <label for="title" class="form-label">Назва епізоду</label>
                 <input type="text" th:field="*{title}"  class="form-control">
                 <!--                    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
@@ -78,7 +75,6 @@
                 <label for="description" class="form-label">Опис епізоду</label>
                 <textarea th:field="*{description}" class="form-control" rows="6"></textarea>
             </div>
-
             <button type="submit" class="btn btn-primary">Зберегти</button>
             <a class="btn btn-primary" th:href="'/podcast/pedit/'+${podcast.uuid}">Повернутися</a>
         </form>

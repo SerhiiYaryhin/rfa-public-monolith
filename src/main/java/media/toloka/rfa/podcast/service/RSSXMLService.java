@@ -8,7 +8,7 @@ package media.toloka.rfa.podcast.service;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.model.PodcastItunesCategory;
-import org.apache.commons.lang3.StringEscapeUtils;
+import media.toloka.rfa.radio.model.Clientdetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +33,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
 
 @Service
 public class RSSXMLService {
@@ -124,7 +121,7 @@ public class RSSXMLService {
         for ( int i = 0; i < podcastItems.size(); i++ ) {
             if (podcastItems.get(i).getTimetrack() == null ) {
                 PodcastItem pi = podcastItems.get(i);
-                pi.setTimetrack(podcastService.GetTimeTrack(pi.getStoreenclosure().getUuid()));
+                pi.setTimetrack(podcastService.GetTimeTrack(pi.getEnclosurestore().getUuid()));
                 podcastService.SaveEpisode(pi);
             }
         }
@@ -226,10 +223,10 @@ public class RSSXMLService {
                 element.setTextContent(item.getTimetrack());
             }
             else {
-                element.setTextContent(podcastService.GetTimeTrack(item.getStoreenclosure().getUuid()));
+                element.setTextContent(podcastService.GetTimeTrack(item.getEnclosurestore().getUuid()));
             }
         } else {
-            element.setTextContent(podcastService.GetTimeTrack(item.getStoreenclosure().getUuid()));
+            element.setTextContent(podcastService.GetTimeTrack(item.getEnclosurestore().getUuid()));
         }
         return element;
     }
@@ -238,9 +235,9 @@ public class RSSXMLService {
         Element element = document.createElement("enclosure");
 //        element.appendChild(document.createCDATASection(item.getDescription()));
         element.setAttribute("url","https://rfa.toloka.media/podcast/audio/"
-                + item.getStoreuuid() + "/" + item.getStoreenclosure().getFilename());
-        element.setAttribute("length",item.getStoreenclosure().getFilelength().toString());
-        element.setAttribute("type",item.getStoreenclosure().getContentMimeType());
+                + item.getStoreuuid() + "/" + item.getEnclosurestore().getFilename());
+        element.setAttribute("length",item.getEnclosurestore().getFilelength().toString());
+        element.setAttribute("type",item.getEnclosurestore().getContentMimeType());
 //        element.setTextContent(item.getDescription());
         return element;
     }
@@ -326,15 +323,16 @@ public class RSSXMLService {
     private Node EChannel_Itunes_Owner(PodcastChannel podcastChannel) {
         Element element = document.createElement("itunes:owner");
         Element name = document.createElement("itunes:name");
-        if (podcastChannel.getClientdetail().getFirmname() != null) {
+        Clientdetail cd  = podcastService.GetCdByUUID(podcastChannel);
+        if (cd.getFirmname() != null) {
             // чи правильно я перевіряю чи заповнено поле назви фірми?
-            name.setTextContent(podcastChannel.getClientdetail().getFirmname());
+            name.setTextContent(cd.getFirmname());
         } else {
-            name.setTextContent(podcastChannel.getClientdetail().getCustname()+" "+podcastChannel.getClientdetail().getCustsurname());
+            name.setTextContent(cd.getCustname()+" "+cd.getCustsurname());
         }
         element.appendChild(name);
         Element email = document.createElement("itunes:email");
-        email.setTextContent(podcastChannel.getClientdetail().getUser().getEmail());
+        email.setTextContent(cd.getUser().getEmail());
         element.appendChild(email);
         return element;
     }
@@ -348,8 +346,8 @@ public class RSSXMLService {
     private Node EChannel_Itunes_Image(PodcastChannel podcastChannel) {
         Element element = document.createElement("itunes:image");
         element.setAttribute("href","https://rfa.toloka.media/store/thrumbal/w/1500/"
-                +podcastChannel.getImagestoreitem().getUuid()+"/"
-                +podcastChannel.getImagestoreitem().getFilename());
+                +podcastChannel.getImagechanelstore().getUuid()+"/"
+                +podcastChannel.getImagechanelstore().getFilename());
         return element;
     }
 
@@ -366,11 +364,12 @@ public class RSSXMLService {
 
     private Node EChannel_Itunes_Autor(PodcastChannel podcastChannel) {
         Element element = document.createElement("itunes:author");
-        if (podcastChannel.getClientdetail().getFirmname() != null) {
+        Clientdetail cd = podcastService.GetCdByUUID(podcastChannel);
+        if (cd.getFirmname() != null) {
             // чи правильно я перевіряю чи заповнено поле назви фірми?
-            element.setTextContent(podcastChannel.getClientdetail().getFirmname());
+            element.setTextContent(cd.getFirmname());
         } else {
-            element.setTextContent(podcastChannel.getClientdetail().getCustname()+" "+podcastChannel.getClientdetail().getCustsurname());
+            element.setTextContent(cd.getCustname()+" "+cd.getCustsurname());
         }
         return element;
     }
@@ -385,11 +384,11 @@ public class RSSXMLService {
         Element element = document.createElement("image");
         Element url = document.createElement("url");
 
-        if (podcastChannel.getImagestoreitem() != null) {
+        if (podcastChannel.getImagechanelstore() != null) {
 
             url.setTextContent("https://rfa.toloka.media/store/thrumbal/w/1500/"
-                    +podcastChannel.getImagestoreitem().getUuid()+"/"
-                    +podcastChannel.getImagestoreitem().getFilename());
+                    +podcastChannel.getImagechanelstore().getUuid()+"/"
+                    +podcastChannel.getImagechanelstore().getFilename());
         }
 //        else {
         element.appendChild(url);

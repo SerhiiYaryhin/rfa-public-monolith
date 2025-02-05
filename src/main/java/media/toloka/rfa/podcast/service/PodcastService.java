@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.Setter;
-import media.toloka.rfa.podcast.PodcastController;
 import media.toloka.rfa.podcast.model.PodcastItunesCategory;
 import media.toloka.rfa.podcast.repositore.ItunesCategoryRepository;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -43,7 +42,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -85,6 +83,10 @@ public class PodcastService {
         return storeService.GetStoreByUUID(iuuid);
     }
 
+    public Clientdetail GetCdByUUID(PodcastChannel podcastChannel) {
+        return clientService.GetClientDetailByUUID(podcastChannel.getClientdetail());
+    }
+
     // клас для форми urla
     @Getter
     @Setter
@@ -106,7 +108,7 @@ public class PodcastService {
     }
 
     public List<PodcastChannel> GetPodcastListByCd(Clientdetail cd) {
-        return chanelRepository.findByClientdetail(cd);
+        return chanelRepository.findByClientdetail(cd.getUuid());
     }
 
     public PodcastItem GetEpisodeByUUID(String euuid) {
@@ -118,8 +120,8 @@ public class PodcastService {
         PodcastItem episode = new PodcastItem();
         episode.setChanel(podcast);
         episode.setStoreuuid(storeUUID);
-        episode.setStoreenclosure(storeService.GetStoreByUUID(storeUUID));
-        episode.setClientdetail(cd);
+        episode.setEnclosurestore(storeService.GetStoreByUUID(storeUUID));
+        episode.setClientdetail(cd.getUuid());
         episode.setTimetrack(GetTimeTrack(storeUUID)); // зберегли час треку для RSS
         podcast.getItem().add(episode);
 
@@ -195,7 +197,7 @@ public class PodcastService {
     public void SaveCoverPodcastUploadfile(String storeUUID, PodcastChannel podcast, Clientdetail cd) {
         // змінив під нову структуру подкастів в базі. 250202
 //        PodcastImage podcastImage = new PodcastImage();
-        podcast.setImagestoreitem(storeService.GetStoreByUUID(storeUUID));
+        podcast.setImagechanelstore(storeService.GetStoreByUUID(storeUUID));
 //        podcastImage.setStoreidimage(podcast.getImagestoreitem());
 //        podcastImage.setClientdetail(cd);
 //        podcast.setImage(podcastImage);
@@ -294,37 +296,49 @@ public class PodcastService {
     Видаляємо подкаст та вичіщаємо всі записи і файли
      */
     public Boolean ClearAndDeletePodcastChanel(PodcastChannel lChannel) {
+        // перелік Store, які видаляємо у самому кінці обробки.
+        List<Store> storeListToRemove = new ArrayList<>();
+
         List<PodcastItem> podcastItemList = lChannel.getItem();
 //        lChannel.getItem().clear();
         for (PodcastItem pi : podcastItemList) { // Get подкаст айтем
-            Store st = pi.getStoreenclosure();  // Взяли посилання на епізод у сховищі
+            // видаляємо аудіо файл з епізодом
+            logger.info("=================\nПрацюєемо з епізодом: {}\n{}\n{}", pi.getId(), pi.getUuid(), pi.getTitle());
+            Store st = pi.getEnclosurestore();  // Взяли посилання на епізод у сховищі
             if (st != null) {
+                storeListToRemove.add(st);
+                logger.info("Видаляємо аудіофайл епізоду із сховища: {}", st.getFilepatch());
                 if (storeService.DeleteInStore(st)) {
-                    pi.setStoreenclosure(null);
+                    pi.setEnclosurestore(null);
+                    logger.info("Видалили аудіофайл епізоду із сховища");
                 }
             }
+            // видаляємо файл з обкладинкою епізоду
             Store piImage = pi.getImagestoreitem();
             if (piImage != null) {
+                storeListToRemove.add(piImage);
+                logger.info("Видаляємо обкладинку епізоду із сховища: {}", piImage.getFilepatch());
                 if (storeService.DeleteInStore(st)) {
-                    logger.info("Видалили обкладинку епізоду із сховища");
                     pi.setImagestoreitem(null);
+                    logger.info("Видалили обкладинку епізоду із сховища");
                 }
             }
-
         } // Закінчили працювати з епізодами
         lChannel.getItem().clear();
         SavePodcast(lChannel);
+
         // почистили все в елементі
         // видаляємо його.
 //            podcastItemList.remove(pi);
 
         // видаляємо cover для подкасту
-        if (lChannel.getImagestoreitem() != null) {
-            Store simg = lChannel.getImagestoreitem(); // Взяли посилання на картинку подкасту у сховищі
+        if (lChannel.getImagechanelstore() != null) {
+            Store simg = lChannel.getImagechanelstore(); // Взяли посилання на картинку подкасту у сховищі
+            storeListToRemove.add(simg);
             if (simg != null) {
                 if (storeService.DeleteInStore(simg)) {
                     logger.info("Видалили обкладинку епізоду із сховища");
-                    lChannel.setImagestoreitem(null);
+                    lChannel.setImagechanelstore(null);
                 }
             }
         }
@@ -338,13 +352,22 @@ public class PodcastService {
 //        coverPodcastRepository.save(podcastImage);
 //        coverPodcastRepository.delete(podcastImage);
 
-        SavePodcast(lChannel);
         try {
+            SavePodcast(lChannel);
             chanelRepository.delete(lChannel);
         } catch (
                 Exception e) {
+            logger.info("Проблема під час фінального видалення подкасту!!!");
             return false;
         }
+
+        // чистимо залишки у сховищі
+        for(Store rst : storeListToRemove) {
+            if (storeService.GetStoreByUUID(rst.getUuid()) != null) {
+                storeService.DeleteInStore(storeService.GetStoreByUUID(rst.getUuid()));
+            }
+        }
+
         return true;
     }
 
@@ -428,7 +451,8 @@ public class PodcastService {
 //            podcastChannelList = podcastService.GetChanelByTitle(podcastTitle);
             if (podcastChannelList != null) {
                 for (PodcastChannel lChannel : podcastChannelList) { // пробігаємося по отриманих подкастах з такою назвою
-                    if (cd == lChannel.getClientdetail()) { // якщо подкаст належить цьому користувачу, то чистимо його
+//                    if (cd == lChannel.getClientdetail()) { // якщо подкаст належить цьому користувачу, то чистимо його
+                    if (cd.getUuid().equals(lChannel.getClientdetail())) { // якщо подкаст належить цьому користувачу, то чистимо його
                         if (!ClearAndDeletePodcastChanel(lChannel)) {
                             model.addAttribute("danger", "Подкаст не Видалено.");
                         }
@@ -461,7 +485,6 @@ public class PodcastService {
             }
         }
 
-        // тимчасово. Завантажуємо інформацію та cover подкасту
 //        updatePodcast = false;
         if (!updatePodcast) {
 
@@ -480,7 +503,7 @@ public class PodcastService {
             tmpstrUrl.getPodcastChannel().setDescription(podcastDescription);
             tmpstrUrl.getPodcastChannel().setTitle(podcastTitle);
             tmpstrUrl.getPodcastChannel().setLastbuilddate(new Date());
-            tmpstrUrl.getPodcastChannel().setClientdetail(cd);
+            tmpstrUrl.getPodcastChannel().setClientdetail(cd.getUuid());
             tmpstrUrl.getPodcastChannel().setLinktoimporturl(tmpstrUrl.getRSSFromUrl());
             tmpstrUrl.getPodcastChannel().setLanguage(podcastLanguage);
             tmpstrUrl.getPodcastChannel().setCopyright(podcastCopyright);
@@ -492,6 +515,7 @@ public class PodcastService {
             String imgUrl = imgElement.getElementsByTagName("url").item(0).getTextContent();
 
             // завантажуємо обкладинку подкасту
+
             if (!ImportedPodcastCoverToStore(tmpstrUrl, imgUrl, cd)) {
                 logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
             }
@@ -511,43 +535,57 @@ public class PodcastService {
             }
 
             PodcastItem podcastItem = new PodcastItem();
-            podcastItem.setClientdetail(cd);
+            podcastItem.setClientdetail(cd.getUuid());
             // зберегли новий епізод в базу, щоб можна було додавати файли
-            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
+//            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
 
             podcastItem.setTitle(title);
 
             podcastItem.setDescription(getElementValue(item, "description"));
+            // Навіщо зберігаємо, коли ще не додали елемент подкасту
+            SavePodcast(tmpstrUrl.getPodcastChannel());
 
             String audioUrl = getAttributeValue(item, "enclosure", "url"); // Посилання на аудіофайл
             logger.info("audioUrl:{}", audioUrl);
 
+
+
             /* Завантажуємо файл для відтворення епізода у сховище */
-            if (!ImportedEpisodeEnclosureToStore(tmpstrUrl, audioUrl, podcastItem, cd)) {
+            Store enclosure = ImportedEpisodeEnclosureToStore(tmpstrUrl, audioUrl, podcastItem, cd);
+            podcastItem.setEnclosurestore(enclosure);
+            if (podcastItem.getEnclosurestore() == null) {
                 // не зберігаємо епізод при помилці завантаження файлу з епізодом
-                logger.info("===== Щось пішло не так при завантаженні епізоду\n"
-                        + "     enclosure url: {}"
-                        + "     Епізод: {}"
-                        + "     Подкаст: {}", audioUrl, title, podcastTitle);
+                logger.info("===== Щось пішло не так при завантаженні enclosure для епізоду"
+                        + "\n     enclosure url: {}"
+                        + "\n     Епізод: {}"
+                        + "\n     Подкаст: {}", audioUrl, title, podcastTitle);
                 continue;
+            } else {
+                // заносимо інформацію в епізод
+                podcastItem.setChanel(tmpstrUrl.getPodcastChannel());
+//                podcastItem.setStoreenclosure(storeService.GetStoreByUUID(storeUUID));
+                podcastItem.setClientdetail(cd.getUuid());
+                podcastItem.setTimetrack(GetTimeTrack(podcastItem.getEnclosurestore().getUuid())); // зберегли час треку для RSS
             }
             // зберегли оригінальне посилання на enclosure
-            podcastItem.setOriginalenclosure(audioUrl);
+            podcastItem.setOriginalenclosurelink(audioUrl);
 
             // itunes:image
             String episodeImageUrl = getAttributeValue(item, "itunes:image", "href"); // Посилання на аудіофайл
             logger.info("episodeImageUrl:{}", episodeImageUrl);
-            if (!ImportedEpisodeImageToStore(tmpstrUrl, episodeImageUrl, podcastItem, cd)) {
+            // Завантажуємо обкладинку епізоду
+            podcastItem.setImagestoreitem(ImportedEpisodeImageToStore(tmpstrUrl, episodeImageUrl, podcastItem, cd));
+            if (podcastItem.getImagestoreitem() == null) {
                 // не зберігаємо епізод при помилці завантаження файлу з епізодом
                 logger.info("===== Щось пішло не так при завантаженні картинки епізоду\n"
-                        + "     image url: {}"
-                        + "     Епізод: {}"
-                        + "     Подкаст: {}", episodeImageUrl, title, podcastTitle);
-                continue;
+                        + "\n     image url: {}"
+                        + "\n     Епізод: {}"
+                        + "\n     Подкаст: {}", episodeImageUrl, title, podcastTitle);
+                podcastItem.setImagestoreitem(tmpstrUrl.getPodcastChannel().getImagechanelstore());
+                logger.info("Для епізоду взяли картинку подкасту");
+//                continue;
             }
-//            podcastItem.set(episodeImageUrl);
-
-//            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
+            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
         }
 
         /* зберегли весь подкаст з епізодами */
@@ -558,25 +596,29 @@ public class PodcastService {
     }
 
 
-    private boolean ImportedEpisodeImageToStore(strUrl tmpstrUrl, String episodeImageUrl, PodcastItem podcastItem, Clientdetail cd) {
+    private Store ImportedEpisodeImageToStore(strUrl tmpstrUrl, String episodeImageUrl, PodcastItem podcastItem, Clientdetail cd) {
         // витягуємо оригінальне імʼя файлу
         DownloadFileResult resultDownloadFile;
         // зберігаємо в базі
         try {
             // завантажуємо картинку
+            logger.info("Завантажуємо файл Cover епізоду");
             resultDownloadFile = downloadFile(episodeImageUrl);
             PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
             String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_PODCASTCOVER);
-            SaveCoverEpisodeUploadfile(storeUUID, podcastItem, cd);
+            logger.info("uploaded file {}", resultDownloadFile.fileName);
+            //resultDownloadFile.inputStream.close();
+            return storeService.GetStoreByUUID(storeUUID);
+//            SaveCoverEpisodeUploadfile(storeUUID, podcastItem, cd);
 //        podcastItem.getImage().setOriginalurl(episodeImageUrl);
 
         } catch (DownloadFileException e) {
-            logger.info("Завантаження файлу Cover подкасту: Проблема збереження");
-            return false;
-//                e.printStackTrace();
+            logger.info("Завантаження файлу Cover епізоду: Проблема збереження");
+//            e.printStackTrace();
+            return null;
         }
-        logger.info("uploaded file {}", resultDownloadFile.fileName);
-        return true;
+//        logger.info("uploaded file {}", resultDownloadFile.fileName);
+//        return true;
     }
 
     // завантажуємо картинку подкасту до сховища
@@ -586,44 +628,35 @@ public class PodcastService {
         // зберігаємо в базі
         try {
             // завантажуємо картинку
+            logger.info("Завантаження файлу Cover подкасту");
             resultDownloadFile = downloadFile(coverurl);
             PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
             String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_PODCASTCOVER);
             SaveCoverPodcastUploadfile(storeUUID, tmpstrUrl.getPodcastChannel(), cd);
+//            resultDownloadFile.inputStream.close();
         } catch (DownloadFileException e) {
             logger.info("Завантаження файлу Cover подкасту: Проблема збереження");
+//            e.printStackTrace();
             return false;
-//                e.printStackTrace();
         }
         logger.info("uploaded file {}", resultDownloadFile.fileName);
         return true;
     }
 
     // завантажуємо епізод до сховища
-    private boolean ImportedEpisodeEnclosureToStore(strUrl tmpstrUrl, String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
-//            // завантажуємо епізоди
-
-        // витягуємо оригінальне імʼя файлу
+    private Store ImportedEpisodeEnclosureToStore(strUrl tmpstrUrl, String audioUrl, PodcastItem podcastItem, Clientdetail cd) {
+        // витягуємо оригінальне імʼя аудіо файлу епізоду
         DownloadFileResult resultDownloadFile;
-        // зберігаємо в базі
-        PodcastChannel podcast = tmpstrUrl.getPodcastChannel();
         try {
+            // тут на другому файлі вилітаємо
             resultDownloadFile = downloadFile(audioUrl);
             String storeUUID = storeService.PutFileToStore(resultDownloadFile.inputStream, resultDownloadFile.fileName, cd, STORE_EPISODETRACK);
-//                podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
-
-            // заносимо інформацію в епізод
-            podcastItem.setChanel(podcast);
-            podcastItem.setStoreuuid(storeUUID);
-            podcastItem.setStoreenclosure(storeService.GetStoreByUUID(storeUUID));
-            podcastItem.setClientdetail(cd);
-            podcastItem.setTimetrack(GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+            Store encl = storeService.GetStoreByUUID(storeUUID);
+            return encl;
         } catch (DownloadFileException e) {
-            logger.info("Завантаження файлу імпортованого епізоду: Проблема збереження");
-            return false;
+            logger.error("ERROR: podcastService. ImportedEpisodeEnclosureToStore:\n======== Завантаження файлу імпортованого епізоду: Проблема збереження");
+            return null;
         }
-
-        return true;
     }
 
 

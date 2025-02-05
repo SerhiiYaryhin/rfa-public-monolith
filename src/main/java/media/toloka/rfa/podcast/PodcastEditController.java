@@ -67,7 +67,7 @@ public class PodcastEditController {
         if (puuid.length() < 3) {
             // створюємо новий подкаст
             podcast = new PodcastChannel();
-            podcast.setClientdetail(cd); // todo повернути після отладки
+            podcast.setClientdetail(cd.getUuid()); // todo повернути після отладки
             podcastService.SavePodcast(podcast);
             model.addAttribute("success",  "Створили новий подкаст."
                     +" Збережіть його і після цього додайте епізоди до подкасту.");
@@ -166,7 +166,7 @@ public class PodcastEditController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
-        podcast.setClientdetail(cd);
+        podcast.setClientdetail(cd.getUuid());
 
 
         PodcastChannel tpodcast = podcastService.GetChanelByUUID(podcast.getUuid());
@@ -174,13 +174,13 @@ public class PodcastEditController {
             tpodcast.setTitle(podcast.getTitle());
             tpodcast.setDescription(podcast.getDescription());
             tpodcast.setLastbuilddate(new Date());
-            tpodcast.setClientdetail(cd);
+            tpodcast.setClientdetail(cd.getUuid());
 
 
             tpodcast.setLanguage(podcast.getLanguage());
             podcastService.SavePodcast(tpodcast);
         } else {
-            podcast.setClientdetail(cd);
+            podcast.setClientdetail(cd.getUuid());
             podcastService.SavePodcast(podcast);
         }
         // пробуємо побудувати RSS
@@ -306,7 +306,7 @@ public class PodcastEditController {
         Store image = podcastService.GetStoreByUUID(iuuid);
         PodcastChannel podcastTarget = podcastService.GetChanelByUUID(puuid);
 
-        podcastTarget.setImagestoreitem(image);
+        podcastTarget.setImagechanelstore(image);
 
         podcastService.SavePodcast(podcastTarget);
         model.addAttribute("podcast",  podcastTarget);

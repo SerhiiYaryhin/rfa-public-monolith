@@ -1,8 +1,6 @@
 package media.toloka.rfa.podcast;
 
 
-import lombok.Getter;
-import lombok.Setter;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.RSSXMLService;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -11,11 +9,7 @@ import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.radio.store.model.Store;
-import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
-import media.toloka.rfa.service.DownloadFileException;
-import media.toloka.rfa.service.DownloadFileResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,27 +23,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_EPISODETRACK;
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_PODCASTCOVER;
-import static media.toloka.rfa.service.FileDownloader.downloadFile;
 
 @Controller
 public class PodcastController {
@@ -120,8 +97,8 @@ public class PodcastController {
 
         model.addAttribute("podcast", podcastChannel);
 
-        if (podcastChannel.getImagestoreitem() != null){
-            model.addAttribute("ogimage", podcastChannel.getImagestoreitem().getUuid());
+        if (podcastChannel.getImagechanelstore() != null){
+            model.addAttribute("ogimage", podcastChannel.getImagechanelstore().getUuid());
         } else {
             // todo Вставити нормальне посилання на cover за замовчуванням
             model.addAttribute("ogimage", "------------");

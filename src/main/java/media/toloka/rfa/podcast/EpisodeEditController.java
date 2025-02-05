@@ -69,12 +69,13 @@ public class EpisodeEditController {
         if (cd == null) { return "redirect:/"; }
 
         PodcastItem tepisode = podcastService.GetEpisodeByUUID(euuid);
-        // Заповнюємо поля знайденого епізоду з форми.
-        tepisode.setTitle(episode.getTitle());
-        tepisode.setDescription(episode.getDescription());
+        if (tepisode != null) {
+            // Заповнюємо поля знайденого епізоду з форми.
+            tepisode.setTitle(episode.getTitle());
+            tepisode.setDescription(episode.getDescription());
 
-        podcastService.SaveEpisode(tepisode);
-
+            podcastService.SaveEpisode(tepisode);
+        }
         PodcastChannel podcast = tepisode.getChanel();
 //        List<PodcastItem> itemList = podcast.getItem();
 

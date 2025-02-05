@@ -14,8 +14,8 @@ public class PodcastItunesCategory {
     @Expose
     private Long id;
 
-    @Expose
     @Id
+    @Expose
     private String uuid;
 
     @Expose

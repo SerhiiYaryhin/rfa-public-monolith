@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 //import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
-import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.model.Store;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.ArrayList;
@@ -19,8 +17,8 @@ import java.util.UUID;
 @Entity
 @Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id")})
 public class PodcastChannel {
-    @Expose
     @Id
+    @Expose
     private String uuid;
 
     @GeneratedValue
@@ -59,28 +57,38 @@ public class PodcastChannel {
     @Expose
     private Long looked = 0L; // скільки разів подивилися
 
+    @ToString.Exclude
     @ElementCollection
     @OneToMany(orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<PodcastItem> item = new ArrayList<>(); // перелік епізодів
 
+    @ToString.Exclude
     @ElementCollection
     @OneToMany(orphanRemoval = true, mappedBy = "chanel", fetch=FetchType.LAZY)
     private List<PodcastItunesCategory> itunescategory = new ArrayList<>();  // категорія подкасту
 
     @Expose
+//    @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
-    @JoinColumn(name = "store_uuid")
-    private Store imagestoreitem;
+    @JoinColumn(name = "imagestoreuuid")
+    private Store imagechanelstore;
+
+//    @ToString.Exclude
+//    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+//    @JoinColumn(name = "clientdetail_id", nullable = true )
+//    private Clientdetail clientdetail;  // посилання на запис аутентифікації автора подкасту.
+//    @Expose
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "clientdetail_id", nullable = true )
-    private Clientdetail clientdetail;  // посилання на запис аутентифікації автора подкасту.
+    private String clientdetail;
 
     @PrePersist
     public void generateUUID() {
         if (uuid == null) {
             uuid = UUID.randomUUID().toString();
+        }
+        if (this.id == null) {
+            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
         }
     }
 }

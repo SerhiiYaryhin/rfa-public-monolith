@@ -73,8 +73,12 @@ public class StoreFileImplementation implements StoreInterface {
         try {
             Files.createDirectories(destination.getParent());
             Files.copy(inputStream, destination, REPLACE_EXISTING);
+            inputStream.close();
+
         } catch (IOException e) {
-            logger.warn("IOExeption StoreFileImplementation PutFileToStore {} {}", cd.getUuid(), filename);
+            //
+            logger.warn("RFAIOExeption StoreFileImplementation PutFileToStore {} {}", cd.getUuid(), filename);
+            logger.error("error", e);
         }
         // Зберігаємо інформацію о файлі та привʼязуємо до користувача.
         Random random = new Random();
@@ -82,10 +86,12 @@ public class StoreFileImplementation implements StoreInterface {
         Store storeitem = null;
         try {
             Thread.sleep(difference);
+            // перевіряємо, чи є такий файл на диску
             if (!fileExist) {
                 storeitem = SaveStoreItemInfo(null,destination, storeFileType, cd);
             } else {
                 storeitem = GetStoreItemByFilenameByClientDetail(destination.getFileName().toString(), cd);
+                // перевіряємо, чи є запис про такий файл в сховищі
                 if (storeitem == null) { // є файл, але немає у сховищі запису про це
                     storeitem = SaveStoreItemInfo(null,destination, storeFileType, cd);
                 }
@@ -100,6 +106,10 @@ public class StoreFileImplementation implements StoreInterface {
 
     }
 
+    /// Видаляємо запис з бази
+    public void DeleteStoreRecord(Store store) {
+        storeRepositore.delete(store);
+    }
 
     /// Видаляємо зі сховища
     public Boolean DeleteInStore(Store store) {

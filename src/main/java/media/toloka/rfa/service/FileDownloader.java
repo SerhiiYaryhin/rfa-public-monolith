@@ -1,5 +1,7 @@
 package media.toloka.rfa.service;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -9,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 //import static FileDownloader.downloadFile;
 
+@Slf4j
 public class FileDownloader {
 
     /**
@@ -22,6 +25,9 @@ public class FileDownloader {
     public static DownloadFileResult downloadFile(String urlString) throws DownloadFileException {
         try {
             // Створюємо об'єкт URL
+            if (urlString == null) {
+                throw new DownloadFileException("downloadFile. URL пустий ");
+            }
             URL url = new URL(urlString);
             // Відкриваємо з'єднання з сервером
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -45,7 +51,9 @@ public class FileDownloader {
             }
         } catch (IOException e) {
             // Обробляємо виключення введення-виведення
-            throw new DownloadFileException("Помилка при завантаженні файлу: " + e.getMessage(), e);
+//            throw new DownloadFileException("Помилка при завантаженні файлу: " + e.getMessage(), e);
+            log.error("FileDownloader - downloadFile. URL: {}",urlString);
+            throw new DownloadFileException("DownloadFileException: Помилка при завантаженні файлу. URL: ");
         }
     }
 

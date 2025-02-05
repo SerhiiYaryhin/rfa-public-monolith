@@ -38,7 +38,7 @@
       </div>
     </div>
     <div class="row">
-      <audio-player id="rfaepisodeplayerr" th:data-src="'/podcast/audio/'+ ${podcastItem.storeitem.uuid} +'/'+ ${podcastItem.storeitem.filename}"></audio-player>
+      <audio-player th:if="${podcastItem.enclosurestore} != null" id="rfaepisodeplayerr" th:data-src="'/podcast/audio/'+ ${podcastItem.enclosurestore.uuid} +'/'+ ${podcastItem.enclosurestore.filename}"></audio-player>
     </div>
     <div class="row" style="padding-top: 50px">
       <!-- початок виводу подкастe -->
@@ -49,8 +49,8 @@
           <div class="row">
             <!-- картинка подкасту та RSS-->
             <div class="col">
-              <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcastItem.image != null}" th:src="'/store/thrumbal/w/300/' + ${podcastItem.image.storeidimage.uuid} + '/' + ${podcastItem.image.storeidimage.filename}"
-                   th:id="${podcastItem.image.uuid}"/>
+              <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcastItem.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
+                   th:id="${podcastItem.imagestoreitem.uuid}"/>
             </div>
           </div>
           <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}" style="padding-top: 10px"></h1> <!-- назва подкасту -->

@@ -34,4 +34,5 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
             + "a.clientdetail = ?1 AND  "
             + "LOWER(a.contentMimeType) LIKE LOWER(CONCAT('%', 'image/', '%'))") // OR " +
     Page findByStorelAllPictures(Pageable pageable, Clientdetail cd);
+
 }
