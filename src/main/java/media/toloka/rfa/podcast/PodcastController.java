@@ -185,7 +185,12 @@ public class PodcastController {
     /* Працюємо із завантаженням подкасту з RSS URL */
 
 
-    /* забираємо подкаст за посиланням на RSS */
+    /** забираємо подкаст за посиланням на RSS
+     *
+     * @param gstrUrl - посилання на RSS, флаг видалення подкасту за RSS та флаг для тестування (поки не використовую)
+     * @param model
+     * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
+     */
     @GetMapping(value = "/podcast/getRSSFromUrl")
     public String GetPodcastFromRSSUrl(            //@PathVariable String euuid,
                                                    @ModelAttribute PodcastService.strUrl gstrUrl,
@@ -221,7 +226,13 @@ public class PodcastController {
     }
 
 
-    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
+    /** Завантажуємо подкаст за посиланням на RSS
+     *
+     * @param gstrUrl - посилання на RSS, флаг видалення подкасту за RSS та флаг для тестування (поки не використовую)
+     * @param model
+     * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
+     * @call podcastService.PutPodcastFromRSS(model, gstrUrl) // саме тут забираємо подкаст
+     */    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
     @PostMapping(value = "/podcast/getRSSFromUrl")
     public String PostPodcastFromRSSUrl(
             @ModelAttribute PodcastService.strUrl gstrUrl,
@@ -236,11 +247,13 @@ public class PodcastController {
             return "redirect:/";
         }
 
+        // перевіряємо довжину посилання.
         if (gstrUrl.getRSSFromUrl().length() < 5) {
             model.addAttribute("warning", "Заповніть поле адреси.");
             return "/podcast/getRSSFromUrl";
         }
 
+        // Саме тут завантажуємо подкаст
         podcastService.PutPodcastFromRSS(model, gstrUrl);
 
         return "/podcast/getRSSFromUrl";
