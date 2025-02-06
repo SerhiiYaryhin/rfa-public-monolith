@@ -129,7 +129,7 @@ public class PodcastService {
 //    }
 
     /**
-     * Отримуємо час треку
+     * Отримуємо час тривалості треку
      * @param storeUUID
      * @return
      */
@@ -137,10 +137,7 @@ public class PodcastService {
         // Беремо в сховищі завантажений трек і визначаємо його тривалість
         String cursFile = storeService.GetStoreByUUID(storeUUID).getFilepatch();
         String resultLength;
-
-
         try {
-//            File file =
             AudioFile audioMetadata = AudioFileIO.read(new File(cursFile));
             logger.info("Audio file {}", cursFile);
             logger.info("Audio TrackLength {}", audioMetadata.getAudioHeader().getTrackLength());
@@ -155,7 +152,7 @@ public class PodcastService {
             logger.info("Audio bitrate {}", audioMetadata.getAudioHeader().getBitRate());
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException
                  | InvalidAudioFrameException e) {
-            throw new RuntimeException("Помилка при визначенні тривалості трека. " + e.getLocalizedMessage());
+            throw new RuntimeException("Помилка при визначенні тривалості треку. " + e.getLocalizedMessage());
         }
         return resultLength;
     }
@@ -218,14 +215,18 @@ public class PodcastService {
 //        SavePodcast(episode.getChanel());
 //    }
 
+    /**
+     * Вибираємо всі епізоди зі всіх подкастів для цього клієта
+     * @param cd наш клієнт
+     * @return List<PodcastItem>
+     */
     public List<PodcastItem> GetAllEpisodePaging(Clientdetail cd) {
-        // findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_EPISODETRACK)
         return episodeRepository.findByClientdetailOrderByIdDesc(cd);
     }
 
     /**
      * Отримуємо перелік всіх обкладинок подкастів та епізодів від конкретного користувача в системі
-     * @param Clientdetail cd конкретний користувач, який розміщувал подкасти.
+     * @param cd конкретний користувач, який розміщувал подкасти.
      * @return
      */
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
@@ -278,8 +279,8 @@ public class PodcastService {
         }.getType());
     }
 
-    public void SaveItunesCategory(PodcastItunesCategory pic) {
-        itunesCategoryRepository.save(pic);
+    public void SaveItunesCategory(PodcastItunesCategory itCategory) {
+        itunesCategoryRepository.save(itCategory);
     }
 
     public void ItunesCategoryClear(PodcastItunesCategory toclear) {
