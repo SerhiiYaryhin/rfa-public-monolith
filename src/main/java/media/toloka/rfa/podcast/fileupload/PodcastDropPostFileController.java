@@ -58,6 +58,7 @@ public class PodcastDropPostFileController {
         if (file.isEmpty()) {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження епізоду подкасту: Файл порожній");
+            return;
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
@@ -69,16 +70,33 @@ public class PodcastDropPostFileController {
         log.info("Current episode {} {}",puuid, podcast.getTitle());
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_EPISODETRACK);
-            podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
+            PodcastItem episode = new PodcastItem();
+            episode.setChanel(podcast);
+            episode.setStoreuuid(storeUUID);
+            episode.setEnclosurestore(storeService.GetStoreByUUID(storeUUID));
+            episode.setClientdetail(cd.getUuid());
+            episode.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+            podcast.getItem().add(episode);
+
+            podcastService.SavePodcast(podcast);
+//            podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
+
         } catch (IOException e) {
             logger.info("Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         log.info("uploaded file " + file.getOriginalFilename());
 
+        // Чому нічого не повертаю?
     }
 
     // Завантажуємо обкладинку подкасту
+
+    /**
+     * завантажуємо обкладинку подкасту
+     * @param puuid uuid родкасту
+     * @param file файл з броузера клієнта, що завантажуємо
+     */
     @PostMapping(path = "/podcast/podcastcoverupload/{puuid}" ) // , produces = MediaType.APPLICATION_JSON_VALUE
     public void PodcastCoverUpload(
             @PathVariable String puuid,
@@ -87,7 +105,8 @@ public class PodcastDropPostFileController {
 //        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
 //                throw new ExecutionControl.UserException("Empty file");
-            logger.warn("Завантаження обкладинки подкасту: Файл порожній");
+            logger.warn("PodcastCoverEpisodeUpload: Файл, що завантажуємо порожній");
+            return;
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
@@ -108,6 +127,12 @@ public class PodcastDropPostFileController {
 
     }
 
+    /**
+     * Зберігаємо завантажену обкладинку для епізоду подкасту
+     * @param puuid uuid родкасту
+     * @param euuid uuid епізоду
+     * @param file файл з броузера клієнта, що завантажуємо
+     */
     @PostMapping(path = "/podcast/podcastcoverepisodeupload/{puuid}/{euuid}" ) // , produces = MediaType.APPLICATION_JSON_VALUE
     public void PodcastCoverEpisodeUpload(
             @PathVariable String puuid,
@@ -117,12 +142,13 @@ public class PodcastDropPostFileController {
 //        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
 //                throw new ExecutionControl.UserException("Empty file");
-
+            logger.warn("PodcastCoverEpisodeUpload: Файл обкладинки порожній");
+            return;
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
-            logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
+            logger.warn("PodcastCoverEpisodeUpload: Клієнт {} не має права завантажувати файли.", cd.getUuid());
             return;
         }
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
@@ -130,13 +156,14 @@ public class PodcastDropPostFileController {
 //        log.info("Current episode {} {}",puuid, podcast.getTitle());
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PODCASTCOVER);
-            podcastService.SaveCoverEpisodeUploadfile(storeUUID, podcastItem, cd);
+            podcastItem.setImagestoreitem(storeService.GetStoreByUUID(storeUUID));
+            podcastService.SavePodcast(podcast);
         } catch (IOException e) {
-            logger.info("Завантаження файлу: Проблема збереження");
+            logger.info("PodcastCoverEpisodeUpload: Завантаження файлу: Проблема збереження");
             e.printStackTrace();
+            return;
         }
         log.info("uploaded file " + file.getOriginalFilename());
-
     }
 
 }

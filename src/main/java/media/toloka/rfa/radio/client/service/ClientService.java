@@ -55,6 +55,10 @@ public class ClientService {
         return clientDetailRepository.getUserByTelegramuser(telegramUser);
     }
 
+    /**
+     * отримуємо пошту авторизованого користувача
+     * @return поштова адреса зареєстрованого користувача
+     */
     public Users GetCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 //        List<Users> usersList= userRepository.findUserByEmail(email);

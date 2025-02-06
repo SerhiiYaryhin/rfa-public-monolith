@@ -65,6 +65,14 @@ public class StoreFileImplementation implements StoreInterface {
         }
     }
 
+    /**
+     * з потоку записуємо файл у сховище. Поки не обробляю помилки запису. Доробити
+     * @param inputStream вхідний потік з файлом, який зберігається до сховища
+     * @param filename імʼя файлу для збереження
+     * @param cd поточний авторізований користувач
+     * @param storeFileType функціональне призначення файлу, що зберігається
+     * @return String UUID елемента у сховищі
+     */
     @Override
     public String PutFileToStore(InputStream inputStream, String filename, Clientdetail cd, EStoreFileType storeFileType) {
         Path destination = Paths.get(filesService.GetBaseClientDirectory(cd) + "/" + filesService.GetUploadDirectory()).resolve(filename).normalize().toAbsolutePath();
@@ -79,6 +87,8 @@ public class StoreFileImplementation implements StoreInterface {
             //
             logger.warn("RFAIOExeption StoreFileImplementation PutFileToStore {} {}", cd.getUuid(), filename);
             logger.error("error", e);
+            //todo якщо IO помилка, то ми нічого не повинні повертати і закінчити завантаження файлу
+            // return null
         }
         // Зберігаємо інформацію о файлі та привʼязуємо до користувача.
         Random random = new Random();

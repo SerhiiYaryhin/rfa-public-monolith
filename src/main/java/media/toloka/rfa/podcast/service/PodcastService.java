@@ -115,21 +115,24 @@ public class PodcastService {
         return episodeRepository.getByUuid(euuid);
     }
 
-    public void SaveEpisodeUploadfile(String storeUUID, PodcastChannel podcast, Clientdetail cd) {
-        // зберігаємо інформацію про завантажений епізод
-        PodcastItem episode = new PodcastItem();
-        episode.setChanel(podcast);
-        episode.setStoreuuid(storeUUID);
-        episode.setEnclosurestore(storeService.GetStoreByUUID(storeUUID));
-        episode.setClientdetail(cd.getUuid());
-        episode.setTimetrack(GetTimeTrack(storeUUID)); // зберегли час треку для RSS
-        podcast.getItem().add(episode);
+//    public void SaveEpisodeUploadfile(String storeUUID, PodcastChannel podcast, Clientdetail cd) {
+//        // створюємо епізод, записуємо в нього інформацію про завантажений епізод та зберігаємо в базі
+//        PodcastItem episode = new PodcastItem();
+//        episode.setChanel(podcast);
+//        episode.setStoreuuid(storeUUID);
+//        episode.setEnclosurestore(storeService.GetStoreByUUID(storeUUID));
+//        episode.setClientdetail(cd.getUuid());
+//        episode.setTimetrack(GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+//        podcast.getItem().add(episode);
+//
+//        SavePodcast(podcast);
+//    }
 
-        SavePodcast(podcast);
-
-//        episodeRepository.save(episode);
-    }
-
+    /**
+     * Отримуємо час треку
+     * @param storeUUID
+     * @return
+     */
     public String GetTimeTrack(String storeUUID) {
         // Беремо в сховищі завантажений трек і визначаємо його тривалість
         String cursFile = storeService.GetStoreByUUID(storeUUID).getFilepatch();
@@ -148,13 +151,11 @@ public class PodcastService {
             Integer hours = audioMetadata.getAudioHeader().getTrackLength() / 3600;
             Integer minutes = (audioMetadata.getAudioHeader().getTrackLength() % 3600) / 60;
             Integer seconds = audioMetadata.getAudioHeader().getTrackLength() % 60;
-
             resultLength = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-
             logger.info("Audio bitrate {}", audioMetadata.getAudioHeader().getBitRate());
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException
                  | InvalidAudioFrameException e) {
-            throw new RuntimeException("Error while getting metadata for audio file. Error " + e.getLocalizedMessage());
+            throw new RuntimeException("Помилка при визначенні тривалості трека. " + e.getLocalizedMessage());
         }
         return resultLength;
     }
@@ -190,7 +191,6 @@ public class PodcastService {
 
     public void SaveEpisode(PodcastItem episode) {
         // todo Записати час файлу для RSS XML
-
         episodeRepository.save(episode);
     }
 
@@ -204,40 +204,48 @@ public class PodcastService {
         SavePodcast(podcast);
     }
 
-    public void SaveCoverEpisodeUploadfile(String storeUUID, PodcastItem episode, Clientdetail cd) {
+//    public void SaveCoverEpisodeUploadfile(String storeUUID, PodcastItem episode, Clientdetail cd) {
 //        PodcastImage itemImage = new PodcastImage();
 //        itemImage.setStoreidimage(storeService.GetStoreByUUID(storeUUID));
 //        itemImage.setClientdetail(cd);
-        episode.setImagestoreitem(storeService.GetStoreByUUID(storeUUID));
+//        episode.setImagestoreitem(storeService.GetStoreByUUID(storeUUID));
 //        for (PodcastItem item : episode.getChanel().getItem()) {
 //            if (item.getId() == episode.getId()) {
 //                item.setImage(itemImage);
 //                break;
 //            }
 //        }
-        SavePodcast(episode.getChanel());
-    }
+//        SavePodcast(episode.getChanel());
+//    }
 
     public List<PodcastItem> GetAllEpisodePaging(Clientdetail cd) {
         // findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_EPISODETRACK)
         return episodeRepository.findByClientdetailOrderByIdDesc(cd);
     }
 
+    /**
+     * Отримуємо перелік всіх обкладинок подкастів та епізодів від конкретного користувача в системі
+     * @param Clientdetail cd конкретний користувач, який розміщувал подкасти.
+     * @return
+     */
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
         return storeService.GetPodcastCoverListByCd(cd);
     }
-//
-//    public PodcastImage GetImageByUUID(String iuuid) {
-//        return coverPodcastRepository.getByUuid(iuuid);
-//    }
 
+
+    /**
+     * Беремо з бази всі подкасти що схвалені для каруселі на головній сторінці
+     * @return List<PodcastChannel>
+     */
     public List<PodcastChannel> GetPodcastListForRootCarusel() {
-//        return chanelRepository.findByApruve(true);
-//        return chanelRepository.findByPublishing(true);
-        List<PodcastChannel> jjj = chanelRepository.findByPublishing(true);
-        return jjj;
+//        List<PodcastChannel> jjj = chanelRepository.findByPublishing(true);
+        return chanelRepository.findByPublishing(true);
     }
 
+    /**
+     * Отримати всі подкасти з бази
+     * @return List<PodcastChannel>
+     */
     public List<PodcastChannel> GetAllChanel() {
         List<PodcastChannel> listCh = chanelRepository.findAll();
         return listCh;
@@ -278,22 +286,53 @@ public class PodcastService {
         itunesCategoryRepository.delete(toclear);
     }
 
+    /**
+     * шукаємо серед епізодів таку назву.
+     * Додати пошук з урахуванням поточного користувача лише серед його подкастів
+     * епізодів може бути декілька.
+     * @param title String назва епізоду
+     * @return List<PodcastItem>
+     */
     public List<PodcastItem> GetListByTitle(String title) {
         return episodeRepository.findByTitle(title);
     }
 
+    /**
+     * Шукаємо в базі подкаст з такою назвою
+     * може статися так, що два різних подкасти будуть мати одну назву.
+     * Передбачити обробку цієї ситуації
+     * Додати пошук з урахуванням поточного користувача лише серед його подкастів
+     * @param podcastTitle String з назвою подкасту
+     * @return List<PodcastChannel>
+     */
     public List<PodcastChannel> GetChanelByTitle(String podcastTitle) {
         List<PodcastChannel> podcastChannelList = chanelRepository.findByTitle(podcastTitle);
         if (podcastChannelList.isEmpty()) return null;
         return podcastChannelList;
     }
 
+    /**
+     * шукаємо серед епізодів таку назву.
+     * Додати пошук з урахуванням поточного користувача лише серед його подкастів
+     * епізодів може бути декілька.
+     * @param title String назва епізоду
+     * @return PodcastItem
+     */
     public PodcastItem CheckEpisodeWithTitle(String title) {
         return episodeRepository.getByTitle(title);
     }
 
     /*
-    Видаляємо подкаст та вичіщаємо всі записи і файли
+
+     */
+
+    /**
+     * Видаляємо подкаст та вичіщаємо всі записи і файли зі сховища
+     * Проконтролювати, чи використовується цей файл в інших сутностях
+     * Наприклад, картинка подкасту може використовуватися в пості з анонсом виходу нового епізоду.
+     * Лічильник кількості посилань на обʼєкт у сховищі.
+     * @param lChannel Канал подкасту, який існує у базі
+     * @return Boolean успішно/неуспішно
      */
     public Boolean ClearAndDeletePodcastChanel(PodcastChannel lChannel) {
         // перелік Store, які видаляємо у самому кінці обробки.
@@ -375,7 +414,11 @@ public class PodcastService {
 //    coverPodcastRepository.delete(piImage);
 //}
 
-
+    /**
+     * Завантажуємо подкаст на наш сервер
+     * @param model
+     * @param gstrUrl в цьому класі міститься String з адресою RSS
+     */
     public void PutPodcastFromRSS(Model model, strUrl gstrUrl) {
 
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
@@ -397,16 +440,18 @@ public class PodcastService {
 //        }
 
         // Створили пусту структуру
+        // створили нову структуру, що щось не зіпсувати.
+        // у майбутньому - прибрати створення і користуватися переданою.
         strUrl tmpstrUrl = new strUrl();
 
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         tmpstrUrl.setClrpodcast(gstrUrl.getClrpodcast());
-        logger.info("===== {}", tmpstrUrl.getRSSFromUrl());
+//        logger.info("===== {}", tmpstrUrl.getRSSFromUrl());
 
         String rssContent;
+        // за переданим посиланням отримуємо тіло RSS
         rssContent = fetchRssContent(tmpstrUrl.getRSSFromUrl());
 
-//        tmpstrUrl.setPodcastChannel(null);
         // Парсинг RSS в DOM
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
@@ -464,10 +509,11 @@ public class PodcastService {
             }
             model.addAttribute("strUrl", gstrUrl);
 
+            // Закінчили видалення подкасту
             return;
         }
 
-        tmpstrUrl.setPodcastChannel(new PodcastChannel());
+        tmpstrUrl.setPodcastChannel(new PodcastChannel()); //
         // шукаємо в базі подкастів з такою назвою
         podcastChannelList = GetChanelByTitle(podcastTitle);
         Boolean updatePodcast = false;
@@ -661,6 +707,13 @@ public class PodcastService {
 
 
     // працюємо з RSS
+
+    /**
+     * Зчитуємо тіло RSS без урахування передресацій
+     * обробку переадресацій потрібно додати
+     * @param rssUrl
+     * @return String з тілом RSS
+     */
 // Читаємо RSS
     private String fetchRssContent(String rssUrl) {
         DownloadFileResult resultDownloadFile;
@@ -691,6 +744,12 @@ public class PodcastService {
         }
     }
 
+    /**
+     * отримуємо значення елементу
+     * @param parent Елемент XML з якого витягуємо його значення.
+     * @param tagName тег елементу XML значення якого ми забираємо
+     * @return String значення тегу
+     */
     private String getElementValue(Element parent, String tagName) {
         NodeList nodeList = parent.getElementsByTagName(tagName);
         if (nodeList.getLength() > 0) {
@@ -699,6 +758,13 @@ public class PodcastService {
         return null;
     }
 
+    /**
+     * Отримуємо значення атрибуту тегу в батьківському елементі
+     * @param parent батьківський елемент в середині якого знаходиться тег.
+     * @param tagName імʼя тегу в батьківському елементі.
+     * @param attributeName імʼя атрибуту тегу
+     * @return String тіло атрибуту
+     */
     private String getAttributeValue(Element parent, String tagName, String attributeName) {
         NodeList nodeList = parent.getElementsByTagName(tagName);
         if (nodeList.getLength() > 0) {
