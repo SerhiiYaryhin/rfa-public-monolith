@@ -87,23 +87,19 @@ public class PodcastController {
             @PathVariable String puuid,
             Model model) {
         logger.info("Зайшли на /podcast/view/{}", puuid);
-
-
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(puuid);
         if (podcastChannel == null) {
-            logger.info("Хтось помилився посиланням. Знов довбляться на сайт.");
-            return "redirect:/";
-        }
-
-        model.addAttribute("podcast", podcastChannel);
-
-        if (podcastChannel.getImagechanelstore() != null){
-            model.addAttribute("ogimage", podcastChannel.getImagechanelstore().getUuid());
+            logger.info("Хтось помилився посиланням на подкаст та/або знов довбляться на сайт.");
+            model.addAttribute("warning", "Такого подкасту не існує. Ви або помилилися посиланням, або він переміщений.");
         } else {
-            // todo Вставити нормальне посилання на cover за замовчуванням
-            model.addAttribute("ogimage", "------------");
+            if (podcastChannel.getImagechanelstore() != null) {
+                model.addAttribute("ogimage", podcastChannel.getImagechanelstore().getUuid());
+            } else {
+                // todo Вставити нормальне посилання на cover за замовчуванням
+                model.addAttribute("ogimage", "------------");
+            }
         }
-
+        model.addAttribute("podcast", podcastChannel);
         return "/podcast/view";
     }
 
@@ -189,7 +185,8 @@ public class PodcastController {
     /* Працюємо із завантаженням подкасту з RSS URL */
 
 
-    /** забираємо подкаст за посиланням на RSS
+    /**
+     * забираємо подкаст за посиланням на RSS
      *
      * @param gstrUrl - посилання на RSS, флаг видалення подкасту за RSS та флаг для тестування (поки не використовую)
      * @param model
@@ -230,7 +227,8 @@ public class PodcastController {
     }
 
 
-    /** Завантажуємо подкаст за посиланням на RSS
+    /**
+     * Завантажуємо подкаст за посиланням на RSS
      *
      * @param gstrUrl - посилання на RSS, флаг видалення подкасту за RSS та флаг для тестування (поки не використовую)
      * @param model

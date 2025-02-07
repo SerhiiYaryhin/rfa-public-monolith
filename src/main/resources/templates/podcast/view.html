@@ -26,129 +26,134 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
+
 <!-- MessageBox -->
-<div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+<div style="padding-top: 80px" th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
 <!-- Header для главной сторінки подкастов -->
-<section class="pt-4">
-    <div class="container px-lg-5">
-        <div class="row " style="padding-top: 20px">
-            <div class="col align-center">
-                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
-            </div>
-        </div>
-        <!-- Перелік подкастів-->
-        <div class="row" style="padding-top: 50px">
-            <!-- початок виводу подкастe -->
-            <div class="card bg-light border-0 h-100">
-                <!--                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">-->
-                <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
-                    <div class="row">
-                        <!-- картинка подкасту та RSS-->
-                        <div class="col-9">
-                            <img class="img-fluid align-center" style="padding-top: 20px"
-                                 th:if="${podcast.imagechanelstore != null}"
-                                 th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                                 th:id="${podcast.imagechanelstore.uuid}"/>
-                        </div>
-                        <div class="col-3 text-center">
-                            <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
+<div th:if="${podcast != null}">
+    <section class="pt-4">
+        <div class="container px-lg-5">
+<!--            <div class="row " style="padding-top: 20px">-->
+<!--                <div class="col align-center">-->
+<!--                    <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>-->
+<!--                </div>-->
+<!--            </div>-->
+            <!-- Перелік подкастів-->
+            <div class="row" style="padding-top: 50px">
+                <!-- початок виводу подкастe -->
+                <div class="card bg-light border-0 h-100">
+                    <!--                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">-->
+                    <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
+                        <div class="row">
+                            <!-- картинка подкасту та RSS-->
+                            <div class="col-9">
                                 <img class="img-fluid align-center" style="padding-top: 20px"
-                                     src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
-                                <br>
-                            </a>
-                            <!--                                       https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_copy_clipboard -->
-                            <!--                                        <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">-->
-                            <input type="text"
-                                   th:value="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}"
-                                   id="myRSSInput"
-                                   hidden>
-                            <button onclick="myRssLinkToClipboard()">Copy RSS link</button>
-                            <script>
-                                function myRssLinkToClipboard() {
-                                  var copyText = document.getElementById("myRSSInput");
-                                  copyText.select();
-                                  copyText.setSelectionRange(0, 99999); // For mobile devices
-                                  navigator.clipboard.writeText(copyText.value);
-                                }
-                            </script>
+                                     th:if="${podcast.imagechanelstore != null}"
+                                     th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                                     th:id="${podcast.imagechanelstore.uuid}"/>
+                            </div>
+                            <div class="col-3 text-center">
+                                <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
+                                    <img class="img-fluid align-center" style="padding-top: 20px"
+                                         src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
+                                    <br>
+                                </a>
+                                <!--                                       https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_copy_clipboard -->
+                                <!--                                        <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">-->
+                                <input type="text"
+                                       th:value="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}"
+                                       id="myRSSInput"
+                                       hidden>
+                                <button onclick="myRssLinkToClipboard()">Copy RSS link</button>
+                                <script>
+                                    function myRssLinkToClipboard() {
+                                      var copyText = document.getElementById("myRSSInput");
+                                      copyText.select();
+                                      copyText.setSelectionRange(0, 99999); // For mobile devices
+                                      navigator.clipboard.writeText(copyText.value);
+                                    }
+                                </script>
+                            </div>
                         </div>
+                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 10px"></h1>
+                        <!-- назва подкасту -->
+                        <!-- зміст подкасту -->
+                        <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 10px"></div>
+                        <!-- зміст подкасту -->
                     </div>
-                    <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 10px"></h1>
-                    <!-- назва подкасту -->
-                    <!-- зміст подкасту -->
-                    <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 10px"></div>
-                    <!-- зміст подкасту -->
                 </div>
             </div>
+            <div class="row">
+                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].enclosurestore} != null"
+                              th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>
+            </div>
         </div>
-        <div class="row">
-            <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].enclosurestore} != null"
-                          th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>
-        </div>
-    </div>
-</section>
+    </section>
 
-<section class="pt-4">
-    <div class="container-fluid px-lg-5">
-        <!-- Епізоди подкасту-->
-        <script>
-            function setEpisodToPlayer(itemid,name,storeid,file) {
-                document.getElementById('rfapodcastlayer').myChangeTrack(itemid,name,storeid,file);
+    <section class="pt-4">
+        <div class="container-fluid px-lg-5">
+            <!-- Епізоди подкасту-->
+            <script>
+                function setEpisodToPlayer(itemid,name,storeid,file) {
+                    document.getElementById('rfapodcastlayer').myChangeTrack(itemid,name,storeid,file);
 
-                getEpisodeList();
-            }
-
-            let episodeArray = [];
-            function getPreparedEpisodeList() {
-                return episodeArray;
-            }
-            function getEpisodeList () {
-                if (episodeArray.length === 0) { // якщо масив заповнено - нічого не робимо
-                    var cusid_ele = document.getElementsByClassName('episodePlayer'); // витягуємо всі наші uuid треків в масив
-                    for (var i = 0; i < cusid_ele.length; ++i) {
-                       var item = cusid_ele[i];
-                       episodeArray.push(item.id);
-                    }
-                    document.getElementById('rfapodcastlayer').setEpisodeList(episodeArray);
+                    getEpisodeList();
                 }
-            }
-        </script>
-        <!-- запускаємо програвач епізод-->
-        <div class="row gx-lg-5">
-            <div id="episodeList" class="col-lg-6 col-xxl-4 mb-5">
-                <div th:each="item : ${podcast.item}">
-                    <div class="card bg-light border-0 h-100">
-                        <div class="card-header">
-                            <!-- запускаємо програвач на цей епізод-->
-                            <span th:if="${item.enclosurestore} != null" th:id="${item.uuid}"
-                                  class="badge rounded-pill bg-primary episodePlayer"
-                                  th:onclick="setEpisodToPlayer([[${item.uuid}]],[[${item.title}]],[[${item.enclosurestore.uuid}]],[[${item.enclosurestore.filename}]])">Слухати</span>
-                            <!-- запускаємо програвач на цей епізод-->
-                            <a class="mx-auto" th:href="'/podcast/episode/'+${item.uuid}">
-                                <span class="badge rounded-pill bg-primary">Детальніше</span>
-                            </a>
-                        </div>
-                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid"
-                                 th:if="${item.imagestoreitem != null} AND ${podcast.imagechanelstore} != null"
-                                 th:src="'/store/thrumbal/w/100/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
-                                 th:id="${item.imagestoreitem.uuid}"/>
-                            <div th:if="${item.title != null}">
-                                <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
+
+                let episodeArray = [];
+                function getPreparedEpisodeList() {
+                    return episodeArray;
+                }
+                function getEpisodeList () {
+                    if (episodeArray.length === 0) { // якщо масив заповнено - нічого не робимо
+                        var cusid_ele = document.getElementsByClassName('episodePlayer'); // витягуємо всі наші uuid треків в масив
+                        for (var i = 0; i < cusid_ele.length; ++i) {
+                           var item = cusid_ele[i];
+                           episodeArray.push(item.id);
+                        }
+                        document.getElementById('rfapodcastlayer').setEpisodeList(episodeArray);
+                    }
+                }
+            </script>
+            <!-- запускаємо програвач епізод-->
+            <div class="row gx-lg-5">
+                <div id="episodeList" class="col-lg-6 col-xxl-4 mb-5">
+                    <div th:each="item : ${podcast.item}">
+                        <div class="card bg-light border-0 h-100">
+                            <div class="card-header">
+                                <!-- запускаємо програвач на цей епізод-->
+                                <span th:if="${item.enclosurestore} != null" th:id="${item.uuid}"
+                                      class="badge rounded-pill bg-primary episodePlayer"
+                                      th:onclick="setEpisodToPlayer([[${item.uuid}]],[[${item.title}]],[[${item.enclosurestore.uuid}]],[[${item.enclosurestore.filename}]])">Слухати</span>
+                                <!-- запускаємо програвач на цей епізод-->
+                                <a class="mx-auto" th:href="'/podcast/episode/'+${item.uuid}">
+                                    <span class="badge rounded-pill bg-primary">Детальніше</span>
+                                </a>
                             </div>
-                            <div th:if="${item.description != null}">
-                                <p th:if="${item.description.length()>150}" style="padding-top: 10px" class="mb-0 fs-6"
-                                   th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>
-                                <p th:if="${item.description.length()<150}" style="padding-top: 10px" class="mb-0 fs-6"
-                                   th:utext="${item.description}"></p>
+                            <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                <img class="img-fluid"
+                                     th:if="${item.imagestoreitem != null} AND ${podcast.imagechanelstore} != null"
+                                     th:src="'/store/thrumbal/w/100/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
+                                     th:id="${item.imagestoreitem.uuid}"/>
+                                <div th:if="${item.title != null}">
+                                    <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
+                                </div>
+                                <div th:if="${item.description != null}">
+                                    <p th:if="${item.description.length()>150}" style="padding-top: 10px" class="mb-0 fs-6"
+                                       th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>
+                                    <p th:if="${item.description.length()<150}" style="padding-top: 10px" class="mb-0 fs-6"
+                                       th:utext="${item.description}"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+</div>
+
 
 
 <!-- Footer -->

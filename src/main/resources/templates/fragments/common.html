@@ -22,10 +22,9 @@
 
 <th:block th:fragment="ogpodcast">
     <meta property=og:image th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpodcast.png':'https://rfa.toloka.media/store/content/og/'+ ogimage+'/t.png' }"/>
-
-    <meta property=og:url th:attr="content=${'https://rfa.toloka.media/podcast/view/'+podcast.uuid }" />
-    <meta property=og:title th:attr="content=${podcast.title}" />
-    <meta property=og:description th:attr="content=${podcast.description}"/>
+    <meta th:if="${podcast != null}" property=og:url th:attr="content=${'https://rfa.toloka.media/podcast/view/'+podcast.uuid }" />
+    <meta th:if="${podcast != null}" property=og:title th:attr="content=${podcast.title}" />
+    <meta th:if="${podcast != null}" property=og:description th:attr="content=${podcast.description}"/>
     <meta property=og:type content=”article”/>
     <meta property=og:locale content=”uk” />
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
