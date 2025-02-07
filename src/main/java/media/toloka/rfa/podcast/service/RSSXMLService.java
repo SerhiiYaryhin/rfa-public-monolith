@@ -235,7 +235,7 @@ public class RSSXMLService {
         Element element = document.createElement("enclosure");
 //        element.appendChild(document.createCDATASection(item.getDescription()));
         element.setAttribute("url","https://rfa.toloka.media/podcast/audio/"
-                + item.getStoreuuid() + "/" + item.getEnclosurestore().getFilename());
+                + item.getEnclosurestore().getUuid() + "/" + item.getEnclosurestore().getFilename());
         element.setAttribute("length",item.getEnclosurestore().getFilelength().toString());
         element.setAttribute("type",item.getEnclosurestore().getContentMimeType());
 //        element.setTextContent(item.getDescription());

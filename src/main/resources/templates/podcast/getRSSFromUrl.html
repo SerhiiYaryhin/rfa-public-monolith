@@ -15,11 +15,11 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
-<!--<header>-->
+<header>
     <!-- Navigation-->
-<!--    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>-->
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
     <!-- Navigation-->
-<!--</header>-->
+</header>
 <!-- MessageBox -->
 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 <!-- Header для главной сторінки подкастов -->
@@ -28,7 +28,7 @@
 <!--<form action="#" th:action="@{'/podcast/getRSSFromUrl'}" method="post">-->
 <span th:text="${strUrl.RSSFromUrl}"></span>
 <form action="#" th:action="@{'/podcast/getRSSFromUrl'}" th:object="${strUrl}" method="post">
-    <div class="mb-3">
+    <div class="mb-3" style="padding-top: 100px">
         <label for="tested" class="form-label">Режим тестування RSS посилання</label>
         <input type="checkbox" name="tested" th:checked="*{tested}" /><br>
         <label for="RSSFromUrl" class="form-label">Посилання на RSS подкасту</label>
