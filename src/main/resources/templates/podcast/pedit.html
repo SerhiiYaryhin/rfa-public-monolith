@@ -272,7 +272,8 @@
                             </a>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${item.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
+                            <img class="img-fluid" th:if="${item.imagestoreitem != null}"
+                                 th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
                                  th:id="${item.imagestoreitem.uuid}"/>
                             <div th:if="${item.title != null}">
                                 <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
@@ -281,9 +282,6 @@
                                 <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>
                                 <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>
                             </div>
-<!--                            <p class="mb-0" th:text="${item.description}"></p>-->
-<!--                            <a class="btn btn-primary btn-lg col-6 mx-auto" th:href="'/podcast/episodeedit/'+${item.uuid}">Редагувати</a>-->
-<!--                            <p class="mb-0" >Файл: _________</p>-->
                             <p class="mb-0" >Файл: <span th:if="${item.enclosurestore} != null" th:text="${item.enclosurestore.filename}"/></p>
                         </div>
                     </div>
@@ -292,16 +290,9 @@
         </div>
     </section>
 
-
-
-
-
     <!-- Footer -->
     <div th:insert="~{/fragments/common :: footer}">  </div>
-    <!-- Footer -->
-
     <div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
-
 
     <!-- різні скріпти -->
 <script src="/js/bootstrap.bundle.min.js"></script>
