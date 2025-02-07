@@ -179,7 +179,6 @@ public class PodcastController {
         PodcastItem podcastItem = podcastService.GetEpisodeByUUID(euuid);
         if (podcastItem != null) {
             model.addAttribute("podcastItem", null);
-
             return "/podcast/episode";
         } else {
             model.addAttribute("danger", "Щось пішло не так. Такий епізод не знайдено.");
