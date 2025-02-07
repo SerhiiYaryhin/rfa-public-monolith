@@ -37,67 +37,36 @@
         <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
       </div>
     </div>
-    <div class="row">
-      <audio-player th:if="${podcastItem.enclosurestore} != null" id="rfaepisodeplayerr" th:data-src="'/podcast/audio/'+ ${podcastItem.enclosurestore.uuid} +'/'+ ${podcastItem.enclosurestore.filename}"></audio-player>
-    </div>
-    <div class="row" style="padding-top: 50px">
-      <!-- початок виводу подкастe -->
-
-      <div class="card bg-light border-0 h-100">
-        <!--                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">-->
-        <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
-          <div class="row">
-            <!-- картинка подкасту та RSS-->
-            <div class="col">
-              <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcastItem.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
-                   th:id="${podcastItem.imagestoreitem.uuid}"/>
-            </div>
-          </div>
-          <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}" style="padding-top: 10px"></h1> <!-- назва подкасту -->
-          <!-- зміст подкасту -->
-          <div  th:utext="${podcastItem.description}" class="mb-0 fs-6"  style="padding-top: 10px"></div>
-          <!-- зміст подкасту -->
-        </div>
+    <div th:if = "${podcastItem != null}">
+      <div class="row">
+        <audio-player th:if="${podcastItem.enclosurestore} != null" id="rfaepisodeplayerr" th:data-src="'/podcast/audio/'+ ${podcastItem.enclosurestore.uuid} +'/'+ ${podcastItem.enclosurestore.filename}"></audio-player>
       </div>
-      <!--                </div>-->
-    </div>
+      <div class="row" style="padding-top: 50px">
+        <!-- початок виводу подкастe -->
 
+        <div class="card bg-light border-0 h-100">
+          <!--                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">-->
+          <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
+            <div class="row">
+              <!-- картинка подкасту та RSS-->
+              <div class="col">
+                <img class="img-fluid align-center" style="padding-top: 20px" th:if="${podcastItem.imagestoreitem != null}" th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
+                     th:id="${podcastItem.imagestoreitem.uuid}"/>
+              </div>
+            </div>
+            <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}" style="padding-top: 10px"></h1> <!-- назва подкасту -->
+            <!-- зміст подкасту -->
+            <div  th:utext="${podcastItem.description}" class="mb-0 fs-6"  style="padding-top: 10px"></div>
+            <!-- зміст подкасту -->
+          </div>
+        </div>
+        <!--                </div>-->
+      </div>    </div>
   </div>
 </section>
 <div class="container">
 
 </div>
-
-<!--<section class="pt-4">-->
-<!--  <div class="container-fluid px-lg-5">-->
-<!--    &lt;!&ndash; Епізоди подкасту&ndash;&gt;-->
-<!--    <div class="row gx-lg-5">-->
-<!--      <div th:each="item : ${podcast.item}" class="col-lg-6 col-xxl-4 mb-5">-->
-<!--        <div class="card bg-light border-0 h-100">-->
-<!--          <div class="card-header">-->
-<!--            <a class="mx-auto" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">-->
-<!--              <span class="badge rounded-pill bg-primary">Слухати</span>-->
-<!--            </a>-->
-<!--          </div>-->
-<!--          <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">-->
-<!--            <img class="img-fluid" th:if="${item.image != null}" th:src="'/store/thrumbal/w/100/' + ${item.image.storeidimage.uuid} + '/' + ${podcast.image.storeidimage.filename}"-->
-<!--                 th:id="${item.image.uuid}"/>-->
-<!--            <div th:if="${item.title != null}">-->
-<!--              <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>-->
-<!--            </div>-->
-<!--            <div th:if="${item.description != null}">-->
-<!--              <p  th:if="${item.description.length()>150}" style="padding-top: 10px" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
-<!--              <p  th:if="${item.description.length()<150}" style="padding-top: 10px" class="mb-0 fs-6" th:utext="${item.description}"></p>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</section>-->
-
-
-
 
 
 <!-- Footer -->
