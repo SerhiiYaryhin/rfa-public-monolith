@@ -87,6 +87,10 @@ public class PodcastService {
         return clientService.GetClientDetailByUUID(podcastChannel.getClientdetail());
     }
 
+    public PodcastItem GetEpisodeByTitle(String euuid) {
+        return episodeRepository.getByTitle(euuid);
+    }
+
     // клас для форми urla
     @Getter
     @Setter

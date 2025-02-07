@@ -62,7 +62,7 @@ public class PodcastController {
     @GetMapping(value = "/podcast/home")
     public String podcastroot(
             Model model) {
-        logger.info("Зайшли на /podcast/home");
+//        logger.info("Зайшли на /podcast/home");
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -88,6 +88,23 @@ public class PodcastController {
             Model model) {
         logger.info("Зайшли на /podcast/view/{}", puuid);
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(puuid);
+        if (podcastChannel == null) {
+            logger.info("Пробуємо знайти за Title: {}",puuid); //гугл часто лізе за назвою
+            List<PodcastChannel> podcastChannelList =  podcastService.GetChanelByTitle(puuid);
+            if (podcastChannelList != null ) {
+                if (podcastChannelList.size() == 1) {
+                    podcastChannel = podcastChannelList.get(0);
+                } else {
+                    podcastChannel = null;
+                    if (podcastChannelList.size() > 1) {
+                        logger.info("Подкастів з такою назвою декілька: {}", puuid);
+                    } else {
+                        logger.info("Подкаст з назвою не знайдено: {}", puuid);
+                    }
+                }
+            }
+        }
+
         if (podcastChannel == null) {
             logger.info("Хтось помилився посиланням на подкаст та/або знов довбляться на сайт.");
             model.addAttribute("warning", "Такого подкасту не існує. Ви або помилилися посиланням, або він переміщений.");
@@ -173,11 +190,15 @@ public class PodcastController {
             Model model) {
 
         PodcastItem podcastItem = podcastService.GetEpisodeByUUID(euuid);
+        if ( podcastItem == null) {
+            podcastItem = podcastService.GetEpisodeByTitle(euuid);
+        }
         if (podcastItem != null) {
             model.addAttribute("podcastItem", null);
             return "/podcast/episode";
         } else {
-            model.addAttribute("danger", "Щось пішло не так. Такий епізод не знайдено.");
+            model.addAttribute("danger", "Щось пішло не так. Такий епізод не існує або, його переміщено .");
+            logger.warn("Отримали UUID епізоду, який не існує: {}",euuid);
         }
         return "/podcast/episode";
     }
@@ -208,19 +229,6 @@ public class PodcastController {
 
         // https://anchor.fm/s/89f5c40c/podcast/rss  Казки Суспільне
         // https://anchor.fm/s/ff57ac9c/podcast/rss
-
-
-//        List<Users> usersList = clientService.GetAllUsers();
-//        for (Users usr : usersList) {
-//            if (usr.getClientdetail() != null) {
-//                logger.info("===== User: {} {} {}", usr.getEmail(), usr.getClientdetail().getCustname(), usr.getClientdetail().getCustsurname());
-//                List<Roles> rolesList = usr.getRoles();
-//                for (Roles rls : rolesList) {
-//                    logger.info("=========   Role: {} - {}", rls.getId(), rls.getRole().label);
-//                }
-//
-//            }
-//        }
 
         model.addAttribute("strUrl", gstrUrl);
         return "/podcast/getRSSFromUrl";
