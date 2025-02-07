@@ -4,61 +4,61 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <div th:replace="~{/fragments/common :: ogpodcastall}"/>
-  <title>Толока - радіо для всіх!</title>
-  <!-- Favicon-->
-  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <!-- Font Awesome icons (free version)-->
-  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-  <!-- Google fonts-->
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-  <!-- Core theme CSS (includes Bootstrap)-->
-  <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-  <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div th:replace="~{/fragments/common :: ogpodcastall}"/>
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
 <header>
-  <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 <div style="padding-top: 100px">
-  <div class="container-fluid">
-    <div class="row text-center" style="padding-top: 20px">
-      <div class="col align-center">
-        <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
-      </div>
-    </div>
-    <div class="row" style="padding-top: 20px">
-      <!-- Колонка -->
-      <div class="col-lg-9 col-sm-12">
-        <div th:each="podcast : ${podcastList}">
-          <div class="row">
-            <div class="col-2"> <!-- колонка із зображенням подкасту -->
-              <img th:src="'/store/thrumbal/w/150/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                   th:id="${podcast.imagechanelstore.uuid}"/>
-<!--              <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">-->
+    <div class="container-fluid">
+        <div class="row text-center" style="padding-top: 20px">
+            <div class="col align-center">
+                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
-            <div class="col-10"> <!-- колонка з описом подкасту -->
-              <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                <h2><span th:text="${podcast.title}"></span></h2>
-              </a>
-                  <div th:utext="${podcast.description}"></div>
-            </div>
-            <hr>
-          </div>
         </div>
-      </div>
-      <div class="col-lg-3 col-sm-12">
-        <!-- Медіа Хаб-->
-        <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
-      </div>
+        <div class="row" style="padding-top: 20px">
+            <!-- Колонка -->
+            <div class="col-lg-9 col-sm-12">
+                <div th:each="podcast : ${podcastList}">
+                    <div th:if="${podcast.publishing == true}" class="row">
+                        <div class="col-2"> <!-- колонка із зображенням подкасту -->
+                            <img th:src="'/store/thrumbal/w/150/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                                 th:id="${podcast.imagechanelstore.uuid}"/>
+                            <!--              <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">-->
+                        </div>
+                        <div class="col-9"> <!-- колонка з описом подкасту -->
+                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
+                                <h2><span th:text="${podcast.title}"></span></h2>
+                            </a>
+                            <div th:utext="${podcast.description}"></div>
+                        </div>
+                        <hr>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-12">
+                <!-- Медіа Хаб-->
+                <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 <!-- Footer -->
-<div th:insert="~{/fragments/common :: footer}">  </div>
+<div th:insert="~{/fragments/common :: footer}"></div>
 <!--<div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>-->
 
 <!-- Bootstrap core JS-->

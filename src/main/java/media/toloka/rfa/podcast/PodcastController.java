@@ -133,13 +133,13 @@ public class PodcastController {
         return "redirect:/podcast/home";
     }
 
-    /*
-    Сторінка з переліком наявних на порталі подкастів з пагінацією
-
- */
+    /** Відображаємо Сторінку з переліком наявних та дозволених подкастів на порталі з пагінацією
+     *
+     * @param model
+     * @return
+     */
     @GetMapping(value = "/podcast/all")
     public String podcastAllview(
-//            @PathVariable String puuid,
             Model model) {
 
         List<PodcastChannel> podcastChList = podcastService.GetAllChanel();
@@ -148,22 +148,24 @@ public class PodcastController {
         return "/guest/podcastall";
     }
 
-    // формуємо RSS для конкретного подкасту.
+    /**
+     * формуємо RSS feed для конкретного подкасту.
+     * @param puuid UUID подкасту
+     * @param model
+     * @return String XML RSS FEED
+     */
+    //
     @GetMapping(value = "/podcast/rss/{puuid}")
     public ResponseEntity<byte[]> podcastRss(
             @PathVariable String puuid,
             Model model) {
 
-//        logger.info("Get RSS for RFA podcast {}",puuid);
         PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
-        // хтось довбиться за назвою епізодів
-        // 66.249.66.167 => http://rfa.toloka.media/podcast/rss/%D0%9B%D0%98%D0%A1%D0%98%D0%A6%D0%AF%20%D0%86%20%D0%A0%D0%90%D0%9A
-        // ЛИСИЦЯ І РАК
+
         String decodedUrl;
         if (pc == null) {
             decodedUrl = URLDecoder.decode(puuid, StandardCharsets.UTF_8);
             System.out.println(decodedUrl);
-//            logger.info("========== хтось довбиться за назвою епізоду");
             List<PodcastItem> podcastItemList = podcastService.GetListByTitle(decodedUrl);
             if (podcastItemList.size() != 1) {
                 String is = "ERROR";
@@ -176,6 +178,7 @@ public class PodcastController {
                 logger.info("========== хтось довбиться за назвою епізоду: " + decodedUrl);
             }
         }
+        // саме тут ми формуємо RSS feed
         byte[] byteArray = rssxmlService.MakeRSSXMLService(pc).getBytes(StandardCharsets.UTF_8);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-type", MediaType.TEXT_XML_VALUE);
@@ -183,6 +186,12 @@ public class PodcastController {
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
     }
 
+    /**
+     * Відображаємо епізод подкасту
+     * @param euuid UUID  епізоду
+     * @param model
+     * @return /podcast/episode
+     */
     // відображаємо епізод подкасту
     @GetMapping(value = "/podcast/episode/{euuid}")
     public String podcastEpisodeView(
