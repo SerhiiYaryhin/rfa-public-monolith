@@ -55,7 +55,8 @@ public class RSSXMLService {
 
         MakeXMLrss(podcastChannel);
 
-        return XMLTOString();
+        String ttt = XMLTOString();
+        return ttt;
     }
 
     private void MakeXMLrss(PodcastChannel podcastChannel) {
