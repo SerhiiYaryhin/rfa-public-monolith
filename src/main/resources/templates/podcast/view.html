@@ -33,19 +33,19 @@
 <div th:if="${podcast != null}">
     <section class="pt-4">
         <div class="container px-lg-5">
-            <!--            <div class="row " style="padding-top: 20px">-->
-            <!--                <div class="col align-center">-->
-            <!--                    <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>-->
-            <!--                </div>-->
-            <!--            </div>-->
-            <!-- Перелік подкастів-->
             <div class="row" style="padding-top: 50px">
                 <!-- початок виводу подкастe -->
                 <div class="card bg-light border-0 h-100">
                     <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
+                        <div class="row align-center ">
+<!--                            <div class="col-4 align-center">-->
+                                <h1 class=" display-1 fs-1 fw-bold text-center font-monospace" th:text="${podcast.title}"
+                                    style="padding-top: 30px"></h1>
+<!--                            </div>-->
+                        </div>
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
-                            <div class="col-9">
+                            <div class="col-9 ">
                                 <img class="img-fluid align-center" style="padding-top: 20px"
                                      th:if="${podcast.imagechanelstore != null}"
                                      th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
@@ -57,8 +57,6 @@
                                          src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
                                     <br>
                                 </a>
-                                <!--                                       https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_copy_clipboard -->
-                                <!--                                        <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">-->
                                 <input type="text"
                                        th:value="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}"
                                        id="myRSSInput"
@@ -74,10 +72,10 @@
                                 </script>
                             </div>
                         </div>
-                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 10px"></h1>
+<!--                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 30px"></h1>-->
                         <!-- назва подкасту -->
                         <!-- зміст подкасту -->
-                        <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 10px"></div>
+                        <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 30px"></div>
                         <!-- зміст подкасту -->
                     </div>
                 </div>
