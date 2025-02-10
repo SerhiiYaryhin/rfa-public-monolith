@@ -20,15 +20,16 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
     <!-- Navigation-->
 </header>
-<!-- MessageBox -->
-<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 <!-- Header для главной сторінки подкастов -->
 <!-- форма для ввода URL для RSS -->
 <span style="padding-top: 100px">Працюємо з посиланням на RSS подкасту</span>
 <!--<form action="#" th:action="@{'/podcast/getRSSFromUrl'}" method="post">-->
 <span th:text="${strUrl.RSSFromUrl}"></span>
+
 <form action="#" th:action="@{'/podcast/getRSSFromUrl'}" th:object="${strUrl}" method="post">
     <div class="mb-3" style="padding-top: 100px">
+        <label for="updpodcast" class="form-label">Оновити подкаст</label>
+        <input type="checkbox" name="updpodcast" th:checked="*{updpodcast}" /><br>
         <label for="tested" class="form-label">Режим тестування RSS посилання</label>
         <input type="checkbox" name="tested" th:checked="*{tested}" /><br>
         <label for="RSSFromUrl" class="form-label">Посилання на RSS подкасту</label>
@@ -42,7 +43,9 @@
 <!--    <a class="btn btn-primary" th:href="'/podcast/pedit/'+${podcast.uuid}">Повернутися</a>-->
 </form>
 <!-- форма для ввода URL для RSS -->
-
+<!-- MessageBox -->
+<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+<!-- MessageBox -->
 <div th:if="${strUrl.podcastChannel}">
     <h1 th:text="${strUrl.podcastChannel.title}"></h1>
     <p th:text="${strUrl.podcastChannel.description}"></p>

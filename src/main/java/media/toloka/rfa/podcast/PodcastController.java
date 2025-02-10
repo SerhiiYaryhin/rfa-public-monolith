@@ -1,6 +1,8 @@
 package media.toloka.rfa.podcast;
 
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.RSSXMLService;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -10,6 +12,8 @@ import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.security.model.Users;
+import org.hibernate.SessionFactory;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.EntityManagerFactoryInfo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +29,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.lang.module.Configuration;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.*;
 
 @Controller
@@ -33,6 +40,9 @@ public class PodcastController {
 // стандарт RSS для подкаста
 // https://podcast-standard.org/podcast_standard/
 
+
+//    @PersistenceContext
+//    EntityManager entityManager;
 
     @Autowired
     private PodcastService podcastService;
@@ -236,6 +246,19 @@ public class PodcastController {
             return "redirect:/";
         }
 
+
+
+
+//        EntityManagerFactoryInfo info = (EntityManagerFactoryInfo) entityManager.getEntityManagerFactory();
+//        try {
+//            String db = info.getDataSource().getConnection().getMetaData().getURL();
+//            db = db.substring( db.lastIndexOf("/")+1);
+//            logger.info("++++++ Поточна база даних: {}" ,db.toUpperCase());
+//        } catch (SQLException e) {
+//            logger.info("Щось пішло не так при визначенні імені бази даних :(");
+//        }
+
+
         // https://anchor.fm/s/89f5c40c/podcast/rss  Казки Суспільне
         // https://anchor.fm/s/ff57ac9c/podcast/rss
 
@@ -278,6 +301,50 @@ public class PodcastController {
         return "/podcast/getRSSFromUrl";
 
     }
+
+    /**
+     * Завантажуємо подкаст за посиланням на RSS
+     *
+     * @param model
+     * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
+     * @call podcastService.PutPodcastFromRSS(model, gstrUrl) // саме тут забираємо подкаст
+     */    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
+    @GetMapping(value = "/podcast/pdel/{puuid}")
+   public String PostPodcastFromRSSUrl(
+            @PathVariable String puuid,
+//            @ModelAttribute PodcastService.strUrl gstrUrl,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return "redirect:/";
+        }
+        PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
+        if (pc != null) {
+            if (pc.getClientdetail().equals(cd.getUuid())) {
+                PodcastService.strUrl gstrUrl; // = new PodcastService.strUrl();
+                gstrUrl = podcastService.GetNewStrurl();
+                logger.info("Видаляємо подкаст імпортований з: {}",pc.getLinktoimporturl());
+                gstrUrl.setRSSFromUrl(pc.getLinktoimporturl());
+                gstrUrl.setClrpodcast(true);
+                podcastService.PutPodcastFromRSS(model, gstrUrl);
+            } else {
+                logger.info("Намагаємося видалити не свій подкаст");
+            }
+        } else {
+            logger.info("Подкаст, який намагаємося видалити, не знайдено!");
+        }
+
+        // Саме тут видаляємо подкаст
+
+        return "redirect:/podcast/home";
+
+    }
+
 
 
 }

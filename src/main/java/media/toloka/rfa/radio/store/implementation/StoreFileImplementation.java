@@ -1,5 +1,6 @@
 package media.toloka.rfa.radio.store.implementation;
 
+import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.store.model.EStoreFileType;
 //import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.document.service.DocumentService;
@@ -9,6 +10,7 @@ import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.Users;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,9 @@ public class StoreFileImplementation implements StoreInterface {
 
     @Autowired
     private HistoryService historyService;
+
+    @Autowired
+    private ClientService clientService;
 
     final Logger logger = LoggerFactory.getLogger(StoreFileImplementation.class);
 
@@ -111,6 +116,7 @@ public class StoreFileImplementation implements StoreInterface {
         catch(InterruptedException e)
         {
             logger.info("--------- Thread.sleep(difference) -> catch(InterruptedException e)");
+            logger.info("Схоже ми тут ВИЛІТАЄМО!!!");
         }
         return storeitem.getUuid();
 
@@ -148,6 +154,8 @@ public class StoreFileImplementation implements StoreInterface {
 
 
     public Store SaveStoreItemInfo(Store storeitem, Path destination, EStoreFileType eStoreFileType, Clientdetail cd) {
+
+
         if (storeitem == null) {
             storeitem = new Store();
             storeitem.setFilepatch(destination.toAbsolutePath().toString());
@@ -161,7 +169,12 @@ public class StoreFileImplementation implements StoreInterface {
             storeitem.setContentMimeType(filesService.GetMediatype(destination));
             storeitem.setFilelength(filesService.GetMediaLength(destination));
         }
-        storeRepositore.save(storeitem);
+        try {
+            storeRepositore.save(storeitem);
+        } catch (Exception e)
+        {
+            logger.error("StoreFileImplementation -> SaveStoreItemInfo -> storeRepositore.save(storeitem)");
+        }
         return storeitem;
     }
 

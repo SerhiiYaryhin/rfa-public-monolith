@@ -8,6 +8,8 @@ import lombok.ToString;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 
 import java.util.ArrayList;
@@ -85,9 +87,11 @@ public class Clientdetail {
     @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Albumсover> albumсoverList = new ArrayList<>();
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)
-    private List<Store> filesinstore = new ArrayList<>();
+//    @ToString.Exclude
+//    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)
+//    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)
+//    @LazyCollection(LazyCollectionOption.TRUE)
+//    private List<Store> filesinstore = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToMany

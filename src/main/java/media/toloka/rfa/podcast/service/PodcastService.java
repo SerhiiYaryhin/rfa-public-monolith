@@ -100,6 +100,13 @@ public class PodcastService {
         Boolean fill = false;
         Boolean tested = true;
         Boolean clrpodcast = false;
+        Boolean updpodcast = false;
+
+//        public strUrl() {}
+    }
+
+    public strUrl GetNewStrurl() {
+        return new strUrl();
     }
 
 
@@ -317,6 +324,21 @@ public class PodcastService {
     }
 
     /**
+     * Шукаємо в базі подкаст з таким URL
+     * може статися так, що два різних подкасти будуть мати однаковий URL
+     * Передбачити обробку цієї ситуації
+     * Додати пошук з урахуванням поточного користувача лише серед його подкастів
+     * @param podcastURL String з назвою подкасту
+     * @return List<PodcastChannel>
+     */
+    public List<PodcastChannel> GetChanelByLinktoimporturl(String podcastURL) {
+        List<PodcastChannel> podcastChannelList = chanelRepository.findByLinktoimporturl(podcastURL);
+        if (podcastChannelList.isEmpty()) return null;
+        return podcastChannelList;
+    }
+
+
+    /**
      * шукаємо серед епізодів таку назву.
      * Додати пошук з урахуванням поточного користувача лише серед його подкастів
      * епізодів може бути декілька.
@@ -422,7 +444,7 @@ public class PodcastService {
     /**
      * Завантажуємо подкаст на наш сервер
      * @param model
-     * @param gstrUrl в цьому класі міститься String з адресою RSS
+     * @param gstrUrl в цьому класі міститься String з адресою RSS та різні прапоці.
      */
     public void PutPodcastFromRSS(Model model, strUrl gstrUrl) {
 
@@ -451,7 +473,7 @@ public class PodcastService {
 
         tmpstrUrl.setRSSFromUrl(gstrUrl.getRSSFromUrl());
         tmpstrUrl.setClrpodcast(gstrUrl.getClrpodcast());
-//        logger.info("===== {}", tmpstrUrl.getRSSFromUrl());
+        tmpstrUrl.setUpdpodcast(gstrUrl.getUpdpodcast());
 
         String rssContent;
         // за переданим посиланням отримуємо тіло RSS
@@ -490,9 +512,13 @@ public class PodcastService {
 
         // отримали заголовок контенту з RSS
         podcastTitle = channelElement.getElementsByTagName("title").item(0).getTextContent();
-        logger.info("Взяли з RSS podcastTitle:{}", podcastTitle);
-        // шукаємо в базі подкастів з такою назвою
-        podcastChannelList = GetChanelByTitle(podcastTitle);
+        logger.info("Взяли з RSS podcastTitle:{}|||||", podcastTitle);
+        // шукаємо в базі подкастів з такою назвою findByLinktoimporturl
+        podcastChannelList = GetChanelByTitle(podcastTitle.toUpperCase());
+        podcastChannelList = GetChanelByTitle("Світ, спорт, я. ");
+        if (podcastChannelList == null) {
+            podcastChannelList = GetChanelByLinktoimporturl(gstrUrl.getRSSFromUrl());
+        }
 
         // Чи видаляємо подкаст?
         if (gstrUrl.getClrpodcast()) {
@@ -521,23 +547,32 @@ public class PodcastService {
         tmpstrUrl.setPodcastChannel(new PodcastChannel()); //
         // шукаємо в базі подкастів з такою назвою
         podcastChannelList = GetChanelByTitle(podcastTitle);
-        Boolean updatePodcast = false;
+//        Boolean updatePodcast = tmpstrUrl.getUpdpodcast();
         if (podcastChannelList != null) {
-            updatePodcast = true;
+//            updatePodcast = true;
             if (podcastChannelList.size() == 1) {
                 logger.info("===== Подкаст з такою назвою вже існує!!!");
                 tmpstrUrl.setPodcastChannel(podcastChannelList.get(0));
+                // оновлюємо подкаст?
+                if (tmpstrUrl.getUpdpodcast()) {
+//                    model.addAttribute("strUrl", gstrUrl);
+                    model.addAttribute("warning", " Подкаст з такою назвою вже існує. Оновлюємо його.");
+                } else {
+                    model.addAttribute("warning", " Подкаст з такою назвою вже існує!!! Не оновлюємо його");
+                    return;
+                }
             } else {
                 logger.info("Йой! Подкастів з такою назвою декілька!!!");
                 for (PodcastChannel pc : podcastChannelList) {
 
-                    logger.info("==== {} \n    url:{}", pc.getTitle(), pc.getLinktoimporturl());
+                    logger.info("==== {} \n    url:{}\n    UUID:{}", pc.getTitle(), pc.getLinktoimporturl(),pc.getUuid());
                 }
             }
+            model.addAttribute("strUrl", gstrUrl);
         }
 
 //        updatePodcast = false;
-        if (!updatePodcast) {
+//        if (!updatePodcast) {
 
             String podcastDescription = channelElement.getElementsByTagName("description").item(0).getTextContent();
             logger.info("podcastDescription:{}", podcastDescription);
@@ -570,7 +605,9 @@ public class PodcastService {
             if (!ImportedPodcastCoverToStore(tmpstrUrl, imgUrl, cd)) {
                 logger.info("Завантаження файлу Cover при імпорті подкасту: Проблема збереження");
             }
-        }
+//        }
+        SavePodcast(tmpstrUrl.getPodcastChannel());
+
 
         NodeList items = doc.getElementsByTagName("item");
         for (Integer i = 0; i < items.getLength(); i++) {
@@ -578,7 +615,7 @@ public class PodcastService {
 
             Element item = (Element) items.item(i); // взяли епізод з RSS
             String title = getElementValue(item, "title");
-            logger.info("Title {} : {}", i, title);
+            logger.info("============================\nTitle {} : {}", i, title);
             // Перевіряємо, чи є епізод з такою назвою
             if (CheckEpisodeWithTitle(title) != null) {
                 logger.info("Епізод вже завантажено: {}", title);

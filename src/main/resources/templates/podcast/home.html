@@ -70,6 +70,9 @@
                             </a>
                             <span th:if="${podcast.publishing}" class="badge rounded-pill bg-success" th:text="  Опубліковано  ">  Опубліковано  </span>
                             <span th:unless="${podcast.publishing}" class="badge rounded-pill bg-dark"th:text="'  '+Чорнетка+'  '">  Чорнетка  </span>
+                            <a class="mx-auto" th:href="'/podcast/pdel/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
+                                <span class="badge rounded-pill bg-danger">Видалити</span>
+                            </a>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
                             <img class="img-fluid" th:if="${podcast.imagechanelstore != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"

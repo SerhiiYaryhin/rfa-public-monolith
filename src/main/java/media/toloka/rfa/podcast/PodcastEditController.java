@@ -87,23 +87,7 @@ public class PodcastEditController {
                     +" Завантажте будь ласка епізоди, заповніть в них необхідні поля та додаайте до них обкладинку.");
         }
 
-//        logger.info("image filename: " + podcast.getImage().getStoreidimage().getFilename());
-
-//        працюємо з переліком категорій
-//        ITUNES
         Map<String, List<String> > itunesCategory = podcastService.ItunesCategory();
-        // вчимося працювати з Мапом
-//        List<String> listFirstLevel;
-//        ArrayList<String> listSecondLevel;
-//        // беремо перелік ключів першого рівня
-//        listFirstLevel = new ArrayList<String>(itunesCategory.keySet());
-//        for (String firstLevel : listFirstLevel) {
-//            logger.info( firstLevel );
-//            ArrayList<String> ooo = (ArrayList<String>) itunesCategory.get(firstLevel);
-//            for (String secondLevel : ooo) {
-//                logger.info("--- " + secondLevel );
-//            }
-//        }
         Set<String> languages = Arrays.stream(Locale.getISOLanguages())
                 .map(Locale::new)
                 .map(Locale::getDisplayLanguage)
@@ -144,8 +128,6 @@ public class PodcastEditController {
             } else tpodcast.setPublishing(false); // Знімаємо з публікації
             podcastService.SavePodcast(tpodcast);
         }
-//        model.addAttribute("podcast",  tpodcast);
-//        model.addAttribute("itemslist",  tpodcast.getItem());
         return "redirect:/podcast/pedit/"+tpodcast.getUuid();
     }
 
@@ -153,11 +135,7 @@ public class PodcastEditController {
     @PostMapping(value = "/podcast/chanelsave")
     public String PodcastChanelSave (
             @ModelAttribute PodcastChannel podcast,
-//            @ModelAttribute Users formUserPSW,
             Model model ) {
-        // http://localhost:3080/podcast/pedit/df61e94f-f74e-401b-9e81-c30a48982d21
-
-        // Users user = clientService.GetCurrentUser();
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -167,7 +145,6 @@ public class PodcastEditController {
         if (cd == null) { return "redirect:/"; }
 
         podcast.setClientdetail(cd.getUuid());
-
 
         PodcastChannel tpodcast = podcastService.GetChanelByUUID(podcast.getUuid());
         if (tpodcast != null) {
@@ -183,12 +160,9 @@ public class PodcastEditController {
             podcast.setClientdetail(cd.getUuid());
             podcastService.SavePodcast(podcast);
         }
-        // пробуємо побудувати RSS
-        // -  https://github.com/mpgirro/stalla/tree/master?tab=readme-ov-file
-        // https://rometools.github.io/rome/HowRomeWorks/RomeV0.4TutorialUsingRomeToCreateAndWriteASyndicationFeed.html
 /*
+Наскільки я памʼятаю, то це тимчасовий фрагмент. Кінець коментаря переніс в кінець фрагменту
 пробуємо працювати з RSS feed для подкасту
- */
         SyndFeed feed = new SyndFeedImpl();
         feed.setFeedType("atom_1.0");
 
@@ -241,6 +215,7 @@ public class PodcastEditController {
 
         // TODO відправити повідомлення на сторінку
         model.addAttribute("success",  "Реакція на POST зі сторінки /podcast/proot");
+ */
         return "redirect:/podcast/home";
     }
 
