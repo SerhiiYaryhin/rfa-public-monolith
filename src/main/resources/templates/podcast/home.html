@@ -81,9 +81,9 @@
                             <h3 class="fs-4 fw-bold" th:text="${podcast.title}"></h3> <!-- назва подкасту -->
 <!--                                <small th:each="report : ${user.reports}" th:utext="${#strings.substringAfter(report.name,'_'}></small>-->
                             <hr>
-                            <!-- зміст подкасту -->
-                            <p  th:if="${podcast.description.length()>200}" class="mb-0 fs-6" th:utext="${#strings.substring(podcast.description,0,200)+'...'}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>
-                            <p  th:if="${podcast.description.length()<200}" class="mb-0 fs-6" th:utext="${podcast.description}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>
+                            <!-- зміст подкасту поки прибрав -->
+<!--                            <p  th:if="${podcast.description.length()>200}" class="mb-0 fs-6" th:utext="${#strings.substring(podcast.description,0,200)+'...'}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
+<!--                            <p  th:if="${podcast.description.length()<200}" class="mb-0 fs-6" th:utext="${podcast.description}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
                             <!-- зміст подкасту -->
                         </div>
                     </div>
