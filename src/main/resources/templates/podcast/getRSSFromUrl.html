@@ -58,7 +58,7 @@
         <li th:each="episode : ${strUrl.podcastChannel.item}">
             <h3 th:utext="${episode.title}"></h3>
             <p th:utext="${episode.description}"></p>
-            <audio th:src="${episode.enclosure}" controls></audio>
+            <audio th:src="'/podcast/audio/'+${episode.enclosure.uuid}+'/'+${episode.enclosurestore.filename}" controls></audio>
 <!--            <p th:text="'Published: ' + ${episode.publishDate}"></p>-->
         </li>
     </ul>

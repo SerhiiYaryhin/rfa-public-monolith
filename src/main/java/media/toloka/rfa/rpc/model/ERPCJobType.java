@@ -24,7 +24,8 @@ public enum ERPCJobType {
     JOB_STATION_GET_PS("JOB_STATION_GET_PS"),
     JOB_STATION_ENABLE("JOB_STATION_ENABLE"),
     JOB_STATION_DISABLE("JOB_STATION_DISABLE"),
-    JOB_STATION_SETPASSWORD("JOB_STATION_SETPASSWORD");
+    JOB_STATION_SETPASSWORD("JOB_STATION_SETPASSWORD"),
+    PODCAST_FROM_RSS_LOAD("PODCAST_FROM_RSS_LOAD"); // завантажуємо подкаст. Це довга операція і тому результат непередбачуваний.
 
     public final String label;
 

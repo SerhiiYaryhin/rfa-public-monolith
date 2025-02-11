@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gutenberg Editor</title>
+
+    <!-- Gutenberg CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wordpress-gutenberg/15.0.0/style.min.css">
+
+    <!-- Gutenberg JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordpress-gutenberg/15.0.0/editor.min.js"></script>
+
+    <style>
+        #editor {
+            border: 1px solid #ccc;
+            padding: 15px;
+            min-height: 300px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Gutenberg Editor</h2>
+
+<!-- Контейнер для редактора -->
+<div id="editor"></div>
+
+<!-- Сховане поле для передачі контенту у форму -->
+<form th:action="@{/save}" method="post">
+    <textarea id="content" name="content" style="display:none;"></textarea>
+    <button type="submit">Зберегти</button>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const el = wp.element.createElement;
+        const editor = wp.editor.createEditorInstance("editor");
+
+        // При відправці форми зберігаємо контент
+        document.querySelector("form").addEventListener("submit", function () {
+            document.getElementById("content").value = editor.getContent();
+        });
+    });
+</script>
+
+</body>
+</html>

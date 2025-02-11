@@ -33,6 +33,11 @@
 <div th:if="${podcast != null}">
     <section class="pt-4">
         <div class="container px-lg-5">
+<!--            <div class="row">-->
+<!--                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].enclosurestore} != null"-->
+<!--                              th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>-->
+<!--            </div>-->
+
             <div class="row" style="padding-top: 50px">
                 <!-- початок виводу подкастe -->
                 <div class="card bg-light border-0 h-100">
@@ -135,14 +140,14 @@
                                 <div th:if="${item.title != null}">
                                     <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
                                 </div>
-                                <div th:if="${item.description != null}">
-                                    <p th:if="${item.description.length()>150}" style="padding-top: 10px"
-                                       class="mb-0 fs-6"
-                                       th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>
-                                    <p th:if="${item.description.length()<150}" style="padding-top: 10px"
-                                       class="mb-0 fs-6"
-                                       th:utext="${item.description}"></p>
-                                </div>
+<!--                                <div th:if="${item.description != null}">-->
+<!--                                    <p th:if="${item.description.length()>150}" style="padding-top: 10px"-->
+<!--                                       class="mb-0 fs-6"-->
+<!--                                       th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
+<!--                                    <p th:if="${item.description.length()<150}" style="padding-top: 10px"-->
+<!--                                       class="mb-0 fs-6"-->
+<!--                                       th:utext="${item.description}"></p>-->
+<!--                                </div>-->
                             </div>
                         </div>
                     </div>
