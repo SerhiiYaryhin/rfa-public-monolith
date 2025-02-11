@@ -278,10 +278,10 @@
                             <div th:if="${item.title != null}">
                                 <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
                             </div>
-                            <div th:if="${item.description != null}">
-                                <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>
-                                <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>
-                            </div>
+<!--                            <div th:if="${item.description != null}">-->
+<!--                                <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
+<!--                                <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>-->
+<!--                            </div>-->
                             <p class="mb-0" >Файл: <span th:if="${item.enclosurestore} != null" th:text="${item.enclosurestore.filename}"/></p>
                         </div>
                     </div>
