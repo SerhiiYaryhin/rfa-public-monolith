@@ -103,7 +103,7 @@ Logger logger = LoggerFactory.getLogger(RPCListener.class);
                 logger.info("======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
                 break;
             default:
-                logger.info("RPC Listener CASE DEFAULT: ======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
+                logger.info("RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
                 break;
         }
         serverRunnerService.CompletedPartRPCJob(rjob);
