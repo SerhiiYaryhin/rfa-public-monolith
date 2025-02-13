@@ -24,17 +24,25 @@
     </head>
     <body id="page-top">
     <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
-        <!-- Експеримент з треками преєр -->
-<!--        <div th:insert="~{/fragments/mediahub :: tolokanews}">  </div>-->
-        <!-- MessageBox -->
-        <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
         <!-- Navigation-->
         <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <!-- MessageBox -->
+    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
         <!-- Masthead-->
-
     <div th:insert="~{/fragments/root :: masthead}">  </div>
+<!--    <div>-->
+<!--        <div class="col-6">-->
+<!--            &lt;!&ndash; карусель зі станціями &ndash;&gt;-->
+<!--            <div th:insert="~{/fragments/mediahub :: radiocarusel}">  </div>-->
+<!--        </div>-->
+<!--        <div class="col-6">-->
+<!--            &lt;!&ndash; карусель подкастів &ndash;&gt;-->
+<!--            <div th:insert="~{/fragments/mediahub :: mainpodcastcarusel}">  </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
     <!-- карусель зі станціями -->
-    <div th:insert="~{/fragments/mediahub :: radiocarusel}">  </div>
+    <div th:insert="~{/fragments/mediahub :: radiocarusel}"></div>
 
     <!-- Толока новини -->
     <div id="tolokaPlayer" th:insert="~{/fragments/mediahub :: tolokanews}">  </div>

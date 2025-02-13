@@ -62,67 +62,66 @@
 
 <!-- карусель подкастів -->
 <section>
-
-</section>
-<div th:fragment="mainpodcastcarusel">
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h2>
-                        <a href="/podcast/all">Подкасти на Толоці</a>
-                    </h2>
-                </div>
-                <div class="card-body">
-                    <div class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
-                        <div class="carousel-inner">
-                            <div th:each="podcast, iStat : ${podcastChannels}">
-                                <!-- IF CUSTOMER IS ANONYMOUS -->
-                                <div th:if="${iStat.first}">
-                                    <div class="carousel-item active" th:id="${podcast.uuid}">
-                                        <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                                            <h3><span th:text="${podcast.title}"></span></h3>
-                                        </a>
-                                        <div th:if="${podcast.description != null}">
-                                            <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
-                                               th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
-                                            <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
-                                               th:utext="${podcast.description}"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- ELSE -->
-                                <div th:unless="${iStat.first}">
-                                    <div class="carousel-item" th:id="${podcast.uuid}">
-                                        <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                                            <h2><span th:text="${podcast.title}"></span></h2>
-                                        </a>
-                                        <div th:if="${podcast.description != null}">
-                                            <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
-                                               th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
-                                            <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
-                                               th:utext="${podcast.description}"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--  Example item end -->
-                        </div>
-                        <a class="left carousel-control" href="#theCarouselPodcast" data-slide="prev"><i
-                                class="glyphicon glyphicon-chevron-left"></i></a>
-                        <a class="right carousel-control" href="#theCarouselPodcast" data-slide="next"><i
-                                class="glyphicon glyphicon-chevron-right"></i></a>
+    <div th:fragment="mainpodcastcarusel">
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <a href="/podcast/all">Подкасти на Толоці</a>
+                        </h2>
                     </div>
-                </div>
-                <div class="card-footer text-muted">
-                    <a href="/podcast/all">Ми уважно слідкуємо за українським світом подкастів і оновлюємо наш перелік
-                        обираючи найцікавіші.<br>Тож, слідкуйте за новинками!</a>
+                    <div class="card-body">
+                        <div class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
+                            <div class="carousel-inner">
+                                <div th:each="podcast, iStat : ${podcastChannels}">
+                                    <!-- IF CUSTOMER IS ANONYMOUS -->
+                                    <div th:if="${iStat.first}">
+                                        <div class="carousel-item active" th:id="${podcast.uuid}">
+                                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
+                                                <h3><span th:text="${podcast.title}"></span></h3>
+                                            </a>
+                                            <div th:if="${podcast.description != null}">
+                                                <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
+                                                   th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
+                                                <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
+                                                   th:utext="${podcast.description}"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ELSE -->
+                                    <div th:unless="${iStat.first}">
+                                        <div class="carousel-item" th:id="${podcast.uuid}">
+                                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
+                                                <h2><span th:text="${podcast.title}"></span></h2>
+                                            </a>
+                                            <div th:if="${podcast.description != null}">
+                                                <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
+                                                   th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
+                                                <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
+                                                   th:utext="${podcast.description}"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--  Example item end -->
+                            </div>
+                            <a class="left carousel-control" href="#theCarouselPodcast" data-slide="prev"><i
+                                    class="glyphicon glyphicon-chevron-left"></i></a>
+                            <a class="right carousel-control" href="#theCarouselPodcast" data-slide="next"><i
+                                    class="glyphicon glyphicon-chevron-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <a href="/podcast/all">Ми уважно слідкуємо за українським світом подкастів і оновлюємо наш
+                            перелік
+                            обираючи найцікавіші.<br>Тож, слідкуйте за новинками!</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
+</section>
 
 <!-- головна сторінка -->
 <section th:fragment="tolokanews" class="page-section" style="padding:1rem" id="news">
