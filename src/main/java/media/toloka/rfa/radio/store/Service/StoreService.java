@@ -62,7 +62,7 @@ public class StoreService extends StoreFileImplementation {
     public Page GetAllPictures(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
         Page ttt = storeRepositore.findByStorelAllPictures(storePage, cd);
-        return ttt;
+        return ttt; // storeRepositore.findByStorelAllPictures(storePage, cd);
 //        return storeRepositore.findByStorelAllPictures(cd.getId());
     }
 

@@ -132,14 +132,13 @@
                 <div class="text-center card-header" style="padding-left: 0px; padding-right: 0px;">
                     <a href="/guest/postall/0"><h3>Новини на Толоці</h3></a>
                 </div>
-
+                <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
             </div>
-            <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
-            <div class="card">
-                <div class="card-footer text-muted">
-                    <a href="/guest/postall/0">Подивитися всі новини на Толоці</a>
-                </div>
+            <div class="card-footer text-muted">
+                <a href="/guest/postall/0">Подивитися всі новини на Толоці</a>
             </div>
+<!--            <div class="card">-->
+<!--            </div>-->
         </div>
         <!-- колонка медіа хаб-->
         <div class="col-lg-3 col-sm-12">

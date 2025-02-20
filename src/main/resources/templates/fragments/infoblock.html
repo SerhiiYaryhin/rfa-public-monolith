@@ -5,117 +5,118 @@
     <title>Title</title>
 </head>
 <body>
-<!--https://codepen.io/MattRuddick/pen/xaZXgE?editors=1100-->
-<!--<div th:fragment="postcardtile" class="container">-->
-
 <div th:fragment="postcardtile">
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-3 g-4">
-      <div th:each="post : ${postList}">
-<!--      <div th:each="post : ${posts}">-->
-        <div class="col">
-          <div class="card ">
-            <div th:if="${post.store} == null">
-              <img class="card-img-top img-fluid"  th:src="'https://picsum.photos/400/300?random='+${post.id}" alt="Card image cap">
+        <div th:each="post : ${postList}">
+            <!--      <div th:each="post : ${posts}">-->
+            <div class="col">
+                <div class="card ">
+                    <div th:if="${post.store} == null">
+                        <img class="card-img-top img-fluid" th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                             alt="Card image cap">
+                    </div>
+                    <div th:if="${post.store} != null">
+                        <img class="card-img-top img-fluid"
+                             th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}"
+                             alt="Card image cap">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.id}"><span
+                                th:text="${post.posttitle}"/></a></h5>
+                        <!--                <p class="card-text">-->
+                        <!--                  Тут можна розмістити уривок тексту -->
+                        <!--                </p>-->
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-eye"></i><span th:text="' '+${post.looked}+' '"/>
+                                <i class="far fa-user"></i><span
+                                    th:text="' '+${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/><br>
+                                <i class="fas fa-calendar-alt"></i><span
+                                    th:text="' '+${#dates.format(post.createdate, 'dd-MM-yyyy')}"/>
+                            </small>
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div th:if="${post.store} != null">
-              <img class="card-img-top img-fluid"  th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Card image cap">
-            </div>
-              <div class="card-body">
-                <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.id}"><span th:text="${post.posttitle}"/></a></h5>
-<!--                <p class="card-text">-->
-<!--                  Тут можна розмістити уривок тексту -->
-<!--                </p>-->
-                <p class="card-text">
-                  <small class="text-muted">
-                    <i class="fas fa-eye"></i><span th:text="' '+${post.looked}+' '"/>
-                    <i class="far fa-user"></i><span th:text="' '+${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/><br>
-                    <i class="fas fa-calendar-alt"></i><span th:text="' '+${#dates.format(post.createdate, 'dd-MM-yyyy')}"/>
-                  </small>
-                </p>
-              </div>
-<!--            </a>-->
-          </div>
         </div>
-      </div>
     </div>
-<!--  </div>-->
 </div>
 
 <!--=========================================================================-->
 <!--https://mdbootstrap.com/docs/standard/extended/tiles/-->
 <div th:fragment="textblock">
-  <div class="row">
-    <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
+    <div class="row">
+        <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
 
-      <div class="card bg-success text-white text-center mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title that wraps to a new line</h5>
-          <p>This is a longer card with supporting text below as a natural lead-in to additional content.
-            This content is a little bit longer.</p>
-        </div>
-      </div>
+            <div class="card bg-success text-white text-center mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title that wraps to a new line</h5>
+                    <p>This is a longer card with supporting text below as a natural lead-in to additional content.
+                        This content is a little bit longer.</p>
+                </div>
+            </div>
 
-      <div class="card bg-info text-white text-end mb-4">
-        <div class="card-body">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+            <div class="card bg-info text-white text-end mb-4">
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+                </div>
+            </div>
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title</h5>
+                    <p>This card has supporting text below as a natural lead-in to additional content.</p>
+                    <p><small>Last updated 3 mins ago</small></p></div>
+            </div>
         </div>
-      </div>
-      <div class="card bg-warning text-white mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title</h5>
-          <p>This card has supporting text below as a natural lead-in to additional content.</p>
-          <p><small>Last updated 3 mins ago</small></p></div>
-      </div>
+
+        <div class="col-lg-4 mb-4 mb-lg-0">
+
+            <div class="card bg-primary text-white mb-4 text-end">
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat.</p>
+                </div>
+            </div>
+
+            <div class="card bg-danger text-white text-center my-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title</h5>
+                    <p>This card has a regular title and short paragraphy of text below it.</p>
+                    <p><small>Last updated 3 mins ago</small></p>
+                </div>
+            </div>
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title that wraps to a new line</h5>
+                    <p>This is a longer card with supporting text below as a natural lead-in to additional content.
+                        This content is a little bit longer.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4 mb-lg-0">
+
+            <div class="card bg-warning text-white text-center mb-4">
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+                </div>
+            </div>
+
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title</h5>
+                    <p>This is another card with title and supporting text below.
+                        This card has some additional content to make it slightly taller overall.</p>
+                    <p><small>Last updated 3 mins ago</small></p>
+                </div>
+            </div>
+            <div class="card bg-secondary text-white text-end mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Panel title</h5>
+                    <p>This card has a regular title and short paragraphy of text below it.</p>
+                    <p><small>Last updated 3 mins ago</small></p></div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-lg-4 mb-4 mb-lg-0">
-
-      <div class="card bg-primary text-white mb-4 text-end">
-        <div class="card-body">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat.</p>
-        </div>
-      </div>
-
-      <div class="card bg-danger text-white text-center my-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title</h5>
-          <p>This card has a regular title and short paragraphy of text below it.</p>
-          <p><small>Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-      <div class="card bg-success text-white mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title that wraps to a new line</h5>
-          <p>This is a longer card with supporting text below as a natural lead-in to additional content.
-            This content is a little bit longer.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-4 mb-4 mb-lg-0">
-
-      <div class="card bg-warning text-white text-center mb-4">
-        <div class="card-body">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
-        </div>
-      </div>
-
-      <div class="card bg-dark text-white mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title</h5>
-          <p>This is another card with title and supporting text below.
-            This card has some additional content to make it slightly taller overall.</p>
-          <p><small>Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-      <div class="card bg-secondary text-white text-end mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Panel title</h5>
-          <p>This card has a regular title and short paragraphy of text below it.</p>
-          <p><small>Last updated 3 mins ago</small></p></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 

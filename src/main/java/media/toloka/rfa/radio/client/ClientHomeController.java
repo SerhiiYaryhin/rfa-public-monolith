@@ -58,15 +58,16 @@ public class ClientHomeController {
 
         // https://www.baeldung.com/java-read-json-from-url
 
-        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-        List<Track> trackList = createrService.GetLastUploadTracks();
+//        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
+//        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
+//        List<Track> trackList = createrService.GetLastUploadTracks();
 
 //        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
         Page pageTrack = createrService.GetTrackPage(0,10);
         List<Store> storeTrackList = pageTrack.stream().toList();
 
         model.addAttribute("trackList", storeTrackList );
-        model.addAttribute("posts", posts );
+        model.addAttribute("postList", createrService.GetAllPostsByApruveAndMusicPost(true) );
 
         return "/user/user_page";
     }

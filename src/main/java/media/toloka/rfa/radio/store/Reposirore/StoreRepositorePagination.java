@@ -32,7 +32,8 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
 
     @Query(value = "SELECT a FROM Store a WHERE "
             + "a.clientdetail = ?1 AND  "
-            + "LOWER(a.contentMimeType) LIKE LOWER(CONCAT('%', 'image/', '%'))") // OR " +
+            + "LOWER(a.contentMimeType) LIKE LOWER(CONCAT('%', 'image/', '%'))"
+            + "ORDER BY a.createdate DESC") // OR " +
     Page findByStorelAllPictures(Pageable pageable, Clientdetail cd);
 
 }
