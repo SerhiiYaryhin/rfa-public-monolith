@@ -29,33 +29,29 @@
 <!--// User page container-->
 <div style="padding-top: 100px">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <div th:insert="~{/fragments/creater :: service}"> </div>
-            </div>
-        </div>
-    </div>
-    <div class="container-fluid">
-        <div class="row" style="padding-top: 40px">
+        <div class="row" >
             <h1>Завантажити головну ілюстрацію.</h1>
             <p>Ця ілюстрація буде відображатися на головній сторінці та у каталозі постів. </p>
-            <div id="dropzone">
-                <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post">
+            <p>Після завантаження ілюстрації не забудьте оновити цю сторінкую</p>
+            <div id="dropzone" >
+                <form action="/creater/storefileupload" class="dropzone needsclick" id="file-upload" method="post" style="background-color:rgba(225, 225, 0, .2); ">
+<!--                <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post" style="opacity: 0.3;background-color: #FBD603; ">-->
                     <input type="hidden"
                            th:name="${_csrf.parameterName}"
                            th:value="${_csrf.token}" />
-                    <div class="dz-message needsclick">
+<!--                    <div class="dz-message needsclick">-->
 
-                        <div class="dz-message needsclick">
-                            <button type="button" class="dz-button">Перенсіть файл сюди або натисніть для вибору файла і перезавантажте сторінку.<br>Після чого оберіть завантажений файл зі списку.</button>
+                        <div class="dz-message needsclick" >
+                            <button type="button" class="dz-button" style="color:red;opacity: .9;"><b>Перенсіть файл сюди або натисніть для вибору файлу та перезавантажте сторінку.<br>Після чого оберіть завантажений файл зі списку.</b></button>
                             <br/>
                         </div>
+<!--                    </div>-->
                 </form>
             </div>
         </div>
 
         <div class="row" style="padding-top: 40px">
-            <h2>Перелік завантажених Вами ілбстрацій.</h2>
+            <h2>Перелік завантажених Вами ілюстрацій.</h2>
             <p>Після завантаження ілюстрації не забудьте оновити сторінку. Лише після оновлення сторінки завантажена ілюстрація буде в переліку ваших ілюстрацій. Остання завантажена Вами ілюстрація буде першою у переліку.</p>
             <p>Щоб додати головну ілюстрацію до посту - натисніть на "Обрати" напроти неї.</p>
             <div class="col-lg-3 col-sm-12">
