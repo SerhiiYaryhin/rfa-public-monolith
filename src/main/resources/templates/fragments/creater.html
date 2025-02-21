@@ -105,8 +105,8 @@
         <tr th:each="album : ${albumList}">
             <td><span th:text="${album.name}"></span></td>
             <td>
-                <a class="btn btn-primary" th:href="@{'/creater/editalbum/' + ${album.id}}">Редагувати</a>
-                <a class="btn btn-primary" th:href="@{'/creater/setalbumcover/' + ${album.id}}">Обрати обкладинку</a>
+                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/editalbum/' + ${album.id}}">Редагувати</a>
+                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/setalbumcover/' + ${album.id}}">Обрати обкладинку</a>
             </td>
         </tr>
         </tbody>
@@ -136,20 +136,25 @@
         <thead>
         <tr>
             <th scope="col">Заголовок</th>
-            <th scope="col">Статус</th>
-            <th scope="col">Редагувати</th>
+<!--            <th scope="col">Статус</th>-->
+<!--            <th scope="col">Створено</th>-->
         </tr>
         </thead>
         <tbody>
         <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>
         <tr th:each="post : ${posts}">
-            <td><span th:text="${post.posttitle}"></span></td>
-            <td><span>Статус</span></td>
             <td>
-                <a class="btn btn-primary" th:href="@{'/creater/publishpost/'+${post.id} }">Опублікувати</a>
-                <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a>
-                <a class="btn btn-primary" th:href="@{'/creater/delpost/'+${post.id} }">Видалити</a>
+                <span th:text="${post.posttitle}"></span><br>
+                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/publishpost/'+${post.id} }">Опублікувати</a>
+                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a>
+                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/delpost/'+${post.id} }">Видалити</a>
+                <span th:text="${'Створено: '+#dates.format(post.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+<!--                <span th:text="Статус: "></span>-->
             </td>
+<!--            <td><span>Статус</span></td>-->
+<!--            <td>-->
+
+<!--            </td>-->
         </tr>
         </tbody>
     </table>

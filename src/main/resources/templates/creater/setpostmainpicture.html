@@ -42,7 +42,7 @@
 <!--                    <div class="dz-message needsclick">-->
 
                         <div class="dz-message needsclick" >
-                            <button type="button" class="dz-button" style="color:red;opacity: .9;"><b>Перенсіть файл сюди або натисніть для вибору файлу та перезавантажте сторінку.<br>Після чого оберіть завантажений файл зі списку.</b></button>
+                            <button type="button" class="dz-button" style="color:red;"><b>Перенсіть файл сюди або натисніть для вибору файлу та перезавантажте сторінку.<br>Після чого оберіть завантажений файл зі списку.</b></button>
                             <br/>
                         </div>
 <!--                    </div>-->
@@ -79,7 +79,8 @@
                     <tbody>
                     <tr th:each="storeitem : ${storeList}">
                         <td><span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span></td>
-                        <td><a class="btn btn-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>
+                        <td><a class="badge rounded-pill bg-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>
+<!--                        <td><a class="btn btn-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>-->
                         <td><span th:text="${storeitem.filename}"></span></td>
                     </tr>
                     </tbody>

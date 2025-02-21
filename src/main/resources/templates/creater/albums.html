@@ -43,13 +43,13 @@
         <div class="row" style="padding-top: 20px">
           <!-- Область завантаження обкладинок  -->
             <div id="dropzone">
-                <form action="/creater/albumcoverupload" class="dropzone needsclick" id="demo-upload" method="post">
+                <form action="/creater/albumcoverupload" class="dropzone needsclick" id="demo-upload" method="post" style="background-color:rgba(225, 225, 0, .2); ">
                     <input type="hidden"
                            th:name="${_csrf.parameterName}"
                            th:value="${_csrf.token}" />
                     <div class="dz-message needsclick">
                         <div class="dz-message needsclick">
-                            <button type="button" class="dz-button">Перенесіть обкладинку сюди або натисніть для завантаження обкладинки.</button>
+                            <button type="button" class="dz-button" style="color:red;">Перенесіть обкладинку сюди або натисніть для завантаження обкладинки.</button>
                             <br/>
                         </div>
                     </div>
