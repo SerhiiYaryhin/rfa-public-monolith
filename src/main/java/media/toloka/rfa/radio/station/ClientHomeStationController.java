@@ -220,7 +220,6 @@ public class ClientHomeStationController {
             // Станцію створити не можемо. Показуємо про це повідомлення.
             logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
             // TODO Відправити у форму повідомлення про неможливість створення станції та кинути клієнту месседж
-            // TODO зробити запис в журнал
             model.addAttribute("warning", "Не можемо знайти станцію (" + id.toString() + ") для користувача " + user.getEmail());
             return "redirect:/user/stations";
         }
@@ -232,7 +231,11 @@ public class ClientHomeStationController {
         model.addAttribute("station",  mstation);
         Boolean stationstateonline = stationService.GetStationRoomStatus(mstation.getRoomuuid());
         model.addAttribute("stationstateonline", stationstateonline) ;
-        model.addAttribute("roomstart", messangerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline()) ;
+        if (messangerService.GetChatRoomByUUID(mstation.getRoomuuid()) != null) {
+            model.addAttribute("roomstart", messangerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline());
+        } else {
+            model.addAttribute("roomstart", null);
+        }
         return "/user/controlstation";
     }
 
