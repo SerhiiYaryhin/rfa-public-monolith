@@ -37,6 +37,8 @@
     </div>
     <div class="container-fluid">
         <div class="row" style="padding-top: 40px">
+            <h1>Завантажити головну ілюстрацію.</h1>
+            <p>Ця ілюстрація буде відображатися на головній сторінці та у каталозі постів. </p>
             <div id="dropzone">
                 <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post">
                     <input type="hidden"
@@ -53,6 +55,9 @@
         </div>
 
         <div class="row" style="padding-top: 40px">
+            <h2>Перелік завантажених Вами ілбстрацій.</h2>
+            <p>Після завантаження ілюстрації не забудьте оновити сторінку. Лише після оновлення сторінки завантажена ілюстрація буде в переліку ваших ілюстрацій. Остання завантажена Вами ілюстрація буде першою у переліку.</p>
+            <p>Щоб додати головну ілюстрацію до посту - натисніть на "Обрати" напроти неї.</p>
             <div class="col-lg-3 col-sm-12">
 <!--                <a class="btn btn-primary" th:href="@{'/store/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Встановити</a>-->
             </div>
@@ -77,10 +82,9 @@
                     </thead>
                     <tbody>
                     <tr th:each="storeitem : ${storeList}">
-                        <td><span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy')}"></span></td>
-                        <td><span th:text="${storeitem.filename}"></span></td>
-<!--                        <td><span th:text="${storeitem.storefiletype.label}"></span></td>-->
+                        <td><span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span></td>
                         <td><a class="btn btn-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>
+                        <td><span th:text="${storeitem.filename}"></span></td>
                     </tr>
                     </tbody>
                 </table>
