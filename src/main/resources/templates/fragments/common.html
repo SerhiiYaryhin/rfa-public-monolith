@@ -77,8 +77,43 @@
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<!-- Footer for all pages-->
+<!--Paging -->
+totalPages
+currentPage
 
+<a th:fragment="paging(plink,pageNum, label, tooltip)" class="page-link"
+   th:href="@{${plink} + ${pageNum}}"
+   th:title="${tooltip}" rel="tooltip">
+    [[${label}]]
+</a>
+
+<nav th:fragment="pagingline" aria-label="Pagination" th:if="${totalPages > 0}">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+            <a th:replace="fragments/paging :: paging(1, '<<', 'First Page')"></a>
+        </li>
+        <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
+            <a th:replace="fragments/paging :: paging(${currentPage - 1}, 'Prev', 'Previous Page')"></a>
+        </li>
+        <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+            <a class="page-link" href="#">...</a>
+        </li>
+        <li class="page-item" th:classappend="${page == currentPage} ? 'active'"
+            th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : totalPages)}">
+            <a th:replace="fragments/paging :: paging(${page}, ${page}, 'Page ' + ${page})"></a>
+        </li>
+        <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+            <a class="page-link" href="#">...</a>
+        </li>
+        <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
+            <a th:replace="fragments/paging :: paging(${currentPage + 1},'Next', 'Next Page')"></a>
+        </li>
+        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+            <a th:replace="fragments/paging :: paging(${totalPages}, '>>', 'Last Page')"></a>
+        </li>
+    </ul>
+</nav>
+<!-- Footer for all pages-->
 <footer th:fragment="footer" class="text-center text-lg-start bg-body-tertiary text-muted">
     <!-- Section: Social media -->
     <section class="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">

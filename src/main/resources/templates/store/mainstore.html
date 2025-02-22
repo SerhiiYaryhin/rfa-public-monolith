@@ -4,18 +4,18 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
 
     <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
@@ -23,47 +23,80 @@
 </head>
 <body>
 <header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
 <!--// User page container-->
 <div style="padding-top: 100px">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <div th:insert="~{/fragments/creater :: service}"> </div>
-            </div>
-        </div>
-    </div>
+    <!--    <div class="container-fluid">-->
+    <!--        <div class="row">-->
+    <!--            <div class="col-lg-12 col-sm-12">-->
+    <!--                <div th:insert="~{/fragments/creater :: service}"> </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    <!--    </div>-->
     <div class="container-fluid">
         <div class="row" style="padding-top: 40px">
             <div id="dropzone">
-            <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post">
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}" />
-                <div class="dz-message needsclick">
-
+                <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <!--                <div class="dz-message needsclick">-->
                     <div class="dz-message needsclick">
-                        <button type="button" class="dz-button">Перенсіть файл сюди або натисніть для вибору файла.</button>
+                        <button type="button" class="dz-button">Перенсіть файл сюди або натисніть для вибору файла.
+                        </button>
                         <br/>
                     </div>
-            </form>
-        </div>
+                </form>
+            </div>
         </div>
 
         <div class="row" style="padding-top: 40px">
             <div class="col-lg-12 col-sm-12">
-                <nav aria-label="navigation">
-                    <ul class="pagination" >
-                        <li class="page-item"><a class="page-link"  th:href="'/creater/store/'+${privpage}">Попередня</a></li>
-                        <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                            <li class="page-item"><a class="page-link"  th:href="'/creater/store/'+${lpage}" ><span th:text="${lpage+1}">1</a></li>
-                        </div>
-                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${nextpage}">Наступна</a></li>
+<!--                Панель навігації по сторінках -->
+<!--                <nav aria-label="navigation">-->
+<!--                    <ul class="pagination">-->
+<!--                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${privpage}">Попередня</a>-->
+<!--                        </li>-->
+<!--                        <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">-->
+<!--                            <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${lpage}"><span-->
+<!--                                    th:text="${lpage+1}">1</a></li>-->
+<!--                        </div>-->
+<!--                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${nextpage}">Наступна</a>-->
+<!--                        </li>-->
+<!--                    </ul>-->
+<!--                </nav>-->
+                <nav aria-label="Pagination" th:if="${totalPages > 0}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a th:replace="~{/fragments/common :: paging('/creater/store/',0, '<<', 'Перша')}"></a>
+                        </li>
+                        <li class="page-item font-weight-bold" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a th:replace="~{/fragments/common :: paging('/creater/store/',${currentPage - 1}, 'Попер.', 'Попередня')}"></a>
+                        </li>
+
+                        <li class="page-item disabled" th:if="${currentPage - 3 > 1}">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${page == currentPage+1} ? 'active'"
+                            th:each="page : ${#numbers.sequence(currentPage > 3 ? currentPage - 3 : 1, currentPage + 3 < totalPages ? currentPage + 3 : totalPages)}">
+                            <a th:replace="~{/fragments/common :: paging('/creater/store/',${page-1}, ${page}, 'Page ' + ${page})}"></a>
+                        </li>
+                        <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
+                            <a th:replace="~{/fragments/common :: paging('/creater/store/',${currentPage + 1},'Наст.', 'Наступна')}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
+                            <a th:replace="~{/fragments/common :: paging('/creater/store/',${totalPages-1}, '>>', 'Остання')}"></a>
+                        </li>
                     </ul>
                 </nav>
-                <table class="table">
+                <div th:if="${pagetrack.size} > 0">
+                    <table class="table">
                         <thead>
                         <tr>
                             <th scope="col">Дата</th>
@@ -73,29 +106,34 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="storeitem : ${storeList}">
+                        <tr th:each="storeitem : ${viewList}">
                             <td><span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy')}"></span></td>
                             <td><span th:text="${storeitem.filename}"></span></td>
                             <td><span th:text="${storeitem.storefiletype.label}"></span></td>
-                            <td><a class="btn btn-primary" th:href="@{'/store/edititem/'+${storeitem.uuid} }">Редагувати</a><a class="btn btn-primary" th:href="@{'/store/deleteitem/'+${storeitem.uuid} }">Видалити</a></td>
+                            <td><a class="btn btn-primary" th:href="@{'/store/edititem/'+${storeitem.uuid} }">Редагувати</a><a
+                                    class="btn btn-primary"
+                                    th:href="@{'/store/deleteitem/'+${storeitem.uuid} }">Видалити</a></td>
                         </tr>
                         </tbody>
                     </table>
-                    <nav aria-label="navigation">
-                    <ul class="pagination" >
-                        <li class="page-item"><a class="page-link"  th:href="'/creater/store/'+${privpage}">Попередня</a></li>
+                </div>
+
+                <nav aria-label="navigation">
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${privpage}">Попередня</a>
+                        </li>
                         <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                            <li class="page-item"><a class="page-link"  th:href="'/creater/store/'+${lpage}" ><span th:text="${lpage+1}">1</a></li>
+                            <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${lpage}"><span
+                                    th:text="${lpage+1}">1</a></li>
                         </div>
-                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${nextpage}">Наступна</a></li>
+                        <li class="page-item"><a class="page-link" th:href="'/creater/store/'+${nextpage}">Наступна</a>
+                        </li>
                     </ul>
                 </nav>
             </div>
         </div>
     </div>
 </div>
-
-
 
 
 <script src="/js/bootstrap.bundle.min.js"></script>

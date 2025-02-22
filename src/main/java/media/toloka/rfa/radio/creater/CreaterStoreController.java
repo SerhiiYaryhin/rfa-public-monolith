@@ -66,6 +66,14 @@ public class CreaterStoreController {
         model.addAttribute("pagetrack", pageStore );
         model.addAttribute("currentpage", pageNumber );
         model.addAttribute("storeList", storeList );
+        // новий рядок навігації
+//        model.addAttribute("nextpage", nextpage );
+//        model.addAttribute("privpage", privpage );
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
+//        model.addAttribute("pagetrack", pageStore );
+        model.addAttribute("currentPage", pageNumber );
+        logger.info("======= currentPage:{} totalPages:{}",pageNumber,pageStore.getTotalPages());
+        model.addAttribute("viewList", storeList );
 
         return "/store/mainstore";
     }
