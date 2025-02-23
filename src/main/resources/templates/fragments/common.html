@@ -87,32 +87,42 @@ currentPage
     [[${label}]]
 </a>
 
+<!--/*-->
+Параметри, які передаються в pagingline з контроллера
+currentPage - номер поточної сторінки
+totalPages - загальна кількість сторінок
+linkPage - початок посилання для пеерходу на потрібну сторінку
+<!--*/-->
 <nav th:fragment="pagingline" aria-label="Pagination" th:if="${totalPages > 0}">
     <ul class="pagination justify-content-center">
-        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-            <a th:replace="fragments/paging :: paging(1, '<<', 'First Page')"></a>
+        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a th:replace="~{/fragments/common :: paging(${linkPage},0, '<<', 'Перша')}"></a>
         </li>
-        <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
-            <a th:replace="fragments/paging :: paging(${currentPage - 1}, 'Prev', 'Previous Page')"></a>
+        <li class="page-item font-weight-bold" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a th:replace="~{/fragments/common :: paging(${linkPage},${currentPage - 1}, 'Попер.', 'Попередня')}"></a>
         </li>
-        <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+
+        <li class="page-item disabled" th:if="${currentPage - 3 > 1}">
             <a class="page-link" href="#">...</a>
         </li>
-        <li class="page-item" th:classappend="${page == currentPage} ? 'active'"
-            th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : totalPages)}">
-            <a th:replace="fragments/paging :: paging(${page}, ${page}, 'Page ' + ${page})"></a>
+
+        <li class="page-item" th:classappend="${page == currentPage+1} ? 'active'"
+            th:each="page : ${#numbers.sequence(currentPage > 3 ? currentPage - 3 : 1, currentPage + 3 < totalPages ? currentPage + 3 : totalPages)}">
+            <a th:replace="~{/fragments/common :: paging(${linkPage},${page-1}, ${page}, 'Page ' + ${page})}"></a>
         </li>
         <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
             <a class="page-link" href="#">...</a>
         </li>
-        <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
-            <a th:replace="fragments/paging :: paging(${currentPage + 1},'Next', 'Next Page')"></a>
+        <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
+            <a th:replace="~{/fragments/common :: paging(${linkPage},${currentPage + 1},'Наст.', 'Наступна')}"></a>
         </li>
-        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-            <a th:replace="fragments/paging :: paging(${totalPages}, '>>', 'Last Page')"></a>
+
+        <li class="page-item" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
+            <a th:replace="~{/fragments/common :: paging(${linkPage},${totalPages-1}, '>>', 'Остання')}"></a>
         </li>
     </ul>
 </nav>
+
 <!-- Footer for all pages-->
 <footer th:fragment="footer" class="text-center text-lg-start bg-body-tertiary text-muted">
     <!-- Section: Social media -->

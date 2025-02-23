@@ -125,7 +125,7 @@
         <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>
         <tr th:each="post : ${posts}">
             <td><span th:text="${post.posttitle}"></span></td>
-            <td><a class="btn btn-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a></td>
+            <td><a class="badge rounded-pill bg-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a></td>
         </tr>
         </tbody>
     </table>
