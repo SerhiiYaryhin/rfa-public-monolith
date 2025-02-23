@@ -60,20 +60,11 @@ public class CreaterStoreController {
         int nextpage ;
         if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
         if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
-//        model.addAttribute("nextpage", nextpage );
-//        model.addAttribute("privpage", privpage );
-//        model.addAttribute("totalpage", pageStore.getTotalPages() );
-//        model.addAttribute("pagetrack", pageStore );
-//        model.addAttribute("currentpage", pageNumber );
-//        model.addAttribute("storeList", storeList );
         // новий рядок навігації
-//        model.addAttribute("nextpage", nextpage );
-//        model.addAttribute("privpage", privpage );
+
         model.addAttribute("totalPages", pageStore.getTotalPages() );
-//        model.addAttribute("pagetrack", pageStore );
         model.addAttribute("currentPage", pageNumber );
         model.addAttribute("linkPage", "/creater/store/");
-//        logger.info("======= currentPage:{} totalPages:{}",pageNumber,pageStore.getTotalPages());
         model.addAttribute("viewList", storeList );
         model.addAttribute("pagetrack", pageStore );
 

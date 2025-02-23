@@ -12,6 +12,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,8 +45,17 @@ public class CreaterController {
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-        model.addAttribute("posts", posts );
+//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
+//        model.addAttribute("posts", posts );
+
+        Integer curpage = 0;
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList );
+        model.addAttribute("totalPages",pageStore.getTotalPages());
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/posts/");
 
         return "/creater/home";
     }
