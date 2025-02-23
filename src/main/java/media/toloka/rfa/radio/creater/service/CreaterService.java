@@ -87,6 +87,14 @@ public class CreaterService {
         return storeService.GetAllTrackByClientId(cd);
     }
 
+    public Page GetTrackPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+        Pageable TrackPage = PageRequest.of(pageNumber, pageCount);
+//        Page page = trackRepository.findByClientdetail(TrackPage,cd);
+        Page page = trackRepository.findByClientdetailOrderByUploaddateDesc(TrackPage,cd);
+        return page;
+
+    }
+
 
     public List<Track> GetAllTracksByCreater(Clientdetail cd) {
         List<Track> trackList = trackRepository.findByClientdetail(cd);
@@ -94,8 +102,13 @@ public class CreaterService {
     }
 
     public List<Post> GetAllPostsByCreater(Clientdetail cd) {
-        List<Post> postList = postRepositore.findByClientdetailOrderByCreatedateDesc(cd);
-        return postList;
+        return postRepositore.findByClientdetailOrderByCreatedateDesc(cd);
+    }
+
+    public Page GetAllPostsByCreater(int pageNumber, int pageCount, Clientdetail cd) {
+        Pageable storePage = PageRequest.of(pageNumber, pageCount);
+        Page page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
+        return page;
     }
 
     public List<Post> GetAllPostsByApruveAndMusicPost(Boolean flag) {
@@ -106,10 +119,7 @@ public class CreaterService {
     public void SaveTrackUploadInfo(String storeitemUUID, Clientdetail cd) {
         Track track = new Track();
         track.setStatus(EDocumentStatus.STATUS_LOADED);
-//        track.setFilename(destination.getFileName().toString());
-//        track.setPatch(destination.toString());
         track.setClientdetail(cd);
-//        track.setStoreitem(storeitem);
         track.setStoreuuid(storeitemUUID);
         track.setTochat(false);
         track.setStoreitem(storeService.GetStoreByUUID(storeitemUUID));
@@ -121,7 +131,7 @@ public class CreaterService {
     }
 
     public Track GetTrackByStoreuuid (String storeUuid) {
-        return trackRepository.getByStoreuuid(storeUuid);
+        return trackRepository.getByUuid(storeUuid);
     }
 
     public void SaveTrack(Track track) {
@@ -251,4 +261,9 @@ public class CreaterService {
         return token.getToken();
     }
 
+    public Page GetPostPageByClientDetail(Integer pageNumber, int pageCount, Clientdetail cd) {
+        Pageable storePage = PageRequest.of(pageNumber, pageCount);
+        Page page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
+        return page;
+    }
 }

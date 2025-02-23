@@ -53,8 +53,8 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarCreater">
                     <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
-                    <li><a class="dropdown-item" href="/creater/tracks">Треки</a></li>
-                    <li><a class="dropdown-item" href="/creater/posts">Пости</a></li>
+                    <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
+                    <li><a class="dropdown-item" href="/creater/posts/0">Пости</a></li>
                     <li><a class="dropdown-item" href="/podcast/home">Подкасти</a></li>
                 </ul>
             </li>  <!-- Creater -->
@@ -73,7 +73,7 @@
                 <ul class="dropdown-menu" aria-labelledby="navbarModerator">
                     <li><a class="dropdown-item" href="/creater/home">Головна</a></li>
                     <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
-                    <li><a class="dropdown-item" href="/creater/tracks">Треки</a></li>
+                    <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
                     <li><a class="dropdown-item" href="/podcast/getRSSFromUrl">Подкасти</a></li>
                 </ul>
             </li>            <!-- admin -->
@@ -156,7 +156,7 @@
             <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/creater/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/albums">Альбоми</a></li>
-                <li class="nav-item"><a class="nav-link" href="/creater/tracks">Треки</a></li>
+                <li class="nav-item"><a class="nav-link" href="/creater/tracks/0">Треки</a></li>
                 <li class="nav-item"><a class="nav-link" href="/podcast/home">Подкаст</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
@@ -208,8 +208,6 @@
         <div sec:authorize="hasRole('ROLE_EDITOR')" class="collapse navbar-collapse" id="navbarResponsive">
             <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/moderator/home">Головна</a></li>
-<!--                <li class="nav-item"><a class="nav-link" href="/creater/albums">Альбоми</a></li>-->
-<!--                <li class="nav-item"><a class="nav-link" href="/creater/tracks">Треки</a></li>-->
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
                         <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
@@ -221,10 +219,11 @@
             <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/creater/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/albums">Альбоми</a></li>
-                <li class="nav-item"><a class="nav-link" href="/creater/tracks">Треки</a></li>
+                <li class="nav-item"><a class="nav-link" href="/creater/tracks/0">Треки</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/></a>
+<!--                        <span th:if="${quantitynewmessage gt 0} " th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/>-->
+                    </a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/creater/info">Профайл</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>

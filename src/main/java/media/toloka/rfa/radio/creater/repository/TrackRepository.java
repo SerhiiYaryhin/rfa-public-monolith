@@ -14,6 +14,8 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 
 //    Optional
     List<Track> findByClientdetail(Clientdetail cd);
+    Page findByClientdetail(Pageable storePage, Clientdetail cd);
+    Page findByClientdetailOrderByUploaddateDesc(Pageable storePage, Clientdetail cd);
 
     List<Track> findAllByOrderByUploaddateAsc();
     List<Track> findAllTop10ByOrderByUploaddateAsc();

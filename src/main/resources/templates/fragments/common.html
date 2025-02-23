@@ -89,14 +89,21 @@ currentPage
 
 <!--/*-->
 Параметри, які передаються в pagingline з контроллера
-currentPage - номер поточної сторінки
-totalPages - загальна кількість сторінок
-linkPage - початок посилання для пеерходу на потрібну сторінку
+    currentPage - номер поточної сторінки
+    totalPages - загальна кількість сторінок
+    linkPage - початок посилання для пеерходу на потрібну сторінку
 
+Приклад формування
+    Page pageStore = storeService.GetStorePageByClientDetail(pageNumber,10, cd);
+    model.addAttribute("totalPages", pageStore.getTotalPages() );
+    List<Щось> viewList = pageStore.stream().toList();
+
+model.addAttribute("viewList", viewList );
 model.addAttribute("totalPages",totalPages);
 model.addAttribute("currentPage",curpage);
 model.addAttribute("linkPage","/creater/tracks/");
-
+    Для відображення списку елементів в шаблоні
+    <tr th:each="item : ${viewList}">
 
 <!--*/-->
 <nav th:fragment="pagingline" aria-label="Pagination" th:if="${totalPages > 0}">

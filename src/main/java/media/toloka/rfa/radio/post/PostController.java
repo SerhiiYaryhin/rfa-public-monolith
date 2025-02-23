@@ -15,6 +15,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -121,19 +122,6 @@ public class PostController {
         if (user == null) {
             return "redirect:/";
         }
-        //2024-12-08T19:58:16.827+02:00  WARN 12093 --- [nio-3080-exec-5] .w.s.m.s.DefaultHandlerExceptionResolver :
-        // Resolved [org.springframework.web.bind.MethodArgumentNotValidException:
-        // Validation failed for argument [1] in public java.lang.String media.toloka.rfa.radio.post.PostController.postCreaterEditPost
-        // (java.lang.Long,media.toloka.rfa.radio.model.Post,org.springframework.ui.Model):
-        // [Field error in object 'post' on field 'postcategory':
-        // rejected value [PostCategory(id=1, uuid=3861283c-3db1-4119-9e5e-67b0267485be, label=Новини, rootPage=true, parent=null)];
-        // codes [typeMismatch.post.postcategory,typeMismatch.postcategory,typeMismatch.media.toloka.rfa.radio.model.PostCategory,typeMismatch];
-        // arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [post.postcategory,postcategory];
-        // arguments []; default message [postcategory]]; default message [Failed to convert property value of type 'java.lang.String'
-        // to required type 'media.toloka.rfa.radio.model.PostCategory' for property 'postcategory';
-        // Failed to convert from type [java.lang.String] to type [java.lang.Long] f
-        // or value [PostCategory(id=1, uuid=3861283c-3db1-4119-9e5e-67b0267485be, label=Новини, rootPage=true, parent=nu (truncated)...]]] ]
-
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Post post;
         if (idPost == 0L) {
@@ -153,21 +141,37 @@ public class PostController {
 
         postService.SavePost(post);
 
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-        model.addAttribute("posts", posts );
+
+        Integer curpage = 0;
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList );
+        model.addAttribute("totalPages",pageStore.getTotalPages());
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/posts/");
         return "/creater/home";
     }
 
-    @GetMapping(value="/creater/posts")
+    @GetMapping(value="/creater/posts/{cPage}")
     public String postCreaterEditPost(
-//            @PathVariable Long idPost,
+            @PathVariable String cPage,
 //            @ModelAttribute Post fPost,
             Model model ) {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
+//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
+//        model.addAttribute("posts", posts );
 
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-        model.addAttribute("posts", posts );
+        Integer curpage = Integer.parseInt(cPage);
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList );
+        model.addAttribute("totalPages",pageStore.getTotalPages());
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/posts/");
+
         return "/creater/posts";
     }
 
@@ -184,8 +188,19 @@ public class PostController {
         }
 
 
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-        model.addAttribute("posts", posts );
+//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
+//        model.addAttribute("posts", posts );
+
+        Integer curpage = 0;
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList );
+        model.addAttribute("totalPages",pageStore.getTotalPages());
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/posts/");
+
+
         return "/creater/posts";
     }
 
@@ -202,8 +217,18 @@ public class PostController {
             postService.SavePost(post);
         }
 
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-        model.addAttribute("posts", posts );
+//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
+//        model.addAttribute("posts", posts );
+
+        Integer curpage = 0;
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList );
+        model.addAttribute("totalPages",pageStore.getTotalPages());
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/posts/");
+
         return "/creater/posts";
     }
 

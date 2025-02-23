@@ -13,6 +13,9 @@ import java.util.List;
 
 public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSortingRepository<Post, Long> {
     List<Post> findByClientdetail(Clientdetail cd);
+    Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
+
+
     Post getById(Long id);
     List<Post> findByApruveOrderByCreatedateDesc(Boolean apruve);
 

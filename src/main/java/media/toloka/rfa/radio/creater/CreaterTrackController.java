@@ -14,6 +14,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,31 +48,36 @@ public class CreaterTrackController {
         if (user == null) {
             return "redirect:/";
         }
-        Long curpage = Long.parseLong(cPage);
-        Long totalPages = 130L;
+        Integer curpage = Integer.parseInt(cPage);
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-//        List<Track> trackList = createrService.GetAllTracksByCreater(cd);
         List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
         List<Album> albums = createrService.GetAllAlbumsByCreater(cd);
 
         String baseaddress = filesService.GetBaseClientDirectory(cd);
 //        model.addAttribute("baseaddress", baseaddress );
 
-        // Пейджинг для сторінки
-        model.addAttribute("totalPages",totalPages);
+
+// Пейджинг для сторінки
+//        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
+        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
+        List<Store> treckList = pageStore.stream().toList();
+
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage",curpage);
         model.addAttribute("linkPage","/creater/tracks/");
+
         // Пейджинг для сторінки
 
         model.addAttribute("albums", albums );
-        model.addAttribute("storetrackList", storetrackList );
+        model.addAttribute("viewList", treckList );
+//        model.addAttribute("storetrackList", storetrackList );
         return "/creater/tracks";
     }
 
     // /creater/edittrack/'+${track.id}
-    @GetMapping(value = "/creater/edittrack/{uuidTrackStore}")
+    @GetMapping(value = "/creater/edittrack/{uuidTrack}")
     public String getCreaterEditTracks(
-            @PathVariable String uuidTrackStore,
+            @PathVariable String uuidTrack,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -79,9 +85,9 @@ public class CreaterTrackController {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
-        Track track = createrService.GetTrackByStoreuuid(uuidTrackStore);
+        Track track = createrService.GetTrackByUuid(uuidTrack);
 
-        Store store = storeService.GetStoreByUUID(uuidTrackStore);
+        Store store = storeService.GetStoreByUUID(track.getStoreitem().getUuid());
 
         List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
 
@@ -130,7 +136,25 @@ public class CreaterTrackController {
         List<Track> trackList = createrService.GetAllTracksByCreater(cd);
 //        model.addAttribute("trackList", trackList );
         model.addAttribute("storetrackList", storetrackList );
-        return "/creater/tracks";
+
+        // Пейджинг для сторінки
+//        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
+        //todo Зробити повернення на ту сторінку, з якої перейшли в редагування
+        Integer curpage = 0;
+
+        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
+        List<Store> treckList = pageStore.stream().toList();
+
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/tracks/");
+
+        // Пейджинг для сторінки
+
+//        model.addAttribute("albums", albums );
+        model.addAttribute("viewList", treckList );
+
+        return "redirect:/creater/tracks/"+curpage.toString();
     }
 
 

@@ -43,7 +43,6 @@ public class StoreService extends StoreFileImplementation {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
         Page page = storeRepositore.findByClientdetail(storePage,cd);
         return page;
-
     }
 
     public List<Store> GetAllTrackByClientId(Clientdetail cd) {
