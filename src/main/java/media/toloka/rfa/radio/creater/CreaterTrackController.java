@@ -39,13 +39,16 @@ public class CreaterTrackController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping(value = "/creater/tracks")
+    @GetMapping(value = "/creater/tracks/{cPage}")
     public String getCreaterTracks(
+            @PathVariable String cPage,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
+        Long curpage = Long.parseLong(cPage);
+        Long totalPages = 130L;
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 //        List<Track> trackList = createrService.GetAllTracksByCreater(cd);
         List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
@@ -53,6 +56,13 @@ public class CreaterTrackController {
 
         String baseaddress = filesService.GetBaseClientDirectory(cd);
 //        model.addAttribute("baseaddress", baseaddress );
+
+        // Пейджинг для сторінки
+        model.addAttribute("totalPages",totalPages);
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/tracks/");
+        // Пейджинг для сторінки
+
         model.addAttribute("albums", albums );
         model.addAttribute("storetrackList", storetrackList );
         return "/creater/tracks";

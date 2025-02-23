@@ -92,6 +92,12 @@ currentPage
 currentPage - номер поточної сторінки
 totalPages - загальна кількість сторінок
 linkPage - початок посилання для пеерходу на потрібну сторінку
+
+model.addAttribute("totalPages",totalPages);
+model.addAttribute("currentPage",curpage);
+model.addAttribute("linkPage","/creater/tracks/");
+
+
 <!--*/-->
 <nav th:fragment="pagingline" aria-label="Pagination" th:if="${totalPages > 0}">
     <ul class="pagination justify-content-center">
