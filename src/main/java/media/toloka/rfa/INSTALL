@@ -7,5 +7,5 @@
 4. додаємо користувача до RabbitMQ /usr/sbin/rabbitmqctl add_user "usr-NAME" "USR-PSW"
 5. Надаємо повноваження /usr/sbin/rabbitmqctl set_permissions -p "VHost" "usr-NAME" ".*" ".*" ".*"
 6. Надаємо права адміністратора /usr/sbin/rabbitmqctl set_user_tags "usr-NAME" administrator
-7. Правимо файл/etc/rabbitmq/rabbitmq-env.conf: NODE_IP_ADDRESS=<interface address>
+7. Правимо файл /etc/rabbitmq/rabbitmq-env.conf: NODE_IP_ADDRESS=<interface address>
     та відкиваємо порт NODE_PORT=5672
