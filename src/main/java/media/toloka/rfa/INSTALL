@@ -2,10 +2,18 @@
     CREATE DATABASE rfa;
     create user rfa with encrypted password 'toloka2_2018';
     grant all privileges on database rfa to rfa;
-2. Робимо користувача власником бази даних  ALTER DATABASE rfa OWNER TO rfa;
-3. додаємо віртуальний хост до RabbitMQ /usr/sbin/rabbitmqctl add_vhost rfa
+2. Робимо користувача власником бази даних
+    ALTER DATABASE rfa OWNER TO rfa;
+3. додаємо віртуальний хост до RabbitMQ /usr/sbin/rabbitmqctl add_vhost "/rfa"
 4. додаємо користувача до RabbitMQ /usr/sbin/rabbitmqctl add_user "usr-NAME" "USR-PSW"
+    /usr/sbin/rabbitmqctl add_user "rfa" "toloka2_2018"
 5. Надаємо повноваження /usr/sbin/rabbitmqctl set_permissions -p "VHost" "usr-NAME" ".*" ".*" ".*"
+    /usr/sbin/rabbitmqctl set_permissions -p "/rfa" "rfa" ".*" ".*" ".*"
 6. Надаємо права адміністратора /usr/sbin/rabbitmqctl set_user_tags "usr-NAME" administrator
+    /usr/sbin/rabbitmqctl set_user_tags "rfa" administrator
 7. Правимо файл /etc/rabbitmq/rabbitmq-env.conf: NODE_IP_ADDRESS=<interface address>
     та відкиваємо порт NODE_PORT=5672
+8. Add web gui
+    rabbitmq-plugins enable rabbitmq_management
+9. Delete default user guest
+    rabbitmqctl delete_user "guest"
