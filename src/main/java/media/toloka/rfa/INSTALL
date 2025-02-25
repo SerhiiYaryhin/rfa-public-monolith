@@ -17,3 +17,5 @@
     rabbitmq-plugins enable rabbitmq_management
 9. Delete default user guest
     rabbitmqctl delete_user "guest"
+10. add STOMP plugin to rabbitmq
+    rabbitmq-plugins enable rabbitmq_stomp
