@@ -135,7 +135,7 @@ public class UserLoginController {
                 return "redirect:/login/setrole";
             }
         } else if (clientService.checkRole(ROLE_NEWSTORADIO)) {
-            return "redirect:/newstoradio/home";
+            return "redirect:/newstoradio/home/0";
         };
         // Йой! Щлсь пішло не так
         logger.info("============ redirect to Logout page");

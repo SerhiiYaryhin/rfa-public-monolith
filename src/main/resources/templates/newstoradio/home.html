@@ -35,17 +35,11 @@
     <header  class="py-5">
         <div class="container-fluid px-lg-5" style="padding-top: 30px">
             <div class="bg-light rounded-3 text-center">
-                <h1 class="display-5 fw-bold">Ваші подкасти</h1>
-                <div class="m-4 m-lg-5">
+                <h1 class="display-5 fw-bold">Ваші новини в прямому етері! </h1>
+                <div class="m-4 m-lg-5" style="padding-bottom: 20px">
 <!--                    <h1 class="display-5 fw-bold">Ваші подкасти</h1>-->
-                    <p class="fs-6">Подкаст - це просто. Заповніть необхідні поля, завантажте Ваші епізоди, додайте інформацію про них і опублікуйте свій подкаст. <br><b>Вітаємо! Ваш подкаст бачить весь світ!</b></p>
-                    <a class="btn btn-primary btn-lg col-6 mx-auto" href="/podcast/pedit/0">Створити</a>
-                    <hr>
-                    <a class="btn btn-primary btn-lg col-6 mx-auto" href="/podcast/getRSSFromUrl">Імпортувати</a>
-                </div>
-                <div class="m-4 m-lg-5">
-<!--                    <h1 class="display-5 fw-bold">Ваші подкасти</h1>-->
-<!--                    <p class="fs-6">Подкаст - це просто. Заповніть необхідні поля, завантажте Ваші епізоди, додайте інформацію про них і опублікуйте свій подкаст. <br><b>Вітаємо! Ваш подкаст бачить весь світ!</b></p>-->
+                    <p class="fs-6" >Новини в прямому етері! <br><b>Вашу новину почує весь світ!</b></p>
+                    <a class="btn btn-primary btn-lg col-6 mx-auto" href="/newstoradio/editnews/0">Створити</a>
                 </div>
             </div>
         </div>
@@ -59,36 +53,40 @@
                     <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
                 </div>
             </div>
-            <!-- Перелік подкастів-->
+            <!-- Перелік новин-->
             <div class="row gx-lg-5">
-                <!-- початок циклу виводу подкастів -->
-                <div th:each="podcast : ${podcastslist}" class="col-lg-6 col-xxl-4 mb-5">
-                    <div class="card bg-light border-0 h-100">
-                        <div class="card-header">
-                            <a class="mx-auto" th:href="'/podcast/pedit/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
-                                <span class="badge rounded-pill bg-primary">Редагувати</span>
-                            </a>
-                            <span th:if="${podcast.publishing}" class="badge rounded-pill bg-success" th:text="  Опубліковано  ">  Опубліковано  </span>
-                            <span th:unless="${podcast.publishing}" class="badge rounded-pill bg-dark"th:text="'  '+Чорнетка+'  '">  Чорнетка  </span>
-                            <a class="mx-auto" th:href="'/podcast/pdel/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
-                                <span class="badge rounded-pill bg-danger">Видалити</span>
-                            </a>
-                        </div>
-                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${podcast.imagechanelstore != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                                 th:id="${podcast.imagechanelstore.uuid}"/>
-<!--                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"><i class="bi bi-collection"></i></div>-->
-                            <h3 class="fs-4 fw-bold" th:text="${podcast.title}"></h3> <!-- назва подкасту -->
-<!--                                <small th:each="report : ${user.reports}" th:utext="${#strings.substringAfter(report.name,'_'}></small>-->
-                            <hr>
-                            <!-- зміст подкасту поки прибрав -->
-<!--                            <p  th:if="${podcast.description.length()>200}" class="mb-0 fs-6" th:utext="${#strings.substring(podcast.description,0,200)+'...'}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
-<!--                            <p  th:if="${podcast.description.length()<200}" class="mb-0 fs-6" th:utext="${podcast.description}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
-                            <!-- зміст подкасту -->
-                        </div>
-                    </div>
-                </div>
-                <!-- кінець циклу виводу подкастів -->
+                <!-- початок циклу виводу новин -->
+                <div th:insert="~{/fragments/common :: pagingline}"/>
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">Дата</th>
+                        <th scope="col">Заголовок</th>
+                        <th scope="col">Дія</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="new : ${viewList}">
+                        <td>
+                            <span th:text="${#dates.format(new.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                            <audio th:if="${new.storespeach} != null" th:id="'news'+${new.uuid}" controls>
+                                <source th:src="'/store/audio/'+${new.storespeach.uuid}">
+                            </audio>
+                        </td>
+                        <td>
+                            <span th:text="${new.newstitle}"/>
+                        </td>
+                        <td>
+                            <a th:if="${new.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${news.uuid} }">Редагувати</a>
+                            <a th:if="${new.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${news.uuid} }">Подивитися</a>
+                            <a th:if="${new.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/preparenews/'+${news.uuid} }">Перетворити</a>
+                            <a th:if="${new.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${news.uuid} }">В етер!</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div th:insert="~{/fragments/common :: pagingline}"/>
+                <!-- кінець циклу виводу новин -->
             </div>
         </div>
     </section>
