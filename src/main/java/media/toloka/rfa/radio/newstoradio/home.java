@@ -66,7 +66,8 @@ public class home {
 // Пейджинг для сторінки
 //        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
         Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
-        List<Store> viewList = pageStore.stream().toList();
+        List<News> viewList = pageStore.stream().toList();
+//        List<Store> tl = newsService.GetListNewsByCd(cd);
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);

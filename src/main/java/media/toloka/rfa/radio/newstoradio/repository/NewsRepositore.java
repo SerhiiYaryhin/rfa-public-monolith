@@ -12,7 +12,9 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import java.util.List;
 
 public interface NewsRepositore extends JpaRepository<News, Long>, PagingAndSortingRepository<News, Long> {
-    List<Post> findByClientdetail(Clientdetail cd);
+
+    List<News> findByClientdetail(Clientdetail cd);
+
     Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
 
     Page findAllByOrderByCreatedateDesc(Pageable storePage);
