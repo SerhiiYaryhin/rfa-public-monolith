@@ -67,7 +67,7 @@ public class home {
 //        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
         Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
-//        List<Store> tl = newsService.GetListNewsByCd(cd);
+        List<News> tl = newsService.GetListNewsByCd(cd);
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
