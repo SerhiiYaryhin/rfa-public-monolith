@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <!-- Font Awesome icons (free version)-->
+<!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
+    <!-- Google fonts-->
+<!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
+<!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <!-- Bootstrap icons-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+</head>
+<body>
+    <header>
+        <!-- Navigation-->
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    </header>
+
+    <!-- MessageBox -->
+    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+    <!-- Header для главной сторінки подкастов -->
+    <header  class="py-5">
+        <div class="container-fluid px-lg-5" style="padding-top: 30px">
+            <div class="bg-light rounded-3 text-center">
+                <h1 class="display-5 fw-bold">Ваші подкасти</h1>
+                <div class="m-4 m-lg-5">
+<!--                    <h1 class="display-5 fw-bold">Ваші подкасти</h1>-->
+                    <p class="fs-6">Подкаст - це просто. Заповніть необхідні поля, завантажте Ваші епізоди, додайте інформацію про них і опублікуйте свій подкаст. <br><b>Вітаємо! Ваш подкаст бачить весь світ!</b></p>
+                    <a class="btn btn-primary btn-lg col-6 mx-auto" href="/podcast/pedit/0">Створити</a>
+                    <hr>
+                    <a class="btn btn-primary btn-lg col-6 mx-auto" href="/podcast/getRSSFromUrl">Імпортувати</a>
+                </div>
+                <div class="m-4 m-lg-5">
+<!--                    <h1 class="display-5 fw-bold">Ваші подкасти</h1>-->
+<!--                    <p class="fs-6">Подкаст - це просто. Заповніть необхідні поля, завантажте Ваші епізоди, додайте інформацію про них і опублікуйте свій подкаст. <br><b>Вітаємо! Ваш подкаст бачить весь світ!</b></p>-->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content-->
+    <section class="pt-4">
+        <div class="container px-lg-5">
+            <div class="row text-center" style="padding-top: 20px">
+                <div class="col align-center">
+                    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+                </div>
+            </div>
+            <!-- Перелік подкастів-->
+            <div class="row gx-lg-5">
+                <!-- початок циклу виводу подкастів -->
+                <div th:each="podcast : ${podcastslist}" class="col-lg-6 col-xxl-4 mb-5">
+                    <div class="card bg-light border-0 h-100">
+                        <div class="card-header">
+                            <a class="mx-auto" th:href="'/podcast/pedit/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
+                                <span class="badge rounded-pill bg-primary">Редагувати</span>
+                            </a>
+                            <span th:if="${podcast.publishing}" class="badge rounded-pill bg-success" th:text="  Опубліковано  ">  Опубліковано  </span>
+                            <span th:unless="${podcast.publishing}" class="badge rounded-pill bg-dark"th:text="'  '+Чорнетка+'  '">  Чорнетка  </span>
+                            <a class="mx-auto" th:href="'/podcast/pdel/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
+                                <span class="badge rounded-pill bg-danger">Видалити</span>
+                            </a>
+                        </div>
+                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                            <img class="img-fluid" th:if="${podcast.imagechanelstore != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                                 th:id="${podcast.imagechanelstore.uuid}"/>
+<!--                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"><i class="bi bi-collection"></i></div>-->
+                            <h3 class="fs-4 fw-bold" th:text="${podcast.title}"></h3> <!-- назва подкасту -->
+<!--                                <small th:each="report : ${user.reports}" th:utext="${#strings.substringAfter(report.name,'_'}></small>-->
+                            <hr>
+                            <!-- зміст подкасту поки прибрав -->
+<!--                            <p  th:if="${podcast.description.length()>200}" class="mb-0 fs-6" th:utext="${#strings.substring(podcast.description,0,200)+'...'}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
+<!--                            <p  th:if="${podcast.description.length()<200}" class="mb-0 fs-6" th:utext="${podcast.description}">Тут ми показуємо короткий опис (обрізаний) подкасту. Спробуємо обрізати засобами шаблонізатора і подивимося, що з цього вийде. </p>-->
+                            <!-- зміст подкасту -->
+                        </div>
+                    </div>
+                </div>
+                <!-- кінець циклу виводу подкастів -->
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+    <!-- Footer -->
+    <div th:insert="~{/fragments/common :: footer}">  </div>
+
+    <!-- Footer -->
+
+    <div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
+
+
+    <!-- різні скріпти -->
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

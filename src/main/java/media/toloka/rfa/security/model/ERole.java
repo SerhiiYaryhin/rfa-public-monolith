@@ -12,7 +12,8 @@ public enum ERole {
     ROLE_MODERATOR("ROLE_MODERATOR"),   // 3
     ROLE_EDITOR("ROLE_EDITOR"),         // 4
     ROLE_ADMIN("ROLE_ADMIN"),           // 5
-    ROLE_TELEGRAM("ROLE_TELEGRAM");
+    ROLE_TELEGRAM("ROLE_TELEGRAM"),     //6
+    ROLE_NEWSTORADIO("ROLE_NEWSTORADIO"); // 7
 
     public final String label;
 

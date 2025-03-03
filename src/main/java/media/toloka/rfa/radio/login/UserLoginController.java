@@ -4,6 +4,7 @@ package media.toloka.rfa.radio.login;
 // реєстрація користувача https://www.baeldung.com/registration-verify-user-by-email
 
 //import jakarta.mail.MessagingException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,7 +70,7 @@ public class UserLoginController {
 
     Logger logger = LoggerFactory.getLogger(UserLoginController.class);
 
-//    @Data
+    //    @Data
     @Getter
     @Setter
     public class formUser {
@@ -85,6 +86,7 @@ public class UserLoginController {
         ERole type;
         String value;
     }
+
     @Getter
     @Setter
     public class listLineChooseRole {
@@ -93,9 +95,8 @@ public class UserLoginController {
     }
 
 
-
     @GetMapping(value = "/login/route")
-    public String userRouter (
+    public String userRouter(
             HttpServletRequest request,
             Model model
     ) {
@@ -111,7 +112,7 @@ public class UserLoginController {
             remoteAddr = request.getRemoteAddr();
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        logger.info("IP={} Користувач {} {} company: {}",remoteAddr,cd.getCustname(),cd.getCustsurname(),cd.getFirmname());
+        logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
 //        String remip = request.getRemoteAddr();
 
         if (clientService.checkRole(ROLE_ADMIN)) {
@@ -121,9 +122,9 @@ public class UserLoginController {
 //            return "redirect:/moderator/home";
         } else if (clientService.checkRole(ROLE_EDITOR)) {
             return "redirect:/editor/home";
-        } else if (clientService.checkRole (ROLE_CREATER)) {
+        } else if (clientService.checkRole(ROLE_CREATER)) {
             return "redirect:/creater/home";
-        } else if (clientService.checkRole (ROLE_USER)) {
+        } else if (clientService.checkRole(ROLE_USER)) {
             return "redirect:/user/user_page";
         } else if (clientService.checkRole(ROLE_UNKNOWN)) {
             return "redirect:/messenger";
@@ -133,11 +134,14 @@ public class UserLoginController {
                 // Тож, потрібно зробити вибір між ROLE_CREATER та ROLE_USER
                 return "redirect:/login/setrole";
             }
-        } ;
+        } else if (clientService.checkRole(ROLE_NEWSTORADIO)) {
+            return "redirect:/newstoradio/home";
+        };
         // Йой! Щлсь пішло не так
         logger.info("============ redirect to Logout page");
         return "redirect:/logout";
     }
+
     // Якщо користуач зареєструвався через телеграм, то він повинен обрати між радіо та музикантом.
     // ROLE_CREATER та ROLE_USER
     @GetMapping("/login/setrole")
@@ -163,7 +167,7 @@ public class UserLoginController {
             @ModelAttribute listLineChooseRole chooserole,
             Model model
     ) {
-        logger.info("==========: {}",chooserole.getValue());
+        logger.info("==========: {}", chooserole.getValue());
         Users user = clientService.GetCurrentUser();
         Roles roles = new Roles();
         roles.setRole(chooserole.getValue());
@@ -181,7 +185,6 @@ public class UserLoginController {
         model.addAttribute("user", new Users());
         return "/login/registerRadioUser";
     }
-
 
 
     @GetMapping("/login/registerCreater")
@@ -209,13 +212,13 @@ public class UserLoginController {
             // додали групу для користувача
             // Роль беремо зі форми. Визначається статусом радіобутона.
             Roles role = new Roles();
-                    role.setRole(ROLE_USER);
-                    newUser.setRoles(new ArrayList<Roles>());
-                    newUser.getRoles().add(role);
+            role.setRole(ROLE_USER);
+            newUser.setRoles(new ArrayList<Roles>());
+            newUser.getRoles().add(role);
             // зберігаємо користувача в базу
             newUser.setPassword("*");
             newUser.setEmail(formuser.getEmail());
-            clientService.CreateClientsDetail(newUser,formuser.getCustname(),formuser.getCustsurname());
+            clientService.CreateClientsDetail(newUser, formuser.getCustname(), formuser.getCustsurname());
             clientService.SaveUser(newUser);
             String token = UUID.randomUUID().toString();
             serviceToken.createVerificationToken(newUser, token);
@@ -229,7 +232,7 @@ public class UserLoginController {
             mail.setSubject("Радіо для Всіх! Підтвердження реєстрації Вашої радіостанції на порталі \"Радіо для Всіх!\".");
             Map<String, Object> map1 = new HashMap<String, Object>();
 //                map1.put("name",(Object) userDTO.getEmail());
-                map1.put("name", (Object) newUser.getClientdetail().getCustname() + " " + newUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
+            map1.put("name", (Object) newUser.getClientdetail().getCustname() + " " + newUser.getClientdetail().getCustsurname()); // сформували імʼя та призвище для листа
             map1.put("confirmationUrl", (Object) "https://rfa.toloka.media/login/setUserPassword?token=" + token); // сформували для переходу адресу з токеном
             mail.setHtmlTemplate(new Mail.HtmlTemplate("/mail/registerSetPassword", map1)); // заповнили обʼєкт для відсилання пошти
             // пробуємо надіслати
@@ -271,13 +274,13 @@ public class UserLoginController {
             // додали групу для користувача
             // Роль беремо зі форми. Визначається статусом радіобутона.
             Roles role = new Roles();
-                    role.setRole(ROLE_CREATER);
-                    newUser.setRoles(new ArrayList<Roles>());
-                    newUser.getRoles().add(role);
+            role.setRole(ROLE_CREATER);
+            newUser.setRoles(new ArrayList<Roles>());
+            newUser.getRoles().add(role);
             // зберігаємо користувача в базу
             newUser.setPassword("*");
             newUser.setEmail(formuser.getEmail());
-            clientService.CreateClientsDetail(newUser,formuser.getCustname(),formuser.getCustsurname());
+            clientService.CreateClientsDetail(newUser, formuser.getCustname(), formuser.getCustsurname());
             clientService.SaveUser(newUser);
             String token = UUID.randomUUID().toString();
             serviceToken.createVerificationToken(newUser, token);
@@ -336,7 +339,7 @@ public class UserLoginController {
         // Забираємо з форми email користувача
         String email = userDTO.getEmail();
         // намагаємося знайти пошту в базі кристувачів
-        Users  user = clientService.GetUserByEmail(email);
+        Users user = clientService.GetUserByEmail(email);
         // перевіряємо, чи є цей емайл в базі
         if (user != null) {  // користувач є в базі
             // формуємо токен та зберігаємо в базу
@@ -349,7 +352,7 @@ public class UserLoginController {
             mail.setSubject("Радіо для Всіх! Відновлення паролю користувача.");
             Map<String, Object> map1 = new HashMap<String, Object>();
             Token token; // = tokenRepo.findByUser(user);
-            if(serviceToken.findByUser(user) == null) {
+            if (serviceToken.findByUser(user) == null) {
                 serviceToken.createVerificationToken(user, UUID.randomUUID().toString());
             }
             token = serviceToken.findByUser(user);
@@ -362,13 +365,12 @@ public class UserLoginController {
             map1.put("confirmationUrl", (Object) "https://rfa.toloka.media/login/setUserPassword?token=" + token.getToken()); // сформували для переходу адресу з токеном
             mail.setHtmlTemplate(new Mail.HtmlTemplate("/mail/restorePsw", map1)); // заповнили обʼєкт для відсилання пошти
             // TODO потрібно зробити нормальну обробку помилок пошти
-            logger.info("Відправляємо лист для відновлення паролю {} userId={}",fname,user.getId());
+            logger.info("Відправляємо лист для відновлення паролю {} userId={}", fname, user.getId());
             try {
                 emailSenderService.sendEmail(mail);
                 historyService.saveHistory(History_UserSendMailSetPassword, mail.getTo(), user);
 
-            }
-            catch (MessagingException e) {
+            } catch (MessagingException e) {
                 System.out.println("========================== mail MessagingException");
                 model.addAttribute("msg", "На пошту '" + email + "' не надіслано лист. ");
                 return "redirect:/error";
