@@ -35,13 +35,8 @@
     </div>
     <div class="row" style="padding-top: 20px">
         <div class="col-lg-9 col-sm-12">
-<!--            <form th:action="@{ ${ curnews.uuid == null ? @{'/newstoradio/editnews/0'} : @{'/newstoradio/editnews/'+${curnews.uuid} } } }" method="post" th:object="${curnews}">-->
-<!--            <form th:action="@{ ${ curnews.uuid == null ? @{'/newstoradio/editnews/0'} : @{'/newstoradio/editnews/'+${curnews.uuid} } } }" method="post" th:object="${curnews}">-->
-<!--            <form th:action="@{${curnews.uuid == null ? '/newstoradio/editnews/0' : ('/newstoradio/editnews/'+'${curnews.uuid})}" method="post" th:object="${curnews}">-->
-<!--            <form th:action="@{'/newstoradio/editnews/0'}" method="post" th:object="${curnews}">-->
-<!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews/'+${curnews.uuid})"-->
-            <form th:action="@{'/newstoradio/posteditnews'}" method="post" th:object="${curnews}">
-                <input type="hidden" th:field="*{uuid}"/>
+            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}">
+                <input type="hidden" th:field="${curnews.uuid}"/>
 
                 <span>Станція:</span>
                 <select th:field="*{station}">
@@ -59,10 +54,10 @@
                 <hr>
                 <span>Заголовок новини</span>
                 <input th:field="*{newstitle}" type="text" class="form-control"/>
-<!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
+                <!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
                 <span>Новина</span>
-                <div >
-                    <textarea th:field="*{newsbody}" class="form-control"  rows="10" />
+                <div>
+                    <textarea th:field="*{newsbody}" class="form-control" rows="10"/>
                 </div>
                 <hr>
                 <button type="submit" class="btn btn-primary btn-lg btn-block">
