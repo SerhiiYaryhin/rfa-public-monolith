@@ -4,7 +4,8 @@
     grant all privileges on database rfa to rfa;
 2. Робимо користувача власником бази даних
     ALTER DATABASE rfa OWNER TO rfa;
-3. додаємо віртуальний хост до RabbitMQ /usr/sbin/rabbitmqctl add_vhost "/rfa"
+3. додаємо віртуальний хост до RabbitMQ
+    /usr/sbin/rabbitmqctl add_vhost "/rfa"
 4. додаємо користувача до RabbitMQ /usr/sbin/rabbitmqctl add_user "usr-NAME" "USR-PSW"
     /usr/sbin/rabbitmqctl add_user "rfa" "toloka2_2018"
 5. Надаємо повноваження /usr/sbin/rabbitmqctl set_permissions -p "VHost" "usr-NAME" ".*" ".*" ".*"

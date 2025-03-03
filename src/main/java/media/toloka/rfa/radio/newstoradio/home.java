@@ -3,17 +3,13 @@ package media.toloka.rfa.radio.newstoradio;
 
 import media.toloka.rfa.radio.client.ClientHomeController;
 import media.toloka.rfa.radio.client.service.ClientService;
-import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.Station;
-import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,9 +103,10 @@ public class home {
         return "/newstoradio/editnews";
     }
 
-    @PostMapping(value = "/newstoradio/editnews/{uuidNews}")
-    public String postCreaterEditPost(
-            @PathVariable String uuidNews,
+    //    @PostMapping(value = "/newstoradio/editnews/{uuidNews}")
+    @PostMapping(value = "/newstoradio/posteditnews")
+    public String postCreateEditNews(
+//            @PathVariable String uuidNews,
             @ModelAttribute News fnews,
             Model model) {
         Users user = clientService.GetCurrentUser();
@@ -118,7 +115,12 @@ public class home {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        News news = newsService.GetByUUID(uuidNews);
+//        News news = newsService.GetByUUID(uuidNews);
+
+        News news = null;
+        if (fnews.getUuid() != null) {
+            news = newsService.GetByUUID(fnews.getUuid());
+        }
         if (news != null) {
             news.setCategory(fnews.getCategory());
             news.setNewstitle(fnews.getNewstitle());
@@ -134,12 +136,11 @@ public class home {
             news.setNewsbody(fnews.getNewsbody());
         }
 
-        if(news !=null)newsService.Save(news);
+        if (news != null) newsService.Save(news);
 
-        return"redirect:/newstoradio/home/0";
+        return "redirect:/newstoradio/home/0";
 
-}
-
+    }
 
 
 }
