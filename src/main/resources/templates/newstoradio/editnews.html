@@ -1,10 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
 <head>
-    <meta charset="UTF-8">
-    <title>Редагуємо новину</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <!--    TinyMCE-->
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
+            referrerpolicy="origin"></script>
+
 </head>
 <body>
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+<h1>Редагуємо новину</h1>
+<div class="container-fluid">
+    <div class="row text-center" style="padding-top: 20px">
+        <div class="col align-center">
+            <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+        </div>
+    </div>
+    <div class="row" style="padding-top: 20px">
+        <div class="col-lg-9 col-sm-12">
+            <form th:action="@{'/newstoradio/editnews/' + ${curnews.uuid} }" method="post" th:object="${curnews}">
+                <input type="hidden" th:field="${curnews.uuid}"/>
 
+                <span>Станція:</span>
+                <select th:field="*{station}">
+                    <option th:each="item: ${liststation}"
+                            th:value="${item.uuid}"
+                            th:text="${item.name}"/>
+                </select>
+
+                <span>Розділ:</span>
+                <select th:field="*{category}">
+                    <option th:each="item: ${categorys}"
+                            th:value="${item.name}"
+                            th:text="${item.label}"/>
+                </select>
+                <hr>
+                <span>Заголовок новини</span>
+                <input th:field="*{newstitle}" type="text" class="form-control"/>
+<!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
+<!--                <br>-->
+                <div style="padding-top: 20px">
+                    <textarea th:field="*{newsbody}" class="form-control"  rows="10" />
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    Зберегти
+                </button>
+            </form>
+        </div>
+        <div class="col-lg-3 col-sm-12">
+            <!--                    вставляем Медіа Хаб-->
+        </div>
+    </div>
+
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .requestMatchers("/editor/**").hasAuthority("Editor,Admin")
                 .requestMatchers("/moderator/**").hasAuthority("Moderator,Admin")
                 .requestMatchers("/upload/**").hasAuthority("User,Creator,Admin,Editor,Moderator")
+                .requestMatchers("/newstoradio/**").hasAuthority("User,Creator,Admin,Editor,Moderator")
 //                .requestMatchers("/upload/music/**").hasAnyAuthority("Editor,User,Admin,Creator")
                 .anyRequest().authenticated();
                 //.anyRequest().permitAll();

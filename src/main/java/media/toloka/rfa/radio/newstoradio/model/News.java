@@ -6,35 +6,40 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.PostCategory;
-import media.toloka.rfa.radio.model.enumerate.EPostCategory;
-import media.toloka.rfa.radio.model.enumerate.EPostStatus;
+import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.store.model.Store;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static media.toloka.rfa.radio.newstoradio.model.ENewsCategory.NEWS_CATEGORY_NEWS;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id")})
 public class News {
     @Id
-    @GeneratedValue
+    @UuidGenerator
+//    @GeneratedValue(strategy = GenerationType.AUTO)
     @Expose
-    private String uuid= UUID.randomUUID().toString();
-    @Expose
+    private String uuid ; // = UUID.randomUUID().toString();
+//    @Expose
     private Long id;
-    @Expose
+//    @Expose
     private String newstitle ="";
-    @Expose
+//    @Expose
     @Column(columnDefinition = "TEXT")
-    private String newsbody;
-    @Expose
+    private String newsbody = "";
+//    @Expose
     private Date createdate = new Date();
-    @Expose
+//    @Expose
     private ENewsCategory category = NEWS_CATEGORY_NEWS;
+
+    @ToString.Exclude
+    @OneToOne(cascade = {CascadeType.ALL})
+    private Station station;
 
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
@@ -44,7 +49,7 @@ public class News {
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
-    @Expose
+//    @Expose
     private Long looked = 0L; // скільки разів подивилися
 
     @PrePersist

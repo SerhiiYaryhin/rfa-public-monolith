@@ -23,4 +23,8 @@ public class NewsService {
     public News GetByUUID(String uuidnews) {
         return newsRepositore.getByUuid(uuidnews);
     }
+
+    public void Save(News fnews) {
+        newsRepositore.save(fnews);
+    }
 }

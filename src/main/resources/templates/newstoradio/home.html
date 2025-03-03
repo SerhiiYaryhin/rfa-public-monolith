@@ -62,25 +62,29 @@
                     <tr>
                         <th scope="col">Дата</th>
                         <th scope="col">Заголовок</th>
+                        <th scope="col">Станція</th>
                         <th scope="col">Дія</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="new : ${viewList}">
+                    <tr th:each="lnew : ${viewList}">
                         <td>
-                            <span th:text="${#dates.format(new.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
-                            <audio th:if="${new.storespeach} != null" th:id="'news'+${new.uuid}" controls>
-                                <source th:src="'/store/audio/'+${new.storespeach.uuid}">
+                            <span th:text="${#dates.format(lnew.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                            <audio th:if="${lnew.storespeach} != null" th:id="'news'+${lnew.uuid}" controls>
+                                <source th:src="'/store/audio/'+${lnew.storespeach.uuid}">
                             </audio>
                         </td>
                         <td>
-                            <span th:text="${new.newstitle}"/>
+                            <span th:if="${lnew.station} != null" th:text="${lnew.newstitle}"/>
                         </td>
                         <td>
-                            <a th:if="${new.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${news.uuid} }">Редагувати</a>
-                            <a th:if="${new.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${news.uuid} }">Подивитися</a>
-                            <a th:if="${new.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/preparenews/'+${news.uuid} }">Перетворити</a>
-                            <a th:if="${new.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${news.uuid} }">В етер!</a>
+                            <span th:text="${lnews.station.name}"
+                        </td>
+                        <td>
+                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${lnew.uuid} }">Редагувати</a>
+                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${lnew.uuid} }">Подивитися</a>
+                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/preparenews/'+${lnew.uuid} }">Перетворити</a>
+                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${lnew.uuid} }">В етер!</a>
                         </td>
                     </tr>
                     </tbody>

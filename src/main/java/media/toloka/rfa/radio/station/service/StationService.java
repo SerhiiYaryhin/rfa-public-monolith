@@ -292,6 +292,10 @@ public class StationService {
 
     }
 
+    public List<Station> GetListStationByCd(Clientdetail cd) {
+        return stationRepo.findStationByClientdetail(cd);
+    }
+
 //    public void saveStation(Station station) {
 ////        Users user = serviceUser.GetCurrentUser();
 ////        if (station.getUser() == null) {

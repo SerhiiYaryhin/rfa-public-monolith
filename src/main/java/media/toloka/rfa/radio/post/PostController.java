@@ -98,9 +98,6 @@ public class PostController {
         for (PostCategory pc : postService.getPostCategory()) {
             if (pc.getParent() == null) {
                 postcategory.add(pc);
-//                logger.info("видаляємо {}",pc);
-//                Boolean pcr = postcategory.remove(pc);
-//                logger.info("видалили {}",pcr);
             }
         }
 
