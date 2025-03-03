@@ -35,8 +35,10 @@
     </div>
     <div class="row" style="padding-top: 20px">
         <div class="col-lg-9 col-sm-12">
-            <form th:action="@{'/newstoradio/editnews/' + ${curnews.uuid} }" method="post" th:object="${curnews}">
-                <input type="hidden" th:field="${curnews.uuid}"/>
+            <form th:action="@{${curnews.uuid == null ? '/newstoradio/editnews/0' : ('/newstoradio/editnews/'+${curnews.uuid})}}" method="post" th:object="${curnews}">
+<!--            <form th:action="@{${curnews.uuid == null ? '/newstoradio/editnews/0' : ('/newstoradio/editnews/'+'${curnews.uuid})}" method="post" th:object="${curnews}">-->
+<!--            <form th:action="@{'/newstoradio/editnews/0'}" method="post" th:object="${curnews}">-->
+                <input type="hidden" th:if="${curnews.uuid} != null" th:field="${curnews.uuid}"/>
 
                 <span>Станція:</span>
                 <select th:field="*{station}">
