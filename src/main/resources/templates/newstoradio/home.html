@@ -63,6 +63,7 @@
                         <th scope="col">Дата</th>
                         <th scope="col">Заголовок</th>
                         <th scope="col">Станція</th>
+                        <th scope="col">Стан</th>
                         <th scope="col">Дія</th>
                     </tr>
                     </thead>
@@ -75,15 +76,18 @@
                             </audio>
                         </td>
                         <td>
-                            <span th:if="${lnew.station} != null" th:text="${lnew.newstitle}"/>
+                            <span th:text="${lnew.newstitle}"/>
                         </td>
                         <td>
-                            <span th:text="${lnews.station.name}"
+                            <span th:if="${lnew.station} != null" th:text="${lnew.station.name} "/>
+                        </td>
+                        <td>
+                            <span th:if="${lnew.status} != null" th:text="${lnew.status.label} "/>
                         </td>
                         <td>
                             <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${lnew.uuid} }">Редагувати</a>
                             <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${lnew.uuid} }">Подивитися</a>
-                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/preparenews/'+${lnew.uuid} }">Перетворити</a>
+                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/ttsprepare/'+${lnew.uuid} }">Перетворити</a>
                             <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${lnew.uuid} }">В етер!</a>
                         </td>
                     </tr>

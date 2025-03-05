@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static media.toloka.rfa.radio.newstoradio.model.ENewsCategory.NEWS_CATEGORY_NEWS;
+import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
 
 @Data
 @Entity
@@ -22,7 +23,6 @@ import static media.toloka.rfa.radio.newstoradio.model.ENewsCategory.NEWS_CATEGO
 public class News {
     @Id
     @UuidGenerator
-//    @GeneratedValue(strategy = GenerationType.AUTO)
     @Expose
     private String uuid ; // = UUID.randomUUID().toString();
 //    @Expose
@@ -36,6 +36,9 @@ public class News {
     private Date createdate = new Date();
 //    @Expose
     private ENewsCategory category = NEWS_CATEGORY_NEWS;
+
+    private ENewsStatus status = NEWS_STATUS_CREATE;
+    private Date datechangestatus = new Date();
 
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})

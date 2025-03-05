@@ -18,8 +18,8 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
     <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
-            referrerpolicy="origin"></script>
+<!--    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"-->
+<!--            referrerpolicy="origin"></script>-->
 
 </head>
 <body>
@@ -34,14 +34,15 @@
         </div>
     </div>
     <div class="row" style="padding-top: 20px">
-        <div class="col-lg-9 col-sm-12">
-            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}">
+        <div class="col-lg-9 col-sm-12" th:object="${curnews}">
+<!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
+            <form th:action="@{/newstoradio/editnews}"  method="post" th:object="${curnews}">
                 <input type="hidden" th:field="${curnews.uuid}"/>
 
                 <span>Станція:</span>
                 <select th:field="*{station}">
                     <option th:each="item: ${liststation}"
-                            th:value="${item.uuid}"
+                            th:value="${item.id}"
                             th:text="${item.name}"/>
                 </select>
 
@@ -51,6 +52,7 @@
                             th:value="${item.name}"
                             th:text="${item.label}"/>
                 </select>
+                <br><span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
                 <hr>
                 <span>Заголовок новини</span>
                 <input th:field="*{newstitle}" type="text" class="form-control"/>
