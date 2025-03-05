@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,8 +39,8 @@ import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
 @Controller
 public class home {
 
-    //    @Value("${rabbitmq.sstqueue}")
-    private String queueTTS ="TTS";
+    @Value("${rabbitmq.queueTTS}")
+    private String queueTTS;
 
     @Autowired
     RabbitTemplate template;
@@ -85,10 +86,12 @@ public class home {
 //            curnews.setNewsbody("");
 //            curnews.setNewstitle("");
             //
-            String strStation = gnews.toJson(curnews).toString();
+            String strnews = gnews.toJson(curnews).toString();
+            rjob.setRjobdata(curnews.getUuid());
 
             Gson gson = gsonService.CreateGson();
             String strgson = gson.toJson(rjob).toString();
+            logger.info("==== queue TTS={}",queueTTS);
             template.convertAndSend(queueTTS,gson.toJson(rjob).toString());
             model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
             curnews.setStatus(ENewsStatus.NEWS_STATUS_SEND);

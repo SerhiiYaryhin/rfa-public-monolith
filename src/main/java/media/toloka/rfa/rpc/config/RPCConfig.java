@@ -17,6 +17,8 @@ public class RPCConfig {
 
     @Value("${rabbitmq.queue}")
     private String queueName;
+    @Value("${rabbitmq.queueTTS}")
+    private String queueTTS;
     @Value("${rabbitmq.exchange}")
     private String exchange;
     @Value("${rabbitmq.routingkey}")
@@ -40,7 +42,6 @@ public class RPCConfig {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        // TODO разобратися з параметрами конфігурації. Зараз не бере з файлу application.property
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(host);
         connectionFactory.setUsername(username);
         connectionFactory.setPassword(password);
@@ -71,14 +72,24 @@ public class RPCConfig {
         return rabbitTemplate;
     }
 
+//    @Bean
+//    public RabbitTemplate rabbitTTSTemplate() {
+//        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+//        rabbitTemplate.setDefaultReceiveQueue(queueTTS);
+//        rabbitTemplate.setReplyTimeout(replyTimeout);
+//        //no reply to - we use direct-reply-to
+//        return rabbitTemplate;
+//    }
+
+
     @Bean
     public Queue myQueue() {
         return new Queue(queueName);
     }
 
-
-
-
-
+    @Bean
+    public Queue myQueueTTS() {
+        return new Queue(queueTTS);
+    }
 
 }
