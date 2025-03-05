@@ -124,7 +124,7 @@ public class ServerRunnerService {
         // 2. якщо ще залишилися завдання, то ставимо в чергу на виконання.
 
         if (rpcjob.getJobchain().isEmpty()) {
-            logger.info("Результат виконання Завдання: {}",rpcjob.getJobresilt().toString());
+            logger.info("Результат виконання Завдання: {}",rpcjob.getResultJobList().toString());
             return;
         }
         // якщо в черзі є елементи, то відправляємо на виконання вибираючи з черги черговий елемент.

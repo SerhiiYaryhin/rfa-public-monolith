@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.security.model.Users;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
@@ -24,7 +23,7 @@ public class RPCJob {
     @Expose
     private String rjobdata;
     @Expose
-    private List<ResultJob> jobresilt = new ArrayList<>();
+    private List<ResultJob> resultJobList = new ArrayList<>();
 
     public RPCJob() {
         this.rjobdate = new Date();

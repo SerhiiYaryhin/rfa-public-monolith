@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StatiionCreate;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
 
 @Service
 public class RPCService {
@@ -91,7 +91,7 @@ public class RPCService {
         // записуємо подію в журнал.
         String sCreateDate = newRadio.getCreatedate().toString();
         String suuid = newRadio.getUuid().toString();
-        historyService.saveHistory(History_StatiionCreate,
+        historyService.saveHistory(History_StationCreate,
                 newRadio.getCreatedate().toString() + " Create " + newRadio.getUuid().toString(),
                 user
                 );

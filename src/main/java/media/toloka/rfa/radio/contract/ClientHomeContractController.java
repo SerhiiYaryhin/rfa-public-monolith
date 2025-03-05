@@ -27,7 +27,7 @@ import java.util.UUID;
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_FREE;
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_PAY;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_UserCreateContract;
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StatiionChange;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationChange;
 
 
 @Slf4j
@@ -117,7 +117,7 @@ public class ClientHomeContractController {
         Station station = stationService.GetStationById(id);
         station.setContract(null);
         stationService.saveStation(station);
-        historyService.saveHistory(History_StatiionChange,
+        historyService.saveHistory(History_StationChange,
                 " Видалили станцію "+ station.getUuid()
                 + " з контракту " + contract.getUuid(),
                 user);
@@ -160,7 +160,7 @@ public class ClientHomeContractController {
         } else {
             station.setContract(contract);
             stationService.saveStation(station);
-            historyService.saveHistory(History_StatiionChange,
+            historyService.saveHistory(History_StationChange,
                     " Додали станцію "+ station.getUuid()
                             + " до контракту " + contract.getUuid(),
                     user);

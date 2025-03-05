@@ -17,13 +17,13 @@ public enum EHistoryType {
     History_UserSuspend("UserSuspend"),
     Hisrory_UserLock("UserLock"),
     Hisrory_UserUnLock("UserUnLock"),
-    History_StatiionCreate("StationCreate"),
-    History_StatiionChange("StationChange"),
-    History_StatiionPrepare("StationPrepare"),
-    History_StatiionChangeStatus("StationChangeStatus"),
-    History_StatiionChangeName("StationChangeName"),
-    History_StatiionStart("StationStart"),
-    History_StatiionStop("StationStop"),
+    History_StationCreate("StationCreate"),
+    History_StationChange("StationChange"),
+    History_StationPrepare("StationPrepare"),
+    History_StationChangeStatus("StationChangeStatus"),
+    History_StationChangeName("StationChangeName"),
+    History_StationStart("StationStart"),
+    History_StationStop("StationStop"),
     History_DocumentCreate("DocumentCreate"),
     History_DocumentChange("DocumentChange"),
     History_DocumentConfirm("DocumentConfirm"),
@@ -38,7 +38,13 @@ public enum EHistoryType {
     History_ContractReject("ContractReject"),
     History_PostPublicate("History_PostPublicate"),
     History_PostDelete("History_PostDelete"),
-    History_PostReject("History_PostReject");
+    History_PostReject("History_PostReject"),
+    History_NewsCreate("Створено новину"),
+    History_NewsSendToTTS("Новину відправлено на TTS"),
+    History_NewsTTSReady("Отримано файл з перетвореним голосом."),
+    History_NewsSendToRadio("Текстову новину відправлено в ефір станції."),
+    History_NewsTTSError("Помилка перетворення тексту на голос."),
+    History_EndList("Помилка перетворення тексту на голос.");
 
 
     public final String label;

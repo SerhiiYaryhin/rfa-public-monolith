@@ -31,7 +31,7 @@ import java.util.Date;
 import org.springframework.security.crypto.codec.Hex;
 
 
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StatiionChange;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationChange;
 import static media.toloka.rfa.rpc.model.ERPCJobType.*;
 
 @Controller
@@ -301,7 +301,7 @@ public class ClientHomeStationController {
         nstation.setIcecastsite(station.getIcecastsite());
         nstation.setLastchangedate(new Date());
         stationService.saveStation(nstation);
-        historyService.saveHistory(History_StatiionChange,
+        historyService.saveHistory(History_StationChange,
                 nstation.getUuid().toString() + ": " +nstation.getLastchangedate().toString() + " Збережено станцію " + nstation.getUuid().toString(),
                 user
         );
@@ -438,7 +438,7 @@ public class ClientHomeStationController {
         String strgson = gson.toJson(rjob).toString();
         template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
         model.addAttribute("success", "Вам надіслано листа на підтвердження видалення станції. Будь ласка, підтвердіть видалення");
-        historyService.saveHistory(History_StatiionChange,
+        historyService.saveHistory(History_StationChange,
                 station.getUuid().toString() + ":  Надіслано запит на видалення станції ",
                 user
         );

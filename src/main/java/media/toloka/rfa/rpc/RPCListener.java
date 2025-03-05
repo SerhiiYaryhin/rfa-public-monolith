@@ -46,51 +46,51 @@ Logger logger = LoggerFactory.getLogger(RPCListener.class);
             case JOB_STATION_CREATE:  // Заповнюємо базу необхідною інформацією
                 logger.info("+++++++++++++++++ START JOB_STATION_CREATE");
                 rc = serviceRPC.JobCreateStation(rjob); // from Client Page. Next step
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++ END JOB_STATION_CREATE");
                 break;
             case JOB_STATION_ALLOCATE: // розміщуємо каталоги на сервері, створюємо базу, користувачів у Postgresql та Rabbit.
                 logger.info("+++++++++++++++++ START JOB_STATION_ALLOCATE");
                 rc = serverRunnerService.AllocateStationOnServer(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++ END JOB_STATION_ALLOCATE");
                 break;
             case JOB_STATION_LIBRETIME_MIGRATE: // Після розміщення станції запускаємо першу процедуру міграції
                 rc = serverRunnerService.StationMigrateLibretimeOnInstall(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_LIBRETIME_MIGRATE");
                 break;
             case JOB_STATION_PREPARE_NGINX:
                 rc = serverRunnerService.StationPrepareNginx(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_PREPARE_NGINX");
                 break;
             case JOB_STATION_START:
                 rc = serverRunnerService.StationStart(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_START");
                 break;
             case JOB_STATION_STOP:
                 rc = serverRunnerService.StationStop(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_STOP");
                 break;
             case JOB_STATION_DELETE:
                 // todo написати видалення станції
                 rc = -10255L;
                 rc = serverRunnerService.StationDelete(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_DELETE");
                 break;
 
             case JOB_STATION_GET_PS:
                 rc = serverRunnerService.StationGetPS(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_GET_PS");
                 break;
             case JOB_STATION_SETPASSWORD: // set admin password for LibreTime
                 rc = serverRunnerService.StationSetPSW(rjob);
-                rjob.getJobresilt().add(new ResultJob(rc, curJob));
+                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++  JOB_STATION_SET_STATION_NEW_PASSWORD");
                 break;
             case JOB_CONTRACT_CREATE:

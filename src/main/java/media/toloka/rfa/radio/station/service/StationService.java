@@ -25,7 +25,7 @@ import java.util.*;
 
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_FREE;
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_PAY;
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StatiionCreate;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
 
 @Service
 @Transactional
@@ -98,7 +98,7 @@ public class StationService {
             clientService.SaveClientDetail(clientdetail);
 //            saveStation(station);
             // TODO запис в журнал
-            historyService.saveHistory(History_StatiionCreate, " Нова станція: "+station.getUuid(), clientdetail.getUser());
+            historyService.saveHistory(History_StationCreate, " Нова станція: "+station.getUuid(), clientdetail.getUser());
             return station;
 
     }
