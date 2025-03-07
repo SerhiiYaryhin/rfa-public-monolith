@@ -9,7 +9,7 @@ from nltk.tokenize import sent_tokenize
 
 tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" для швидшої генерації
 
-with open("/tmp/"+sys.argv[1]+".txt", "r", encoding="utf-8") as f:
+with open("/tmp/"+sys.argv[1]+".tts", "r", encoding="utf-8") as f:
     text = f.read()
 
 sentences = sent_tokenize(text, language="russian")  # Для української використовуємо "russian"
