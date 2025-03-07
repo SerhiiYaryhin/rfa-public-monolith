@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
+import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.radio.station.service.StationService;
@@ -18,10 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.Map;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
@@ -57,6 +56,8 @@ public class RPCSpeachService {
     @Autowired
     RabbitTemplate template;
 
+//    @Value("${media.toloka.rfa.server.runTxtToMp3}")
+    private String runTxtToMp3 = "~/bin/runTxtToMp3.sh ";
 
     @Value("${rabbitmq.queueTTS}")
     private String queueTTS;
@@ -179,7 +180,30 @@ public class RPCSpeachService {
     }
 
     public Long RunTxtToMp3(String sUuidNews) {
-        return 0L;
+        Long rc = 129L;
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", runTxtToMp3+sUuidNews);
+        Map<String, String> env = pb.environment();
+
+        pb.redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.info(line);
+            }
+            int exitcode = p.waitFor();
+            rc = Long.valueOf(exitcode);
+        } catch (IOException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
+            e.printStackTrace();
+        } catch (InterruptedException e){
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+            e.printStackTrace();
+        }
+        //================================================================
+        // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
+        return rc;
     }
 
     public Long PutMp3ToStore(String sUuidNews) {
