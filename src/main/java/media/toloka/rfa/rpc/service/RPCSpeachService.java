@@ -77,21 +77,21 @@ public class RPCSpeachService {
         rc =  PutTxtToTmp(sUuidNews, news.getNewsbody());
         logger.info("==== PutTxtToTmp rc:{}",rc);
         if (rc != 0L) {
-            deleteTmpFile(sUuidNews);
+//            deleteTmpFile(sUuidNews);
             return rc;
         }
 
         // Викликаємо перетворення
         rc = RunTxtToMp3(sUuidNews);
         if (rc != 0L) {
-            deleteTmpFile(sUuidNews);
+//            deleteTmpFile(sUuidNews);
             return rc;
         }
 
         // Забираємо фінальний файл до сховища
         rc = PutMp3ToStore(sUuidNews);
         if (rc != 0L) {
-            deleteTmpFile(sUuidNews);
+//            deleteTmpFile(sUuidNews);
             return rc;
         }
 
@@ -101,7 +101,7 @@ public class RPCSpeachService {
                 user
                 );
 
-        deleteTmpFile(sUuidNews);
+//        deleteTmpFile(sUuidNews);
         return rc;
     }
 
