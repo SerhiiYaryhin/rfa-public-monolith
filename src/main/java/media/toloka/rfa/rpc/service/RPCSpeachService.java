@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -72,23 +73,23 @@ public class RPCSpeachService {
 
         News news = newsService.GetByUUID(sUuidNews);
 
-        rc =  newsService.PutTxtToTmp(sUuidNews, news.getNewsbody());
+        rc =  PutTxtToTmp(sUuidNews, news.getNewsbody());
         if (rc != 0L) {
-            newsService.deleteTmpFile(sUuidNews);
+            deleteTmpFile(sUuidNews);
             return rc;
         }
 
         // Викликаємо перетворення
-        rc = newsService.RunTxtToMp3(sUuidNews);
+        rc = RunTxtToMp3(sUuidNews);
         if (rc != 0L) {
-            newsService.deleteTmpFile(sUuidNews);
+            deleteTmpFile(sUuidNews);
             return rc;
         }
 
         // Забираємо фінальний файл до сховища
-        rc = newsService.PutMp3ToStore(sUuidNews);
+        rc = PutMp3ToStore(sUuidNews);
         if (rc != 0L) {
-            newsService.deleteTmpFile(sUuidNews);
+            deleteTmpFile(sUuidNews);
             return rc;
         }
 
@@ -98,7 +99,7 @@ public class RPCSpeachService {
                 user
                 );
 
-        newsService.deleteTmpFile(sUuidNews);
+        deleteTmpFile(sUuidNews);
         return rc;
     }
 
@@ -117,6 +118,72 @@ public class RPCSpeachService {
         String strgson = gson.toJson(rpcjob).toString();
         template.convertAndSend(queueTTS,gson.toJson(rpcjob).toString());
         return;
+    }
+
+    public Long PutTxtToTmp(String sUuidNews, String nbody) {
+        BufferedWriter writer = null;
+        try
+        {
+            writer = new BufferedWriter( new FileWriter( "/tmp/"+sUuidNews+".tts"));
+            writer.write( nbody);
+
+        }
+        catch ( IOException e)
+        {
+            logger.info("Помилка при запису tts файлу.");
+            return 1L;
+        }
+        finally
+        {
+            try
+            {
+                if ( writer != null) writer.close( );
+            }
+            catch ( IOException e)
+            {
+                logger.info("Помилка при закритті tts файлу.");
+                return 2L;
+            }
+        }
+        return 0L;
+    }
+
+    public void deleteTmpFile(String sUuidNews) {
+        String patch;
+        patch = "/tmp/"+sUuidNews+".tts";
+        File file = new File(patch);
+        if (file.delete()) {
+            logger.info("File deleted successfully:{}",patch);
+        }
+        else {
+            logger.info("Failed to delete the file:",patch);
+        }
+
+        patch = "/tmp/"+sUuidNews+".wav";
+        file = new File(patch);
+        if (file.delete()) {
+            logger.info("File deleted successfully:{}",patch);
+        }
+        else {
+            logger.info("Failed to delete the file:{}",patch);
+        }
+
+        patch = "/tmp/"+sUuidNews+".mp3";
+        file = new File(patch);
+        if (file.delete()) {
+            logger.info("File deleted successfully:{}",patch);
+        }
+        else {
+            logger.info("Failed to delete the file:{}",patch);
+        }
+    }
+
+    public Long RunTxtToMp3(String sUuidNews) {
+        return 0L;
+    }
+
+    public Long PutMp3ToStore(String sUuidNews) {
+        return 0L;
     }
 
 }
