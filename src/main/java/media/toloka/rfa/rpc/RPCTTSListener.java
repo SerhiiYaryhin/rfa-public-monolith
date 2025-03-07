@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,9 @@ public class RPCTTSListener {
     @Autowired
     private GsonService gsonService;
 
+    @Value("${rabbitmq.queueTTS}")
+    private String queueTTS;
+
 Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
 
     @RabbitListener(queues = "${rabbitmq.queueTTS}")
@@ -44,7 +48,7 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
         RPCJob rjob = gson.fromJson(message, RPCJob.class);
 
 
-//        logger.info("+++++++++++++++++  Recive message from QUEUES.");
+        logger.info("+++++++++++++++++  Recive message from rabbitmq.queueTTS ={}.",queueTTS);
         ERPCJobType curJob = rjob.getJobchain().poll();
         switch (curJob) {
 //        switch (rjob.getRJobType()) {
