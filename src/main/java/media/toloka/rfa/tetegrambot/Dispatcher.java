@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.model.UserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 @Getter
 public class Dispatcher {

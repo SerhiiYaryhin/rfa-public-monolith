@@ -3,6 +3,7 @@ package media.toloka.rfa.tetegrambot.service;
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.tetegrambot.TelegramBot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
@@ -14,6 +15,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
  * This service allows to communicate with Telegram API
  */
 @Slf4j
+@Profile("Telegram")
 @Component
 public class TelegramService {
 

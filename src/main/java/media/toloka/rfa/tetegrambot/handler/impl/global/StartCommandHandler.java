@@ -7,6 +7,7 @@ import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
 import media.toloka.rfa.tetegrambot.model.UserRequest;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 //import org.vladyka.handler.UserRequestHandler;
@@ -14,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 //import org.vladyka.model.UserRequest;
 //import org.vladyka.service.TelegramService;
 
+@Profile("Telegram")
 @Component
 public class StartCommandHandler extends UserRequestHandler {
 

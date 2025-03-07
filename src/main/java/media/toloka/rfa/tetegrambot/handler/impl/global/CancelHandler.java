@@ -11,11 +11,13 @@ import media.toloka.rfa.tetegrambot.model.UserSession;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_CANCEL;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 public class CancelHandler extends UserRequestHandler {
 

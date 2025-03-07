@@ -9,10 +9,12 @@ import media.toloka.rfa.tetegrambot.model.UserRequest;
 import media.toloka.rfa.tetegrambot.model.UserSession;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 public class LoginS5GetEmailEnteredHandler extends UserRequestHandler {
 

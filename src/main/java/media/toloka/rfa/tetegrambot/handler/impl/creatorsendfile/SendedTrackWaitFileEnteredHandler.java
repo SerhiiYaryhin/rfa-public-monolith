@@ -16,6 +16,7 @@ import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -29,6 +30,7 @@ import java.nio.file.Paths;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 public class SendedTrackWaitFileEnteredHandler extends UserRequestHandler {
 

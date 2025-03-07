@@ -8,6 +8,7 @@ import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.tetegrambot.TelegramBot;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -21,6 +22,7 @@ import java.net.URL;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 public class TelegramFileService {
     @Autowired

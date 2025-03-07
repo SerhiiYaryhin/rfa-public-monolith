@@ -2,6 +2,7 @@ package media.toloka.rfa.tetegrambot.helper;
 
 import media.toloka.rfa.radio.client.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -19,6 +20,7 @@ import static media.toloka.rfa.tetegrambot.constant.Constants.*;
  * Helper class, allows to build keyboards for users
  */
 @Component
+@Profile("Telegram")
 public class KeyboardHelper {
 
     public ReplyKeyboardMarkup buildCitiesMenu(List<String> cities) {

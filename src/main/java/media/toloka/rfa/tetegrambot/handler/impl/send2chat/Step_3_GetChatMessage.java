@@ -14,6 +14,7 @@ import media.toloka.rfa.tetegrambot.model.UserSession;
 import media.toloka.rfa.tetegrambot.service.TelegramService;
 import media.toloka.rfa.tetegrambot.service.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -24,6 +25,7 @@ import java.util.Date;
 import static media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType.RECORD_TYPE_TEXT;
 
 @Slf4j
+@Profile("Telegram")
 @Component
 public class Step_3_GetChatMessage extends UserRequestHandler {
 

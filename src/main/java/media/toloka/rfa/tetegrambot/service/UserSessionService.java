@@ -1,11 +1,13 @@
 package media.toloka.rfa.tetegrambot.service;
 
 import media.toloka.rfa.tetegrambot.model.UserSession;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("Telegram")
 @Component
 public class UserSessionService {
 

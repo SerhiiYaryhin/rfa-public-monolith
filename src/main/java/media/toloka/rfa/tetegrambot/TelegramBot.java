@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
@@ -40,7 +41,7 @@ import java.util.Properties;
 
 //import static jdk.javadoc.internal.tool.Main.execute;
 
-
+@Profile("Telegram")
 @Component
 //@RequiredArgsConstructor
 @Slf4j
