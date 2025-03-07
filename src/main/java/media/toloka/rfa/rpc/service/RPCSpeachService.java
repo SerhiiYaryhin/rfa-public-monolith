@@ -75,6 +75,7 @@ public class RPCSpeachService {
         News news = newsService.GetByUUID(sUuidNews);
 
         rc =  PutTxtToTmp(sUuidNews, news.getNewsbody());
+        logger.info("==== PutTxtToTmp rc:{}",rc);
         if (rc != 0L) {
             deleteTmpFile(sUuidNews);
             return rc;
