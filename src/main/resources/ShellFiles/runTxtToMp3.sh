@@ -1,4 +1,5 @@
 #!/bin/bash
+echo $1
 cd ~/tts/
 ~/tts/tts_env/bin/activate
 pyton3 ~/bin/tts.py $1
