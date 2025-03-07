@@ -150,7 +150,7 @@ public class RPCSpeachService {
     }
 
     public void deleteTmpFile(String sUuidNews) {
-        String patch;
+/*        String patch;
         patch = "/tmp/"+sUuidNews+".tts";
         File file = new File(patch);
         if (file.delete()) {
@@ -177,6 +177,7 @@ public class RPCSpeachService {
         else {
             logger.info("Failed to delete the file:{}",patch);
         }
+*/
     }
 
     public Long RunTxtToMp3(String sUuidNews) {
