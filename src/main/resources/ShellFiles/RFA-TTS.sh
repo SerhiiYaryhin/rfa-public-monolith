@@ -11,4 +11,4 @@ export QRFA=/rfa-dev
 export TELEGRAMBOTNAME=TestTolokaMediaBot
 export TELEGRAMBOTKEY=7319689514:AAEwGibd0JOdvqOvZnG0STL_hAGffEqQdCA
 java -jar -Dspring.profiles.active=current,tts build/libs/RFA-1.0.0.war
-RFA-TTS.sh#java -jar -Dspring.profiles.active=current build/libs/RFA-1.0.0.war
+#java -jar -Dspring.profiles.active=current build/libs/RFA-1.0.0.war
