@@ -2,6 +2,7 @@ package media.toloka.rfa.rpc;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.rpc.model.ERPCJobType;
 import media.toloka.rfa.rpc.model.RPCJob;
@@ -45,7 +46,20 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
     public void processedFromFront(String message) {
         Long rc = 0L;
         Gson gson = gsonService.CreateGson();
-        RPCJob rjob = gson.fromJson(message, RPCJob.class);
+//        logger.info(message);
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {}
+//        logger.info("Прокинулися");
+        RPCJob rjob = null;
+        try {
+            rjob = gson.fromJson(message, RPCJob.class);
+        } catch (JsonParseException e) {
+            logger.info("Помилка gson");
+            logger.info("\n rabbitmq message:"+message);
+            logger.error(e.getMessage());
+            return;
+        }
 
 
         logger.info("+++++++++++++++++  Recive message from rabbitmq.queueTTS ={}.",queueTTS);
