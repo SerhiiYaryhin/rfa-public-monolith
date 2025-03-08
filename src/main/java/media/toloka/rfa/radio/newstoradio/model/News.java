@@ -41,7 +41,8 @@ public class News {
     private Date datechangestatus = new Date();
 
     @ToString.Exclude
-    @OneToOne(cascade = {CascadeType.ALL})
+    @ManyToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "station_id")
     private Station station;
 
     @ToString.Exclude
