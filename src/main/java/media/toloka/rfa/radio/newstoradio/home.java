@@ -86,6 +86,7 @@ public class home {
             rjob.getFront().setServer(System.getenv("HOSTNAME"));
             logger.info("==== home userCreateJobToTTS Front HOSTNAME {} {}",System.getenv("HOSTNAME"),rjob.getTts().getServer());
             rjob.setNewsUUID(curnews.getUuid());
+            rjob.setStationUUID(curnews.getStation().getUuid());
             rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
@@ -204,7 +205,7 @@ public class home {
             news.setStation(fnews.getStation());
         }
 
-        logger.info(news.toString());
+//        logger.info(news.toString());
         if (news != null) newsService.Save(news);
 
         return "redirect:/newstoradio/home/0";
