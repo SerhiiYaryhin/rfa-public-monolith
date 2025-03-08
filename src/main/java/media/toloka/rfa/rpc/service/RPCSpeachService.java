@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
@@ -18,12 +19,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.Map;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
 
 @Profile("tts")
 @Service
@@ -151,7 +156,7 @@ public class RPCSpeachService {
     }
 
     public void deleteTmpFile(String sUuidNews) {
-/*        String patch;
+        String patch;
         patch = "/tmp/"+sUuidNews+".tts";
         File file = new File(patch);
         if (file.delete()) {
@@ -178,7 +183,7 @@ public class RPCSpeachService {
         else {
             logger.info("Failed to delete the file:{}",patch);
         }
-*/
+
     }
 
     public Long RunTxtToMp3(String sUuidNews) {
@@ -209,7 +214,38 @@ public class RPCSpeachService {
     }
 
     public Long PutMp3ToStore(String sUuidNews) {
+
+
+//        log.info("uploaded file " + file.getOriginalFilename());
+        String patch = "/tmp/"+sUuidNews+".wav";
+//        File file = new File(patch);
+        File initialFile = new File(patch);
+        InputStream targetStream = new FileInputStream(initialFile);
+
+
+        if (targetStream.isEmpty()) {
+//                throw new ExecutionControl.UserException("Empty file");
+            logger.info("Завантаження файлу: Файл порожній");
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (clientService.ClientCanDownloadFile(cd) == false) {
+            // клієнт з якоїсь причини не має права завантажувати файли
+            logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
+            return;
+        }
+        try {
+            String storeUUID = storeService.PutFileToStore(targetStream.getInputStream(),file.getOriginalFilename(),cd,STORE_TRACK);
+//            createrService.SaveTrackUploadInfo(storeUUID, cd);
+        } catch (IOException e) {
+            logger.info("Завантаження файлу: Проблема збереження");
+            e.printStackTrace();
+        }
+        logger.info("uploaded file " + file.getOriginalFilename());
+
+
         return 0L;
     }
+
+
 
 }

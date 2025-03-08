@@ -12,7 +12,8 @@ public enum EStoreFileType {
     STORE_EPISODECOVER_FREE("Обкладинка епізоду"), // 7 // не використовую. Замісь неї використовую STORE_PODCASTCOVER
     STORE_EPISODETRACK("Трек епізоду"), // 8
     STORE_RESERV_1("Резерв"), // 9
-    STORE_PHOTOALBUMS("Фото Альбому"); // 10
+    STORE_PHOTOALBUMS("Фото Альбому"), // 10
+    STORE_TTS("Текст в голос"); // 10
     public final String label;
 
     private EStoreFileType(String label) {
