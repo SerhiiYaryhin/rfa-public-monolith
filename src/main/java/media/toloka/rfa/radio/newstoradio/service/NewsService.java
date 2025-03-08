@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.List;
 
+import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_READY;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Service
@@ -61,7 +62,10 @@ public class NewsService {
             return 100L;
         }
         String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
-        GetByUUID(sUuidNews).setStorespeach(storeService.GetStoreByUUID(storeUUID));
+        News news = GetByUUID(sUuidNews);
+        news.setStorespeach(storeService.GetStoreByUUID(storeUUID));
+        news.setStatus(NEWS_STATUS_READY);
+        Save(news);
         logger.info("News uploaded file {}  StoreUUID {}", patch,storeUUID);
 
         return 0L;
