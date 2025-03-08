@@ -29,6 +29,7 @@ import java.util.Map;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Profile("tts")
 @Service
@@ -217,30 +218,29 @@ public class RPCSpeachService {
 
 
 //        log.info("uploaded file " + file.getOriginalFilename());
-        String patch = "/tmp/"+sUuidNews+".wav";
+        String patch = "/tmp/"+sUuidNews+".mp3";
 //        File file = new File(patch);
-        File initialFile = new File(patch);
-        InputStream targetStream = new FileInputStream(initialFile);
 
+        File initialFile = new File("src/main/resources/sample.txt");
 
-        if (targetStream.isEmpty()) {
-//                throw new ExecutionControl.UserException("Empty file");
-            logger.info("Завантаження файлу: Файл порожній");
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (clientService.ClientCanDownloadFile(cd) == false) {
-            // клієнт з якоїсь причини не має права завантажувати файли
-            logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
-        }
+        InputStream targetStream = null;
         try {
-            String storeUUID = storeService.PutFileToStore(targetStream.getInputStream(),file.getOriginalFilename(),cd,STORE_TRACK);
-//            createrService.SaveTrackUploadInfo(storeUUID, cd);
-        } catch (IOException e) {
-            logger.info("Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
+            targetStream = new FileInputStream(initialFile);
+        } catch (FileNotFoundException e) {
+            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}","/tmp/"+sUuidNews+".mp3");
         }
-        logger.info("uploaded file " + file.getOriginalFilename());
+
+//        if (targetStream. .isEmpty()) {
+//            logger.info("Завантаження файлу: Файл порожній");
+//        }
+//        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+//        try {
+            String storeUUID = storeService.PutFileToStore(targetStream ,sUuidNews+".mp3",newsService.GetByUUID(sUuidNews).getClientdetail(),STORE_TTS);
+//        } catch (IOException e) {
+//            logger.info("Завантаження файлу у сховище : Проблема збереження");
+////            e.printStackTrace();
+//        }
+        logger.info("uploaded file " + sUuidNews+".mp3");
 
 
         return 0L;
