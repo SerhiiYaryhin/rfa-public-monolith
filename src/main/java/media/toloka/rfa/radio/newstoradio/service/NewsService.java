@@ -58,10 +58,11 @@ public class NewsService {
             targetStream = new FileInputStream(initialFile);
         } catch (FileNotFoundException e) {
             logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
+            return 100L;
         }
         String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
         GetByUUID(sUuidNews).setStorespeach(storeService.GetStoreByUUID(storeUUID));
-        logger.info("uploaded file " + sUuidNews + ".mp3");
+        logger.info("News uploaded file {}  StoreUUID {}", patch,storeUUID);
 
         return 0L;
     }
