@@ -2,8 +2,9 @@ package media.toloka.rfa.radio.newstoradio.service;
 
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.newstoradio.model.News;
+import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.repository.NewsRepositore;
-import media.toloka.rfa.radio.store.model.Store;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,17 +14,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
+
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Service
 public class NewsService {
 
     @Autowired
     private NewsRepositore newsRepositore;
+
+    @Autowired
+    private StoreService storeService;
 
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
@@ -45,5 +48,25 @@ public class NewsService {
         return newsRepositore.findByClientdetail(cd);
     }
 
+    public Long PutMp3FromTmpToStore(String sUuidNews) {
+        // Move file from TTS server
 
+        String patch = "/tmp/" + sUuidNews + ".mp3";
+        File initialFile = new File("src/main/resources/sample.txt");
+        InputStream targetStream = null;
+        try {
+            targetStream = new FileInputStream(initialFile);
+        } catch (FileNotFoundException e) {
+            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", "/tmp/" + sUuidNews + ".mp3");
+        }
+        String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
+        GetByUUID(sUuidNews).setStorespeach(storeService.GetStoreByUUID(storeUUID));
+        logger.info("uploaded file " + sUuidNews + ".mp3");
+
+        return 0L;
+    }
+    public Long GetMp3FromTTS(NewsRPC rjob) {
+        // Забираємо файли з сервера TTS після перетворення
+        return 0L;
+    }
 }

@@ -4,6 +4,7 @@ package media.toloka.rfa.rpc;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import media.toloka.rfa.config.gson.service.GsonService;
+import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.rpc.model.ERPCJobType;
 import media.toloka.rfa.rpc.model.RPCJob;
 import media.toloka.rfa.rpc.model.ResultJob;
@@ -51,9 +52,9 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
 //            Thread.sleep(5000);
 //        } catch (InterruptedException e) {}
 //        logger.info("Прокинулися");
-        RPCJob rjob = null;
+        NewsRPC rjob = null;
         try {
-            rjob = gson.fromJson(message, RPCJob.class);
+            rjob = gson.fromJson(message, NewsRPC.class);
         } catch (JsonParseException e) {
             logger.info("Помилка gson");
             logger.info("\n rabbitmq message:"+message);
@@ -63,23 +64,23 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
 
 
         logger.info("+++++++++++++++++  Recive message from rabbitmq.queueTTS ={}.",queueTTS);
-        ERPCJobType curJob = rjob.getJobchain().poll();
+        ERPCJobType curJob = rjob.getRJobType();
         switch (curJob) {
 //        switch (rjob.getRJobType()) {
             case JOB_TTS:  // Заповнюємо базу необхідною інформацією
                 logger.info("+++++++++++++++++ START JOB_TTS");
                 rc = rpcSpeachService.JobTTS(rjob);
-                rjob.getResultJobList().add(new ResultJob(rc, curJob));
+//                rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++ END JOB_TTS");
                 break;
             case JOB_STT:
-                logger.info("======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
+                logger.info("======= {}", rjob.getRJobType());
                 break;
             default:
-                logger.info("RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
+                logger.info("RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}", rjob.getRJobType());
                 break;
         }
-        rpcSpeachService.CompletedPartRPCJob(rjob);
+        //rpcSpeachService.CompletedPartRPCJob(rjob);
 
     }
 }

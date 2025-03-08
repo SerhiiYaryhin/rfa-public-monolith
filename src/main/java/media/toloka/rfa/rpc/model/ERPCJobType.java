@@ -27,6 +27,7 @@ public enum ERPCJobType {
     JOB_STATION_SETPASSWORD("JOB_STATION_SETPASSWORD"),
     PODCAST_FROM_RSS_LOAD("PODCAST_FROM_RSS_LOAD"), // завантажуємо подкаст. Це довга операція і тому результат непередбачуваний.
     JOB_TTS("JOB_TTS"), // TTS перетворення тексту в голос
+    JOB_TTS_FILES_READY("JOB_TTS_FILES_READY"), // TTS відпрацювало, можна забирати файли
     JOB_STT("JOB_STT"); // TTS перетворення голосу в текст
 
     public final String label;

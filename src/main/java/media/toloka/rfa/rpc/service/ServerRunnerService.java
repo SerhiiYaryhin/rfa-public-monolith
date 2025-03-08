@@ -374,7 +374,6 @@ public class ServerRunnerService {
         // Призначаємо значення env для виконання скрипту
         String homedirectory = env.get("HOME");
         env.put("CLIENT_DIR", homedirectory + clientdir);
-//        env.remove("OTHERVAR");
         env.put("CLIENT_UUID", station.getClientdetail().getUuid());
         env.put("STATION_UUID", station.getUuid());
         env.put("STATION_WEB_PORT", station.getGuiport().toString());
@@ -426,7 +425,6 @@ public class ServerRunnerService {
     public Long AllocateStationOnServer(RPCJob rpcJob) {
         Long rc = 129L;
         Gson gson = gsonService.CreateGson();
-//        rpcJob.getRjobdata()
         Station tmpstation = gson.fromJson(rpcJob.getRjobdata(), Station.class);
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", createStationCommand);
         Station station = stationService.GetStationById(tmpstation.getId());

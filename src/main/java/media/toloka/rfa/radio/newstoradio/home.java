@@ -10,6 +10,7 @@ import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
 import media.toloka.rfa.radio.newstoradio.model.ENewsStatus;
 import media.toloka.rfa.radio.newstoradio.model.News;
+import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
@@ -66,7 +67,7 @@ public class home {
     @GetMapping(value = "/newstoradio/ttsprepare/{uuidnews}")
     public String userCreateStation(
             @PathVariable String uuidnews,
-            Model model ) {
+            Model model) {
 
         Users user = clientService.GetCurrentUser();
         Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
@@ -78,21 +79,15 @@ public class home {
         News curnews = newsService.GetByUUID(uuidnews);
         if (curnews != null) {
             // знайшли новину. Відправляємо на tts
-            RPCJob rjob = new RPCJob();
-            rjob.getJobchain().add(JOB_TTS);
-            rjob.setUser(user);
-            Gson gnews = gsonService.CreateGson();
-            //Почистили велику зайву інформацію в повідомленні
-//            curnews.setNewsbody("");
-//            curnews.setNewstitle("");
-            //
-            String strnews = gnews.toJson(curnews).toString();
-            rjob.setRjobdata(curnews.getUuid());
+            NewsRPC rjob = new NewsRPC();
+            rjob.setRJobType(JOB_TTS);
+            rjob.getFront().setUser(System.getenv("USER"));
+            rjob.getFront().setServer(System.getenv("HOSTNAME"));
+            rjob.setNewsUUID(curnews.getUuid());
+            rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
-            String strgson = gson.toJson(rjob).toString();
-            logger.info("==== queue TTS={}",queueTTS);
-            template.convertAndSend(queueTTS,gson.toJson(rjob).toString());
+            template.convertAndSend(queueTTS, gson.toJson(rjob).toString());
             model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
             curnews.setStatus(ENewsStatus.NEWS_STATUS_SEND);
             curnews.setDatechangestatus(new Date());
@@ -172,7 +167,7 @@ public class home {
         return "/newstoradio/editnews";
     }
 
-        @PostMapping(value = "/newstoradio/editnews")
+    @PostMapping(value = "/newstoradio/editnews")
     public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
             @ModelAttribute News fnews,

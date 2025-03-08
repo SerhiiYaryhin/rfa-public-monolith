@@ -4,9 +4,8 @@ import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
-import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.News;
+import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
@@ -19,16 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.Map;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Profile("tts")
@@ -70,15 +64,17 @@ public class RPCSpeachService {
 
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
-    public Long JobTTS(RPCJob rjob) {
+    public Long JobTTS(NewsRPC rjob) {
 //        logger.info(rjob);
         Long rc = 10000L;
-        // витягли користувача
-        Users user = rjob.getUser();
-        // Витягнути новину з переданого gson
-        String sUuidNews = rjob.getRjobdata();
+        // Витягли новину
 
+        // Витягнути новину з переданого gson
+        String sUuidNews = rjob.getNewsUUID();
         News news = newsService.GetByUUID(sUuidNews);
+        // витягли користувача
+        Users user = news.getClientdetail().getUser();
+
 
         rc = PutTxtToTmp(sUuidNews, news.getNewsbody());
         logger.info("==== PutTxtToTmp rc:{}", rc);
@@ -95,7 +91,7 @@ public class RPCSpeachService {
         }
 
         // Забираємо фінальний файл до сховища
-        rc = PutLocalMp3ToStore(sUuidNews);
+        rc = SendJobForPutMp3ToStore(sUuidNews);
         if (rc != 0L) {
             deleteTmpFile(sUuidNews);
             return rc;
@@ -203,7 +199,7 @@ public class RPCSpeachService {
         return rc;
     }
 
-    public Long PutLocalMp3ToStore(String sUuidNews) {
+    public Long SendJobForPutMp3ToStore(String sUuidNews) {
         // Move file from TTS server
         
         String patch = "/tmp/" + sUuidNews + ".mp3";
