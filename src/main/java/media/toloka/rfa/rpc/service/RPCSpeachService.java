@@ -63,6 +63,9 @@ public class RPCSpeachService {
     @Value("${rabbitmq.queueTTS}")
     private String queueTTS;
 
+    @Value("${media.toloka.rfa.server.libretime.storeserver}")
+    private String storeserver;
+
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
     public Long JobTTS(NewsRPC rjob) {
@@ -186,9 +189,8 @@ public class RPCSpeachService {
     public Long SendJobForPutMp3ToStore(NewsRPC rjob) {
         // Move file from TTS server
         rjob.getTts().setUser(System.getenv("USER"));
-        logger.info("==== RPCSpeachService TTS USER {} {}",System.getenv("USER"),rjob.getTts().getUser());
         rjob.getTts().setServer(System.getenv("HOSTNAME"));
-        logger.info("==== RPCSpeachService TTS HOSTNAME {} {}",System.getenv("HOSTNAME"),rjob.getTts().getServer());
+        rjob.getFront().setServer(storeserver);
         rjob.setRJobType(JOB_TTS_FILES_READY);
 
         Gson gson = gsonService.CreateGson();
