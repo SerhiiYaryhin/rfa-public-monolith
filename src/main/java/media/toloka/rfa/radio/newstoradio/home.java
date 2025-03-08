@@ -65,7 +65,7 @@ public class home {
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
     @GetMapping(value = "/newstoradio/ttsprepare/{uuidnews}")
-    public String userCreateStation(
+    public String userCreateJobToTTS(
             @PathVariable String uuidnews,
             Model model) {
 
@@ -82,7 +82,9 @@ public class home {
             NewsRPC rjob = new NewsRPC();
             rjob.setRJobType(JOB_TTS);
             rjob.getFront().setUser(System.getenv("USER"));
+            logger.info("==== home userCreateJobToTTS Front USER {} {}",System.getenv("USER"),rjob.getTts().getUser());
             rjob.getFront().setServer(System.getenv("HOSTNAME"));
+            logger.info("==== home userCreateJobToTTS Front HOSTNAME {} {}",System.getenv("HOSTNAME"),rjob.getTts().getServer());
             rjob.setNewsUUID(curnews.getUuid());
             rjob.setRc(1024L);
 

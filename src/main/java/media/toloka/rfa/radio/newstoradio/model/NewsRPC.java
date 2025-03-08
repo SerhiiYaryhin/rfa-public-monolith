@@ -33,6 +33,8 @@ public class NewsRPC {
     @Expose
     private Front front = new Front();
     @Expose
+    private String stationUUID;
+    @Expose
     private String newsUUID;
     @Expose
     private Long rc;

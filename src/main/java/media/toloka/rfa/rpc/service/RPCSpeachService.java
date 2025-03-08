@@ -108,23 +108,6 @@ public class RPCSpeachService {
         return rc;
     }
 
-//    public void CompletedPartRPCJob(RPCJob rpcjob) {
-//        // 1. перевіряємо, чи на верхівці стеку завдання, яке ми виконали - якщо так, то видаляємо.
-//        // 2. якщо ще залишилися завдання, то ставимо в чергу на виконання.
-//
-//        if (rpcjob.getJobchain().isEmpty()) {
-//            logger.info("Результат виконання Завдання: {}", rpcjob.getResultJobList().toString());
-//            return;
-//        }
-//        // якщо в черзі є елементи, то відправляємо на виконання вибираючи з черги черговий елемент.
-//
-////        rpcjob.setRJobType(rpcjob.getJobchain().poll()); // set job type
-//        Gson gson = gsonService.CreateGson();
-//        String strgson = gson.toJson(rpcjob).toString();
-//        template.convertAndSend(queueTTS, gson.toJson(rpcjob).toString());
-//        return;
-//    }
-
     public Long PutTxtToTmp(String sUuidNews, String nbody) {
         BufferedWriter writer = null;
         try {
@@ -203,7 +186,9 @@ public class RPCSpeachService {
     public Long SendJobForPutMp3ToStore(NewsRPC rjob) {
         // Move file from TTS server
         rjob.getTts().setUser(System.getenv("USER"));
+        logger.info("==== RPCSpeachService TTS USER {} {}",System.getenv("USER"),rjob.getTts().getUser());
         rjob.getTts().setServer(System.getenv("HOSTNAME"));
+        logger.info("==== RPCSpeachService TTS HOSTNAME {} {}",System.getenv("HOSTNAME"),rjob.getTts().getServer());
         rjob.setRJobType(JOB_TTS_FILES_READY);
 
         Gson gson = gsonService.CreateGson();
