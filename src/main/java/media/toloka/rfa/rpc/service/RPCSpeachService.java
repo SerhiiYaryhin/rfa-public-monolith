@@ -69,10 +69,7 @@ public class RPCSpeachService {
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
     public Long JobTTS(NewsRPC rjob) {
-//        logger.info(rjob);
         Long rc = 10000L;
-        // Витягли новину
-
         // Витягнути новину з переданого gson
         String sUuidNews = rjob.getNewsUUID();
         News news = newsService.GetByUUID(sUuidNews);
@@ -189,7 +186,7 @@ public class RPCSpeachService {
     public Long SendJobForPutMp3ToStore(NewsRPC rjob) {
         // Move file from TTS server
         rjob.getTts().setUser(System.getenv("USER"));
-        rjob.getTts().setServer(System.getenv("HOSTNAME"));
+        rjob.getTts().setServer("tts.rfa");
         rjob.getFront().setServer(storeserver);
         rjob.setRJobType(JOB_TTS_FILES_READY);
 

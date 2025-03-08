@@ -26,6 +26,7 @@ public class NewsRPC {
         @Expose
         private String user = null;
     }
+
     @Expose
     private ERPCJobType rJobType;
     @Expose

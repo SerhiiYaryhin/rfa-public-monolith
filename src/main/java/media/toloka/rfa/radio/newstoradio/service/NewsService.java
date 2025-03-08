@@ -52,12 +52,12 @@ public class NewsService {
         // Move file from TTS server
 
         String patch = "/tmp/" + sUuidNews + ".mp3";
-        File initialFile = new File("src/main/resources/sample.txt");
+        File initialFile = new File(patch);
         InputStream targetStream = null;
         try {
             targetStream = new FileInputStream(initialFile);
         } catch (FileNotFoundException e) {
-            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", "/tmp/" + sUuidNews + ".mp3");
+            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
         }
         String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
         GetByUUID(sUuidNews).setStorespeach(storeService.GetStoreByUUID(storeUUID));
