@@ -91,7 +91,7 @@ public class RPCSpeachService {
         }
 
         // Забираємо фінальний файл до сховища
-        rc = SendJobForPutMp3ToStore(sUuidNews);
+        rc = SendJobForPutMp3ToStore(rjob);
         if (rc != 0L) {
             deleteTmpFile(sUuidNews);
             return rc;
@@ -107,22 +107,22 @@ public class RPCSpeachService {
         return rc;
     }
 
-    public void CompletedPartRPCJob(RPCJob rpcjob) {
-        // 1. перевіряємо, чи на верхівці стеку завдання, яке ми виконали - якщо так, то видаляємо.
-        // 2. якщо ще залишилися завдання, то ставимо в чергу на виконання.
-
-        if (rpcjob.getJobchain().isEmpty()) {
-            logger.info("Результат виконання Завдання: {}", rpcjob.getResultJobList().toString());
-            return;
-        }
-        // якщо в черзі є елементи, то відправляємо на виконання вибираючи з черги черговий елемент.
-
-//        rpcjob.setRJobType(rpcjob.getJobchain().poll()); // set job type
-        Gson gson = gsonService.CreateGson();
-        String strgson = gson.toJson(rpcjob).toString();
-        template.convertAndSend(queueTTS, gson.toJson(rpcjob).toString());
-        return;
-    }
+//    public void CompletedPartRPCJob(RPCJob rpcjob) {
+//        // 1. перевіряємо, чи на верхівці стеку завдання, яке ми виконали - якщо так, то видаляємо.
+//        // 2. якщо ще залишилися завдання, то ставимо в чергу на виконання.
+//
+//        if (rpcjob.getJobchain().isEmpty()) {
+//            logger.info("Результат виконання Завдання: {}", rpcjob.getResultJobList().toString());
+//            return;
+//        }
+//        // якщо в черзі є елементи, то відправляємо на виконання вибираючи з черги черговий елемент.
+//
+////        rpcjob.setRJobType(rpcjob.getJobchain().poll()); // set job type
+//        Gson gson = gsonService.CreateGson();
+//        String strgson = gson.toJson(rpcjob).toString();
+//        template.convertAndSend(queueTTS, gson.toJson(rpcjob).toString());
+//        return;
+//    }
 
     public Long PutTxtToTmp(String sUuidNews, String nbody) {
         BufferedWriter writer = null;
@@ -199,20 +199,25 @@ public class RPCSpeachService {
         return rc;
     }
 
-    public Long SendJobForPutMp3ToStore(String sUuidNews) {
+    public Long SendJobForPutMp3ToStore(NewsRPC rjob) {
         // Move file from TTS server
-        
-        String patch = "/tmp/" + sUuidNews + ".mp3";
-        File initialFile = new File("src/main/resources/sample.txt");
-        InputStream targetStream = null;
-        try {
-            targetStream = new FileInputStream(initialFile);
-        } catch (FileNotFoundException e) {
-            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", "/tmp/" + sUuidNews + ".mp3");
-        }
-        String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", newsService.GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
-        newsService.GetByUUID(sUuidNews).setStorespeach(storeService.GetStoreByUUID(storeUUID));
-        logger.info("uploaded file " + sUuidNews + ".mp3");
+        rjob.getTts().setUser(System.getenv("USER"));
+        rjob.getTts().setServer(System.getenv("HOSTNAME"));
+
+        Gson gson = gsonService.CreateGson();
+        template.convertAndSend(queueTTS, gson.toJson(rjob).toString());
+//
+//        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
+//        File initialFile = new File(patch);
+//        InputStream targetStream = null;
+//        try {
+//            targetStream = new FileInputStream(initialFile);
+//        } catch (FileNotFoundException e) {
+//            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", "/tmp/" + rjob.getNewsUUID() + ".mp3");
+//        }
+//        String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", newsService.GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
+//        newsService.GetByUUID(rjob.getNewsUUID()).setStorespeach(storeService.GetStoreByUUID(storeUUID));
+//        logger.info("uploaded file " + rjob.getNewsUUID() + ".mp3");
 
         return 0L;
     }

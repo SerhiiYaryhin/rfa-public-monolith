@@ -1,12 +1,10 @@
-package media.toloka.rfa.radio.newstoradio.service;
+package media.toloka.rfa.radio.newstoradio;
 
 import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
-import media.toloka.rfa.rpc.RPCListener;
+import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.rpc.model.ERPCJobType;
-import media.toloka.rfa.rpc.model.RPCJob;
-import media.toloka.rfa.rpc.model.ResultJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
