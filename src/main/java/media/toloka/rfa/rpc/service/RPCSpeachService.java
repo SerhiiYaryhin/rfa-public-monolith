@@ -24,6 +24,7 @@ import java.util.Map;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
+import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS_FILES_READY;
 
 @Profile("tts")
 @Service
@@ -203,9 +204,11 @@ public class RPCSpeachService {
         // Move file from TTS server
         rjob.getTts().setUser(System.getenv("USER"));
         rjob.getTts().setServer(System.getenv("HOSTNAME"));
+        rjob.setRJobType(JOB_TTS_FILES_READY);
 
         Gson gson = gsonService.CreateGson();
-        template.convertAndSend(queueTTS, gson.toJson(rjob).toString());
+        template.convertAndSend(rjob.getFront().getServer(), gson.toJson(rjob).toString());
+        logger.info(rjob.toString());
 //
 //        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
 //        File initialFile = new File(patch);
