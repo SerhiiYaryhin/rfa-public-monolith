@@ -76,12 +76,12 @@ public class home {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-
+        News news = newsService.GetByUUID(uuidnews);
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
         List<Station> listStation = stationService.GetListStationByCd(cd);
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
-        model.addAttribute("curnews", scurpage);
+        model.addAttribute("curnews", news);
         model.addAttribute("currentPage", scurpage);
 
         Long rc = newsService.deleteNewsFromStore(uuidnews);
@@ -108,6 +108,10 @@ public class home {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
         News curnews = newsService.GetByUUID(uuidnews);
+        if (curnews == null) {
+
+            return "/newstoradio/home/0";
+        }
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
@@ -118,7 +122,7 @@ public class home {
         model.addAttribute("curnews", curnews);
         model.addAttribute("currentPage", scurpage);
         return "redirect:/newstoradio/home/"+scurpage;
-//        return "/newstoradio/viewnews";
+//
     }
 
 
