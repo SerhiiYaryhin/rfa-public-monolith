@@ -5,7 +5,6 @@ import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.repository.NewsRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +59,10 @@ public class NewsService {
         Boolean storeRC = true;
         if (news.getStorespeach() != null) {
             storeRC = storeService.DeleteInStore(news.getStorespeach());
-        }
-        if (storeRC) {
             Save(news);
-            return 0L;
         }
-        else
-            return 1L;
+
+        if (storeRC) return 0L; else return 1L;
     }
 
     public Long deleteNews(String uuidNews) {
