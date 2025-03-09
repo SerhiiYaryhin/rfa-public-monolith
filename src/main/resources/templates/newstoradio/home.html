@@ -85,10 +85,10 @@
                             <span th:if="${lnew.status} != null" th:text="${lnew.status.label} "/>
                         </td>
                         <td>
-                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${lnew.uuid} }">Редагувати</a>
-                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${lnew.uuid} }">Подивитися</a>
-                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/ttsprepare/'+${lnew.uuid} }">Перетворити</a>
-                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${lnew.uuid} }">В етер!</a>
+                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+${lnew.uuid} }">Редагувати</a>
+                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${currentPage}+'/'+${lnew.uuid} }">Подивитися</a>
+                            <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/ttsprepare/'+${currentPage}+'/'+${lnew.uuid} }">Перетворити</a>
+                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${currentPage}+'/'+${lnew.uuid} }">В етер!</a>
                         </td>
                     </tr>
                     </tbody>

@@ -64,9 +64,35 @@ public class home {
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
-    @GetMapping(value = "/newstoradio/viewnews/{uuidnews}")
+
+//    http://localhost:3080/newstoradio/newstoradio/5b77de3a-688c-40f8-b861-124e8b98eff7
+    @GetMapping(value = "/newstoradio/newstoradio/{scurpage}/{uuidnews}")
+    /// Відтворюємо на радіо
+    public String speachToStation(
+            @PathVariable String uuidnews,
+            @PathVariable String scurpage,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Integer curpage = Integer.parseInt(scurpage);
+
+        /// виконуємо трансляцію на радіостанцію
+
+        /// виконуємо трансляцію на радіостанцію
+
+        // повертаємося до поточної сторінки
+        return "redirect:/newstoradio/home/"+curpage.toString();
+    }
+
+
+    @GetMapping(value = "/newstoradio/viewnews/{curpage}/{uuidnews}")
     public String userCreateJobToTTS(
             @PathVariable String uuidnews,
+            @PathVariable String curpage,
             Model model) {
 
         Users user = clientService.GetCurrentUser();
@@ -84,12 +110,15 @@ public class home {
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
+        model.addAttribute("currentPage", curpage);
 
         return "/newstoradio/viewnews";
     }
-    @GetMapping(value = "/newstoradio/ttsprepare/{uuidnews}")
+
+    @GetMapping(value = "/newstoradio/ttsprepare/{scurpage}/{uuidnews}")
     public String viewNews(
             @PathVariable String uuidnews,
+            @PathVariable String scurpage,
             Model model) {
 
         Users user = clientService.GetCurrentUser();
@@ -131,11 +160,11 @@ public class home {
 //        List<News> tl = newsService.GetListNewsByCd(cd);
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
+        model.addAttribute("currentPage", scurpage);
         model.addAttribute("linkPage", "/creater/tracks/");
         model.addAttribute("viewList", viewList);
 
-        return "redirect:/newstoradio/home/0";
+        return "redirect:/newstoradio/home/"+scurpage;
     }
 
     @GetMapping(value = "/newstoradio/home/{cPage}")
@@ -157,16 +186,16 @@ public class home {
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
         model.addAttribute("linkPage", "/creater/tracks/");
-
         model.addAttribute("viewList", viewList);
 
         return "/newstoradio/home";
     }
 
 
-    @GetMapping(value = "/newstoradio/editnews/{uuidnews}")
+    @GetMapping(value = "/newstoradio/editnews/{pagelist}/{uuidnews}")
     public String GetEditNews(
             @PathVariable String uuidnews,
+            @PathVariable String pagelist,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -193,9 +222,10 @@ public class home {
         return "/newstoradio/editnews";
     }
 
-    @PostMapping(value = "/newstoradio/editnews")
+    @PostMapping(value = "/newstoradio/editnews/{pagelist}")
     public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
+            @PathVariable String pagelist,
             @ModelAttribute News fnews,
             Model model) {
         Users user = clientService.GetCurrentUser();
@@ -210,12 +240,14 @@ public class home {
         if (fnews.getUuid() != null) {
             news = newsService.GetByUUID(fnews.getUuid());
         }
+        Boolean type;
         if (news != null) {
             news.setCategory(fnews.getCategory());
             news.setNewstitle(fnews.getNewstitle());
             news.setNewsbody(fnews.getNewsbody());
             news.setStation(fnews.getStation());
             news.setCategory(fnews.getCategory());
+            type = false;
         } else {
             logger.info("Створюємо новину");
             news = new News();
@@ -226,12 +258,14 @@ public class home {
             news.setNewstitle(fnews.getNewstitle());
             news.setNewsbody(fnews.getNewsbody());
             news.setStation(fnews.getStation());
+            type = true;
         }
 
 //        logger.info(news.toString());
         if (news != null) newsService.Save(news);
 
-        return "redirect:/newstoradio/home/0";
+        if (type) return "redirect:/newstoradio/home/0";
+        return "redirect:/newstoradio/home/"+pagelist;
 
     }
 

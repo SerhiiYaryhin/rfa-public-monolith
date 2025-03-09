@@ -5,6 +5,7 @@ import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.repository.NewsRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,24 @@ public class NewsService {
 
     public List<News> GetListNewsByCd(Clientdetail cd) {
         return newsRepositore.findByClientdetail(cd);
+    }
+
+    public Long deleteNewsFromStore(String uuidNews) {
+        News news = GetByUUID(uuidNews);
+        Boolean storeRC = storeService.DeleteInStore(news.getStorespeach());
+        if (storeRC) {
+            Save(news);
+            return 0L;
+        }
+        else
+            return 1L;
+    }
+
+    public Long deleteNews(String uuidNews) {
+        Long rc = deleteNewsFromStore(uuidNews);
+        if ( rc != 0L) return rc;
+        newsRepositore.delete(GetByUUID(uuidNews));
+        return rc;
     }
 
     public Long GetMp3FromTts(NewsRPC rjob) {

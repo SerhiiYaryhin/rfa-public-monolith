@@ -32,10 +32,13 @@
 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 
 <div class="row" style="padding-top: 40px">
-  <div class="col-lg-9 col-sm-12" th:object="${curnews}">
+  <div class="col-lg-9 col-sm-12" th:object="${curnews}" style="padding-top: 40px">
     <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
-    <form th:action="@{/newstoradio/editnews}"  method="post" th:object="${curnews}">
+    <form th:action="@{/newstoradio/editnews/${currentPage}}"  method="post" th:object="${curnews}">
       <input type="hidden" th:field="${curnews.uuid}"/>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+*{uuid} }">Видалити новину</a>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/home/'+${currentPage} }">Видалити трек</a>
+      <br>
 
       <span th:text="'Станція: '+${curnews.station.name}" /><br>
       <span th:text="'Розділ: '+${curnews.category.label}" /><br>
@@ -53,9 +56,8 @@
         <source th:src="'/store/audio/'+*{storespeach.uuid}">
       </audio>
       <hr>
-      <button type="submit" class="btn btn-primary btn-lg btn-block">
-        Зберегти
-      </button>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+*{uuid} }">Редагувати</a>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/home/'+${currentPage} }">Повернутися</a>
     </form>
   </div>
   <div class="col-lg-3 col-sm-12">
