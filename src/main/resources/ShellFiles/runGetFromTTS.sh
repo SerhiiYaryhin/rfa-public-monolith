@@ -1,5 +1,3 @@
-#!/bin/bash
-
 echo "TTSSERVER = $TTSSERVER"
 echo "TTSUSER = $TTSUSER"
 echo "NEWSUUID = $NEWSUUID"
