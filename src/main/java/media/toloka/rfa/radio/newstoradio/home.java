@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY;
+import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
 
 @Controller
@@ -87,12 +88,13 @@ public class home {
         Long rc = newsService.deleteNewsFromStore(uuidnews);
         if (rc == 0L) {
             newsService.GetByUUID(uuidnews).setStorespeach(null);
+            newsService.GetByUUID(uuidnews).setStatus(NEWS_STATUS_CREATE);
             newsService.Save(newsService.GetByUUID(uuidnews));
             model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
             return "/newstoradio/editnews";
         }
 
-        model.addAttribute("warning", "Озвучений текст не видалено зі сховища");
+        model.addAttribute("error", "Озвучений текст не видалено зі сховища");
         return "/newstoradio/viewnews";
     }
 
@@ -122,8 +124,11 @@ public class home {
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
         model.addAttribute("currentPage", scurpage);
-        return "redirect:/newstoradio/home/"+scurpage;
-//
+
+        Long rc = newsService.deleteNews(uuidnews);
+        if (rc == 0L) model.addAttribute("success", "Новину успішно видалено");
+        else model.addAttribute("error", "Новину не видалено");
+        return "/newstoradio/home/";
     }
 
 
