@@ -87,6 +87,7 @@ public class home {
         Long rc = newsService.deleteNewsFromStore(uuidnews);
         if (rc == 0L) {
             newsService.GetByUUID(uuidnews).setStorespeach(null);
+            newsService.Save(newsService.GetByUUID(uuidnews));
             model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
             return "/newstoradio/editnews";
         }
