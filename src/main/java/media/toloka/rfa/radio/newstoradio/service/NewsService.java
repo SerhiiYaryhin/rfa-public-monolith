@@ -57,7 +57,10 @@ public class NewsService {
 
     public Long deleteNewsFromStore(String uuidNews) {
         News news = GetByUUID(uuidNews);
-        Boolean storeRC = storeService.DeleteInStore(news.getStorespeach());
+        Boolean storeRC = true;
+        if (news.getStorespeach() != null) {
+            storeRC = storeService.DeleteInStore(news.getStorespeach());
+        }
         if (storeRC) {
             Save(news);
             return 0L;
