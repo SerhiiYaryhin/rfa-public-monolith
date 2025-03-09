@@ -59,7 +59,10 @@ public class NewsService {
         Boolean storeRC = true;
         if (news.getStorespeach() != null) {
             storeRC = storeService.DeleteInStore(news.getStorespeach());
-            Save(news);
+            if (storeRC) {
+                news.setStorespeach(null);
+                Save(news);
+            }
         }
 
         if (storeRC) return 0L; else return 1L;
@@ -68,6 +71,8 @@ public class NewsService {
     public Long deleteNews(String uuidNews) {
         Long rc = deleteNewsFromStore(uuidNews);
         if ( rc != 0L) return rc;
+        GetByUUID(uuidNews).setStation(null);
+        Save(GetByUUID(uuidNews));
         newsRepositore.delete(GetByUUID(uuidNews));
         return rc;
     }
