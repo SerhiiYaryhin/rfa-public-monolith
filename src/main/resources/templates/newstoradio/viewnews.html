@@ -49,6 +49,10 @@
         <textarea th:field="*{newsbody}" class="form-control" rows="10" disabled/>
       </div>
       <hr>
+      <audio th:if="*{storespeach} != null" th:id="'news'+*{storespeach.uuid}" controls>
+        <source th:src="'/store/audio/'+*{storespeach.uuid}">
+      </audio>
+      <hr>
       <button type="submit" class="btn btn-primary btn-lg btn-block">
         Зберегти
       </button>
