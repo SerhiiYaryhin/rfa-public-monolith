@@ -64,8 +64,31 @@ public class home {
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
-    @GetMapping(value = "/newstoradio/ttsprepare/{uuidnews}")
+    @GetMapping(value = "/newstoradio/viewnews/{uuidnews}")
     public String userCreateJobToTTS(
+            @PathVariable String uuidnews,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+
+        News curnews = newsService.GetByUUID(uuidnews);
+
+        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
+
+        List<Station> listStation = stationService.GetListStationByCd(cd);
+
+        model.addAttribute("liststation", listStation);
+        model.addAttribute("categorys", category);
+        model.addAttribute("curnews", curnews);
+
+        return "/newstoradio/viewnews";
+    }
+    @GetMapping(value = "/newstoradio/ttsprepare/{uuidnews}")
+    public String viewNews(
             @PathVariable String uuidnews,
             Model model) {
 

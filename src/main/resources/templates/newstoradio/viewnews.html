@@ -24,6 +24,46 @@
   <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
+<header>
+  <!-- Navigation-->
+  <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+</header>
+<!-- MessageBox -->
+<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 
+<div class="row" style="padding-top: 40px">
+  <div class="col-lg-9 col-sm-12" th:object="${curnews}">
+    <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
+    <form th:action="@{/newstoradio/editnews}"  method="post" th:object="${curnews}">
+      <input type="hidden" th:field="${curnews.uuid}"/>
+
+      <span th:text="'Станція: '+${curnews.station.name}" /><br>
+      <span th:text="'Розділ: '+${curnews.category.label}" /><br>
+      <span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
+      <hr>
+      <span>Заголовок новини</span>
+      <input th:field="*{newstitle}" type="text" class="form-control" disabled/>
+      <!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
+      <span>Новина</span>
+      <div>
+        <textarea th:field="*{newsbody}" class="form-control" rows="10" disabled/>
+      </div>
+      <hr>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">
+        Зберегти
+      </button>
+    </form>
+  </div>
+  <div class="col-lg-3 col-sm-12">
+    <!--                    вставляем Медіа Хаб-->
+  </div>
+</div>
+
+<!-- Footer -->
+<div th:insert="~{/fragments/common :: footer}">  </div>
+<!-- Footer -->
+<div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
+<!-- різні скріпти -->
+<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
