@@ -31,7 +31,7 @@ public class NewsService {
     @Autowired
     private StoreService storeService;
 
-    @Value("${media.toloka.rfa.server.runGetFromTTS}")
+    @Value("${media.toloka.tts.server.runGetFromTTS}")
     private String runGetFromTTS;
 
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
