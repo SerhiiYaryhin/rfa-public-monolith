@@ -36,7 +36,6 @@ public class News {
     private Date createdate = new Date();
 //    @Expose
     private ENewsCategory category = NEWS_CATEGORY_NEWS;
-
     private ENewsStatus status = NEWS_STATUS_CREATE;
     private Date datechangestatus = new Date();
 
