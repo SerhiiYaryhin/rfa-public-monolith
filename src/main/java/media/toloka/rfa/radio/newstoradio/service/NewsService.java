@@ -59,6 +59,9 @@ public class NewsService {
         Long rc = 129L;
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", runGetFromTTS);
         Map<String, String> env = pb.environment();
+        logger.info(rjob.getNewsUUID());
+        logger.info(rjob.getTts().getServer());
+        logger.info(rjob.getTts().getUser());
         env.put("NEWSUUID", rjob.getNewsUUID());
         env.put("TTSSERVER", rjob.getTts().getServer());
         env.put("TTSUSER", rjob.getTts().getUser());
