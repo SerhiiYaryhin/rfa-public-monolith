@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Profile("Front")
 @Component
-public class NewsRabbitRPC {
+public class NewsFrontRPC {
 
     @Autowired
     RabbitTemplate template;
@@ -26,7 +26,7 @@ public class NewsRabbitRPC {
     @Autowired
     private NewsService newsService;
 
-    Logger logger = LoggerFactory.getLogger(NewsRabbitRPC.class);
+    Logger logger = LoggerFactory.getLogger(NewsFrontRPC.class);
 
     @RabbitListener(queues = "${media.toloka.rfa.server.libretime.guiserver}")
     public void processedFromFront(String message) {
@@ -40,8 +40,8 @@ public class NewsRabbitRPC {
             case JOB_TTS_FILES_READY:  // Перетягуємо файли після TTS
                 logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
                 // rc = serviceRPC.JobCreateStation(rjob); // from Client Page. Next step
-                rc = newsService.GetMp3FromTTS(rjob);
-                rc += newsService.PutMp3FromTmpToStore(rjob.getNewsUUID());
+//                rc = newsService.GetMp3FromTTS(rjob);
+                rc += newsService.GetMp3FromTts(rjob);
                         rjob.setRc(rc);
                 logger.info("+++++++++++++++++ END JOB_TTS_FILES_READY");
                 break;

@@ -158,7 +158,7 @@ public class RPCSpeachService {
 
     public Long RunTxtToMp3(String sUuidNews) {
         Long rc = 129L;
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", runTxtToMp3 + sUuidNews);
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", runTxtToMp3 + sUuidNews);
         Map<String, String> env = pb.environment();
 
         pb.redirectErrorStream(true);

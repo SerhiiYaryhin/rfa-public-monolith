@@ -9,6 +9,7 @@ import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
 
 import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_READY;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
@@ -28,6 +30,9 @@ public class NewsService {
 
     @Autowired
     private StoreService storeService;
+
+    @Value("${media.toloka.rfa.server.runGetFromTTS}")
+    private String runGetFromTTS;
 
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
@@ -49,10 +54,37 @@ public class NewsService {
         return newsRepositore.findByClientdetail(cd);
     }
 
-    public Long PutMp3FromTmpToStore(String sUuidNews) {
-        // Move file from TTS server
+    public Long GetMp3FromTts(NewsRPC rjob) {
+        // Get FIles from tts server
+        Long rc = 129L;
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", runGetFromTTS);
+        Map<String, String> env = pb.environment();
+        env.put("NEWSUUID", rjob.getNewsUUID());
+        env.put("TTSSERVER", rjob.getTts().getServer());
+        env.put("TTSUSER", rjob.getTts().getUser());
 
-        String patch = "/tmp/" + sUuidNews + ".mp3";
+
+
+        pb.redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.info(line);
+            }
+            int exitcode = p.waitFor();
+            rc = Long.valueOf(exitcode);
+        } catch (IOException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+            e.printStackTrace();
+        }
+
+
+        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
         File initialFile = new File(patch);
         InputStream targetStream = null;
         try {
@@ -61,8 +93,8 @@ public class NewsService {
             logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
             return 100L;
         }
-        String storeUUID = storeService.PutFileToStore(targetStream, sUuidNews + ".mp3", GetByUUID(sUuidNews).getClientdetail(), STORE_TTS);
-        News news = GetByUUID(sUuidNews);
+        String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
+        News news = GetByUUID(rjob.getNewsUUID());
         news.setStorespeach(storeService.GetStoreByUUID(storeUUID));
         news.setStatus(NEWS_STATUS_READY);
         Save(news);
@@ -70,8 +102,9 @@ public class NewsService {
 
         return 0L;
     }
-    public Long GetMp3FromTTS(NewsRPC rjob) {
-        // Забираємо файли з сервера TTS після перетворення
-        return 0L;
-    }
+//    public Long GetMp3FromTTS(NewsRPC rjob) {
+//        // Забираємо файли з сервера TTS після перетворення в tmp
+//
+//        return 0L;
+//    }
 }

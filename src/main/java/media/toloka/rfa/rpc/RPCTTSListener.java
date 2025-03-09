@@ -47,11 +47,7 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
     public void processedFromFront(String message) {
         Long rc = 0L;
         Gson gson = gsonService.CreateGson();
-//        logger.info(message);
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {}
-//        logger.info("Прокинулися");
+
         NewsRPC rjob = null;
         try {
             rjob = gson.fromJson(message, NewsRPC.class);
@@ -61,7 +57,6 @@ Logger logger = LoggerFactory.getLogger(RPCTTSListener.class);
             logger.error(e.getMessage());
             return;
         }
-
 
         logger.info("+++++++++++++++++  Recive message from rabbitmq.queueTTS ={}.",queueTTS);
         ERPCJobType curJob = rjob.getRJobType();
