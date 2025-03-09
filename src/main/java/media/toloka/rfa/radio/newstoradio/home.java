@@ -89,10 +89,10 @@ public class home {
     }
 
 
-    @GetMapping(value = "/newstoradio/viewnews/{curpage}/{uuidnews}")
+    @GetMapping(value = "/newstoradio/viewnews/{scurpage}/{uuidnews}")
     public String userCreateJobToTTS(
             @PathVariable String uuidnews,
-            @PathVariable String curpage,
+            @PathVariable String scurpage,
             Model model) {
 
         Users user = clientService.GetCurrentUser();
@@ -110,7 +110,7 @@ public class home {
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
-        model.addAttribute("currentPage", curpage);
+        model.addAttribute("currentPage", scurpage);
 
         return "/newstoradio/viewnews";
     }
@@ -192,10 +192,10 @@ public class home {
     }
 
 
-    @GetMapping(value = "/newstoradio/editnews/{pagelist}/{uuidnews}")
+    @GetMapping(value = "/newstoradio/editnews/{scurpage}/{uuidnews}")
     public String GetEditNews(
             @PathVariable String uuidnews,
-            @PathVariable String pagelist,
+            @PathVariable String scurpage,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -218,6 +218,7 @@ public class home {
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
+        model.addAttribute("currentPage", scurpage);
 
         return "/newstoradio/editnews";
     }
