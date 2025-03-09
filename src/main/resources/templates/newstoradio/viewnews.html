@@ -36,8 +36,8 @@
     <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
     <form th:action="@{/newstoradio/editnews/${currentPage}}"  method="post" th:object="${curnews}">
       <input type="hidden" th:field="${curnews.uuid}"/>
-      <a class="btn btn-primary" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+*{uuid} }">Видалити новину</a>
-      <a class="btn btn-primary" th:href="@{'/newstoradio/home/'+${currentPage} }">Видалити трек</a>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+*{uuid} }">Видалити новину</a>
+      <a class="btn btn-primary" th:href="@{'/newstoradio/clearstore/'+${currentPage}+'/'+*{uuid} }">Видалити трек</a>
       <br>
 
       <span th:text="'Станція: '+${curnews.station.name}" /><br>
