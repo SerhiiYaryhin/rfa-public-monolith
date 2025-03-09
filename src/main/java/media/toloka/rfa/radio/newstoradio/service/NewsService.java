@@ -63,8 +63,6 @@ public class NewsService {
         env.put("TTSSERVER", rjob.getTts().getServer());
         env.put("TTSUSER", rjob.getTts().getUser());
 
-
-
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();

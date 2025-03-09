@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "TTSSERVER = $TTSSERVER"
+echo "TTSUSER = $TTSUSER"
+echo "NEWSUUID = $NEWSUUID"
+
+scp $TTSUSER@$TTSSERVER:/tmp/$NEWSUUID.mp3 /tmp/
+
+
