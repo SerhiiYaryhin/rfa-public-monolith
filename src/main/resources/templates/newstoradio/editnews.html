@@ -36,7 +36,7 @@
     <div class="row" style="padding-top: 20px">
         <div class="col-lg-9 col-sm-12" th:object="${curnews}">
 <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
-            <form th:action="@{/newstoradio/editnews/${currentPage}}"  method="post" th:object="${curnews}">
+            <form th:action="@{'/newstoradio/editnews/'+${currentPage}}"  method="post" th:object="${curnews}">
                 <input type="hidden" th:field="${curnews.uuid}"/>
 
                 <span>Станція:</span>
