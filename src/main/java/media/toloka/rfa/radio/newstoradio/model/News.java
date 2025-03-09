@@ -41,6 +41,7 @@ public class News {
 
     @ToString.Exclude
 //    @ManyToOne(cascade = {CascadeType.ALL})
+    @Column(nullable = true)
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "station_id")
     private Station station;
