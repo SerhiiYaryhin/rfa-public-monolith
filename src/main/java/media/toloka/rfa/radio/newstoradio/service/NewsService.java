@@ -122,9 +122,4 @@ public class NewsService {
 
         return 0L;
     }
-//    public Long GetMp3FromTTS(NewsRPC rjob) {
-//        // Забираємо файли з сервера TTS після перетворення в tmp
-//
-//        return 0L;
-//    }
 }

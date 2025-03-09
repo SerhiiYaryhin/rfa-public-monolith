@@ -64,6 +64,63 @@ public class home {
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
+    @GetMapping(value = "/newstoradio/clearstore/{scurpage}/{uuidnews}")
+    public String userDeleteFromStore(
+            @PathVariable String uuidnews,
+            @PathVariable String scurpage,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+
+
+        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
+        List<Station> listStation = stationService.GetListStationByCd(cd);
+        model.addAttribute("liststation", listStation);
+        model.addAttribute("categorys", category);
+        model.addAttribute("curnews", scurpage);
+        model.addAttribute("currentPage", scurpage);
+
+        Long rc = newsService.deleteNewsFromStore(uuidnews);
+        if (rc == 0L) {
+            newsService.GetByUUID(uuidnews).setStorespeach(null);
+            model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
+            return "/newstoradio/editnews";
+        }
+
+        model.addAttribute("warning", "Озвучений текст не видалено зі сховища");
+        return "/newstoradio/viewnews";
+    }
+
+    @GetMapping(value = "/newstoradio/deletenews/{scurpage}/{uuidnews}")
+    public String userDeleteNews(
+            @PathVariable String uuidnews,
+            @PathVariable String scurpage,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+
+        News curnews = newsService.GetByUUID(uuidnews);
+
+        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
+
+        List<Station> listStation = stationService.GetListStationByCd(cd);
+
+        model.addAttribute("liststation", listStation);
+        model.addAttribute("categorys", category);
+        model.addAttribute("curnews", curnews);
+        model.addAttribute("currentPage", scurpage);
+        return "redirect:/newstoradio/home/"+scurpage;
+//        return "/newstoradio/viewnews";
+    }
+
 
 //    http://localhost:3080/newstoradio/newstoradio/5b77de3a-688c-40f8-b861-124e8b98eff7
     @GetMapping(value = "/newstoradio/newstoradio/{scurpage}/{uuidnews}")
