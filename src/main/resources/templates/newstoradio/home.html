@@ -89,7 +89,7 @@
                             <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/viewnews/'+${currentPage}+'/'+${lnew.uuid} }">Подивитися</a>
                             <a th:if="${lnew.storespeach} == null" class="btn btn-primary" th:href="@{'/newstoradio/ttsprepare/'+${currentPage}+'/'+${lnew.uuid} }">Перетворити</a>
                             <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/newstoradio/'+${currentPage}+'/'+${lnew.uuid} }">В етер!</a>
-                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary" th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+${lnew.uuid} }">Видалити!</a>
+                            <a class="btn btn-primary" th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+${lnew.uuid} }">Видалити!</a>
                         </td>
                     </tr>
                     </tbody>
