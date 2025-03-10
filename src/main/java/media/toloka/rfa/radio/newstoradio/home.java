@@ -180,10 +180,11 @@ public class home {
         } catch (IOException e) {
             logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
-            e.printStackTrace();
         }
+//        catch (InterruptedException e) {
+//            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+//            e.printStackTrace();
+//        }
 
         logger.info("================= виконуємо трансляцію на радіостанцію");
 
