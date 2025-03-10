@@ -18,7 +18,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-@Profile("Front")
 @Service
 //@RequiredArgsConstructor
 public class EmailSenderService {
