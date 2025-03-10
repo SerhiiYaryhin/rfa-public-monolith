@@ -170,13 +170,13 @@ public class home {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                logger.info(line);
-            }
-            int exitcode = p.waitFor();
-            rc = Long.valueOf(exitcode);
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                logger.info(line);
+//            }
+//            int exitcode = p.waitFor();
+//            rc = Long.valueOf(exitcode);
         } catch (IOException e) {
             logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
             e.printStackTrace();
