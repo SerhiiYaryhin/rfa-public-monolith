@@ -29,10 +29,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.io.*;
+import java.util.*;
 
 import static media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY;
 import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
@@ -148,7 +146,38 @@ public class home {
         Integer curpage = Integer.parseInt(scurpage);
 
         /// виконуємо трансляцію на радіостанцію
+        Long rc = 129L;
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@toradio.rfa ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/9eb3060a-6824-47b7-a329-5067c5b8bead -f mp3 icecast://toradio:toradio@w01.rfa:20018/main"); // &>/dev/null");
 
+
+        pb.redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.info(line);
+            }
+            int exitcode = p.waitFor();
+            rc = Long.valueOf(exitcode);
+        } catch (IOException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+            e.printStackTrace();
+        }
+
+
+//        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
+//        File initialFile = new File(patch);
+//        InputStream targetStream = null;
+//        try {
+//            targetStream = new FileInputStream(initialFile);
+//        } catch (FileNotFoundException e) {
+//            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
+//            return 100L;
+//        }
         /// виконуємо трансляцію на радіостанцію
 
         // повертаємося до поточної сторінки
