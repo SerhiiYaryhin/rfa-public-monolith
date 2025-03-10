@@ -40,18 +40,14 @@ public class News {
     private Date datechangestatus = new Date();
 
     @ToString.Exclude
-//    @ManyToOne(cascade = {CascadeType.ALL})
-//    @Column(nullable = true)
-    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
-//    @JoinColumn(name = "station_id")
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.DETACH,CascadeType.REFRESH})
     private Station station;
 
     @ToString.Exclude
-    @OneToOne(cascade = {CascadeType.ALL})
-//    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @OneToOne(cascade = {CascadeType.PERSIST,CascadeType.DETACH,CascadeType.REFRESH})
     private Store storespeach;
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.DETACH,CascadeType.REFRESH,CascadeType.REMOVE})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.DETACH,CascadeType.REFRESH})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 

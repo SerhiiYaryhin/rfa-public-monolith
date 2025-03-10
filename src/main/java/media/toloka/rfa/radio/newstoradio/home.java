@@ -128,7 +128,7 @@ public class home {
         Long rc = newsService.deleteNews(uuidnews);
         if (rc == 0L) model.addAttribute("success", "Новину успішно видалено");
         else model.addAttribute("error", "Новину не видалено");
-        return "/newstoradio/home/";
+        return "/newstoradio/home";
     }
 
 

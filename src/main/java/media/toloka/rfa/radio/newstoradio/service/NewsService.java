@@ -60,19 +60,32 @@ public class NewsService {
         if (news.getStorespeach() != null) {
             storeRC = storeService.DeleteInStore(news.getStorespeach());
             if (storeRC) {
-                news.setStorespeach(null);
-                Save(news);
+                logger.info("\nDидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}",GetByUUID(uuidNews).getStorespeach().getUuid(),news.getUuid());
+//                news.setStorespeach(null);
+//                Save(news);
             }
         }
 
-        if (storeRC) return 0L; else return 1L;
+        if (storeRC) {
+            logger.info("\n===== Успішно видалили запис у сховищі. \nnewsUUID={}  \nstoreUUID={}",uuidNews,GetByUUID(uuidNews).getStorespeach());
+            return 0L;
+        } else {
+            return 1L;
+        }
     }
 
     public Long deleteNews(String uuidNews) {
+
         Long rc = deleteNewsFromStore(uuidNews);
+//        News news = GetByUUID(uuidNews);
+//        news.setClientdetail(null);
+//        news.setStation(null);
+//        news.setStorespeach(null);
+//        Save(news);
+
         if ( rc != 0L) return rc;
-        GetByUUID(uuidNews).setStation(null);
-        Save(GetByUUID(uuidNews));
+//        GetByUUID(uuidNews).setStation(null);
+//        Save(GetByUUID(uuidNews));
         newsRepositore.delete(GetByUUID(uuidNews));
         return rc;
     }
