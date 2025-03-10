@@ -146,6 +146,7 @@ public class home {
         Integer curpage = Integer.parseInt(scurpage);
 
         /// виконуємо трансляцію на радіостанцію
+        logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@toradio.rfa ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/9eb3060a-6824-47b7-a329-5067c5b8bead -f mp3 icecast://toradio:toradio@w01.rfa:20018/main"); // &>/dev/null");
 
@@ -168,6 +169,7 @@ public class home {
             e.printStackTrace();
         }
 
+        logger.info("================= виконуємо трансляцію на радіостанцію");
 
 //        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
 //        File initialFile = new File(patch);
