@@ -164,7 +164,7 @@ public class home {
                 +toradioseveruser+":"+toradioseverpsw
                 +"@"
                 +newsService.GetByUUID(uuidnews).getStation().getGuiserver()+":"
-                +newsService.GetByUUID(uuidnews).getStation().getMain().toString() +"/main"); // &>/dev/null");
+                +newsService.GetByUUID(uuidnews).getStation().getMain().toString() +"/main &>/dev/null");
 
 
         pb.redirectErrorStream(true);
