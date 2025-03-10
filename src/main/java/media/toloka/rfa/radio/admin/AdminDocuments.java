@@ -9,6 +9,7 @@ import media.toloka.rfa.radio.model.Documents;
 import media.toloka.rfa.radio.model.enumerate.EDocumentStatus;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static media.toloka.rfa.radio.model.enumerate.EDocumentStatus.*;
 
+@Profile("Front")
 @Controller
 public class AdminDocuments {
 

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ import org.springframework.security.crypto.codec.Hex;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationChange;
 import static media.toloka.rfa.rpc.model.ERPCJobType.*;
-
+@Profile("Front")
 @Controller
 public class ClientHomeStationController {
 

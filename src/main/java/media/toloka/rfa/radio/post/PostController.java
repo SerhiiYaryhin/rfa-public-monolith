@@ -15,6 +15,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,6 +31,7 @@ import java.util.List;
 import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 import static media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY;
 
+@Profile("Front")
 @Controller
 public class PostController {
     final Logger logger = LoggerFactory.getLogger(PostController.class);

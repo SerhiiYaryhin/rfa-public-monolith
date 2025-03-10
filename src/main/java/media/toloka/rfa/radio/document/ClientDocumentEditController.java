@@ -10,6 +10,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -26,6 +27,7 @@ import media.toloka.rfa.radio.model.Documents;
 
 import static media.toloka.rfa.radio.model.enumerate.EDocumentStatus.*;
 
+@Profile("Front")
 @Slf4j
 @Controller
 public class ClientDocumentEditController {

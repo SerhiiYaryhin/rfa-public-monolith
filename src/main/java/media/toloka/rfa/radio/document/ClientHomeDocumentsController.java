@@ -8,6 +8,7 @@ import media.toloka.rfa.radio.model.Documents;
 import media.toloka.rfa.radio.document.service.DocumentService;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 
 @Slf4j
+@Profile("Front")
 @Controller
 public class ClientHomeDocumentsController {
 
