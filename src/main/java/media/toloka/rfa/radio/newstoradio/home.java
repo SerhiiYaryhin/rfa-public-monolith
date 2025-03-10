@@ -42,6 +42,17 @@ public class home {
     @Value("${rabbitmq.queueTTS}")
     private String queueTTS;
 
+    @Value("${media.toloka.rfa.server.toradiosever.name}")
+    private String toradiosevername;
+    @Value("${media.toloka.rfa.server.toradiosever.user}")
+    private String toradioseveruser;
+    @Value("${media.toloka.rfa.server.toradiosever.psw}")
+    private String toradioseverpsw;
+
+//    media.toloka.rfa.server.toradiosever.name=toradio.rfa
+//    media.toloka.rfa.server.toradiosever.user=toradio
+//    media.toloka.rfa.server.toradiosever.psw=toradio
+
     @Autowired
     RabbitTemplate template;
 
@@ -148,7 +159,12 @@ public class home {
         /// виконуємо трансляцію на радіостанцію
         logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@toradio.rfa ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/9eb3060a-6824-47b7-a329-5067c5b8bead -f mp3 icecast://toradio:toradio@w01.rfa:20018/main"); // &>/dev/null");
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@"+toradiosevername+" ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
+                +newsService.GetByUUID(uuidnews).getStorespeach().getUuid()+" -f mp3 icecast://"
+                +toradioseveruser+":"+toradioseverpsw
+                +"@"
+                +newsService.GetByUUID(uuidnews).getStation().getGuiserver()+":"
+                +newsService.GetByUUID(uuidnews).getStation().getMain().toString() +"/main"); // &>/dev/null");
 
 
         pb.redirectErrorStream(true);
