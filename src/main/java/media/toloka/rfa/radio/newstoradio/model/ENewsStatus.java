@@ -4,6 +4,7 @@ public enum ENewsStatus {
     NEWS_STATUS_CREATE("Створено"),
     NEWS_STATUS_SEND("Надіслано"),
     NEWS_STATUS_READY("Готово"),
+    NEWS_STATUS_DONE("Виконано"),
     NEWS_STATUS_ERROR("Помилка");
 
     public final String label;

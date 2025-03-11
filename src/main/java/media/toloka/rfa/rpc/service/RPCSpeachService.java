@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
+import media.toloka.rfa.radio.newstoradio.model.ENewsStatus;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
@@ -78,6 +79,7 @@ public class RPCSpeachService {
 
 
         rc = PutTxtToTmp(sUuidNews, news.getNewsbody());
+
         logger.info("==== PutTxtToTmp rc:{}", rc);
         if (rc != 0L) {
             deleteTmpFile(sUuidNews);
@@ -90,7 +92,9 @@ public class RPCSpeachService {
             deleteTmpFile(sUuidNews);
             return rc;
         }
-
+        // Закінчили перетворення на голос та змінюємо статус
+        news.setStatus(ENewsStatus.NEWS_STATUS_DONE);
+        newsService.Save(news);
         // Забираємо фінальний файл до сховища
         rc = SendJobForPutMp3ToStore(rjob);
         if (rc != 0L) {
