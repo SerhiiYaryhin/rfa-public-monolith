@@ -82,7 +82,7 @@ public class StoreItemController {
     }
 
 
-    @PostMapping(value = "/store/deleteitem/{storeItemUUID}")
+    @GetMapping (value = "/store/deleteitem/{storeItemUUID}")
     public String PostStoreItemDelete(
             @PathVariable String storeItemUUID,
             Model model) {
@@ -92,8 +92,9 @@ public class StoreItemController {
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
+        Store store = storeService.GetStoreByUUID(storeItemUUID);
+        storeService.DeleteStoreRecord(store);
 
-//        model.addAttribute("store", store );
         return "redirect:/creater/store/0";
 
     }

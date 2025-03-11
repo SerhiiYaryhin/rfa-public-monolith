@@ -14,7 +14,6 @@ import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.service.NewsService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.rpc.model.RPCJob;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.io.*;
 import java.util.*;
 
-import static media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY;
 import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
 
@@ -74,6 +72,7 @@ public class home {
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
+    /// видаляємо трек
     @GetMapping(value = "/newstoradio/clearstore/{scurpage}/{uuidnews}")
     public String userDeleteFromStore(
             @PathVariable String uuidnews,
@@ -85,21 +84,18 @@ public class home {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-
         News news = newsService.GetByUUID(uuidnews);
-
         if (news == null) {
             return "redirect:/newsradio/home/0";
         }
-
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
         List<Station> listStation = stationService.GetListStationByCd(cd);
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", news);
         model.addAttribute("currentPage", scurpage);
-
-        Long rc = newsService.deleteNewsFromStore(uuidnews);
+        // Саме тут видаляємо файл та запис в Сховищі
+        Long rc = newsService.deleteNewsTrackFromStore(uuidnews);
         if (rc == 0L) {
             newsService.GetByUUID(uuidnews).setStorespeach(null);
             newsService.GetByUUID(uuidnews).setStatus(NEWS_STATUS_CREATE);
@@ -107,11 +103,11 @@ public class home {
             model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
             return "/newstoradio/editnews";
         }
-
         model.addAttribute("error", "Озвучений текст не видалено зі сховища");
         return "/newstoradio/viewnews";
     }
 
+    /// видаляємо новину
     @GetMapping(value = "/newstoradio/deletenews/{scurpage}/{uuidnews}")
     public String userDeleteNews(
             @PathVariable String uuidnews,
@@ -147,10 +143,9 @@ public class home {
         return "redirect:/newstoradio/home/0";
     }
 
-
-//    http://localhost:3080/newstoradio/newstoradio/5b77de3a-688c-40f8-b861-124e8b98eff7
-    @GetMapping(value = "/newstoradio/newstoradio/{scurpage}/{uuidnews}")
     /// Відтворюємо на радіо
+    @GetMapping(value = "/newstoradio/newstoradio/{scurpage}/{uuidnews}")
+
     public String speachToStation(
             @PathVariable String uuidnews,
             @PathVariable String scurpage,
@@ -187,7 +182,7 @@ public class home {
         return "redirect:/newstoradio/home/"+curpage.toString();
     }
 
-
+    /// дивимося новину
     @GetMapping(value = "/newstoradio/viewnews/{scurpage}/{uuidnews}")
     public String userCreateJobToTTS(
             @PathVariable String uuidnews,
@@ -214,6 +209,7 @@ public class home {
         return "/newstoradio/viewnews";
     }
 
+    /// відправляємо текст на перетворення
     @GetMapping(value = "/newstoradio/ttsprepare/{scurpage}/{uuidnews}")
     public String viewNews(
             @PathVariable String uuidnews,
@@ -266,6 +262,7 @@ public class home {
         return "redirect:/newstoradio/home/"+scurpage;
     }
 
+    ///
     @GetMapping(value = "/newstoradio/home/{cPage}")
     public String GetNewsHome(
             @PathVariable String cPage,
@@ -299,7 +296,7 @@ public class home {
         return "/newstoradio/home";
     }
 
-
+    ///
     @GetMapping(value = "/newstoradio/editnews/{scurpage}/{uuidnews}")
     public String GetEditNews(
             @PathVariable String uuidnews,
@@ -331,6 +328,7 @@ public class home {
         return "/newstoradio/editnews";
     }
 
+    ///
     @PostMapping(value = "/newstoradio/editnews/{pagelist}")
     public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
@@ -377,6 +375,5 @@ public class home {
         return "redirect:/newstoradio/home/"+pagelist;
 
     }
-
 
 }

@@ -132,9 +132,8 @@ public class StoreFileImplementation implements StoreInterface {
         // todo зробити видалення файлів у сховищі
         String sPatch = store.getFilepatch();
         logger.info("===== Видалення файла зі сховища {}",sPatch);
-//        File deleteFile = new File(sPatch);
-        // boolean delete = deleteFile.delete();
         try {
+            // видалили файл
             FileUtils.forceDelete(FileUtils.getFile(sPatch));
         }
         catch (IOException e) {

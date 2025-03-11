@@ -5,6 +5,7 @@ import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.repository.NewsRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class NewsService {
 
     public Page GetNewsPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable NewsPage = PageRequest.of(pageNumber, pageCount);
-        return newsRepositore.findByClientdetailOrderByCreatedateDesc(NewsPage,cd);
+        return newsRepositore.findByClientdetailOrderByCreatedateDesc(NewsPage, cd);
     }
 
     public News GetByUUID(String uuidnews) {
@@ -54,20 +55,25 @@ public class NewsService {
         return newsRepositore.findByClientdetail(cd);
     }
 
-    public Long deleteNewsFromStore(String uuidNews) {
+    public Long deleteNewsTrackFromStore(String uuidNews) {
         News news = GetByUUID(uuidNews);
         Boolean storeRC = true;
+        Store store = news.getStorespeach();
+        String storeUUID = store.getUuid();
         if (news.getStorespeach() != null) {
-            storeRC = storeService.DeleteInStore(news.getStorespeach());
+
+            news.setStorespeach(null);
+            storeService.DeleteStoreRecord(store);
+            if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
             if (storeRC) {
-                logger.info("\nDидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}",news.getStorespeach().getUuid(), news.getUuid());
-//                news.setStorespeach(null);
-//                Save(news);
+                logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", news.getStorespeach().getUuid(), news.getUuid());
+                news.setStorespeach(null);
+                Save(news);
             }
         }
 
         if (storeRC) {
-            logger.info("\n===== Успішно видалили запис у сховищі. \nnewsUUID={}  \nstoreUUID={}",uuidNews,GetByUUID(uuidNews).getStorespeach());
+            logger.info("\n===== Успішно видалили запис у сховищі. \nnewsUUID={}  \nstoreUUID={}", uuidNews, storeUUID);
             return 0L;
         } else {
             return 1L;
@@ -76,14 +82,14 @@ public class NewsService {
 
     public Long deleteNews(String uuidNews) {
 
-        Long rc = deleteNewsFromStore(uuidNews);
+        Long rc = deleteNewsTrackFromStore(uuidNews);
 //        News news = GetByUUID(uuidNews);
 //        news.setClientdetail(null);
 //        news.setStation(null);
 //        news.setStorespeach(null);
 //        Save(news);
 
-        if ( rc != 0L) return rc;
+        if (rc != 0L) return rc;
 //        GetByUUID(uuidNews).setStation(null);
 //        Save(GetByUUID(uuidNews));
         newsRepositore.delete(GetByUUID(uuidNews));
@@ -131,7 +137,7 @@ public class NewsService {
             logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
             return 100L;
         }
-        if ( GetByUUID(rjob.getNewsUUID()) != null) {
+        if (GetByUUID(rjob.getNewsUUID()) != null) {
             Clientdetail ccd = GetByUUID(rjob.getNewsUUID()).getClientdetail();
             if (ccd != null) {
                 String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
