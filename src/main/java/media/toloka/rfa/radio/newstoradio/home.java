@@ -297,7 +297,13 @@ public class home {
         Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
 //        List<News> tl = newsService.GetListNewsByCd(cd);
+        List<News> newsList = newsService.GetListNewsByCd(cd);
+        Boolean runSTT = false;
+        for (News runnews : newsList) {
+            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND)  runSTT = true;
+        }
 
+        model.addAttribute("runstatus", runSTT);
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
         model.addAttribute("linkPage", "/creater/tracks/");
