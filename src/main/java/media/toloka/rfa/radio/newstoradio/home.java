@@ -283,6 +283,9 @@ public class home {
             }
         }
 
+        model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання.");
+
+//        model.addAttribute("runstatus", runTTS);
         model.addAttribute("runstatus", runTTS);
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
