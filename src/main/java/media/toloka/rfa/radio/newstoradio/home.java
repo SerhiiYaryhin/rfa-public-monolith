@@ -262,7 +262,7 @@ public class home {
         return "redirect:/newstoradio/home/"+scurpage;
     }
 
-    ///
+    /// відображаємо сторінку з новинами
     @GetMapping(value = "/newstoradio/home/{cPage}")
     public String GetNewsHome(
             @PathVariable String cPage,
@@ -296,7 +296,7 @@ public class home {
         return "/newstoradio/home";
     }
 
-    ///
+    /// редагуємо новину
     @GetMapping(value = "/newstoradio/editnews/{scurpage}/{uuidnews}")
     public String GetEditNews(
             @PathVariable String uuidnews,
@@ -328,7 +328,7 @@ public class home {
         return "/newstoradio/editnews";
     }
 
-    ///
+    /// зберігаємо відредаговану новину
     @PostMapping(value = "/newstoradio/editnews/{pagelist}")
     public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
