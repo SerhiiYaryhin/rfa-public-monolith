@@ -55,6 +55,7 @@ public class NewsService {
         return newsRepositore.findByClientdetail(cd);
     }
 
+    /// видаляємо трек зі сховища
     public Long deleteNewsTrackFromStore(String uuidNews) {
         News news = GetByUUID(uuidNews);
         Boolean storeRC = true;
@@ -66,7 +67,7 @@ public class NewsService {
             storeService.DeleteStoreRecord(store);
             if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
             if (storeRC) {
-                logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", storeUUID, news.getUuid());
+                logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", storeUUID, uuidNews);
                 news.setStorespeach(null);
                 Save(news);
             }
@@ -80,22 +81,16 @@ public class NewsService {
         }
     }
 
+    /// Видаляємо запис новини з бази
     public Long deleteNews(String uuidNews) {
 
         Long rc = deleteNewsTrackFromStore(uuidNews);
-//        News news = GetByUUID(uuidNews);
-//        news.setClientdetail(null);
-//        news.setStation(null);
-//        news.setStorespeach(null);
-//        Save(news);
-
         if (rc != 0L) return rc;
-//        GetByUUID(uuidNews).setStation(null);
-//        Save(GetByUUID(uuidNews));
         newsRepositore.delete(GetByUUID(uuidNews));
         return rc;
     }
 
+    /// Забираємо трек з серверу, на якому відбувалося перетворення
     public Long GetMp3FromTts(NewsRPC rjob) {
         // Get FIles from tts server
         Long rc = 129L;
