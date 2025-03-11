@@ -165,38 +165,15 @@ public class home {
                 +"@"
                 +newsService.GetByUUID(uuidnews).getStation().getGuiserver()+":"
                 +newsService.GetByUUID(uuidnews).getStation().getMain().toString() +"/main &>/dev/null");
-
-
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                logger.info(line);
-//            }
-//            int exitcode = p.waitFor();
-//            rc = Long.valueOf(exitcode);
         } catch (IOException e) {
             logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
             e.printStackTrace();
         }
-//        catch (InterruptedException e) {
-//            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
-//            e.printStackTrace();
-//        }
 
-        logger.info("================= виконуємо трансляцію на радіостанцію");
-
-//        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
-//        File initialFile = new File(patch);
-//        InputStream targetStream = null;
-//        try {
-//            targetStream = new FileInputStream(initialFile);
-//        } catch (FileNotFoundException e) {
-//            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
-//            return 100L;
-//        }
+        logger.info("================= виконали трансляцію на радіостанцію");
         /// виконуємо трансляцію на радіостанцію
 
         // повертаємося до поточної сторінки
@@ -298,12 +275,15 @@ public class home {
         List<News> viewList = pageStore.stream().toList();
 //        List<News> tl = newsService.GetListNewsByCd(cd);
         List<News> newsList = newsService.GetListNewsByCd(cd);
-        Boolean runSTT = false;
+        Boolean runTTS = false;
         for (News runnews : newsList) {
-            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND)  runSTT = true;
+            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND)  {
+                runTTS = true;
+                model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання.");
+            }
         }
 
-        model.addAttribute("runstatus", runSTT);
+        model.addAttribute("runstatus", runTTS);
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
         model.addAttribute("linkPage", "/creater/tracks/");
