@@ -60,7 +60,7 @@ public class NewsService {
         if (news.getStorespeach() != null) {
             storeRC = storeService.DeleteInStore(news.getStorespeach());
             if (storeRC) {
-                logger.info("\nDидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}",GetByUUID(uuidNews).getStorespeach().getUuid(),news.getUuid());
+                logger.info("\nDидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}",news.getStorespeach().getUuid(), news.getUuid());
 //                news.setStorespeach(null);
 //                Save(news);
             }
@@ -105,6 +105,7 @@ public class NewsService {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
+            logger.info("started");
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -130,13 +131,23 @@ public class NewsService {
             logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", patch);
             return 100L;
         }
-        String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
-        News news = GetByUUID(rjob.getNewsUUID());
-        news.setStorespeach(storeService.GetStoreByUUID(storeUUID));
-        news.setStatus(NEWS_STATUS_READY);
-        Save(news);
-        logger.info("News uploaded file {}  StoreUUID {}", patch,storeUUID);
-
-        return 0L;
+        if ( GetByUUID(rjob.getNewsUUID()) != null) {
+            Clientdetail ccd = GetByUUID(rjob.getNewsUUID()).getClientdetail();
+            if (ccd != null) {
+                String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
+                News news = GetByUUID(rjob.getNewsUUID());
+                news.setStorespeach(storeService.GetStoreByUUID(storeUUID));
+                news.setStatus(NEWS_STATUS_READY);
+                Save(news);
+                logger.info("News uploaded file {}  StoreUUID {}", patch, storeUUID);
+                return 0L;
+            } else {
+                logger.info("News uploaded file. Не можемо знайти Clientdetail новини за UUID {}", rjob.getNewsUUID());
+                return 1L;
+            }
+        } else {
+            logger.info("News uploaded file. Не можемо знайти новину за UUID {}", rjob.getNewsUUID());
+            return 2L;
+        }
     }
 }

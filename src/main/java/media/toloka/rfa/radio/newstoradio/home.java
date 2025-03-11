@@ -87,6 +87,11 @@ public class home {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
         News news = newsService.GetByUUID(uuidnews);
+
+        if (news == null) {
+            return "redirect:/newsradio/home/0";
+        }
+
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
         List<Station> listStation = stationService.GetListStationByCd(cd);
         model.addAttribute("liststation", listStation);
@@ -120,6 +125,8 @@ public class home {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
         News curnews = newsService.GetByUUID(uuidnews);
+
+
         if (curnews == null) {
 
             return "/newstoradio/home/0";
@@ -279,7 +286,7 @@ public class home {
         for (News runnews : newsList) {
             if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND)  {
                 runTTS = true;
-                model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання.");
+                model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити.");
             }
         }
 

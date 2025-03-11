@@ -5,7 +5,7 @@
       <env name="QRFA" value="/rfa-dev" />
       <env name="TELEGRAMBOTNAME" value="TestTolokaMediaBot" />
       <env name="TELEGRAMBOTKEY" value="7319689514:AAEwGibd0JOdvqOvZnG0STL_hAGffEqQdCA" />
-      <env name="SPRING_PROFILES_ACTIVE" value="current,Front,Telegram" />
+      <env name="SPRING_PROFILES_ACTIVE" value="current,Front" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="media.toloka.rfa.RFAApplication" />
     <module name="RFA.main" />

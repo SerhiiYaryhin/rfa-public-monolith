@@ -41,7 +41,7 @@ public class NewsFrontRPC {
                 logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
                 // rc = serviceRPC.JobCreateStation(rjob); // from Client Page. Next step
 //                rc = newsService.GetMp3FromTTS(rjob);
-                rc += newsService.GetMp3FromTts(rjob);
+                rc = newsService.GetMp3FromTts(rjob);
                         rjob.setRc(rc);
                 logger.info("+++++++++++++++++ END JOB_TTS_FILES_READY");
                 break;
