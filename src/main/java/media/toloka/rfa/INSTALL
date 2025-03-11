@@ -12,6 +12,12 @@
     /usr/sbin/rabbitmqctl set_permissions -p "/rfa" "rfa" ".*" ".*" ".*"
 6. Надаємо права адміністратора /usr/sbin/rabbitmqctl set_user_tags "usr-NAME" administrator
     /usr/sbin/rabbitmqctl set_user_tags "rfa" administrator
+6.1 Створюємо потрібні черги:
+        - tts для перетворення тексту на трек
+        - чергу для сервера, який заносить перетворений файл у сховище. Це hostname сервера,
+            який керує сховищем для конкретної станції. назву хоста беремо в запису станції.
+     rabbitmqadmin -u rfa -p toloka2_2018 declare queue --vhost="/rfa-dev" name=testcli durable=true
+     rabbitmqadmin -u <rabbitmq user> -p <password> declare queue --vhost=<Vhost> name=<Queue name> durable=true
 7. Правимо файл /etc/rabbitmq/rabbitmq-env.conf: NODE_IP_ADDRESS=<interface address>
     та відкиваємо порт NODE_PORT=5672
 8. Add web gui
