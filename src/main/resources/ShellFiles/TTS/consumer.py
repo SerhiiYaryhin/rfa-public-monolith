@@ -62,7 +62,7 @@ def process_tts(news_rpc_obj):
     final_audio = AudioSegment.silent(duration=500)  # Додаємо коротку паузу перед початком
 
     for i, sentence in enumerate(sentences, 1):
-        print(f"{len(sentence)} - {i}: {sentence} ")
+        #print(f"{len(sentence)} - {i}: {sentence} ")
         with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_wav:
             with open(temp_wav.name, mode="wb") as file:
                 _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
@@ -85,7 +85,7 @@ def callback(ch, method, properties, body):
     # Обробляємо повідомлення
     #processed_message = process_message(news_rpc_obj)
     processed_message = process_tts(news_rpc_obj)
-
+    news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
     # Перетворюємо назад у JSON
     output_json = json.dumps(processed_message)
 
