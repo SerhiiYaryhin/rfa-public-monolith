@@ -92,7 +92,7 @@ def callback(ch, method, properties, body):
     # Надсилаємо у вихідну чергу
     output_queue = news_rpc_obj["front"]["server"]
 
-    channel.queue_declare(queue=news_rpc_obj["Front"]["server"], durable=True)
+    channel.queue_declare(queue=news_rpc_obj["front"]["server"], durable=True)
     print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
     ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     print(f"📤 Відправлено у {output_queue}: {output_json}")
