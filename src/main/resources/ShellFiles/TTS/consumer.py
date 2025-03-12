@@ -1,5 +1,6 @@
 import nltk
 import tempfile
+import os
 from pydub import AudioSegment
 from ukrainian_tts.tts import TTS, Voices, Stress
 import pika
@@ -86,6 +87,8 @@ def callback(ch, method, properties, body):
     #processed_message = process_message(news_rpc_obj)
     processed_message = process_tts(news_rpc_obj)
     news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
+    news_rpc_obj["tts"]["server"] = os.getenv('HOSTNAME')
+    news_rpc_obj["tts"]["user"] = os.getenv('USER')
     # Перетворюємо назад у JSON
     output_json = json.dumps(news_rpc_obj)
 

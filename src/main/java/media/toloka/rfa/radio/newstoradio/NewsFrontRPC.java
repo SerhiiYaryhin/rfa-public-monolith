@@ -39,8 +39,6 @@ public class NewsFrontRPC {
 //        switch (rjob.getRJobType()) {
             case JOB_TTS_FILES_READY:  // Перетягуємо файли після TTS
                 logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
-                // rc = serviceRPC.JobCreateStation(rjob); // from Client Page. Next step
-//                rc = newsService.GetMp3FromTTS(rjob);
                 rc = newsService.GetMp3FromTts(rjob);
                         rjob.setRc(rc);
                 logger.info("+++++++++++++++++ END JOB_TTS_FILES_READY");
