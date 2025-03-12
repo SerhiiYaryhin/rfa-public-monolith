@@ -38,5 +38,7 @@ public class NewsRPC {
     @Expose
     private String newsUUID;
     @Expose
+    private String text;
+    @Expose
     private Long rc;
 }

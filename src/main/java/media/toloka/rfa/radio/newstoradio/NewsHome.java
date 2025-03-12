@@ -35,7 +35,7 @@ import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_C
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
 
 @Controller
-public class home {
+public class NewsHome {
 
     @Value("${rabbitmq.queueTTS}")
     private String queueTTS;
@@ -145,7 +145,6 @@ public class home {
 
     /// Відтворюємо на радіо
     @GetMapping(value = "/newstoradio/newstoradio/{scurpage}/{uuidnews}")
-
     public String speachToStation(
             @PathVariable String uuidnews,
             @PathVariable String scurpage,
@@ -161,12 +160,12 @@ public class home {
         /// виконуємо трансляцію на радіостанцію
         logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@"+toradiosevername+" ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
-                +newsService.GetByUUID(uuidnews).getStorespeach().getUuid()+" -f mp3 icecast://"
-                +toradioseveruser+":"+toradioseverpsw
-                +"@"
-                +newsService.GetByUUID(uuidnews).getStation().getGuiserver()+":"
-                +newsService.GetByUUID(uuidnews).getStation().getMain().toString() +"/main &>/dev/null");
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
+                + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
+                + toradioseveruser + ":" + toradioseverpsw
+                + "@"
+                + newsService.GetByUUID(uuidnews).getStation().getGuiserver() + ":"
+                + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null");
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
@@ -179,7 +178,7 @@ public class home {
         /// виконуємо трансляцію на радіостанцію
 
         // повертаємося до поточної сторінки
-        return "redirect:/newstoradio/home/"+curpage.toString();
+        return "redirect:/newstoradio/home/" + curpage.toString();
     }
 
     /// дивимося новину
@@ -211,7 +210,7 @@ public class home {
 
     /// відправляємо текст на перетворення
     @GetMapping(value = "/newstoradio/ttsprepare/{scurpage}/{uuidnews}")
-    public String viewNews(
+    public String ttsprepare(
             @PathVariable String uuidnews,
             @PathVariable String scurpage,
             Model model) {
@@ -229,11 +228,10 @@ public class home {
             NewsRPC rjob = new NewsRPC();
             rjob.setRJobType(JOB_TTS);
             rjob.getFront().setUser(System.getenv("USER"));
-            logger.info("==== home userCreateJobToTTS Front USER {} {}",System.getenv("USER"),rjob.getTts().getUser());
             rjob.getFront().setServer(System.getenv("HOSTNAME"));
-            logger.info("==== home userCreateJobToTTS Front HOSTNAME {} {}",System.getenv("HOSTNAME"),rjob.getTts().getServer());
             rjob.setNewsUUID(curnews.getUuid());
             rjob.setStationUUID(curnews.getStation().getUuid());
+            rjob.setText(curnews.getNewsbody());
             rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
@@ -244,7 +242,9 @@ public class home {
             newsService.Save(curnews);
 
         } else {
-            model.addAttribute("error", "<b>Щось пішло не так.<br>Завдання перетворення тексту в голос не надіслано на обробку.</b>");
+            model.addAttribute("error", "<b>Щось пішло не так - не знайшли новину "
+                    + ".Завдання перетворення тексту в голос не надіслано на обробку.</b>");
+            logger.info("==== NEWS ttsprepare: Щось пішло не так - не знайшли новину {}",uuidnews);
         }
         // формуємо інформацію для відображення
         Integer curpage = 0;
@@ -252,14 +252,13 @@ public class home {
 // Пейджинг для сторінки
         Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
-//        List<News> tl = newsService.GetListNewsByCd(cd);
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", scurpage);
         model.addAttribute("linkPage", "/creater/tracks/");
         model.addAttribute("viewList", viewList);
 
-        return "redirect:/newstoradio/home/"+scurpage;
+        return "redirect:/newstoradio/home/" + scurpage;
     }
 
     /// відображаємо сторінку з новинами
@@ -277,11 +276,10 @@ public class home {
 // Пейджинг для сторінки
         Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
-//        List<News> tl = newsService.GetListNewsByCd(cd);
         List<News> newsList = newsService.GetListNewsByCd(cd);
         Boolean runTTS = false;
         for (News runnews : newsList) {
-            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND)  {
+            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
                 runTTS = true;
                 model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити.");
             }
@@ -372,7 +370,7 @@ public class home {
         if (news != null) newsService.Save(news);
 
         if (type) return "redirect:/newstoradio/home/0";
-        return "redirect:/newstoradio/home/"+pagelist;
+        return "redirect:/newstoradio/home/" + pagelist;
 
     }
 
