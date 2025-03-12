@@ -82,7 +82,7 @@ def process_tts(news_rpc_obj):
 # Функція зворотного виклику для обробки повідомлення
 def callback(ch, method, properties, body):
     # print(f"📥 Отримано повідомлення: {body.decode()}")
-    print(f"📥 Отримано повідомлення: {body.decode()}")
+    print(f"📥 Отримано повідомлення.")
 
     # Розбираємо JSON у Python-словник
     news_rpc_obj = json.loads(body.decode())
