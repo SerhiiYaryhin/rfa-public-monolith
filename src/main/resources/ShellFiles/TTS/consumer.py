@@ -32,7 +32,7 @@ channel = connection.channel()
 
 # Декларація черг
 channel.queue_declare(queue=input_queue, durable=True)
-channel.queue_declare(queue=output_queue, durable=True)
+#channel.queue_declare(queue=output_queue, durable=True)
 
 nltk.download("punkt")
 from nltk.tokenize import sent_tokenize
@@ -70,7 +70,9 @@ def process_tts(news_rpc_obj):
             audio_segment = AudioSegment.from_wav(temp_wav.name)
             final_audio += audio_segment + AudioSegment.silent(duration=500)
 
-    final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
+#     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
+    final_audio += audio_segment + AudioSegment.silent(duration=500)
+    final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="mp3", bitrate="48k")
 
 # Функція зворотного виклику для обробки повідомлення
 def callback(ch, method, properties, body):
@@ -80,12 +82,16 @@ def callback(ch, method, properties, body):
     news_rpc_obj = json.loads(body.decode())
 
     # Обробляємо повідомлення
-    processed_message = process_message(news_rpc_obj)
+    #processed_message = process_message(news_rpc_obj)
+    processed_message = process_tts(news_rpc_obj)
 
     # Перетворюємо назад у JSON
     output_json = json.dumps(processed_message)
 
     # Надсилаємо у вихідну чергу
+    output_queue = news_rpc_obj["Front"]["server"]
+
+    channel.queue_declare(queue=output_queue, durable=True)
     ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     print(f"📤 Відправлено у {output_queue}: {output_json}")
 
