@@ -1,0 +1,17 @@
+# Налаштування RabbitMQ
+rabbitmq:
+  host: rabbit.rfa  # Сервер RabbitMQ
+  port: 5672  # Порт за замовчуванням
+  username: rfa  # Логін
+  password: toloka2_2018  # Пароль
+  input_queue: tmp.in  # Черга для вхідних повідомлень
+  output_queue: tmp.out  # Черга для оброблених повідомлень
+
+# Налаштування користувачів
+users:
+  tts:
+    server: tts.rfa
+    user: tts
+  front:
+    server: front.example.com
+    user: rfa
