@@ -26,8 +26,8 @@ connection = pika.BlockingConnection(
 channel = connection.channel()
 
 # Декларація черг
-channel.queue_declare(queue=input_queue)
-channel.queue_declare(queue=output_queue)
+channel.queue_declare(queue=input_queue, durable=True)
+channel.queue_declare(queue=output_queue, durable=True)
 
 # Функція обробки повідомлення
 def process_message(news_rpc_obj):

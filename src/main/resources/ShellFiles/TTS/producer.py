@@ -25,7 +25,7 @@ connection = pika.BlockingConnection(
 channel = connection.channel()
 
 # Декларація черги
-channel.queue_declare(queue=input_queue)
+channel.queue_declare(queue=input_queue, durable=True)
 
 # Формування тестового повідомлення
 message = {
