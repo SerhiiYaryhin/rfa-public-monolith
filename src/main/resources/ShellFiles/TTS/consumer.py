@@ -40,13 +40,13 @@ tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" д�
 
 
 
-# Функція обробки повідомлення
-def process_message(news_rpc_obj):
-    """ Функція обробки отриманого JSON """
-    news_rpc_obj["text"] = news_rpc_obj["text"].upper()  # Робимо текст заголовними літерами
-    news_rpc_obj["rc"] = 201  # Оновлюємо код результату
-    return news_rpc_obj
+# def process_message(news_rpc_obj):
+#     """ Функція обробки отриманого JSON """
+#     news_rpc_obj["text"] = news_rpc_obj["text"].upper()  # Робимо текст заголовними літерами
+#     news_rpc_obj["rc"] = 201  # Оновлюємо код результату
+#     return news_rpc_obj
 
+# Функція обробки повідомлення
 def process_tts(news_rpc_obj):
     #nltk.download("punkt")
     #from nltk.tokenize import sent_tokenize
@@ -89,9 +89,9 @@ def callback(ch, method, properties, body):
     output_json = json.dumps(processed_message)
 
     # Надсилаємо у вихідну чергу
-    output_queue = news_rpc_obj["Front"]["server"]
+#     output_queue = news_rpc_obj["Front"]["server"]
 
-    channel.queue_declare(queue=output_queue, durable=True)
+    channel.queue_declare(queue=news_rpc_obj["Front"]["server"], durable=True)
     ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     print(f"📤 Відправлено у {output_queue}: {output_json}")
 
