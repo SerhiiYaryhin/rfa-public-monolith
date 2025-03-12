@@ -6,115 +6,114 @@
 >
 
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
-<!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
+    <!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
     <!-- Google fonts-->
-<!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
-<!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
+    <!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
+    <!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
     <!-- Core theme CSS (includes Bootstrap)-->
     <!-- Bootstrap icons-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet"/>
 
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
-    <header>
-        <!-- Navigation-->
-        <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-    </header>
+<header>
+    <!-- Navigation-->
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
 
-    <!-- Header для главной сторінки подкастов -->
-
-    <div class="container-fluid pt-5" >
+<!-- Header для главной сторінки подкастов -->
+<header>
+    <div class="container-fluid pt-5">
         <div class="bg-light rounded-3 text-center">
             <h1 class="display-5 fw-bold">Ваші новини в прямому етері! </h1>
             <div class="m-4 m-lg-5" style="padding-bottom: 20px">
-                <!--                    <h1 class="display-5 fw-bold">Ваші подкасти</h1>-->
-                <p class="fs-6" >Новини в прямому етері! <br><b>Вашу новину почує весь світ!</b></p>
+                <p class="fs-6">Новини в прямому етері! <br><b>Вашу новину почує весь світ!</b></p>
                 <a class="btn btn-primary btn-lg col-6 mx-auto" href="/newstoradio/editnews/0/0">Створити</a>
             </div>
         </div>
     </div>
+</header>
 
-    <section >
-        <div class="container">
-            <div class="row text-center" >
-                <div class="col align-center">
-                    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
-                </div>
-            </div>
-            <!-- Перелік новин-->
-            <div class="row ">
-                <!-- початок циклу виводу новин -->
-                <div th:insert="~{/fragments/common :: pagingline}"/>
-                <table class="table table-striped table-hover">
-                    <thead>
-                    <tr>
-                        <th scope="col">Дата</th>
-                        <th scope="col">Заголовок</th>
-                        <th scope="col">Станція</th>
-                        <th scope="col">Стан</th>
-                        <th scope="col">Дія</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="lnew : ${viewList}">
-                        <td>
-                            <span th:text="${#dates.format(lnew.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
-                            <audio th:if="${lnew.storespeach} != null" th:id="'news'+${lnew.uuid}" controls>
-                                <source th:src="'/store/audio/'+${lnew.storespeach.uuid}">
-                            </audio>
-                        </td>
-                        <td>
-                            <span th:text="${lnew.newstitle}"/>
-                        </td>
-                        <td>
-                            <span th:if="${lnew.station} != null" th:text="${lnew.station.name} "/>
-                        </td>
-                        <td>
-                            <span th:if="${lnew.status} != null" th:text="${lnew.status.label} "/>
-                        </td>
-                        <td>
-
-                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary badge rounded-pill"
-                               th:href="@{'/newstoradio/viewnews/'+${currentPage}+'/'+${lnew.uuid} }">Подивитися</a>
-                            <a th:if="${lnew.storespeach} == null and !${runstatus}" class="btn btn-primary badge rounded-pill"
-                               th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+${lnew.uuid} }">Редагувати</a>
-                            <a th:if="${lnew.storespeach} == null and !${runstatus}" class="btn btn-primary badge rounded-pill"
-                               th:href="@{'/newstoradio/ttsprepare/'+${currentPage}+'/'+${lnew.uuid}}" >Перетворити</a>
-                            <a th:if="${lnew.storespeach} != null" class="btn btn-primary badge rounded-pill"
-                               th:href="@{'/newstoradio/newstoradio/'+${currentPage}+'/'+${lnew.uuid} }">В етер!</a>
-                            <a th:if="!${runstatus}" class="btn btn-primary badge rounded-pill"
-                               th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+${lnew.uuid} }">Видалити!</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div th:insert="~{/fragments/common :: pagingline}"/>
-                <!-- кінець циклу виводу новин -->
+<section>
+    <div class="container-fluid">
+        <div class="row text-center">
+            <div class="col align-center">
+                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
         </div>
-    </section>
+        <!-- Перелік новин-->
+        <div class="row ">
+            <!-- початок циклу виводу новин -->
+            <div th:insert="~{/fragments/common :: pagingline}"/>
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Заголовок</th>
+                    <th scope="col">Станція</th>
+                    <th scope="col">Стан</th>
+                    <th scope="col">Дія</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lnew : ${viewList}">
+                    <td>
+                        <span th:text="${#dates.format(lnew.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                        <audio th:if="${lnew.storespeach} != null" th:id="'news'+${lnew.uuid}" controls>
+                            <source th:src="'/store/audio/'+${lnew.storespeach.uuid}">
+                        </audio>
+                    </td>
+                    <td>
+                        <span th:text="${lnew.newstitle}"/>
+                    </td>
+                    <td>
+                        <span th:if="${lnew.station} != null" th:text="${lnew.station.name} "/>
+                    </td>
+                    <td>
+                        <span th:if="${lnew.status} != null" th:text="${lnew.status.label} "/>
+                    </td>
+                    <td>
+
+                        <a th:if="${lnew.storespeach} != null" class="btn btn-primary badge rounded-pill"
+                           th:href="@{'/newstoradio/viewnews/'+${currentPage}+'/'+${lnew.uuid} }">Подивитися</a>
+                        <a th:if="${lnew.storespeach} == null and !${runstatus}"
+                           class="btn btn-primary badge rounded-pill"
+                           th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+${lnew.uuid} }">Редагувати</a>
+                        <a th:if="${lnew.storespeach} == null and !${runstatus}"
+                           class="btn btn-primary badge rounded-pill"
+                           th:href="@{'/newstoradio/ttsprepare/'+${currentPage}+'/'+${lnew.uuid}}">Перетворити</a>
+                        <a th:if="${lnew.storespeach} != null" class="btn btn-primary badge rounded-pill"
+                           th:href="@{'/newstoradio/newstoradio/'+${currentPage}+'/'+${lnew.uuid} }">В етер!</a>
+                        <a th:if="!${runstatus}" class="btn btn-primary badge rounded-pill"
+                           th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+${lnew.uuid} }">Видалити!</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:insert="~{/fragments/common :: pagingline}"/>
+            <!-- кінець циклу виводу новин -->
+        </div>
+    </div>
+</section>
 
 
+<!-- Footer -->
+<div th:insert="~{/fragments/common :: footer}"></div>
+
+<!-- Footer -->
+
+<div th:insert="~{/fragments/navbar :: bottomnavbar}"></div>
 
 
-
-    <!-- Footer -->
-    <div th:insert="~{/fragments/common :: footer}">  </div>
-
-    <!-- Footer -->
-
-    <div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
-
-
-    <!-- різні скріпти -->
+<!-- різні скріпти -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
