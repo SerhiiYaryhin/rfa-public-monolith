@@ -76,7 +76,7 @@ def process_tts(news_rpc_obj):
 
 #     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
     final_audio += audio_segment + AudioSegment.silent(duration=500)
-    final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="mp3", bitrate="48k")
+    final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".mp3", format="mp3", bitrate="48k")
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
 
 # Функція зворотного виклику для обробки повідомлення
