@@ -7,6 +7,7 @@ rabbitmq_host = config["rabbitmq"]["host"]
 rabbitmq_port = config["rabbitmq"]["port"]
 rabbitmq_user = config["rabbitmq"]["username"]
 rabbitmq_password = config["rabbitmq"]["password"]
+rabbitmq_vhost = config["rabbitmq"]["vhost"]
 input_queue = config["rabbitmq"]["input_queue"]
 
 # Авторизація
@@ -14,7 +15,12 @@ credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
 
 # Встановлення з'єднання
 connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host=rabbitmq_host, port=rabbitmq_port, credentials=credentials)
+        pika.ConnectionParameters(
+            host=rabbitmq_host,
+            port=rabbitmq_port,
+            virtual_host=rabbitmq_vhost,  # Віртуальний хост
+            credentials=credentials
+        )
 )
 channel = connection.channel()
 
