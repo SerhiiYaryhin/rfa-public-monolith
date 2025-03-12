@@ -14,7 +14,8 @@ rabbitmq_user = config["rabbitmq"]["username"]
 rabbitmq_password = config["rabbitmq"]["password"]
 input_queue = config["rabbitmq"]["input_queue"]
 rabbitmq_vhost = config["rabbitmq"]["vhost"]
-output_queue = config["rabbitmq"]["output_queue"]
+print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
+#output_queue = config["rabbitmq"]["output_queue"]
 
 # Авторизація
 credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
@@ -89,9 +90,10 @@ def callback(ch, method, properties, body):
     output_json = json.dumps(processed_message)
 
     # Надсилаємо у вихідну чергу
-#     output_queue = news_rpc_obj["Front"]["server"]
+    output_queue = news_rpc_obj["Front"]["server"]
 
     channel.queue_declare(queue=news_rpc_obj["Front"]["server"], durable=True)
+    print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
     ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     print(f"📤 Відправлено у {output_queue}: {output_json}")
 
