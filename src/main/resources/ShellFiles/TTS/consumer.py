@@ -87,7 +87,7 @@ def callback(ch, method, properties, body):
     processed_message = process_tts(news_rpc_obj)
     news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
     # Перетворюємо назад у JSON
-    output_json = json.dumps(processed_message)
+    output_json = json.dumps(news_rpc_obj)
 
     # Надсилаємо у вихідну чергу
     output_queue = news_rpc_obj["front"]["server"]
