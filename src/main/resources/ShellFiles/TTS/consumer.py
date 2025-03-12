@@ -17,7 +17,7 @@ input_queue = config["rabbitmq"]["input_queue"]
 rabbitmq_vhost = config["rabbitmq"]["vhost"]
 tts_host = config["users"]["tts"]["server"]
 tts_user = config["users"]["tts"]["user"]
-print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
+#print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
 #output_queue = config["rabbitmq"]["output_queue"]
 
 # Авторизація
@@ -77,9 +77,11 @@ def process_tts(news_rpc_obj):
 #     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
     final_audio += audio_segment + AudioSegment.silent(duration=500)
     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="mp3", bitrate="48k")
+    print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
 
 # Функція зворотного виклику для обробки повідомлення
 def callback(ch, method, properties, body):
+    # print(f"📥 Отримано повідомлення: {body.decode()}")
     print(f"📥 Отримано повідомлення: {body.decode()}")
 
     # Розбираємо JSON у Python-словник
