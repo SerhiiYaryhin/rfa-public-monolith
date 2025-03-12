@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.station.onlinelist.Service;
 
 //import lombok.var;
+
 import com.google.gson.GsonBuilder;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.ClientHomeStationController;
@@ -35,12 +36,12 @@ public class ScheduledTasks {
 
     @Autowired
     private StationService stationService;
-/*
-Клас, який періодично оновлює список онлайн станцій та ефірну інформацію (назва треку, автор)
-Ініціалізація відбувається при старті застосунку.
- */
+    /*
+    Клас, який періодично оновлює список онлайн станцій та ефірну інформацію (назва треку, автор)
+    Ініціалізація відбувається при старті застосунку.
+     */
 //private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
-final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
+    final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
 
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -80,25 +81,27 @@ final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
             }
             GsonBuilder builder = new GsonBuilder();
             Object o = builder.create().fromJson(json, Object.class);
-            Map<String, Object> Report = (Map<String, Object>)o;
+            Map<String, Object> Report = (Map<String, Object>) o;
 //            Map<String, Object> previous = (Map<String, Object>) Report.get("previous");
 
             Map<String, Object> current = (Map<String, Object>) Report.get("current");
-            if (current != null ) {
+            if (current != null) {
                 Map<String, Object> currentmetadata = (Map<String, Object>) current.get("metadata");
-                String currentmetadataTrackTitle = (String) currentmetadata.get("track_title");
-                String currentmetadataArtistName = (String) currentmetadata.get("artist_name");
+                if (currentmetadata != null) {
+                    String currentmetadataTrackTitle = (String) currentmetadata.get("track_title");
+                    String currentmetadataArtistName = (String) currentmetadata.get("artist_name");
 
-                // Заповнюємо екземпляр станції
-                ListOnlineFront lof = new ListOnlineFront();
-                lof.setUuid(stationOnline.getUuid());
-                lof.setDbname(stationOnline.getDbname());
-                lof.setStationname(stationOnline.getName());
-                lof.setTrack(currentmetadataTrackTitle);
-                lof.setGroup(currentmetadataArtistName);
-                lof.setCurdate(currentUpdate);
+                    // Заповнюємо екземпляр станції
+                    ListOnlineFront lof = new ListOnlineFront();
+                    lof.setUuid(stationOnline.getUuid());
+                    lof.setDbname(stationOnline.getDbname());
+                    lof.setStationname(stationOnline.getName());
+                    lof.setTrack(currentmetadataTrackTitle);
+                    lof.setGroup(currentmetadataArtistName);
+                    lof.setCurdate(currentUpdate);
 
-                listOnlineFronts.add(lof);
+                    listOnlineFronts.add(lof);
+                }
             }
             // return new JSONObject(json);
 
