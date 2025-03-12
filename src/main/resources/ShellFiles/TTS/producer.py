@@ -35,5 +35,5 @@ message_json = json.dumps(message)
 channel.basic_publish(exchange="", routing_key=input_queue, body=message_json)
 print(f"📨 Відправлено у {input_queue}: {message_json}")
 
-# Закриття з'єднання
+# Закриття з'єднання 1
 connection.close()
