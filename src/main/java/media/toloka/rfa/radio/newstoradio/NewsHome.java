@@ -228,7 +228,7 @@ public class NewsHome {
             NewsRPC rjob = new NewsRPC();
             rjob.setRJobType(JOB_TTS);
             rjob.getFront().setUser(System.getenv("USER"));
-            rjob.getFront().setServer(System.getenv("HOSTNAME"));
+            rjob.getFront().setServer(curnews.getStation().getGuiserver());
             rjob.setNewsUUID(curnews.getUuid());
             rjob.setStationUUID(curnews.getStation().getUuid());
             rjob.setText(curnews.getNewsbody());
