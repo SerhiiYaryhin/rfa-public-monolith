@@ -15,8 +15,8 @@ rabbitmq_user = config["rabbitmq"]["username"]
 rabbitmq_password = config["rabbitmq"]["password"]
 input_queue = config["rabbitmq"]["input_queue"]
 rabbitmq_vhost = config["rabbitmq"]["vhost"]
-tts_host = config["tts"]["server"]
-tts_user = config["tts"]["server"]
+tts_host = config["users"]["tts"]["server"]
+tts_user = config["users"]["tts"]["user"]
 print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
 #output_queue = config["rabbitmq"]["output_queue"]
 
