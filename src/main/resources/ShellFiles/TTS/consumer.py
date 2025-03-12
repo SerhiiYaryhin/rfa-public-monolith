@@ -15,6 +15,8 @@ rabbitmq_user = config["rabbitmq"]["username"]
 rabbitmq_password = config["rabbitmq"]["password"]
 input_queue = config["rabbitmq"]["input_queue"]
 rabbitmq_vhost = config["rabbitmq"]["vhost"]
+tts_host = config["tts"]["server"]
+tts_user = config["tts"]["server"]
 print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
 #output_queue = config["rabbitmq"]["output_queue"]
 
@@ -87,8 +89,9 @@ def callback(ch, method, properties, body):
     #processed_message = process_message(news_rpc_obj)
     processed_message = process_tts(news_rpc_obj)
     news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
-    news_rpc_obj["tts"]["server"] = os.getenv('HOSTNAME')
-    news_rpc_obj["tts"]["user"] = os.getenv('USER')
+    news_rpc_obj["tts"]["server"] = tts_host
+    news_rpc_obj["tts"]["user"] = tts_user
+    news_rpc_obj["text"] = " "
     # Перетворюємо назад у JSON
     output_json = json.dumps(news_rpc_obj)
 
@@ -96,9 +99,9 @@ def callback(ch, method, properties, body):
     output_queue = news_rpc_obj["front"]["server"]
 
     channel.queue_declare(queue=news_rpc_obj["front"]["server"], durable=True)
-    print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
+    #print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
     ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
-    print(f"📤 Відправлено у {output_queue}: {output_json}")
+    #print(f"📤 Відправлено у {output_queue}: {output_json}")
 
     ch.basic_ack(delivery_tag=method.delivery_tag)  # Підтвердження отримання
 
