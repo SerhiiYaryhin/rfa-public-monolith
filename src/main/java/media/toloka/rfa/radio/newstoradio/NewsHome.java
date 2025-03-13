@@ -183,12 +183,13 @@ public class NewsHome {
                 + "@"
                 + radioserver + ":"
                 + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
-        historyService.saveHistory(History_NewsSendToRadio,
-                "Новина "+ newsService.GetByUUID(uuidnews)
-                        + " станція " + newsService.GetByUUID(uuidnews).getStorespeach().getUuid()
-                        +"  команда ", user);
-        historyService.saveHistory(History_NewsSendToRadio,
-                toRadioCommand, user);
+        logger.info("\n"+toRadioCommand);
+//        historyService.saveHistory(History_NewsSendToRadio,
+//                "Новина "+ newsService.GetByUUID(uuidnews)
+//                        + " станція " + newsService.GetByUUID(uuidnews).getStorespeach().getUuid()
+//                        +"  команда ", user);
+//        historyService.saveHistory(History_NewsSendToRadio,
+//                toRadioCommand, user);
 
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
         pb.redirectErrorStream(true);
