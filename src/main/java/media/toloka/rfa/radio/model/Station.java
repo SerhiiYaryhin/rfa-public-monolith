@@ -46,6 +46,8 @@ public class Station {
     @Expose
     public String guiserver; // address server allocate gui Libretime
     @Expose
+    public String radioserver = null; // address server allocate gui Libretime
+    @Expose
     public Integer main; // port main
     @Expose
     public Integer show; // port show

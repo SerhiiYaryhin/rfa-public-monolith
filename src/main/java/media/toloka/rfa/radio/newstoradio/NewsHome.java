@@ -160,12 +160,21 @@ public class NewsHome {
         /// виконуємо трансляцію на радіостанцію
         logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
+        String radioserver;
+
+        if (newsService.GetByUUID(uuidnews).getStation().getRadioserver() != null )
+            radioserver = newsService.GetByUUID(uuidnews).getStation().getRadioserver();
+        else
+            radioserver = newsService.GetByUUID(uuidnews).getStation().getGuiserver();
+
+        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
                 + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
                 + toradioseveruser + ":" + toradioseverpsw
                 + "@"
-                + newsService.GetByUUID(uuidnews).getStation().getGuiserver() + ":"
-                + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null");
+                + radioserver + ":"
+                + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
+
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
