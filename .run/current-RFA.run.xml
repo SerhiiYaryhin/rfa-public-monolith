@@ -1,11 +1,12 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="current-RFA" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="17 (2)" />
+    <option name="ALTERNATIVE_JRE_PATH" value="graalvm-jdk-21" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="QRFA" value="/rfa-dev" />
       <env name="TELEGRAMBOTNAME" value="TestTolokaMediaBot" />
       <env name="TELEGRAMBOTKEY" value="7319689514:AAEwGibd0JOdvqOvZnG0STL_hAGffEqQdCA" />
-      <env name="SPRING_PROFILES_ACTIVE" value="default,Front,Telegram" />
+      <env name="SPRING_PROFILES_ACTIVE" value="current,Front,Telegram" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="media.toloka.rfa.RFAApplication" />
     <module name="RFA.main" />
