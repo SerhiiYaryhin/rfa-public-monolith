@@ -40,6 +40,9 @@ public class NewsHome {
     @Value("${rabbitmq.queueTTS}")
     private String queueTTS;
 
+    @Value("${media.toloka.rfa.station.basename}")
+    private String baseSiteAddress;
+
     @Value("${media.toloka.rfa.server.toradiosever.name}")
     private String toradiosevername;
     @Value("${media.toloka.rfa.server.toradiosever.user}")
@@ -167,7 +170,7 @@ public class NewsHome {
         else
             radioserver = newsService.GetByUUID(uuidnews).getStation().getGuiserver();
 
-        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
+        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://"+baseSiteAddress+"/store/audio/"
                 + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
                 + toradioseveruser + ":" + toradioseverpsw
                 + "@"
