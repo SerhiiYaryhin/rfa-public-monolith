@@ -5,7 +5,7 @@ rabbitmq:
   username: rfa  # Логін
   password: toloka2_2018  # Пароль
   input_queue: tts  # Черга для вхідних повідомлень
-  vhost: /rfa-dev  # Віртуальний хост
+  vhost: /rfa  # Віртуальний хост
   output_queue: tmp.out  # Черга для оброблених повідомлень
 
 # Налаштування користувачів
