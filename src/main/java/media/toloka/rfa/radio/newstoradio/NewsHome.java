@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.ClientHomeController;
 import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
@@ -31,8 +32,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.io.*;
 import java.util.*;
 
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToRadio;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_UserSendMailSetPassword;
 import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
+import static org.bouncycastle.asn1.iana.IANAObjectIdentifiers.mail;
 
 @Controller
 public class NewsHome {
@@ -72,6 +76,9 @@ public class NewsHome {
 
     @Autowired
     private NewsService newsService;
+
+    @Autowired
+    private HistoryService historyService;
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
@@ -176,6 +183,10 @@ public class NewsHome {
                 + "@"
                 + radioserver + ":"
                 + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
+        historyService.saveHistory(History_NewsSendToRadio,
+                "Новина "+ newsService.GetByUUID(uuidnews)
+                        + " станція " + newsService.GetByUUID(uuidnews).getStorespeach().getUuid()
+                        +"  команда " + toRadioCommand, user);
 
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
         pb.redirectErrorStream(true);
