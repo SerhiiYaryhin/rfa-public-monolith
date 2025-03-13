@@ -81,7 +81,7 @@ def callback(ch, method, properties, body):
     news_rpc_obj = json.loads(body.decode())
 
     # Обробляємо повідомлення
-    news_rpc_obj[rc] = process_tts(news_rpc_obj)
+    news_rpc_obj["rc"] = process_tts(news_rpc_obj)
     news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
     news_rpc_obj["tts"]["server"] = tts_host
     news_rpc_obj["tts"]["user"] = tts_user
