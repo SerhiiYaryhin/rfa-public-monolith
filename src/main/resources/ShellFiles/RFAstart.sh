@@ -8,4 +8,4 @@ cp ~/prodact/src/main/resources/ShellFiles/* ~/bin/
 /bin/sh -c 'until ping -c1 8.8.8.8; do sleep 5; done;'
 /bin/sh -c 'until ping -c4 pg.rfa; do sleep 1; done;'
 export QRFA=/rfa
-java -jar -Dspring.profiles.active=default,Front,Telegram build/libs/RFA-1.0.0.war
+java -jar -Dspring.profiles.active=default,Front build/libs/RFA-1.0.0.war
