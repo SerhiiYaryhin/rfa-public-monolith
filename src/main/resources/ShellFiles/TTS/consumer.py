@@ -52,16 +52,8 @@ tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" д�
 
 # Функція обробки повідомлення
 def process_tts(news_rpc_obj):
-    #nltk.download("punkt")
-    #from nltk.tokenize import sent_tokenize
-
-    #tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" для швидшої генерації
-
-    #with open("text1.txt", "r", encoding="utf-8") as f:
-    #    text = f.read()
     text =  news_rpc_obj["text"]
     sentences = sent_tokenize(text, language="russian")  # Для української використовуємо "russian"
-
     final_audio = AudioSegment.silent(duration=500)  # Додаємо коротку паузу перед початком
 
     for i, sentence in enumerate(sentences, 1):
@@ -78,18 +70,18 @@ def process_tts(news_rpc_obj):
     final_audio += audio_segment + AudioSegment.silent(duration=500)
     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".mp3", format="mp3", bitrate="48k")
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
+    # Обробити нештатні ситуації
+    return 0;
 
 # Функція зворотного виклику для обробки повідомлення
 def callback(ch, method, properties, body):
-    # print(f"📥 Отримано повідомлення: {body.decode()}")
     print(f"📥 Отримано повідомлення.")
 
     # Розбираємо JSON у Python-словник
     news_rpc_obj = json.loads(body.decode())
 
     # Обробляємо повідомлення
-    #processed_message = process_message(news_rpc_obj)
-    processed_message = process_tts(news_rpc_obj)
+    news_rpc_obj[rc] = process_tts(news_rpc_obj)
     news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
     news_rpc_obj["tts"]["server"] = tts_host
     news_rpc_obj["tts"]["user"] = tts_user
