@@ -186,7 +186,9 @@ public class NewsHome {
         historyService.saveHistory(History_NewsSendToRadio,
                 "Новина "+ newsService.GetByUUID(uuidnews)
                         + " станція " + newsService.GetByUUID(uuidnews).getStorespeach().getUuid()
-                        +"  команда " + toRadioCommand, user);
+                        +"  команда ", user);
+        historyService.saveHistory(History_NewsSendToRadio,
+                toRadioCommand, user);
 
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
         pb.redirectErrorStream(true);
