@@ -236,7 +236,7 @@ public class ClientHomeStationController {
         model.addAttribute("toradiouser", toradiouser);
         model.addAttribute("totoradiouserpsw", totoradiouserpsw);
         model.addAttribute("station", mstation);
-        return "/user/toradiouser";
+        return "/user/settoradiouser";
     }
 
     @PostMapping(value = "/user/toradiousersave")

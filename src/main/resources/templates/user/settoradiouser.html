@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+<head>
+    <meta charset="utf-8" />
+    <!--    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+</head>
+<body>
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+</header>
+
+<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+
+<div class="container-fluid px-lg-5 py-5" style="padding-top: 30px">
+    <div class="bg-light rounded-3 text-center">
+        <div class="m-4 m-lg-5">
+            <h1 class="display-5 fw-bold">Ваш епізод подкасту</h1>
+            <p class="fs-6">Заповніть необхідні поля, додайте обкладинку епізоду та його опис.</p>
+        </div>
+    </div>
+</div>
+
+<form  th:action="@{'/user/toradiousersave'}" th:object="${station}" method="post">
+    <div class="mb-3">
+<!--        <input type="hidden" th:field="*{uuid}" />-->
+        <input type="hidden" th:field="*{id}" />
+        <label for="toradiouser" class="form-label">Імʼя користувача</label>
+        <input type="text" th:id="toradiouser" th:name="toradiouser" th:value="${toradiouser}" th:field="${toradiouser}"  class="form-control">
+    </div>
+    <div class="form-outline mb-4">
+        <label for="totoradiouserpsw" class="form-label">Опис епізоду</label>
+        <input type="text"  th:field="${totoradiouserpsw}" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+    <a class="btn btn-primary" th:href="'/user/controlstation?id=' + *{id}">Повернутися</a>
+</form>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

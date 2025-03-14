@@ -68,6 +68,8 @@
                                         Ви можете запустити та зупинити можливість в чаті та <a href="https://t.me/TolokaMediaBot">Телеграмі</a> надсилати повідомлення під час прямого ефіру.<br>
                                         <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
                                            id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
+                                        <a th:href="'/user/toradiouser?id='+${station.id}"
+                                           id="toradiouser" class="btn btn-primary" >Встановити користувача<br>для прямого ефіру</a>
                                     </div>
                                     <div th:if="${stationstateonline}">
                                         <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
