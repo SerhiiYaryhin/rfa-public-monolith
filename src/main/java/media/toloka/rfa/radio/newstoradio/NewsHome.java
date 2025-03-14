@@ -59,7 +59,7 @@ public class NewsHome {
 //    media.toloka.rfa.server.toradiosever.psw=toradio
 
     @Autowired
-    RabbitTemplate template;
+    private RabbitTemplate template;
 
     @Autowired
     private GsonService gsonService;

@@ -65,6 +65,11 @@ public class Station {
     private Boolean stationstate; // true if station runing state
     @Expose
     private String roomuuid = null;
+    @Expose
+    private String toradiouser;
+    @Expose
+    @Column(columnDefinition = "TEXT")
+    private String toradiopassword;
 
 //    private transient Contract contract;
 
