@@ -34,16 +34,17 @@
     </div>
 </div>
 
-<form  th:action="@{'/user/toradiousersave'}" th:object="${station}" method="post">
+<form  th:action="@{'/user/toradiousersave'}" th:object="${toradiouser}" method="post">
     <div class="mb-3">
 <!--        <input type="hidden" th:field="*{uuid}" />-->
-        <input type="hidden" th:field="*{id}" />
+        <input type="hidden" th:field="${station.id}" />
         <label for="toradiouser" class="form-label">Імʼя користувача</label>
-        <input type="text" th:id="toradiouser" th:name="toradiouser" th:value="${toradiouser}" th:field="${toradiouser}"  class="form-control">
+<!--        <input type="text" id="toradiouser" name="toradiouser" value="${toradiouser}" th:field="${toradiouser}"  class="form-control">-->
+        <input type="text" th:field="${toradiouser.clientdetail.firmname}"  class="form-control">
     </div>
     <div class="form-outline mb-4">
         <label for="totoradiouserpsw" class="form-label">Опис епізоду</label>
-        <input type="text"  th:field="${totoradiouserpsw}" class="form-control">
+        <input type="text"  th:field="${toradiouser.password}" class="form-control">
     </div>
     <button type="submit" class="btn btn-primary">Зберегти</button>
     <a class="btn btn-primary" th:href="'/user/controlstation?id=' + *{id}">Повернутися</a>

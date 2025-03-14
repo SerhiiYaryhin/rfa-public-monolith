@@ -230,11 +230,11 @@ public class ClientHomeStationController {
             model.addAttribute("warning", "Не можемо знайти станцію (" + id.toString() + ") для користувача " + user.getEmail());
             return "redirect:/user/stations";
         }
-        String toradiouser = "";
-        String totoradiouserpsw = "";
+        String toradiouser = "rrrrrr";
+        String totoradiouserpsw = "rrrrrrr";
 
-        model.addAttribute("toradiouser", toradiouser);
-        model.addAttribute("totoradiouserpsw", totoradiouserpsw);
+        model.addAttribute("toradiouser", new Users());
+//        model.addAttribute("totoradiouserpsw", totoradiouserpsw);
         model.addAttribute("station", mstation);
         return "/user/settoradiouser";
     }
@@ -242,8 +242,7 @@ public class ClientHomeStationController {
     @PostMapping(value = "/user/toradiousersave")
     public String PostUserControltToradioUser(
             @ModelAttribute Station station,
-            @ModelAttribute String totoradiouserpsw,
-            @ModelAttribute String toradiouser,
+            @ModelAttribute Users toradiouser,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -264,15 +263,22 @@ public class ClientHomeStationController {
             return "redirect:/user/stations";
         }
 
-        Boolean testUser = nstation.getToradiouser().equals(toradiouser);
-        if ( testUser ) {
-            nstation.setToradiouser(toradiouser);
-            String sPSW;
-            sPSW = sendToRadio.encrypt(totoradiouserpsw);
-            nstation.setToradiopassword(sPSW);
-            stationService.saveStation(nstation);
+        if (toradiouser.getClientdetail().getFirmname() != null ) {
+            Boolean testUser = false;
+            if (nstation.getToradiouser() == null) {
+                testUser = true;
+            } else {
+                testUser = nstation.getToradiouser().equals(toradiouser.getClientdetail().getFirmname());
+            }
+//            Boolean testUser = nstation.getToradiouser().equals(toradiouser.getClientdetail().getFirmname());
+            if (testUser) {
+                nstation.setToradiouser(toradiouser.getClientdetail().getFirmname());
+                String sPSW;
+                sPSW = sendToRadio.encrypt(toradiouser.getEmail());
+                nstation.setToradiopassword(sPSW);
+                stationService.saveStation(nstation);
+            }
         }
-
         return "redirect:user/controlstation?id=" + nstation.getId().toString();
     }
 
