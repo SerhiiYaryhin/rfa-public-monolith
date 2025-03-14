@@ -13,10 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.io.IOException;
+import java.security.*;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -32,12 +30,14 @@ public class SendToRadio {
     @Value("${media.toloka.rfa.server.client_dir}")
     private String baseClientsDir;
 
-    @Value ("${media.toloka.rfa.station.basename}")
+    @Value("${media.toloka.rfa.station.basename}")
     private String externalGuiServer;
 
     @Value("${media.toloka.rfa.server.libretime.guiserver}")
     private String localGuiServer;
 
+    @Value("${media.toloka.rfa.server.toradiosever.queue}")
+    private String libretimeQueue;
     final Logger logger = LoggerFactory.getLogger(SendToRadio.class);
 
 
@@ -69,45 +69,54 @@ public class SendToRadio {
         // 2️⃣ Конвертуємо JsonObject у JSON-рядок
         Gson gson = new Gson();
         String jsonString = gson.toJson(jsonObject);
-        template.convertAndSend(toradioserver, jsonString);
+        template.convertAndSend(libretimeQueue, jsonString);
     }
 
     ///  генеруємо ключі для паролей користувачів станцій, через яких транслюємо потік новин
-    ///
-    public void ToRadioKeyGen (
-        String to_radios_server /// toradioserver Імʼя черги toRadio сервера
+    public void ToRadioKeyGen(
+            String to_radios_server /// toradioserver Імʼя черги toRadio сервера
 
     ) {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(1024);
-        KeyPair keyPair = keyGen.generateKeyPair();
+        KeyPairGenerator keyGen;
+        KeyPair keyPair;
+        PublicKey publicKey;
+        PrivateKey privateKey;
+        try {
+            keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(1024);
+            keyPair = keyGen.generateKeyPair();
+            publicKey = keyPair.getPublic();
+            privateKey = keyPair.getPrivate();
 
-        PublicKey publicKey = keyPair.getPublic();
-        PrivateKey privateKey = keyPair.getPrivate();
+            // Зберігаємо публічний ключ
+            String guiKeyDirectory = System.getenv("HOME") + baseClientsDir + "/key";
 
-        // Зберігаємо публічний ключ
-        String guiKeyDirectory = System.getenv("HOME") + baseClientsDir + "/key";
+            try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".pub")) {
+                fos.write(Base64.getEncoder().encode(publicKey.getEncoded()));
+            } catch (FileNotFoundException e) {
+                logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
+            } catch (IOException e ) {
+                logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
+            }
 
-        try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory+ "/"+ localGuiServer +".pub")) {
-            fos.write(Base64.getEncoder().encode(publicKey.getEncoded()));
-        } catch (FileNotFoundException e) {
+            // Передаємо приватний ключ на сервер трансляції новин
 
-        }
-
-        // Передаємо приватний ключ на сервер трансляції новин
-        // 1️⃣ Створюємо JSON-об'єкт вручну
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("job", "toRadiokey");
-        jsonObject.addProperty("guiserver", libretimeuser);
-
-        // 2️⃣ Конвертуємо JsonObject у JSON-рядок
-        Gson gson = new Gson();
-        String jsonString = gson.toJson(jsonObject);
-        template.convertAndSend(to_radios_server, jsonString);
-
-
-        try (FileOutputStream fos = new FileOutputStream("private_key.priv")) {
-            fos.write(Base64.getEncoder().encode(privateKey.getEncoded()));
+            // 2️⃣ Конвертуємо JsonObject у JSON-рядок
+            Gson gson = new Gson();
+            // 1️⃣ Створюємо JSON-об'єкт вручну
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("job", "toRadiokey");
+            jsonObject.addProperty("guiserver", localGuiServer);
+            byte[] privKey = Base64.getEncoder().encode(privateKey.getEncoded());
+            String sprivkey = "";
+            for (int i = 0; i < privKey.length; i++) {
+                sprivkey += (char) privKey[i];
+            }
+            jsonObject.addProperty("key", sprivkey);
+            String jsonString = gson.toJson(jsonObject);
+            template.convertAndSend(to_radios_server, jsonString);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("Проблема з бібліотекою шифрування.");
         }
 
     }
