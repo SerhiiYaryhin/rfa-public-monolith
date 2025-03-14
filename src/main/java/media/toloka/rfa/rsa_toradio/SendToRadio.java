@@ -1,8 +1,7 @@
-package media.toloka.rfa.rsa_tmp;
+package media.toloka.rfa.rsa_toradio;
 
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
-import media.toloka.rfa.radio.client.ClientHomeController;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.*;
 import java.util.Base64;
-import java.util.UUID;
 
 @Service
 public class SendToRadio {

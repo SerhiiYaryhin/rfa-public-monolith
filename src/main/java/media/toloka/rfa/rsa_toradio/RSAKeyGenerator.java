@@ -1,4 +1,4 @@
-package media.toloka.rfa.rsa_tmp;
+package media.toloka.rfa.rsa_toradio;
 
 import java.io.FileOutputStream;
 import java.security.KeyPair;

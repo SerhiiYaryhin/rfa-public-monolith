@@ -1,4 +1,4 @@
-package media.toloka.rfa.rsa_tmp;
+package media.toloka.rfa.rsa_toradio;
 
 import javax.crypto.Cipher;
 import java.nio.file.Files;
