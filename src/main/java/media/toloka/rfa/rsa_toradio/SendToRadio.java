@@ -10,10 +10,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Service
@@ -73,7 +82,6 @@ public class SendToRadio {
     ///  генеруємо ключі для паролей користувачів станцій, через яких транслюємо потік новин
     public void ToRadioKeyGen(
             String to_radios_server /// toradioserver Імʼя черги toRadio сервера
-
     ) {
         KeyPairGenerator keyGen;
         KeyPair keyPair;
@@ -115,6 +123,67 @@ public class SendToRadio {
             logger.error("ToRadioKeyGen: Проблема з бібліотекою шифрування.");
         }
 
+    }
+
+    public  PublicKey loadPublicKey(String filename) {
+        byte[] keyBytes;
+        try {
+            keyBytes = Base64.getDecoder().decode(Files.readAllBytes(Paths.get(filename)));
+        } catch (IOException e) {
+            logger.info("Помилка при зчитуванні файлу приватного ключа");
+            return null;
+        }
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+        PublicKey pkey = null;
+        try {
+            pkey = KeyFactory.getInstance("RSA").generatePublic(spec);
+        } catch (NoSuchAlgorithmException e) {
+            logger.info("NoSuchAlgorithmException: Проблема завантаження приватного ключа.");
+        } catch (InvalidKeySpecException e) {
+            logger.info("InvalidKeySpecException: Проблема завантаження приватного ключа.");
+
+        }
+        return pkey;
+    }
+
+    public String encrypt(String data ) {
+        // load public key
+        String filenamePubKey;
+        PublicKey publicKey;
+        filenamePubKey = System.getenv("HOME") + baseClientsDir + "/key"+ "/" + localGuiServer + ".pub"  ;
+        File f = new File(filenamePubKey);
+        if(f.exists() && !f.isDirectory()) {
+            publicKey = loadPublicKey(filenamePubKey);
+        } else {
+            ToRadioKeyGen(localGuiServer);
+            publicKey = loadPublicKey(filenamePubKey);
+        }
+
+//        PublicKey publicKey = loadPublicKey(filenamePubKey);
+        String sencriptPSW;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+            sencriptPSW = Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (NoSuchAlgorithmException e) {
+            logger.info("NoSuchAlgorithmException: Проблема роботи з приватним ключем.");
+            return null;
+        } catch (InvalidKeyException e) {
+            logger.info("InvalidKeyException: Проблема роботи з приватним ключем.");
+            return null;
+        }
+        catch (IllegalBlockSizeException e) {
+            logger.info("IllegalBlockSizeException: Проблема роботи з приватним ключем.");
+            return null;
+        } catch (NoSuchPaddingException e) {
+            logger.info("InvalidKeyException: Проблема роботи з приватним ключем.");
+            return null;
+        } catch (BadPaddingException e) {
+            logger.info("BadPaddingException: Проблема роботи з приватним ключем.");
+            return null;
+        }
+        return sencriptPSW;
     }
 }
 

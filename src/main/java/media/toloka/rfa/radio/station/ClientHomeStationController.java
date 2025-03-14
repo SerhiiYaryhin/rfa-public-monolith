@@ -16,6 +16,7 @@ import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.model.enumerate.EContractStatus;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.rpc.model.RPCJob;
+import media.toloka.rfa.rsa_toradio.SendToRadio;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +30,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.MessageDigest;
 import java.util.Date;
+
 import org.springframework.security.crypto.codec.Hex;
 
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationChange;
 import static media.toloka.rfa.rpc.model.ERPCJobType.*;
+
 @Profile("Front")
 @Controller
 public class ClientHomeStationController {
@@ -68,13 +71,16 @@ public class ClientHomeStationController {
     @Autowired
     private MessangerService messangerService;
 
+    @Autowired
+    private SendToRadio sendToRadio;
+
     final Logger logger = LoggerFactory.getLogger(ClientHomeStationController.class);
 
     // Створюємо кімнату в чаті для радіостанції
     @GetMapping(value = "/user/stationcreateroom/{suuid}")
     public String userHomeStationCreateChatRoom(
             @PathVariable String suuid,
-            Model model ) {
+            Model model) {
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -99,7 +105,7 @@ public class ClientHomeStationController {
     @GetMapping(value = "/user/stationslivebroadcast/{suuid}")
     public String userHomeStationLiveBroadcast(
             @PathVariable String suuid,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -117,24 +123,24 @@ public class ClientHomeStationController {
         }
         messangerService.SaveRoom(msgroom);
 //        model.addAttribute("stations",  stationService.GetListStationByUser(user));
-        return "redirect:/user/controlstation?id="+station.getId().toString();
+        return "redirect:/user/controlstation?id=" + station.getId().toString();
     }
 
     @GetMapping(value = "/user/stations")
     public String userHomeStation(
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        model.addAttribute("stations", stationService.GetListStationByUser(user));
         return "/user/stations";
     }
 
 
     @GetMapping(value = "/user/createstation")
     public String userCreateStation(
-            Model model ) {
+            Model model) {
 
 //        logger.info("Create New station.");
         Users user = clientService.GetCurrentUser();
@@ -199,18 +205,81 @@ public class ClientHomeStationController {
         String strStation = gstation.toJson(station).toString();
         rjob.setRjobdata(strStation);
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
-        logger.info("Rjob : {}",strStation);
+        logger.info("Rjob : {}", strStation);
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
-        logger.info("Str to rabbit {}",strgson);
-        template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
+        logger.info("Str to rabbit {}", strgson);
+        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         return "redirect:/user/stations";
+    }
+
+    @GetMapping(value = "/user/toradiouser")
+    public String GetUserControltToradioUser(
+            @RequestParam(value = "id", required = true) Long id,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Station mstation;
+        mstation = stationService.GetStationById(id);
+        if (mstation == null) {
+            // Станцію створити не можемо. Показуємо про це повідомлення.
+            logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
+            // TODO Відправити у форму повідомлення про неможливість створення станції та кинути клієнту месседж
+            model.addAttribute("warning", "Не можемо знайти станцію (" + id.toString() + ") для користувача " + user.getEmail());
+            return "redirect:/user/stations";
+        }
+        String toradiouser = "";
+        String totoradiouserpsw = "";
+
+        model.addAttribute("toradiouser", toradiouser);
+        model.addAttribute("totoradiouserpsw", totoradiouserpsw);
+        model.addAttribute("station", mstation);
+        return "/user/toradiouser";
+    }
+
+    @PostMapping(value = "/user/toradiousersave")
+    public String PostUserControltToradioUser(
+            @ModelAttribute Station station,
+            @ModelAttribute String totoradiouserpsw,
+            @ModelAttribute String toradiouser,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+//            logger.warn("userHomeStationSave: User not found. Redirect to main page");
+            return "redirect:/";
+        }
+
+        if (station == null) {
+            // Станцію створити не можемо. Показуємо про це повідомлення.
+            return "redirect:/user/stations";
+        }
+
+        Station nstation;
+        if (station.getId() != null) {
+            nstation = stationService.GetStationById(station.getId());
+        } else {
+            logger.info("userHomeStationSave:  Не можемо зберегти станцію id={} для користувача {}", station.getId(), user.getEmail());
+            return "redirect:/user/stations";
+        }
+
+        Boolean testUser = nstation.getToradiouser().equals(toradiouser);
+        if ( testUser ) {
+            nstation.setToradiouser(toradiouser);
+            String sPSW;
+            sPSW = sendToRadio.encrypt(totoradiouserpsw);
+            nstation.setToradiopassword(sPSW);
+            stationService.saveStation(nstation);
+        }
+
+        return "redirect:user/controlstation?id=" + nstation.getId().toString();
     }
 
     @GetMapping(value = "/user/controlstation")
     public String userControltStation(
             @RequestParam(value = "id", required = true) Long id,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -226,12 +295,12 @@ public class ClientHomeStationController {
         }
         // користувач та станція знайдені. Працюємо зі станцією.
 
-        model.addAttribute("formUserPSW",  new Users());
-        model.addAttribute("contracts",  contractService.ListContractByUser(user));
-        model.addAttribute("linkstation",  stationService.GetURLStation(mstation));
-        model.addAttribute("station",  mstation);
+        model.addAttribute("formUserPSW", new Users());
+        model.addAttribute("contracts", contractService.ListContractByUser(user));
+        model.addAttribute("linkstation", stationService.GetURLStation(mstation));
+        model.addAttribute("station", mstation);
         Boolean stationstateonline = stationService.GetStationRoomStatus(mstation.getRoomuuid());
-        model.addAttribute("stationstateonline", stationstateonline) ;
+        model.addAttribute("stationstateonline", stationstateonline);
         if (messangerService.GetChatRoomByUUID(mstation.getRoomuuid()) != null) {
             model.addAttribute("roomstart", messangerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline());
         } else {
@@ -245,7 +314,7 @@ public class ClientHomeStationController {
             @RequestParam(value = "id", required = true) Long id,
             @ModelAttribute Users formUserPSW,
             @ModelAttribute Station station,
-            Model model ) {
+            Model model) {
         logger.info("Збереження паролю для станції.");
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -254,14 +323,13 @@ public class ClientHomeStationController {
         // встановлюємо пароль для адміна в панелі керування станцією
 
 
-
         Station mstation;
         mstation = stationService.GetStationById(id);
 
-        model.addAttribute("formUserPSW",  new Users());
-        model.addAttribute("contracts",  contractService.ListContractByUser(user));
-        model.addAttribute("linkstation",  stationService.GetURLStation(mstation));
-        model.addAttribute("station",  mstation);
+        model.addAttribute("formUserPSW", new Users());
+        model.addAttribute("contracts", contractService.ListContractByUser(user));
+        model.addAttribute("linkstation", stationService.GetURLStation(mstation));
+        model.addAttribute("station", mstation);
         return "/user/controlstation";
     }
 
@@ -269,7 +337,7 @@ public class ClientHomeStationController {
     public String userHomeStationSave(
             @ModelAttribute Station station,
             @ModelAttribute Users formUserPSW,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
 //            logger.warn("userHomeStationSave: User not found. Redirect to main page");
@@ -303,7 +371,7 @@ public class ClientHomeStationController {
         nstation.setLastchangedate(new Date());
         stationService.saveStation(nstation);
         historyService.saveHistory(History_StationChange,
-                nstation.getUuid().toString() + ": " +nstation.getLastchangedate().toString() + " Збережено станцію " + nstation.getUuid().toString(),
+                nstation.getUuid().toString() + ": " + nstation.getLastchangedate().toString() + " Збережено станцію " + nstation.getUuid().toString(),
                 user
         );
         String newpsw = formUserPSW.getPassword();
@@ -329,22 +397,21 @@ public class ClientHomeStationController {
             // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
             Gson gson = gsonService.CreateGson();
             String strgson = gson.toJson(rjob).toString();
-            template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
-            model.addAttribute("warning",  "Завдання на встановлення паролю відправлено на виконання.");
+            template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
+            model.addAttribute("warning", "Завдання на встановлення паролю відправлено на виконання.");
         }
 
 
         // TODO відправити повідомлення на сторінку
-        model.addAttribute("success",  "Вашу станцію збережено в базу.");
+        model.addAttribute("success", "Вашу станцію збережено в базу.");
         return "redirect:/user/stations";
     }
-
 
 
     @GetMapping(value = "/user/startstation")
     public String userStartStation(
             @RequestParam(value = "id", required = true) Long id,
-            Model model ) {
+            Model model) {
 
         String message;
 
@@ -366,7 +433,7 @@ public class ClientHomeStationController {
             model.addAttribute("success", message);
             return "redirect:/user/stations";
         }
-        if ((station.getContract().getClientdetail().getAccount() < 0 ) && (station.getContract().getContractStatus() == EContractStatus.CONTRACT_PAY)) {
+        if ((station.getContract().getClientdetail().getAccount() < 0) && (station.getContract().getContractStatus() == EContractStatus.CONTRACT_PAY)) {
             // todo перевірити гроші на рахунку і проплачений термін
             logger.info("Не можемо запустити станцію " + station.getUuid() + " для користувача " + user.getEmail() + " Перевірте, чи достатньо коштів на рахунку");
             model.addAttribute("success", "Не можемо запустити станцію " + station.getUuid() + " для користувача " + user.getEmail() + " Перевірте, чи достатньо коштів на рахунку");
@@ -380,7 +447,7 @@ public class ClientHomeStationController {
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
-        template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
+        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
 //        return "/user/controlstation"+"/?id="+station.getId().toString();
         return "redirect:/user/stations";
     }
@@ -389,7 +456,7 @@ public class ClientHomeStationController {
     public String userStopStation(
             @RequestParam(value = "id", required = true) Long id,
 
-            Model model ) {
+            Model model) {
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -407,7 +474,7 @@ public class ClientHomeStationController {
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
-        template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
+        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         return "redirect:/user/stations";
     }
 
@@ -415,7 +482,7 @@ public class ClientHomeStationController {
     public String userDelStation(
             @RequestParam(value = "id", required = true) Long id,
 
-            Model model ) {
+            Model model) {
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -437,7 +504,7 @@ public class ClientHomeStationController {
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
-        template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
+        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         model.addAttribute("success", "Вам надіслано листа на підтвердження видалення станції. Будь ласка, підтвердіть видалення");
         historyService.saveHistory(History_StationChange,
                 station.getUuid().toString() + ":  Надіслано запит на видалення станції ",
@@ -449,7 +516,7 @@ public class ClientHomeStationController {
     @GetMapping(value = "/user/psstation")
     public String userPSStation(
             @RequestParam(value = "id", required = true) Long id,
-            Model model ) {
+            Model model) {
 
 //        logger.info("Create New station.");
         Users user = clientService.GetCurrentUser();
@@ -470,7 +537,7 @@ public class ClientHomeStationController {
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
-        template.convertAndSend(queueNameRabbitMQ,gson.toJson(rjob).toString());
+        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         return "redirect:/user/stations";
     }
 }
