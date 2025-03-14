@@ -100,8 +100,6 @@ public class SendToRadio {
             }
 
             // Передаємо приватний ключ на сервер трансляції новин
-
-            // 2️⃣ Конвертуємо JsonObject у JSON-рядок
             Gson gson = new Gson();
             // 1️⃣ Створюємо JSON-об'єкт вручну
             JsonObject jsonObject = new JsonObject();
@@ -116,7 +114,7 @@ public class SendToRadio {
             String jsonString = gson.toJson(jsonObject);
             template.convertAndSend(to_radios_server, jsonString);
         } catch (NoSuchAlgorithmException e) {
-            logger.error("Проблема з бібліотекою шифрування.");
+            logger.error("ToRadioKeyGen: Проблема з бібліотекою шифрування.");
         }
 
     }
