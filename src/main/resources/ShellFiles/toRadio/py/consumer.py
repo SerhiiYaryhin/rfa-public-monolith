@@ -66,7 +66,7 @@ def SavePrivateKey(news_rpc_obj):
 
 
     with open(ldir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
-        private_file.write(news_rpc_obj["key"])
+        private_file.write(news_rpc_obj["key"].encode("utf-8"))
     return 0
 
 
