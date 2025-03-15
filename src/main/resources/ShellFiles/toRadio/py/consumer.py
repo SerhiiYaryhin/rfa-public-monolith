@@ -83,7 +83,7 @@ def ToRadio(news_rpc_obj):
     mainpoint =  news_rpc_obj["mainpoint"]
 
     private_key = load_private_key(guiserver)
-    decrypted_message = decrypt_rsa(criptpsw, private_key)
+    decrypted_message = decrypt_rsa(criptopsw, private_key)
     # формуємо командну строку
     cmd = "ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/" + news_rpc_obj["newsUUID"]
     +   "https://front.rfa.toloka.media:" + news_rpc_obj["mainport"]
