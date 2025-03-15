@@ -65,6 +65,7 @@ def SavePrivateKey(news_rpc_obj):
 
     with open(locateDir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
         public_file.write(news_rpc_obj["key"])
+    return 0
 
 
 # віправляємо зі сторе в ефір
