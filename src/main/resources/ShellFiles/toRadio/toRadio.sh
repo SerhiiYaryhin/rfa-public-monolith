@@ -8,5 +8,6 @@ rm ~/bin/py/*
 cp ~/rfa/src/main/resources/ShellFiles/toRadio/py/* ~/bin/py
 cd ~/bin
 source toRadio/bin/activate
+cd py
 python3 toRadio.py
 deactivate
