@@ -1,6 +1,6 @@
 import yaml
 
-def load_config(filename="TTSconfig.yaml"):
+def load_config(filename="toRadio.yaml"):
     """ Завантаження конфігурації з YAML-файлу """
     with open(filename, "r") as file:
         return yaml.safe_load(file)

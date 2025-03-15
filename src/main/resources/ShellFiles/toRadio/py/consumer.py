@@ -5,6 +5,8 @@ from config_loader import config
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
+from config_loader import config
+
 
 
 # Завантаження конфігурації RabbitMQ
