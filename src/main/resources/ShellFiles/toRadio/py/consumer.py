@@ -51,19 +51,20 @@ def decrypt_rsa(encrypted_message_base64, private_key):
 # Зберігаєио приватний ключ від gui сервера
 def SavePrivateKey(news_rpc_obj):
     #breakpoint()
+    ldir = os.path.expanduser(locateDir)
 
     # Create the directory
     try:
-        os.mkdir(locateDir)
-        print(f"Directory '{locateDir}' created successfully.")
+        os.mkdir(ldir)
+        print(f"Directory '{ldir}' created successfully.")
     except FileExistsError:
-        print(f"Directory '{locateDir}' already exists.")
+        print(f"Directory '{ldir}' already exists.")
     except PermissionError:
-        print(f"Permission denied: Unable to create '{locateDir}'.")
+        print(f"Permission denied: Unable to create '{ldir}'.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
-    ldir = os.path.expanduser(locateDir)
+
     with open(ldir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
         private_file.write(news_rpc_obj["key"])
     return 0
