@@ -79,8 +79,6 @@ def process_toRadio(news_rpc_obj):
         case _:
             print("Якісь фігня прелктіла")
 
-
-
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
     # Обробити нештатні ситуації
     return 0;
@@ -93,23 +91,20 @@ def callback(ch, method, properties, body):
     news_rpc_obj = json.loads(body.decode())
 
     # Обробляємо повідомлення
-    news_rpc_obj["rc"] = process_tts(news_rpc_obj)
-    news_rpc_obj["rJobType"] = "JOB_TTS_FILES_READY"
-    news_rpc_obj["tts"]["server"] = tts_host
-    news_rpc_obj["tts"]["user"] = tts_user
-    news_rpc_obj["text"] = " "
+    news_rpc_obj["rc"] = process_toRadio(news_rpc_obj)
+
     # Перетворюємо назад у JSON
     output_json = json.dumps(news_rpc_obj)
 
     # Надсилаємо у вихідну чергу
     output_queue = news_rpc_obj["front"]["server"]
 
-    channel.queue_declare(queue=news_rpc_obj["front"]["server"], durable=True)
+#    channel.queue_declare(queue=news_rpc_obj["front"]["server"], durable=True)
     #print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
-    ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
+    #ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     #print(f"📤 Відправлено у {output_queue}: {output_json}")
 
-    ch.basic_ack(delivery_tag=method.delivery_tag)  # Підтвердження отримання
+    # ch.basic_ack(delivery_tag=method.delivery_tag)  # Підтвердження отримання
 
 # Підписка на вхідну чергу
 channel.basic_consume(queue=input_queue, on_message_callback=callback)
