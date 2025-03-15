@@ -74,7 +74,7 @@ def SavePrivateKey(news_rpc_obj):
 def ToRadio(news_rpc_obj):
 
     criptopsw =  news_rpc_obj["cpsw"]
-    breakpoint()
+    #breakpoint()
     print (criptopsw)
     guiserver =  news_rpc_obj["guiserver"]
     baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
