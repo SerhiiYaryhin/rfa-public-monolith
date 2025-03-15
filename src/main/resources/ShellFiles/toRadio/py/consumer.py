@@ -73,7 +73,7 @@ def process_toRadio(news_rpc_obj):
     #breakpoint()
     match news_rpc_obj["job"]:
         case "toRadiokey":
-             SavePrivKey(news_rpc_obj)
+             SavePrivateKey(news_rpc_obj)
         case "toRadio":
              ToRadio(news_rpc_obj)
         case _:
