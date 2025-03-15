@@ -2,6 +2,7 @@ package media.toloka.rfa.radio.newstoradio;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.ClientHomeController;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -53,10 +54,10 @@ public class NewsHome {
     private String toradioseveruser;
     @Value("${media.toloka.rfa.server.toradiosever.psw}")
     private String toradioseverpsw;
-
-//    media.toloka.rfa.server.toradiosever.name=toradio.rfa
-//    media.toloka.rfa.server.toradiosever.user=toradio
-//    media.toloka.rfa.server.toradiosever.psw=toradio
+    @Value("${media.toloka.rfa.server.toradiosever.queue}")
+    private String toRadioServerQueue;
+    @Value("${media.toloka.rfa.server.libretime.guiserver}")
+    private String localGuiServer;
 
     @Autowired
     private RabbitTemplate template;
@@ -171,6 +172,10 @@ public class NewsHome {
         logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
         String radioserver;
+        News news = newsService.GetByUUID(uuidnews);
+        if (news == null) {
+            return "redirect:/newstoradio/home/" + curpage.toString();
+        }
 
         if (newsService.GetByUUID(uuidnews).getStation().getRadioserver() != null )
             radioserver = newsService.GetByUUID(uuidnews).getStation().getRadioserver();
@@ -184,23 +189,35 @@ public class NewsHome {
                 + radioserver + ":"
                 + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
         logger.info("\n"+toRadioCommand);
-//        historyService.saveHistory(History_NewsSendToRadio,
-//                "Новина "+ newsService.GetByUUID(uuidnews)
-//                        + " станція " + newsService.GetByUUID(uuidnews).getStorespeach().getUuid()
-//                        +"  команда ", user);
-//        historyService.saveHistory(History_NewsSendToRadio,
-//                toRadioCommand, user);
 
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
-        pb.redirectErrorStream(true);
-        try {
-            Process p = pb.start();
-        } catch (IOException e) {
-            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
-            e.printStackTrace();
-        }
 
-        logger.info("================= виконали трансляцію на радіостанцію");
+        // Передаємо приватний ключ на сервер трансляції
+        Gson gson = new Gson();
+        // 1️⃣ Створюємо JSON-об'єкт вручну
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("job", "toRadio");
+        jsonObject.addProperty("cpsw", news.getStation().getToradiopassword());
+        jsonObject.addProperty("guiserver", localGuiServer);
+        jsonObject.addProperty("baseSiteAddress", baseSiteAddress);
+        jsonObject.addProperty("newsStoreUUID", news.getStorespeach().getUuid());
+        jsonObject.addProperty("username", news.getStation().getToradiouser());
+        jsonObject.addProperty("mainport", news.getStation().getMain().toString());
+        jsonObject.addProperty("mainpoint", news.getStation().getDbname());
+
+        String jsonString = gson.toJson(jsonObject);
+        template.convertAndSend(toRadioServerQueue, jsonString);
+
+
+//        ProcessBuilder pb = new ProcessBuilder("bash", "-c", toRadioCommand);
+//        pb.redirectErrorStream(true);
+//        try {
+//            Process p = pb.start();
+//        } catch (IOException e) {
+//            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
+//            e.printStackTrace();
+//        }
+
+        logger.info("================= Поставили у чергу завдання на трансляцію");
         /// виконуємо трансляцію на радіостанцію
 
         // повертаємося до поточної сторінки

@@ -73,15 +73,24 @@ def SavePrivateKey(news_rpc_obj):
 # віправляємо зі сторе в ефір
 def ToRadio(news_rpc_obj):
     #breakpoint()
-    private_key = load_private_key("private_key.pem")
-    criptpsw =  news_rpc_obj["password"]
+
+    criptopsw =  news_rpc_obj["cpsw"]
     guiserver =  news_rpc_obj["guiserver"]
+    baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
+    newsUUID =  news_rpc_obj["newsStoreUUID"]
+    username =  news_rpc_obj["username"]
+    mainport =  news_rpc_obj["mainport"]
+    mainpoint =  news_rpc_obj["mainpoint"]
+
     private_key = load_private_key(guiserver)
     decrypted_message = decrypt_rsa(criptpsw, private_key)
     # формуємо командну строку
     cmd = "ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/" + news_rpc_obj["newsUUID"]
     +   "https://front.rfa.toloka.media:" + news_rpc_obj["mainport"]
     + "/" +  news_rpc_obj["mainpoint"]
+
+
+
     print (cmd)
 # Функція обробки повідомлення
 def process_toRadio(news_rpc_obj):
@@ -92,7 +101,7 @@ def process_toRadio(news_rpc_obj):
         case "toRadio":
              ToRadio(news_rpc_obj)
         case _:
-            print("Якісь фігня прелктіла")
+            print("Якісь фігня прелетіла")
 
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
     # Обробити нештатні ситуації
