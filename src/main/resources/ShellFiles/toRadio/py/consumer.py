@@ -51,7 +51,7 @@ def decrypt_rsa(encrypted_message_base64, private_key):
 # Зберігаєио приватний ключ від gui сервера
 def SavePrivateKey(news_rpc_obj):
     breakpoint()
-    with open(locateDir+"/"+news_rpc_obj["guiServer"]+".priv", "wb") as private_file:
+    with open(locateDir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
         public_file.write(news_rpc_obj["key"])
 
 
