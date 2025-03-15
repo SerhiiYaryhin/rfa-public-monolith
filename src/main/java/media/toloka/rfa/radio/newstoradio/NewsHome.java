@@ -197,6 +197,8 @@ public class NewsHome {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("job", "toRadio");
         jsonObject.addProperty("cpsw", news.getStation().getToradiopassword());
+        logger.info("===== cpsv");
+
         jsonObject.addProperty("guiserver", localGuiServer);
         jsonObject.addProperty("baseSiteAddress", baseSiteAddress);
         jsonObject.addProperty("newsStoreUUID", news.getStorespeach().getUuid());
