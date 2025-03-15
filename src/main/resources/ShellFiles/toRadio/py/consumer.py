@@ -119,7 +119,7 @@ def callback(ch, method, properties, body):
     #ch.basic_publish(exchange="", routing_key=output_queue, body=output_json)
     #print(f"📤 Відправлено у {output_queue}: {output_json}")
 
-    # ch.basic_ack(delivery_tag=method.delivery_tag)  # Підтвердження отримання
+    ch.basic_ack(delivery_tag=method.delivery_tag)  # Підтвердження отримання
 
 # Підписка на вхідну чергу
 channel.basic_consume(queue=input_queue, on_message_callback=callback)
