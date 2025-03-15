@@ -105,6 +105,14 @@ public class SendToRadio {
                 logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
             }
 
+            try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".priv")) {
+                fos.write(Base64.getEncoder().encode(privateKey.getEncoded()));
+            } catch (FileNotFoundException e) {
+                logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
+            } catch (IOException e ) {
+                logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
+            }
+
             // Передаємо приватний ключ на сервер трансляції новин
             Gson gson = new Gson();
             // 1️⃣ Створюємо JSON-об'єкт вручну
@@ -157,13 +165,16 @@ public class SendToRadio {
         }
         filenamePubKey = System.getenv("HOME") + baseClientsDir + "/key"+ "/" + localGuiServer + ".pub"  ;
         File f = new File(filenamePubKey);
-        if(f.exists() && !f.isDirectory()) {
+        if(f.exists()) {
             publicKey = loadPublicKey(filenamePubKey);
         } else {
             ToRadioKeyGen(localGuiServer);
             publicKey = loadPublicKey(filenamePubKey);
         }
-
+        if (publicKey == null ) {
+            logger.info("Проблема роботи з приватним ключем. Не можемо завантажити.");
+            return null;
+        }
 //        PublicKey publicKey = loadPublicKey(filenamePubKey);
         String sencriptPSW;
         try {

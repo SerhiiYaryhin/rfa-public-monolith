@@ -1,11 +1,10 @@
-import nltk
-import tempfile
 import os
-from pydub import AudioSegment
-from ukrainian_tts.tts import TTS, Voices, Stress
 import pika
 import json
 from config_loader import config
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+import base64
 
 
 # Завантаження конфігурації RabbitMQ
@@ -15,10 +14,7 @@ rabbitmq_user = config["rabbitmq"]["username"]
 rabbitmq_password = config["rabbitmq"]["password"]
 input_queue = config["rabbitmq"]["input_queue"]
 rabbitmq_vhost = config["rabbitmq"]["vhost"]
-tts_host = config["users"]["tts"]["server"]
-tts_user = config["users"]["tts"]["user"]
-#print(f"📤 input_queue: {rabbitmq_vhost} - {input_queue}")
-#output_queue = config["rabbitmq"]["output_queue"]
+locateDir = config["locateDir"]
 
 # Авторизація
 credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
@@ -36,39 +32,53 @@ channel = connection.channel()
 
 # Декларація черг
 channel.queue_declare(queue=input_queue, durable=True)
-#channel.queue_declare(queue=output_queue, durable=True)
 
-nltk.download("punkt")
-from nltk.tokenize import sent_tokenize
-tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" для швидшої генерації
+# Завантажуємо приватний ключ із файлу
+def load_private_key(guiServer):
+    with open(locateDir+"/"+guiServer+".priv", "rb") as key_file:
+        key_bytes = base64.b64decode(key_file.read())
+        return RSA.import_key(key_bytes)
+
+# Функція для розшифрування повідомлення
+def decrypt_rsa(encrypted_message_base64, private_key):
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    encrypted_bytes = base64.b64decode(encrypted_message_base64)
+    decrypted_bytes = cipher_rsa.decrypt(encrypted_bytes)
+    return decrypted_bytes.decode('utf-8')
+
+# Зберігаєио приватний ключ від gui сервера
+def SavePrivateKey(news_rpc_obj)
+    #breakpoint()
+    with open(locateDir+"/"+guiServer+".priv", "wb") as private_file:
+        public_file.write(news_rpc_obj["key"])
 
 
-
-# def process_message(news_rpc_obj):
-#     """ Функція обробки отриманого JSON """
-#     news_rpc_obj["text"] = news_rpc_obj["text"].upper()  # Робимо текст заголовними літерами
-#     news_rpc_obj["rc"] = 201  # Оновлюємо код результату
-#     return news_rpc_obj
-
+# віправляємо зі сторе в ефір
+def ToRadio(news_rpc_obj)
+    #breakpoint()
+    private_key = load_private_key("private_key.pem")
+    criptpsw =  news_rpc_obj["password"]
+    guiserver =  news_rpc_obj["guiserver"]
+    private_key = load_private_key(guiserver)
+    decrypted_message = decrypt_rsa(criptpsw, private_key)
+    # формуємо командну строку
+    cmd = "ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/" + news_rpc_obj["newsUUID"]
+    +   "https://front.rfa.toloka.media:" + news_rpc_obj["mainport"]
+    + "/" +  news_rpc_obj["mainpoint"]
+    print (cmd)
 # Функція обробки повідомлення
-def process_tts(news_rpc_obj):
-    text =  news_rpc_obj["text"]
-    sentences = sent_tokenize(text, language="russian")  # Для української використовуємо "russian"
-    final_audio = AudioSegment.silent(duration=500)  # Додаємо коротку паузу перед початком
+def process_toRadio(news_rpc_obj):
+    #breakpoint()
+    match news_rpc_obj["job"]:
+        case "toRadiokey":
+             SavePrivKey(news_rpc_obj)
+        case "toRadio":
+             ToRadio(news_rpc_obj)
+        case _:
+            print("Якісь фігня прелктіла")
 
-    for i, sentence in enumerate(sentences, 1):
-        #print(f"{len(sentence)} - {i}: {sentence} ")
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_wav:
-            with open(temp_wav.name, mode="wb") as file:
-                _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
-            # _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
-            temp_wav.seek(0)
-            audio_segment = AudioSegment.from_wav(temp_wav.name)
-            final_audio += audio_segment + AudioSegment.silent(duration=500)
 
-#     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
-    final_audio += audio_segment + AudioSegment.silent(duration=500)
-    final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".mp3", format="mp3", bitrate="48k")
+
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
     # Обробити нештатні ситуації
     return 0;

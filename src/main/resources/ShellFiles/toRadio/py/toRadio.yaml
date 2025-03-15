@@ -4,15 +4,17 @@ rabbitmq:
   port: 5672  # Порт за замовчуванням
   username: rfa  # Логін
   password: toloka2_2018  # Пароль
-  input_queue: tts  # Черга для вхідних повідомлень
+  input_queue: toradio  # Черга для вхідних повідомлень
   vhost: /rfa  # Віртуальний хост
-  output_queue: tmp.out  # Черга для оброблених повідомлень
+
+locateDir: ~/locateDir
+#  output_queue: tmp.out  # Черга для оброблених повідомлень
 
 # Налаштування користувачів
-users:
-  tts:
-    server: tts.rfa
-    user: tts
-  front:
-    server: w01.rfa
-    user: rfa
+#users:
+#  tts:
+#    server: tts.rfa
+#    user: tts
+#  front:
+#    server: w01.rfa
+#    user: rfa
