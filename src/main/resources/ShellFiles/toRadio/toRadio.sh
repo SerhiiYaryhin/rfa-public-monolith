@@ -9,5 +9,5 @@ cp ~/rfa/src/main/resources/ShellFiles/toRadio/py/* ~/bin/py
 cd ~/bin
 source toRadio/bin/activate
 cd py
-python3 toRadio.py
+python3 consumer.py
 deactivate
