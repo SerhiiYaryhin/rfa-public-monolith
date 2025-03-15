@@ -63,7 +63,8 @@ def SavePrivateKey(news_rpc_obj):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-    with open(locateDir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
+    ldir = os.path.expanduser(locateDir)
+    with open(ldir+"/"+news_rpc_obj["guiserver"]+".priv", "wb") as private_file:
         private_file.write(news_rpc_obj["key"])
     return 0
 
