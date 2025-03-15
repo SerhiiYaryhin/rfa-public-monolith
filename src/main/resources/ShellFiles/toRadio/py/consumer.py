@@ -37,7 +37,7 @@ channel.queue_declare(queue=input_queue, durable=True)
 
 # Завантажуємо приватний ключ із файлу
 def load_private_key(guiServer):
-    with open(locateDir+"/"+guiServer+".priv", "rb") as key_file:
+    with open(locateDir + "/" + guiServer + ".priv", "rb") as key_file:
         key_bytes = base64.b64decode(key_file.read())
         return RSA.import_key(key_bytes)
 
@@ -51,7 +51,7 @@ def decrypt_rsa(encrypted_message_base64, private_key):
 # Зберігаєио приватний ключ від gui сервера
 def SavePrivateKey(news_rpc_obj):
     #breakpoint()
-    with open(locateDir+"/"+guiServer+".priv", "wb") as private_file:
+    with open(locateDir+"/"+news_rpc_obj["guiServer"]+".priv", "wb") as private_file:
         public_file.write(news_rpc_obj["key"])
 
 
