@@ -37,7 +37,7 @@ channel.queue_declare(queue=input_queue, durable=True)
 
 # Завантажуємо приватний ключ із файлу
 def load_private_key(guiServer):
-    with open(locateDir + "/" + guiServer + ".priv", "rb") as key_file:
+    with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
         key_bytes = base64.b64decode(key_file.read())
         return RSA.import_key(key_bytes)
 
