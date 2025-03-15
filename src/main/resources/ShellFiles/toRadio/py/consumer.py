@@ -109,10 +109,10 @@ def callback(ch, method, properties, body):
     news_rpc_obj["rc"] = process_toRadio(news_rpc_obj)
 
     # Перетворюємо назад у JSON
-    output_json = json.dumps(news_rpc_obj)
+    #output_json = json.dumps(news_rpc_obj)
 
     # Надсилаємо у вихідну чергу
-    output_queue = news_rpc_obj["front"]["server"]
+    #output_queue = news_rpc_obj["front"]["server"]
 
 #    channel.queue_declare(queue=news_rpc_obj["front"]["server"], durable=True)
     #print(f"📤 output_queue: {rabbitmq_vhost} - {output_queue}")
