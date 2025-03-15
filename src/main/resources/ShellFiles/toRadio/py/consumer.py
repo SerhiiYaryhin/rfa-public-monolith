@@ -75,6 +75,7 @@ def ToRadio(news_rpc_obj):
     #breakpoint()
 
     criptopsw =  news_rpc_obj["cpsw"]
+    print (criptopsw)
     guiserver =  news_rpc_obj["guiserver"]
     baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
     newsUUID =  news_rpc_obj["newsStoreUUID"]
