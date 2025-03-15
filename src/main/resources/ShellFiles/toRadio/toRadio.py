@@ -2,6 +2,13 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
 
+# https://docs.python.org/3/library/venv.html
+# sudo apt install -y python3-venv
+# python -m venv toRadio
+# source toRadio/bin/activate
+# python3 toRadio.py
+# deactivate
+
 # Завантажуємо приватний ключ із файлу
 def load_private_key(filename):
     with open(filename, "rb") as key_file:
