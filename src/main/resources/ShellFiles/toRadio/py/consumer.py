@@ -72,9 +72,9 @@ def SavePrivateKey(news_rpc_obj):
 
 # віправляємо зі сторе в ефір
 def ToRadio(news_rpc_obj):
-    #breakpoint()
 
     criptopsw =  news_rpc_obj["cpsw"]
+    breakpoint()
     print (criptopsw)
     guiserver =  news_rpc_obj["guiserver"]
     baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
