@@ -76,6 +76,84 @@ public class ClientHomeStationController {
 
     final Logger logger = LoggerFactory.getLogger(ClientHomeStationController.class);
 
+    @Data
+    private class ToRadioUser {
+        private String username;
+        private String userpasswd = "";
+        private Long id;
+
+        ToRadioUser (Long id, String username){
+            this.id = id;
+            this.username = username;
+        }
+    }
+
+    @GetMapping(value = "/user/toradiouser")
+    public String GetUserControltToradioUser(
+            @RequestParam(value = "id", required = true) Long id,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Station mstation;
+        mstation = stationService.GetStationById(id);
+        if (mstation == null) {
+            // Станцію створити не можемо. Показуємо про це повідомлення.
+            logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
+            model.addAttribute("warning", "Не можемо знайти станцію (" + id.toString() + ") для користувача " + user.getEmail());
+            return "/user/stations";
+        }
+
+        ToRadioUser toRadioUser = new ToRadioUser(mstation.getId(), mstation.getToradiouser());
+
+        model.addAttribute("toradiouser", toRadioUser);
+//        model.addAttribute("totoradiouserpsw", totoradiouserpsw);
+        model.addAttribute("station", mstation);
+        return "/user/settoradiouser";
+    }
+
+    @PostMapping(value = "/user/toradiousersave")
+    public String PostUserControltToradioUser(
+            @ModelAttribute ToRadioUser toradiouser,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+//            logger.warn("userHomeStationSave: User not found. Redirect to main page");
+            return "redirect:/";
+        }
+
+        if (toradiouser == null) {
+            // Станцію створити не можемо. Показуємо про це повідомлення.
+            return "redirect:/user/stations";
+        }
+
+        Station nstation;
+        if (toradiouser.getId() != null) {
+            nstation = stationService.GetStationById(toradiouser.getId());
+        } else {
+            logger.info("userHomeStationSave:  Не можемо знайти станцію id={} для користувача {}", toradiouser.getId(), user.getEmail());
+            return "redirect:/user/stations";
+        }
+
+        if (toradiouser.getUsername() != null ) {
+            Boolean testUser = false;
+            if (nstation.getToradiouser() == null) {
+                testUser = true;
+            } else {
+                testUser = nstation.getToradiouser().equals(toradiouser.getUsername());
+            }
+            if (testUser) {
+                nstation.setToradiouser(toradiouser.getUsername());
+                String sPSW;
+                sPSW = sendToRadio.encrypt(toradiouser.getUserpasswd());
+                nstation.setToradiopassword(sPSW);
+                stationService.saveStation(nstation);
+            }
+        }
+        return "redirect:/user/controlstation?id=" + nstation.getId().toString();
+    }
+
     // Створюємо кімнату в чаті для радіостанції
     @GetMapping(value = "/user/stationcreateroom/{suuid}")
     public String userHomeStationCreateChatRoom(
@@ -213,74 +291,7 @@ public class ClientHomeStationController {
         return "redirect:/user/stations";
     }
 
-    @GetMapping(value = "/user/toradiouser")
-    public String GetUserControltToradioUser(
-            @RequestParam(value = "id", required = true) Long id,
-            Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Station mstation;
-        mstation = stationService.GetStationById(id);
-        if (mstation == null) {
-            // Станцію створити не можемо. Показуємо про це повідомлення.
-            logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
-            // TODO Відправити у форму повідомлення про неможливість створення станції та кинути клієнту месседж
-            model.addAttribute("warning", "Не можемо знайти станцію (" + id.toString() + ") для користувача " + user.getEmail());
-            return "redirect:/user/stations";
-        }
-        String toradiouser = "rrrrrr";
-        String totoradiouserpsw = "rrrrrrr";
 
-        model.addAttribute("toradiouser", new Users());
-//        model.addAttribute("totoradiouserpsw", totoradiouserpsw);
-        model.addAttribute("station", mstation);
-        return "/user/settoradiouser";
-    }
-
-    @PostMapping(value = "/user/toradiousersave")
-    public String PostUserControltToradioUser(
-            @ModelAttribute Station station,
-            @ModelAttribute Users toradiouser,
-            Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-//            logger.warn("userHomeStationSave: User not found. Redirect to main page");
-            return "redirect:/";
-        }
-
-        if (station == null) {
-            // Станцію створити не можемо. Показуємо про це повідомлення.
-            return "redirect:/user/stations";
-        }
-
-        Station nstation;
-        if (station.getId() != null) {
-            nstation = stationService.GetStationById(station.getId());
-        } else {
-            logger.info("userHomeStationSave:  Не можемо зберегти станцію id={} для користувача {}", station.getId(), user.getEmail());
-            return "redirect:/user/stations";
-        }
-
-        if (toradiouser.getClientdetail().getFirmname() != null ) {
-            Boolean testUser = false;
-            if (nstation.getToradiouser() == null) {
-                testUser = true;
-            } else {
-                testUser = nstation.getToradiouser().equals(toradiouser.getClientdetail().getFirmname());
-            }
-//            Boolean testUser = nstation.getToradiouser().equals(toradiouser.getClientdetail().getFirmname());
-            if (testUser) {
-                nstation.setToradiouser(toradiouser.getClientdetail().getFirmname());
-                String sPSW;
-                sPSW = sendToRadio.encrypt(toradiouser.getEmail());
-                nstation.setToradiopassword(sPSW);
-                stationService.saveStation(nstation);
-            }
-        }
-        return "redirect:user/controlstation?id=" + nstation.getId().toString();
-    }
 
     @GetMapping(value = "/user/controlstation")
     public String userControltStation(

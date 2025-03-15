@@ -44,9 +44,9 @@ public class SendToRadio {
     private String localGuiServer;
 
     @Value("${media.toloka.rfa.server.toradiosever.queue}")
-    private String libretimeQueue;
-    final Logger logger = LoggerFactory.getLogger(SendToRadio.class);
+    private String toRadioServerQueue;
 
+    final Logger logger = LoggerFactory.getLogger(SendToRadio.class);
 
     ///  Надсилаємо повідомлення для програвання на радіо
     /// libretimeuser користувач на станції з правами адміністратора
@@ -76,7 +76,7 @@ public class SendToRadio {
         // 2️⃣ Конвертуємо JsonObject у JSON-рядок
         Gson gson = new Gson();
         String jsonString = gson.toJson(jsonObject);
-        template.convertAndSend(libretimeQueue, jsonString);
+        template.convertAndSend(toRadioServerQueue, jsonString);
     }
 
     ///  генеруємо ключі для паролей користувачів станцій, через яких транслюємо потік новин
@@ -118,7 +118,7 @@ public class SendToRadio {
             }
             jsonObject.addProperty("key", sprivkey);
             String jsonString = gson.toJson(jsonObject);
-            template.convertAndSend(to_radios_server, jsonString);
+            template.convertAndSend(toRadioServerQueue, jsonString);
         } catch (NoSuchAlgorithmException e) {
             logger.error("ToRadioKeyGen: Проблема з бібліотекою шифрування.");
         }
@@ -150,6 +150,11 @@ public class SendToRadio {
         // load public key
         String filenamePubKey;
         PublicKey publicKey;
+        try {
+            Files.createDirectories(Paths.get(System.getenv("HOME") + baseClientsDir + "/key"));
+        } catch (IOException e) {
+            logger.info("IOException: Не можемо створити дерикторію для публічного ключа.");
+        }
         filenamePubKey = System.getenv("HOME") + baseClientsDir + "/key"+ "/" + localGuiServer + ".pub"  ;
         File f = new File(filenamePubKey);
         if(f.exists() && !f.isDirectory()) {
