@@ -47,14 +47,14 @@ def decrypt_rsa(encrypted_message_base64, private_key):
     return decrypted_bytes.decode('utf-8')
 
 # Зберігаєио приватний ключ від gui сервера
-def SavePrivateKey(news_rpc_obj)
+def SavePrivateKey(news_rpc_obj):
     #breakpoint()
     with open(locateDir+"/"+guiServer+".priv", "wb") as private_file:
         public_file.write(news_rpc_obj["key"])
 
 
 # віправляємо зі сторе в ефір
-def ToRadio(news_rpc_obj)
+def ToRadio(news_rpc_obj):
     #breakpoint()
     private_key = load_private_key("private_key.pem")
     criptpsw =  news_rpc_obj["password"]
