@@ -39,23 +39,20 @@ channel.queue_declare(queue=input_queue, durable=True)
 
 # Завантажуємо приватний ключ із файлу
 def load_private_key(guiServer):
-    with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "rb") as key_file:
-        key_bytes = base64.b64decode(key_file.read())
-        #key_bytes = key_file.read()
-        #print("====== read clear \n")
-        #print(key_bytes)
-        #key_bytes1 = base64.b64decode(key_bytes)
-        #print("====== read base64 \n")
-        #print(key_bytes1)
-        return RSA.import_key(key_bytes)
+    with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
+        # key_bytes = base64.b64decode(key_file.read())
+        private_key = RSA.import_key(key_file.read())
+
+        # return RSA.import_key(key_bytes)
+        return RSA.import_key(private_key)
         #return RSA.import_key(key_bytes)
 
 # Функція для розшифрування повідомлення
-def decrypt_rsa(encrypted_message_base64, private_key):
+def decrypt_rsa(encrypted_message, private_key):
     cipher_rsa = PKCS1_OAEP.new(private_key)
-    encrypted_bytes = base64.b64decode(encrypted_message_base64)
-    decrypted_bytes = cipher_rsa.decrypt(encrypted_bytes)
-    return decrypted_bytes.decode('utf-8')
+    # encrypted_bytes = base64.b64decode(encrypted_message_base64)
+    decrypted_data = cipher_rsa.decrypt(encrypted_message)
+    return decrypted_data.decode()
 
 # Зберігаєио приватний ключ від gui сервера
 def SavePrivateKey(news_rpc_obj):
@@ -94,10 +91,10 @@ def ToRadio(news_rpc_obj):
     mainpoint =  news_rpc_obj["mainpoint"]
 
     private_key = load_private_key(guiserver)
-    print("====================== criptopsw")
-    print (criptopsw)
-    print("====================== private_key")
-    print(private_key)
+    # print("====================== criptopsw")
+    # print (criptopsw)
+    # print("====================== private_key")
+    # print(private_key)
     decrypted_message = decrypt_rsa(criptopsw, private_key)
     print("====================== decrypted_message")
     print(decrypted_message)
