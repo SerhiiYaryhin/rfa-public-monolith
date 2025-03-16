@@ -97,7 +97,7 @@ def ToRadio(news_rpc_obj):
 
     # private_key = load_private_key(guiserver)
     # 1️⃣ Читаємо приватний ключ із файлу (PEM-формат)
-    with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
+    with open(os.path.expanduser(locateDir) + "/" + news_rpc_obj["guiserver"] + ".priv", "r") as key_file:
         pkey = key_file.read()
     print("====================== pkey")
     print(pkey)
