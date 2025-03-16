@@ -107,10 +107,10 @@ def ToRadio(news_rpc_obj):
     print("====================== decrypted_message")
     print(decrypted_message)
     # формуємо командну строку
-    cmd = "ffmpeg -re -v quiet -stats -i https://front.rfa.toloka.media/store/audio/"
+    cmd = "ffmpeg -re -v quiet -stats -i https://rfa.toloka.media/store/audio/"
     cmd += news_rpc_obj["newsStoreUUID"]
-    cmd += " https://"+ news_rpc_obj["username"] +":"+ decrypted_message.decode() +"@front.rfa.toloka.media:" + news_rpc_obj["mainport"]
-    cmd+= "/" + news_rpc_obj["mainpoint"]
+    cmd += " -f mp3https://"+ news_rpc_obj["username"] +":"+ decrypted_message.decode() +"@rfa.toloka.media:" + news_rpc_obj["mainport"]
+    cmd+= "/main" # + news_rpc_obj["mainpoint"]
 
     print(cmd)
 
