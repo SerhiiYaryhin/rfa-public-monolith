@@ -10,6 +10,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
 from config_loader import config
+import subprocess
 
 # Завантаження конфігурації RabbitMQ
 rabbitmq_host = config["rabbitmq"]["host"]
