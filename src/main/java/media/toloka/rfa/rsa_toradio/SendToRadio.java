@@ -111,13 +111,17 @@ public class SendToRadio {
                 logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
             } catch (IOException e) {
                 logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
+            } catch (Exception e) {
+                logger.error("Exception Проблема з записом публічного ключа для сервера {}.", localGuiServer);
             }
             try {
                 savePEM(guiKeyDirectory + "/" + localGuiServer + ".priv", "RSA PRIVATE KEY", privateKey.getEncoded());
             } catch (FileNotFoundException e) {
-                logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
+                logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
             } catch (IOException e) {
-                logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
+                logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
+            } catch (Exception e) {
+                logger.error("Exception Проблема з записом приватного ключа для сервера {}.", localGuiServer);
             }
 
 //
@@ -134,7 +138,12 @@ public class SendToRadio {
 //            catch (FileNotFoundException e) { logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
 //            catch (IOException e ) { logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
 
-            String pempriv = new String(Files.readAllBytes(Paths.get(guiKeyDirectory + "/" + localGuiServer + ".priv")))
+            String pempriv = null;
+            try {
+                pempriv = new String(Files.readAllBytes(Paths.get(guiKeyDirectory + "/" + localGuiServer + ".priv")));
+            }catch (IOException e) {
+                logger.error("IOException Проблема з читанням приватного ключа для сервера {}.", localGuiServer);
+            }
 
             // Передаємо приватний ключ на сервер трансляції новин
             Gson gson = new Gson();
@@ -221,10 +230,10 @@ public class SendToRadio {
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            return cipher.doFinal(data.getBytes());
-//            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+//            return cipher.doFinal(data.getBytes());
+            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
 //
-//            sencriptPSW = Base64.getEncoder().encodeToString(encryptedBytes);
+            return Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (NoSuchAlgorithmException e) {
             logger.info("NoSuchAlgorithmException: Проблема роботи з приватним ключем.");
             return null;
