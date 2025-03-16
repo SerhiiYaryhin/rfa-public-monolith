@@ -85,13 +85,14 @@ def ToRadio(news_rpc_obj):
     #breakpoint()
     # print (criptopsw)
     guiserver =  news_rpc_obj["guiserver"]
+    print(guiserver)
     baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
     newsUUID =  news_rpc_obj["newsStoreUUID"]
     username =  news_rpc_obj["username"]
     mainport =  news_rpc_obj["mainport"]
     mainpoint =  news_rpc_obj["mainpoint"]
 
-    private_key = load_private_key(guiserver)
+    # private_key = load_private_key(guiserver)
     # 1️⃣ Читаємо приватний ключ із файлу (PEM-формат)
     with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
         private_key = RSA.import_key(key_file.read())
