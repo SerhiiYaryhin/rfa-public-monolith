@@ -99,19 +99,16 @@ public class SendToRadio {
 
             try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".pub")) {
                 fos.write(Base64.getEncoder().encode(publicKey.getEncoded()));
-            } catch (FileNotFoundException e) {
-                logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
-            } catch (IOException e ) {
-                logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);
             }
+            catch (FileNotFoundException e) {logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);}
+            catch (IOException e ) {logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);}
 
+            // зберігаємо приватний ключ
             try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".priv")) {
                 fos.write(Base64.getEncoder().encode(privateKey.getEncoded()));
-            } catch (FileNotFoundException e) {
-                logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
-            } catch (IOException e ) {
-                logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);
             }
+            catch (FileNotFoundException e) { logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
+            catch (IOException e ) { logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
 
             // Передаємо приватний ключ на сервер трансляції новин
             Gson gson = new Gson();
@@ -126,7 +123,9 @@ public class SendToRadio {
             }
             jsonObject.addProperty("key", sprivkey);
             String jsonString = gson.toJson(jsonObject);
+
             template.convertAndSend(toRadioServerQueue, jsonString);
+
         } catch (NoSuchAlgorithmException e) {
             logger.error("ToRadioKeyGen: Проблема з бібліотекою шифрування.");
         }
@@ -147,8 +146,10 @@ public class SendToRadio {
             pkey = KeyFactory.getInstance("RSA").generatePublic(spec);
         } catch (NoSuchAlgorithmException e) {
             logger.info("NoSuchAlgorithmException: Проблема завантаження приватного ключа.");
+            return null;
         } catch (InvalidKeySpecException e) {
             logger.info("InvalidKeySpecException: Проблема завантаження приватного ключа.");
+            return null;
 
         }
         return pkey;
@@ -160,14 +161,14 @@ public class SendToRadio {
         PublicKey publicKey;
         try {
             Files.createDirectories(Paths.get(System.getenv("HOME") + baseClientsDir + "/key"));
-        } catch (IOException e) {
-            logger.info("IOException: Не можемо створити дерикторію для публічного ключа.");
-        }
+        } catch (IOException e) {logger.info("IOException: Не можемо створити дерикторію для публічного ключа.");return null;}
+
         filenamePubKey = System.getenv("HOME") + baseClientsDir + "/key"+ "/" + localGuiServer + ".pub"  ;
         File f = new File(filenamePubKey);
         if(f.exists()) {
             publicKey = loadPublicKey(filenamePubKey);
         } else {
+            // ключ відсутній. Створюємо його.
             ToRadioKeyGen(localGuiServer);
             publicKey = loadPublicKey(filenamePubKey);
         }
@@ -182,23 +183,12 @@ public class SendToRadio {
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             byte[] encryptedBytes = cipher.doFinal(data.getBytes());
             sencriptPSW = Base64.getEncoder().encodeToString(encryptedBytes);
-        } catch (NoSuchAlgorithmException e) {
-            logger.info("NoSuchAlgorithmException: Проблема роботи з приватним ключем.");
-            return null;
-        } catch (InvalidKeyException e) {
-            logger.info("InvalidKeyException: Проблема роботи з приватним ключем.");
-            return null;
         }
-        catch (IllegalBlockSizeException e) {
-            logger.info("IllegalBlockSizeException: Проблема роботи з приватним ключем.");
-            return null;
-        } catch (NoSuchPaddingException e) {
-            logger.info("InvalidKeyException: Проблема роботи з приватним ключем.");
-            return null;
-        } catch (BadPaddingException e) {
-            logger.info("BadPaddingException: Проблема роботи з приватним ключем.");
-            return null;
-        }
+        catch (NoSuchAlgorithmException e) { logger.info("NoSuchAlgorithmException: Проблема роботи з приватним ключем."); return null;}
+        catch (InvalidKeyException e) { logger.info("InvalidKeyException: Проблема роботи з приватним ключем."); return null;}
+        catch (IllegalBlockSizeException e) {logger.info("IllegalBlockSizeException: Проблема роботи з приватним ключем."); return null;}
+        catch (NoSuchPaddingException e) {logger.info("InvalidKeyException: Проблема роботи з приватним ключем."); return null;}
+        catch (BadPaddingException e) {logger.info("BadPaddingException: Проблема роботи з приватним ключем."); return null;}
         return sencriptPSW;
     }
 }

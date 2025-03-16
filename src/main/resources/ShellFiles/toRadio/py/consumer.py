@@ -1,3 +1,6 @@
+#
+# обслуговуємо чергу для відтворення на радіо звукових файлів
+#
 import os
 import pika
 import json
@@ -7,8 +10,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
 from config_loader import config
-
-
 
 # Завантаження конфігурації RabbitMQ
 rabbitmq_host = config["rabbitmq"]["host"]
@@ -39,14 +40,13 @@ channel.queue_declare(queue=input_queue, durable=True)
 # Завантажуємо приватний ключ із файлу
 def load_private_key(guiServer):
     with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "rb") as key_file:
-        #key_bytes = base64.b64decode(key_file.read())
-        key_bytes = key_file.read()
-        print("====== read clear \n")
-        print(key_bytes)
-        key_bytes1 = base64.b64decode(key_bytes)
-        print("====== read base64 \n")
-        print(key_bytes1)
-
+        key_bytes = base64.b64decode(key_file.read())
+        #key_bytes = key_file.read()
+        #print("====== read clear \n")
+        #print(key_bytes)
+        #key_bytes1 = base64.b64decode(key_bytes)
+        #print("====== read base64 \n")
+        #print(key_bytes1)
         return RSA.import_key(key_bytes)
         #return RSA.import_key(key_bytes)
 

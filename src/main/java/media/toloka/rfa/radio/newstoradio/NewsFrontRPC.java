@@ -35,9 +35,14 @@ public class NewsFrontRPC {
         NewsRPC rjob = gson.fromJson(message, NewsRPC.class);
 
         ERPCJobType curJob = rjob.getRJobType();
+        if (curJob == null) {
+            logger.info("News RPC Listener: Якась дивнbq json рядок прелетів ======= {}", message);
+            return;
+        }
         switch (curJob) {
 //        switch (rjob.getRJobType()) {
             case JOB_TTS_FILES_READY:  // Перетягуємо файли після TTS
+                // текстовий файл перетворено за аудіо
                 logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
                 rc = newsService.GetMp3FromTts(rjob);
                         rjob.setRc(rc);

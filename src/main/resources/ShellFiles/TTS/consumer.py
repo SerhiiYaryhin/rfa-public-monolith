@@ -7,7 +7,6 @@ import pika
 import json
 from config_loader import config
 
-
 # Завантаження конфігурації RabbitMQ
 rabbitmq_host = config["rabbitmq"]["host"]
 rabbitmq_port = config["rabbitmq"]["port"]
