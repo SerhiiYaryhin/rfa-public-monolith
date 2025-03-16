@@ -84,11 +84,7 @@ def SavePrivateKey(news_rpc_obj):
 def ToRadio(news_rpc_obj):
     print(news_rpc_obj)
     criptopsw = news_rpc_obj["cpsw"]
-    # breakpoint()
-    # print (criptopsw)
     guiserver = news_rpc_obj["guiserver"]
-    print("====================== guiserver")
-    print(guiserver)
     baseSiteAddress = news_rpc_obj["baseSiteAddress"]
     newsUUID = news_rpc_obj["newsStoreUUID"]
     username = news_rpc_obj["username"]
@@ -105,13 +101,9 @@ def ToRadio(news_rpc_obj):
 
     # 3️⃣ Розшифровуємо дані
     cipher_rsa = PKCS1_OAEP.new(private_key)
-    decrypted_message = cipher_rsa.decrypt(criptopsw)
 
-    # print("====================== criptopsw")
-    # print (criptopsw)
-    # print("====================== private_key")
-    # print(private_key)
-    # decrypted_message = decrypt_rsa(criptopsw, private_key)
+    decrypted_message = cipher_rsa.decrypt(base64.b64decode(criptopsw))
+
     print("====================== decrypted_message")
     print(decrypted_message)
     # формуємо командну строку
