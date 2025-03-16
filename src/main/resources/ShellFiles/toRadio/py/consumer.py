@@ -83,7 +83,7 @@ def ToRadio(news_rpc_obj):
 
     criptopsw =  news_rpc_obj["cpsw"]
     #breakpoint()
-    print (criptopsw)
+    # print (criptopsw)
     guiserver =  news_rpc_obj["guiserver"]
     baseSiteAddress =  news_rpc_obj["baseSiteAddress"]
     newsUUID =  news_rpc_obj["newsStoreUUID"]
@@ -92,11 +92,19 @@ def ToRadio(news_rpc_obj):
     mainpoint =  news_rpc_obj["mainpoint"]
 
     private_key = load_private_key(guiserver)
+    # 1️⃣ Читаємо приватний ключ із файлу (PEM-формат)
+    with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
+        private_key = RSA.import_key(key_file.read())
+        # 3️⃣ Розшифровуємо дані
+        cipher_rsa = PKCS1_OAEP.new(private_key)
+        decrypted_message = cipher_rsa.decrypt(criptopsw)
+
+
     # print("====================== criptopsw")
     # print (criptopsw)
     # print("====================== private_key")
     # print(private_key)
-    decrypted_message = decrypt_rsa(criptopsw, private_key)
+    # decrypted_message = decrypt_rsa(criptopsw, private_key)
     print("====================== decrypted_message")
     print(decrypted_message)
     # формуємо командну строку
