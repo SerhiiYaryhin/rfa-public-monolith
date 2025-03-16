@@ -42,9 +42,11 @@ def load_private_key(guiServer):
     with open(os.path.expanduser(locateDir) + "/" + guiServer + ".priv", "r") as key_file:
         # key_bytes = base64.b64decode(key_file.read())
         private_key = RSA.import_key(key_file.read())
+        print(private_key)
+
 
         # return RSA.import_key(key_bytes)
-        return RSA.import_key(private_key)
+        return private_key
         #return RSA.import_key(key_bytes)
 
 # Функція для розшифрування повідомлення
