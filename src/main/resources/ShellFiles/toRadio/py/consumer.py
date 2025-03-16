@@ -114,7 +114,7 @@ def ToRadio(news_rpc_obj):
     cmd+= "/main" # + news_rpc_obj["mainpoint"]
 
     print(cmd)
-    process = subprocess.Popen(['/bin/bash',cmd])
+    process = subprocess.Popen(['/bin/bash','ls')
 
 
 # Функція обробки повідомлення
