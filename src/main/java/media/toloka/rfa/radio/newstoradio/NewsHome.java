@@ -182,18 +182,40 @@ public class NewsHome {
         else
             radioserver = newsService.GetByUUID(uuidnews).getStation().getGuiserver();
 
-        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://"+baseSiteAddress+"/store/audio/"
-                + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
-                + toradioseveruser + ":" + toradioseverpsw
-                + "@"
-                + radioserver + ":"
-                + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
-        logger.info("\n"+toRadioCommand);
+//        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://"+baseSiteAddress+"/store/audio/"
+//                + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
+//                + toradioseveruser + ":" + toradioseverpsw
+//                + "@"
+//                + radioserver + ":"
+//                + newsService.GetByUUID(uuidnews).getStation().getMain().toString() + "/main &>/dev/null";
+//        logger.info("\n"+toRadioCommand);
 
 
         // Передаємо приватний ключ на сервер трансляції
         Gson gson = new Gson();
         // 1️⃣ Створюємо JSON-об'єкт вручну
+        if (news.getStation().getToradiopassword() == null) {
+            // Пейджинг для сторінки
+            Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
+            List<News> viewList = pageStore.stream().toList();
+            List<News> newsList = newsService.GetListNewsByCd(cd);
+            Boolean runTTS = false;
+            for (News runnews : newsList) {
+                if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
+                    runTTS = true;
+                    model.addAttribute("info", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити.");
+                }
+            }
+            model.addAttribute("warning", "Не призначено пароль для користувача радіостанції. Виправте і повторіть спробу");
+
+            model.addAttribute("runstatus", runTTS);
+            model.addAttribute("totalPages", pageStore.getTotalPages());
+            model.addAttribute("currentPage", curpage);
+            model.addAttribute("linkPage", "/creater/tracks/");
+            model.addAttribute("viewList", viewList);
+
+            return "/newstoradio/home";
+        }
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("job", "toRadio");
         jsonObject.addProperty("cpsw", news.getStation().getToradiopassword());
