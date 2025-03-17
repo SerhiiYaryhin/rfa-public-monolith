@@ -83,7 +83,7 @@ def SavePrivateKey(news_rpc_obj):
 
 # віправляємо зі сторе в ефір
 def ToRadio(news_rpc_obj):
-    print(news_rpc_obj)
+    # print(news_rpc_obj)
     criptopsw = news_rpc_obj["cpsw"]
     guiserver = news_rpc_obj["guiserver"]
     baseSiteAddress = news_rpc_obj["baseSiteAddress"]
@@ -109,7 +109,8 @@ def ToRadio(news_rpc_obj):
     cmd += " -f mp3 icecast://"+ news_rpc_obj["username"] +":"+ decrypted_message.decode() +"@"+ news_rpc_obj["guiserver"] + ":" + news_rpc_obj["mainport"]
     cmd+= "/main" # + news_rpc_obj["mainpoint"]
 
-    print(cmd)
+    # print(cmd)
+    print("icecast://"+ news_rpc_obj["guiserver"] + ":" + news_rpc_obj["mainport"])
     process = subprocess.Popen(cmd,shell=True)
     # process = subprocess.Popen(['/bin/bash','/bin/ls > ~/ttt.txt'])
 
