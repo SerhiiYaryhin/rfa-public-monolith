@@ -230,9 +230,7 @@ public class SendToRadio {
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-//            return cipher.doFinal(data.getBytes());
             byte[] encryptedBytes = cipher.doFinal(data.getBytes());
-//
             return Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (NoSuchAlgorithmException e) {
             logger.info("NoSuchAlgorithmException: Проблема роботи з приватним ключем.");
