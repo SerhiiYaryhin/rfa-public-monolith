@@ -96,8 +96,6 @@ def ToRadio(news_rpc_obj):
     # 1️⃣ Читаємо приватний ключ із файлу (PEM-формат)
     with open(os.path.expanduser(locateDir) + "/" + news_rpc_obj["guiserver"] + ".priv", "r") as key_file:
         pkey = key_file.read()
-    print("====================== pkey")
-    print(pkey)
     private_key = RSA.import_key(pkey)
 
     # 3️⃣ Розшифровуємо дані
@@ -105,12 +103,9 @@ def ToRadio(news_rpc_obj):
 
     decrypted_message = cipher_rsa.decrypt(base64.b64decode(criptopsw))
 
-    print("====================== decrypted_message")
-    print(decrypted_message)
     # формуємо командну строку
     cmd = "/usr/bin/ffmpeg -re -v quiet -stats -i https://rfa.toloka.media/store/audio/"
     cmd += news_rpc_obj["newsStoreUUID"]
-    # cmd += " -f mp3 icecast://"+ news_rpc_obj["username"] +":"+ decrypted_message.decode() +"@rfa.toloka.media:" + news_rpc_obj["mainport"]
     cmd += " -f mp3 icecast://"+ news_rpc_obj["username"] +":"+ decrypted_message.decode() +"@"+ news_rpc_obj["guiserver"] + ":" + news_rpc_obj["mainport"]
     cmd+= "/main" # + news_rpc_obj["mainpoint"]
 
