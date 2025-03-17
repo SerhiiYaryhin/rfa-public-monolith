@@ -58,6 +58,10 @@
                         </div>
                         <div class="col">
                             <div>
+                                <div>
+                                    <a th:href="'/user/toradiouser?id='+${station.id}"
+                                       id="toradiouser" class="btn btn-primary" >Встановити користувача<br>для прямого ефіру</a>
+                                </div>
                                 <div th:if="${station.roomuuid == null}">
                                     <b>Створення кімнати в чаті для прямого ефіру.</b><br>
                                     Надіслати повідомлення можна буде і з чату, і з <a href="https://t.me/TolokaMediaBot">Телеграм бота</a><br>
@@ -68,10 +72,6 @@
                                         Ви можете запустити та зупинити можливість в чаті та <a href="https://t.me/TolokaMediaBot">Телеграмі</a> надсилати повідомлення під час прямого ефіру.<br>
                                         <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
                                            id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
-                                    </div>
-                                    <div>
-                                        <a th:href="'/user/toradiouser?id='+${station.id}"
-                                           id="toradiouser" class="btn btn-primary" >Встановити користувача<br>для прямого ефіру</a>
                                     </div>
                                     <div th:if="${stationstateonline}">
                                         <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
