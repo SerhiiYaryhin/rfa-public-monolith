@@ -378,7 +378,7 @@ public class NewsHome {
         if (curnews == null) {
             curnews = new News();
             curnews.setClientdetail(cd);
-            curnews.setId(0L);
+//            curnews.setId(0L);
         }
         curnews.setClientdetail(cd);
 
