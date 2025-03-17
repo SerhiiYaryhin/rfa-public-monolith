@@ -194,6 +194,7 @@ public class NewsHome {
         // Передаємо приватний ключ на сервер трансляції
         Gson gson = new Gson();
         // 1️⃣ Створюємо JSON-об'єкт вручну
+        if (news.getStation().getRadioserver() != null) localGuiServer = news.getStation().getRadioserver();
         if (news.getStation().getToradiopassword() == null) {
             // Пейджинг для сторінки
             Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
