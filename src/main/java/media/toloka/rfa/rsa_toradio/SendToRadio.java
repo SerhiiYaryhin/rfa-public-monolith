@@ -124,20 +124,6 @@ public class SendToRadio {
                 logger.error("Exception Проблема з записом приватного ключа для сервера {}.", localGuiServer);
             }
 
-//
-//            try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".pub")) {
-//                fos.write(Base64.getEncoder().encode(publicKey.getEncoded()));
-//            }
-//            catch (FileNotFoundException e) {logger.error("FileNotFoundException Проблема з записом публічного ключа для сервера {}.", localGuiServer);}
-//            catch (IOException e ) {logger.error("IOException Проблема з записом публічного ключа для сервера {}.", localGuiServer);}
-//
-//            // зберігаємо приватний ключ
-//            try (FileOutputStream fos = new FileOutputStream(guiKeyDirectory + "/" + localGuiServer + ".priv")) {
-//                fos.write(Base64.getEncoder().encode(privateKey.getEncoded()));
-//            }
-//            catch (FileNotFoundException e) { logger.error("FileNotFoundException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
-//            catch (IOException e ) { logger.error("IOException Проблема з записом приватного ключа для сервера {}.", localGuiServer);}
-
             String pempriv = null;
             try {
                 pempriv = new String(Files.readAllBytes(Paths.get(guiKeyDirectory + "/" + localGuiServer + ".priv")));
@@ -151,14 +137,6 @@ public class SendToRadio {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("job", "toRadiokey");
             jsonObject.addProperty("guiserver", localGuiServer);
-
-//            byte[] privKey = Base64.getEncoder().encode(privateKey.getEncoded());
-//            String sprivkey = "";
-//            for (int i = 0; i < privKey.length; i++) {
-//                sprivkey += (char) privKey[i];
-//            }
-//            String sprivkey =
-
             jsonObject.addProperty("key", pempriv);
             String jsonString = gson.toJson(jsonObject);
 
