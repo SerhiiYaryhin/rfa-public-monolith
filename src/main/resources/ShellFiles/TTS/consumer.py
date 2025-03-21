@@ -53,7 +53,7 @@ tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" д�
 def process_tts(news_rpc_obj):
     text =  news_rpc_obj["text"]
     sentences = sent_tokenize(text, language="russian")  # Для української використовуємо "russian"
-    final_audio = AudioSegment.silent(duration=500)  # Додаємо коротку паузу перед початком
+    final_audio = AudioSegment.silent(duration=1000)  # Додаємо коротку паузу перед початком
 
     for i, sentence in enumerate(sentences, 1):
         #print(f"{len(sentence)} - {i}: {sentence} ")
@@ -66,7 +66,7 @@ def process_tts(news_rpc_obj):
             final_audio += audio_segment + AudioSegment.silent(duration=500)
 
 #     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".wav", format="wav")
-    final_audio += audio_segment + AudioSegment.silent(duration=500)
+    final_audio += AudioSegment.silent(duration=500) # Додаємо коротку паузу по закінченні
     final_audio.export("/tmp/"+news_rpc_obj["newsUUID"]+".mp3", format="mp3", bitrate="48k")
     print("🔄 Очікування повідомлень... Натисніть CTRL+C для виходу.")
     # Обробити нештатні ситуації
