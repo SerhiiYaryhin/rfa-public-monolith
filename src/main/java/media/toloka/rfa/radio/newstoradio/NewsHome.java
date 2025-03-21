@@ -204,7 +204,7 @@ public class NewsHome {
             for (News runnews : newsList) {
                 if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
                     runTTS = true;
-                    model.addAttribute("info", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити. Трошки зачекайте і оновіть сторінку через пару хвилин.");
+                    model.addAttribute("info", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити. Трошки зачекайте та оновіть сторінку через пару хвилин.");
                 }
             }
             model.addAttribute("warning", "Не призначено пароль для користувача радіостанції. Виправте і повторіть спробу");
@@ -349,7 +349,7 @@ public class NewsHome {
         for (News runnews : newsList) {
             if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
                 runTTS = true;
-                model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити. Трошки зачекайте і оновіть сторінку через пару хвилин.");
+                model.addAttribute("success", "У черзі на перетворення тексту в голос є завдання. Зараз з новинами нічого не можна робити. Трошки зачекайте та оновіть сторінку через пару хвилин.");
             }
         }
 
