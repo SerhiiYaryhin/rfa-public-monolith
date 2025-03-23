@@ -38,6 +38,7 @@ public class News {
     private ENewsCategory category = NEWS_CATEGORY_NEWS;
     private ENewsStatus status = NEWS_STATUS_CREATE;
     private Date datechangestatus = new Date();
+    private Boolean lock = false;
 
     @ToString.Exclude
 //    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})

@@ -62,9 +62,12 @@
                     <textarea th:field="*{newsbody}" class="form-control" rows="10"/>
                 </div>
                 <hr>
-                <button type="submit" class="btn btn-primary badge rounded-pill">
-                    Зберегти
-                </button>
+                <audio th:if="*{storespeach} != null" th:id="'news'+*{storespeach.uuid}" controls>
+                    <source th:src="'/store/audio/'+*{storespeach.uuid}">
+                </audio>
+                <hr th:if="*{storespeach} != null">
+                <button type="submit" class="btn btn-primary badge rounded-pill">Зберегти</button>
+                <a class="btn btn-primary badge rounded-pill" th:href="@{'/newstoradio/home/'+${currentPage} }">Повернутися</a>
             </form>
         </div>
         <div class="col-lg-3 col-sm-12">
