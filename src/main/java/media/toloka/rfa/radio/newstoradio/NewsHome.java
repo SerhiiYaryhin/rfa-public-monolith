@@ -106,7 +106,8 @@ public class NewsHome {
         model.addAttribute("curnews", news);
         model.addAttribute("currentPage", scurpage);
         // Саме тут видаляємо файл та запис в Сховищі
-        Long rc = newsService.deleteNewsTrackFromStore(uuidnews);
+        Long rc = 0L;
+        if (news != null) rc = newsService.deleteNewsTrackFromStore(uuidnews);
         if (rc == 0L) {
             newsService.GetByUUID(uuidnews).setStorespeach(null);
             newsService.GetByUUID(uuidnews).setStatus(NEWS_STATUS_CREATE);
