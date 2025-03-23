@@ -28,7 +28,9 @@ connection = pika.BlockingConnection(
             host=rabbitmq_host,
             port=rabbitmq_port,
             virtual_host=rabbitmq_vhost,  # Віртуальний хост
-            credentials=credentials
+            credentials=credentials,
+            heartbeat=600,
+            blocked_connection_timeout=300
         )
 )
 channel = connection.channel()
