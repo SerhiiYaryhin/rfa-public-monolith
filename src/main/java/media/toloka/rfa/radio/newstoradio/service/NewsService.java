@@ -60,16 +60,19 @@ public class NewsService {
         News news = GetByUUID(uuidNews);
         Boolean storeRC = true;
         Store store = news.getStorespeach();
-        String storeUUID = store.getUuid();
-        if (news.getStorespeach() != null) {
+        String storeUUID = "";
+        if (store != null) {
+            storeUUID = store.getUuid();
+            if (news.getStorespeach() != null) {
 
-            news.setStorespeach(null);
-            storeService.DeleteStoreRecord(store);
-            if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
-            if (storeRC) {
-                logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", storeUUID, uuidNews);
                 news.setStorespeach(null);
-                Save(news);
+                storeService.DeleteStoreRecord(store);
+                if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
+                if (storeRC) {
+                    logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", storeUUID, uuidNews);
+                    news.setStorespeach(null);
+                    Save(news);
+                }
             }
         }
 

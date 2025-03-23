@@ -149,7 +149,8 @@ public class NewsHome {
         model.addAttribute("curnews", curnews);
         model.addAttribute("currentPage", scurpage);
 
-        Long rc = newsService.deleteNews(uuidnews);
+        Long rc = 0L;
+        if (curnews != null) rc = newsService.deleteNews(uuidnews);
         if (rc == 0L) model.addAttribute("success", "Новину успішно видалено");
         else model.addAttribute("error", "Новину не видалено");
         return "redirect:/newstoradio/home/0";
