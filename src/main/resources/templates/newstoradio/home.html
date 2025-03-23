@@ -84,8 +84,8 @@
 
                         <a th:if="${lnew.storespeach} != null" class="btn btn-primary badge rounded-pill"
                            th:href="@{'/newstoradio/viewnews/'+${currentPage}+'/'+${lnew.uuid} }">Подивитися</a>
-<!--                        <a th:if="${lnew.storespeach} == null and !${runstatus}"-->
-                        <a class="btn btn-primary badge rounded-pill"
+                        <a th:if="${lnew.storespeach} == null and !${runstatus}"
+                           class="btn btn-primary badge rounded-pill"
                            th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+${lnew.uuid} }">Редагувати</a>
                         <a th:if="${lnew.storespeach} == null and !${runstatus}"
                            class="btn btn-primary badge rounded-pill"
