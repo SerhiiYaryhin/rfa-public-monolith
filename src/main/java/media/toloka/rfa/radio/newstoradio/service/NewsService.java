@@ -100,9 +100,9 @@ public class NewsService {
         Long rc = 129L;
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", runGetFromTTS);
         Map<String, String> env = pb.environment();
-        logger.info(rjob.getNewsUUID());
-        logger.info(rjob.getTts().getServer());
-        logger.info(rjob.getTts().getUser());
+//        logger.info(rjob.getNewsUUID());
+//        logger.info(rjob.getTts().getServer());
+//        logger.info(rjob.getTts().getUser());
         env.put("NEWSUUID", rjob.getNewsUUID());
         env.put("TTSSERVER", rjob.getTts().getServer());
         env.put("TTSUSER", rjob.getTts().getUser());
@@ -110,11 +110,11 @@ public class NewsService {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
-            logger.info("started");
+//            logger.info("started");
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
-                logger.info(line);
+//                logger.info(line);
             }
             int exitcode = p.waitFor();
             rc = Long.valueOf(exitcode);
