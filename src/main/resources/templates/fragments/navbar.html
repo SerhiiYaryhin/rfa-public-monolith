@@ -28,7 +28,7 @@
                 </ul>
             </div>
         </div>
-        <div sec:authorize="isAuthenticated()" class="collapse navbar-collapse" id="navbarUniverse">
+        <div sec:authorize="isAuthenticated()" class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <!-- Головна для різних ролей -->
                 <li sec:authorize="hasRole('ROLE_USER')"><a class="nav-link" href="/user/user_page">Головна</a></li>
