@@ -17,11 +17,11 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
 {
     List<Store> findAllByClientdetail(Clientdetail clientdetail);
     Store getByFilenameAndClientdetail(String filename, Clientdetail cd);
-
 //    List<Store> findByClientdetailByStorefiletypeOrederByCreatedateByAsc(Clientdetail clientdetail, EStoreFileType storefiletype);
     Page<Store> findByStorefiletype(Pageable pageable, EStoreFileType storefiletype);
 
     Page findByClientdetail(Pageable storePage, Clientdetail cd);
+    Page findByClientdetailOrderByIdDesc(Pageable storePage, Clientdetail cd);
 
     Store getByUuid(String uuid);
     Store getByFilepatch(String filepatch);
@@ -36,4 +36,5 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
             + "ORDER BY a.createdate DESC") // OR " +
     Page findByStorelAllPictures(Pageable pageable, Clientdetail cd);
 
+//    Page findByClientdetailOrderByIdDesc(Pageable storePage, Clientdetail cd);
 }

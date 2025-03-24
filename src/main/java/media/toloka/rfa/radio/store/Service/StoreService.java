@@ -41,7 +41,8 @@ public class StoreService extends StoreFileImplementation {
 
     public Page GetStorePageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = storeRepositore.findByClientdetail(storePage,cd);
+//        Page page = storeRepositore.findByClientdetail(storePage,cd);
+        Page page = storeRepositore.findByClientdetailOrderByIdDesc(storePage,cd);
         return page;
     }
 
