@@ -9,6 +9,8 @@ import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostStatus;
 import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.service.PostService;
+import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
+import media.toloka.rfa.radio.station.service.StationOnlineList;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
@@ -65,8 +67,11 @@ public class PostController {
         post.setLooked( post.getLooked()+1L);
         postService.SavePost(post);
 
+//        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
+
         model.addAttribute("post", post );
         model.addAttribute("ogimage", post.getCoverstoreuuid() );
+        model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList() );
 
         return "/post/postview";
     }

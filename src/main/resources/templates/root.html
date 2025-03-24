@@ -86,21 +86,6 @@
     <!-- audioplayer красивий -->
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
     <script>
-        var myCarousel = document.getElementById('theCarouselStaion')
-
-        myCarousel.addEventListener('slide.bs.carousel', function (ev) {
-
-        })
-
-        async function getStatus() {
-            let siteurl = "https://rfa.toloka.media/api/1.0/ps/"+stationId;
-            const response = await fetch(siteurl);
-            const data = await response.json();
-            stationstate = data["status"];
-            myspan = document.getElementById('spanstationstate');
-            return data;
-        }
-
         function onClickTrack(event,name,autor) {
             document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
         }
