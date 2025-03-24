@@ -128,7 +128,7 @@ public class StoreFileImplementation implements StoreInterface {
         try {
             storeRepositore.delete(store);
             return true;
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException ee) {
             logger.info("===== DataIntegrityViolationException: Помилка видалення запису у сховищі {}",store.getUuid());
             return false;
         }
