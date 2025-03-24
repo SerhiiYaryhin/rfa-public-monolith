@@ -70,7 +70,7 @@
                     <tbody>
                     <tr th:each="storeitem : ${viewList}">
                         <td>
-                            <span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy')}"></span>
+                            <span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy hh:mm:ss')}"></span>
                         </td>
                         <td>
                             <span th:text="${storeitem.filename}"></span>

@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -123,8 +124,14 @@ public class StoreFileImplementation implements StoreInterface {
     }
 
     /// Видаляємо запис з бази
-    public void DeleteStoreRecord(Store store) {
-        storeRepositore.delete(store);
+    public Boolean DeleteStoreRecord(Store store) {
+        try {
+            storeRepositore.delete(store);
+            return true;
+        } catch (DataIntegrityViolationException e) {
+            logger.info("===== DataIntegrityViolationException: Помилка видалення запису у сховищі {}",store.getUuid());
+            return false;
+        }
     }
 
     /// Видаляємо зі сховища

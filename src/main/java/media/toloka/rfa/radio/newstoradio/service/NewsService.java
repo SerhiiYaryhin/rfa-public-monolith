@@ -66,7 +66,8 @@ public class NewsService {
             if (news.getStorespeach() != null) {
 
                 news.setStorespeach(null);
-                storeService.DeleteStoreRecord(store);
+                storeRC =  storeService.DeleteStoreRecord(store);
+
                 if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
                 if (storeRC) {
                     logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n newsUUID={}", storeUUID, uuidNews);

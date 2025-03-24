@@ -93,7 +93,7 @@ public class StoreItemController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
         Store store = storeService.GetStoreByUUID(storeItemUUID);
-        storeService.DeleteStoreRecord(store);
+        Boolean result = storeService.DeleteStoreRecord(store);
 
         return "redirect:/creater/store/0";
 
