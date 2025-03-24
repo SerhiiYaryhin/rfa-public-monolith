@@ -39,24 +39,20 @@ public class LoggerInterceptor implements HandlerInterceptor {
             return true;
         } else {
             logger.info(remoteAddr + " => " +request.getRequestURL().toString());
+            String referer = request.getHeader("Referer");
+            if (referer != null) {
+                logger.info("ReferertURL: {}", referer);
+            }
 
             // Працюємо  із сессією та куками
             HttpSession httpSession = request.getSession();
-//            Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//            logger.info("Session ID={} AND CreationTime={}",httpSession.getId(),formatter.format(httpSession.getCreationTime()));
-
             Cookie[] cookies =  request.getCookies();
 
-//            logger.info("========= cookies not null = {} ",cookies != null);
-//            if (cookies != null) {
-//                logger.info("========= cookies length = {} ", cookies.length);
-//            }
 
             if (    cookies != null
                     &&
                     cookies.length > 0
             ) {
-//                logger.info("========= loop ==========");
                 for (Cookie c : cookies) {
 //                    logger.info("Cookies={} value={}", c.getName(), c.getValue());
                     if (c.getName().equals("LastVisit")) {
@@ -64,27 +60,14 @@ public class LoggerInterceptor implements HandlerInterceptor {
                         logger.info("=== Session ID={} LastVisit={}",httpSession.getId(),formatter.format(Long.parseLong(c.getValue())));
                     }
                 }
-//                logger.info("=========================");
             }
             // create a cookie
             Long ldate = new Date().getTime();
             Cookie cookie = new Cookie("LastVisit", ldate.toString());
             //add cookie to response
             response.addCookie(cookie);
-//            logger.info("=========== Додали Куку ==============");
-
-//            response.addCookie(
-//                    new Cookie(
-//                            "LastGet",
-//                            formatter.format(new Date())
-//                    )
-//            );
-
-//            Cookie[] cookie =  request.getCookies();
         }
         // todo Логировать обращения к серверу.
-
-//        System.out.println(remoteAddr);
         return true;
     }
 }
