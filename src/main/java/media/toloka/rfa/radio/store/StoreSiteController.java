@@ -445,8 +445,6 @@ public class StoreSiteController  {
         } catch (IOException e) {
             logger.info("==================================== getStoreContent IOException");
             logger.info("Проблеми з файлом: {}",ifile);
-//            e.printStackTrace();
-//            return null;
         }
         return null;
     }
