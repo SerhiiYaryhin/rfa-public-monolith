@@ -55,10 +55,10 @@ public class LoggerInterceptor implements HandlerInterceptor {
             ) {
                 for (Cookie c : cookies) {
 //                    logger.info("Cookies={} value={}", c.getName(), c.getValue());
-                    if (c.getName().equals("LastVisit")) {
-                        Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        logger.info("=== Session ID={} LastVisit={}",httpSession.getId(),formatter.format(Long.parseLong(c.getValue())));
-                    }
+//                    if (c.getName().equals("LastVisit")) {
+//                        Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                        logger.info("=== Session ID={} LastVisit={}",httpSession.getId(),formatter.format(Long.parseLong(c.getValue())));
+//                    }
                 }
             }
             // create a cookie
