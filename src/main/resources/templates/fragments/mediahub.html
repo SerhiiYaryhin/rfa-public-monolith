@@ -13,7 +13,7 @@
             <br>
         </div>
         <div class="col">
-            <div style="background-color:#F0F0F0; ">
+            <div class="ps-3 m-1" style="background-color:#F0F0F0; border-radius: 15px 15px 15px 15px; ">
                 <div class="carousel slide" data-bs-ride="carousel" id="theCarouselStaion">
                 <div class="carousel-inner">
                     <div th:each="station, iStat : ${stationsonline}">
@@ -21,7 +21,7 @@
                         <div th:if="${iStat.first}">
                             <div class="carousel-item active" th:id="${station.uuid}">
                                 <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
-                                    <h2><span style="color:#FF8000; " th:text="${station.stationname}"></span></h2>
+                                    <h2><strong><span style="color:#FF8000; " th:text="${station.stationname}"></span></strong></h2>
                                 </a>
                                 <small>
                                     <span th:text="${station.group}">Автор: ----------</span><br>
@@ -34,7 +34,7 @@
                             <div class="carousel-item" th:id="${station.uuid}">
                                 <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
                                     <h2>
-                                        <span style="color:#FF8000" th:text="${station.stationname}"></span>
+                                        <strong><span class="font-weight-bold" style="color:#FF8000" th:text="${station.stationname}"></span></strong>
                                     </h2>
                                 </a>
                                 <small>
