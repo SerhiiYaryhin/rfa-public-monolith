@@ -10,6 +10,8 @@ import media.toloka.rfa.radio.repository.ClientAddressRepository;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
 import media.toloka.rfa.radio.repository.UserRepository;
 import media.toloka.rfa.radio.repository.DocumentRepository;
+import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
@@ -44,6 +46,10 @@ public class ClientService {
     @Autowired
     private DocumentRepository documentRepository;
 
+    // додавання викликає зациклювання вкладень
+//    @Autowired
+//    private StoreService storeService;
+
     final Logger logger = LoggerFactory.getLogger(ClientHomeInfoController.class);
 
 
@@ -57,6 +63,7 @@ public class ClientService {
 
     /**
      * отримуємо пошту авторизованого користувача
+     *
      * @return поштова адреса зареєстрованого користувача
      */
     public Users GetCurrentUser() {
@@ -115,9 +122,9 @@ public class ClientService {
         }
         List<Clientdetail> cdl = clientDetailRepository.getByUser(user);
         if (cdl.isEmpty()) {
-        return null;
+            return null;
         }
-        if (cdl.size() > 1 ) {
+        if (cdl.size() > 1) {
             logger.info("Йой! Знайшли більше одної ClientDetail!!!");
             return null;
         }
@@ -230,7 +237,7 @@ public class ClientService {
         StringBuilder json = null;
         try { //(
             InputStream input = url.openStream();
-        // ) {
+            // ) {
             InputStreamReader isr = new InputStreamReader(input);
             BufferedReader reader = new BufferedReader(isr);
             json = new StringBuilder();
@@ -270,12 +277,34 @@ public class ClientService {
             }
             cd.setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
             cd.setTelegramuserchatid(userRequest.getUpdate().getMessage().getChatId().toString());
-            logger.info("Set Telegram Link. UserId: {} ChatId {}",cd.getTelegramuser(),cd.getTelegramuserchatid());
+            logger.info("Set Telegram Link. UserId: {} ChatId {}", cd.getTelegramuser(), cd.getTelegramuserchatid());
             SaveClientDetail(cd);
             return true;
         }
         return false;
     }
 
+//    public void SetProfilePhoto(String storeUUID, Clientdetail cd) {
+//        Store storeNewPhoto = storeService.GetStoreByUUID(storeUUID);
+//        if (storeNewPhoto == null) {
+//            logger.info("З якогось дива переданий storeUUID для фото профайлу не знайдено.");
+//            return;
+//        } else {
+//            if (cd.getProfilephoto() != null) {
+//                // видаляємо старе фото
+//                logger.info("Є старе фото в профайлі");
+//                // Перевірити, чи новий сторе не такий самий, як старий.
+//                // Це можливо при завантаженні файлу з тим самим іменем.
+//                if (!storeNewPhoto.getUuid().equals(storeUUID)) storeService.DeleteInStore(cd.getProfilephoto()); // видалили старий
+//            }
+//            // Зберігаємо фото в ClientDetail
+//            cd.setProfilephoto(storeNewPhoto);
+//            clientDetailRepository.save(cd);
+//            return;
+//        }
+//    }
 }
+
+/// Додаємо завантажене фото для профайлу в ClientDetail
+
 

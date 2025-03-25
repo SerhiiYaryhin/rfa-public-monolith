@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.model;
 
 //import jakarta.persistence.*;
+
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -49,42 +50,48 @@ public class Clientdetail {
     @Expose
     private Double account = 0.0;
 
-//    @Expose
+    //    @Expose
 //    @ElementCollection
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = {CascadeType.ALL}) //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
-    private  List<Clientaddress> clientaddressList = new ArrayList<>();
+    @OneToOne(cascade = {CascadeType.ALL})
+    private Store profilephoto;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = {CascadeType.ALL}) //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
-    private  List<Contract> contractList = new ArrayList<>();
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
+    private List<Clientaddress> clientaddressList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
+    private List<Contract> contractList = new ArrayList<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<History> historyList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-    private  List<Documents> documentslist = new ArrayList<>();
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Documents> documentslist = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-    private  List<Station> stationList = new ArrayList<>();
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Station> stationList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Album> albumList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Track> trackList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Post> postList  = new ArrayList<>();
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Post> postList = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Albumсover> albumсoverList = new ArrayList<>();
 
 //    @ToString.Exclude
@@ -99,13 +106,13 @@ public class Clientdetail {
 
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
-    private  Users user;
+    private Users user;
 
     public Clientdetail() {
-        this.uuid               = UUID.randomUUID().toString();
-        this.createdate         = new Date();
-        this.confirminfo        = false;
-        this.account            = 0.0;
+        this.uuid = UUID.randomUUID().toString();
+        this.createdate = new Date();
+        this.confirminfo = false;
+        this.account = 0.0;
     }
 
 }

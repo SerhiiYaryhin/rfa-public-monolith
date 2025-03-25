@@ -8,6 +8,7 @@ import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,7 @@ public class CreaterDropPostFileController {
         log.info("uploaded file " + file.getOriginalFilename());
 
     }
-
+    /// Завантажуємо фото профайлу до сховища і додаємо до ClientDetail
     @PostMapping(path = "/creater/picprofileupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE
     public void uploadPicProfile(@RequestParam("file") MultipartFile file) {
 
@@ -121,14 +122,35 @@ public class CreaterDropPostFileController {
         try {
             // тестуємо завантаження через сервіси сховища.
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PHOTO);
-            createrService.SaveAlbumCoverUploadInfo(storeUUID,cd);
-            // !!! todo додати storeUUID до профайлу
+//            createrService.SaveAlbumCoverUploadInfo(storeUUID,cd);
+            // зберігаємо UUID фото профайлу до ClientDetail
+            Store storeNewPhoto = storeService.GetStoreByUUID(storeUUID);
+            if (storeNewPhoto == null) {
+                logger.info("З якогось дива переданий storeUUID для фото профайлу не знайдено.");
+                return;
+            } else {
+                if (cd.getProfilephoto() != null) {
+                    // видаляємо старе фото
+                    logger.info("Є старе фото в профайлі");
+                    // Перевірити, чи новий сторе не такий самий, як старий.
+                    // Це можливо при завантаженні файлу з тим самим іменем.
+                    if (!storeNewPhoto.getUuid().equals(storeUUID)) {
+                        storeService.DeleteInStore(cd.getProfilephoto()); // видалили старий
+                        logger.info("Видалили старе фото в профайлі");
+                    }
+                }
+                // Зберігаємо фото в ClientDetail
+                cd.setProfilephoto(storeNewPhoto);
+                clientService.SaveClientDetail(cd);
+                log.info("Завантажуємо фото профайлу {} для cd={}",file.getOriginalFilename(),cd.getUuid());
+                return;
+            }
         } catch (IOException e) {
             logger.info("Завантаження файлу: Проблема збереження");
             e.printStackTrace();
+            return;
         }
-        log.info("uploaded file " + file.getOriginalFilename());
-
+//        log.info("uploaded file " + file.getOriginalFilename());
     }
 
 

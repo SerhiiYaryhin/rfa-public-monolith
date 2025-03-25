@@ -18,7 +18,8 @@
                         <div class="row align-items-center">
                             <div class="col-md-3">
                                 <div class="text-center border-end">
-                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">
+                                    <img th:if="${clientdetail.profilephoto} != null" th:src="'/store/content/' + ${clientdetail.profilephoto.uuid}" class="img-fluid avatar-xxl rounded-circle" >
+                                    <img th:if="${clientdetail.profilephoto} == null" src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" >
                                     <h4 class="text-primary font-size-20 mt-3 mb-2">
                                         <span th:text="${clientdetail.custname}+' '+${clientdetail.custsurname}"/>
                                     </h4>

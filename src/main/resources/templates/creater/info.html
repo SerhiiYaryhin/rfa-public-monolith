@@ -4,104 +4,137 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Толока - радіо для всіх!</title>
-  <!-- Favicon-->
-  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <!-- Font Awesome icons (free version)-->
-  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-  <!-- Google fonts-->
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-  <!-- Core theme CSS (includes Bootstrap)-->
-  <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-  <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-  <!--    TinyMCE-->
-  <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <!--    TinyMCE-->
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
+            referrerpolicy="origin"></script>
 
+    <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
+    <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 </head>
-  <body>
-  <header>
+<body>
+<header>
     <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-  </header>
-  <div style="padding-top: 100px">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+<div style="padding-top: 100px">
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-12 col-sm-12">
-          <div th:insert="~{/fragments/user :: user_service}"> </div>
+<!--        <div class="row">-->
+<!--            <div class="col-lg-12 col-sm-12">-->
+<!--                <div th:insert="~{/fragments/user :: user_service}"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div class="row text-center" style="padding-top: 20px">
+            <div class="col align-center">
+                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+            </div>
+            <h1>Ваш профайл</h1>
         </div>
-      </div>
-      <div class="row text-center" style="padding-top: 20px">
-        <div class="col align-center">
-          <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+        <div class="row">
+            <span>Завантажити Ваше фото</span>
+            <div id="dropzone">
+                <form action="/creater/picprofileupload" class="dropzone needsclick" id="demo-upload" method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <div class="dz-message needsclick">
+                        <button type="button" class="dz-button">Перенсіть фото сюди або натисніть для вибору файлу. Потім, обовʼязково оновіть сторінку щоб побачити результат.
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <hr>
         </div>
-      </div>
-      <div class="row" style="padding-top: 20px">
-        <!-- Колонка редагування посту -->
-        <div class="col-lg-9 col-sm-12">
-          <form th:action="@{'/creater/info'}"  th:object="${clientdetail}" method="post">
-            <input type="hidden" th:field="*{id}"/>
-            <div class="form-group row">
-              <label for="custname" class="col-4 col-form-label">Імʼя</label>
-              <div class="col-8">
-              <input th:field="*{custname}" placeholder="Введіть Ваше Імʼя" type="text" class="form-control">
-              </div>
+        <div class="row" style="padding-top: 20px">
+            <!-- Колонка редагування посту -->
+            <div class="col-lg-9 col-sm-12">
+                <form th:action="@{'/creater/info'}" th:object="${clientdetail}" method="post">
+                    <input type="hidden" th:field="*{id}"/>
+                    <div class="form-group row">
+                        <label for="custname" class="col-4 col-form-label">Імʼя</label>
+                        <div class="col-8">
+                            <input th:field="*{custname}" placeholder="Введіть Ваше Імʼя" type="text"
+                                   class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="custsurname" class="col-4 col-form-label">Призвище</label>
+                        <div class="col-8">
+                            <input th:field="*{custsurname}" placeholder="Введіть Ваше призвище" type="text"
+                                   class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="firmname" class="col-4 col-form-label">Назва або сценічний псевдонім</label>
+                        <div class="col-8">
+                            <input th:field="*{firmname}" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-4 ">
+                            <label for="comments" class="col-form-label">Інформація про Вас:</label>
+                            <hr>
+                            <span>Ваше фото</span><br>
+                            <img th:if="${clientdetail.profilephoto} != null" th:src="'/store/content/' + ${clientdetail.profilephoto.uuid}" class="img-fluid avatar-xxl rounded-circle" >
+                            <img th:if="${clientdetail.profilephoto} == null" src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" >
+
+                        </div>
+                        <div class="col-8">
+                            <script>
+                                tinymce.init({
+                                  selector: 'textarea',
+                                                        plugins: [
+                                                        "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
+                                                         "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
+                                                          "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
+                                                          ],
+                                  tinycomments_mode: 'embedded',
+                                  tinycomments_author: 'Author name',
+                                  mergetags_list: [
+                                    { value: 'First.Name', title: 'First Name' },
+                                    { value: 'Email', title: 'Email' },
+                                  ],
+                                  ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                                });
+                            </script>
+                            <textarea th:field="*{comments}"/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="offset-4 col-8">
+                            <button name="submit" type="submit" class="btn btn-primary">Зберегти</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="form-group row">
-              <label for="custsurname" class="col-4 col-form-label">Призвище</label>
-              <div class="col-8">
-                <input th:field="*{custsurname}" placeholder="Введіть Ваше призвище" type="text" class="form-control">
-              </div>
+            <div class="col-lg-3 col-sm-12">
+                <!-- Генерація Токену для Телеграму -->
+                <div th:insert="~{/fragments/creater :: telegramtoken}"></div>
+                <!--                    вставляем Медіа Хаб-->
+                <div th:insert="~{/fragments/mediahub :: usermediahub}"></div>
             </div>
-            <div class="form-group row">
-              <label for="firmname" class="col-4 col-form-label">Назва або сценічний псевдонім</label>
-              <div class="col-8">
-                <input th:field="*{firmname}" type="text" class="form-control">
-              </div>
-            </div>
-            <div class="form-group row">
-              <label for="comments" class="col-4 col-form-label">Text Area</label>
-              <div class="col-8">
-                <script>
-                  tinymce.init({
-                    selector: 'textarea',
-                                          plugins: [
-                                          "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
-                                           "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
-                                            "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
-                                            ],
-                    tinycomments_mode: 'embedded',
-                    tinycomments_author: 'Author name',
-                    mergetags_list: [
-                      { value: 'First.Name', title: 'First Name' },
-                      { value: 'Email', title: 'Email' },
-                    ],
-                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                  });
-                </script>
-                <textarea th:field="*{comments}"/>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="offset-4 col-8">
-                <button name="submit" type="submit" class="btn btn-primary">Зберегти</button>
-              </div>
-            </div>
-    </form>
         </div>
-        <div class="col-lg-3 col-sm-12">
-          <!-- Генерація Токену для Телеграму -->
-          <div th:insert="~{/fragments/creater :: telegramtoken}">  </div>
-          <!--                    вставляем Медіа Хаб-->
-          <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
 
 
-    <script src="/js/bootstrap.bundle.min.js"></script>
-  </body>
+<!--<script th:src="@{/js/jquery.min.js}"></script>-->
+<script src="/js/bootstrap.bundle.min.js"></script>
+<!-- Дропзона -->
+<script th:src="@{/js/dropzone.min.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<!-- Дропзона -->
+</body>
 </html>

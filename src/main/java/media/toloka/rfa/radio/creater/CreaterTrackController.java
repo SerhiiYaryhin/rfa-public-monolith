@@ -66,7 +66,7 @@ public class CreaterTrackController {
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks/");
+        model.addAttribute("linkPage","/creater/tracks/0");
 
         // Пейджинг для сторінки
 
