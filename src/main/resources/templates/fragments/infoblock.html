@@ -10,7 +10,7 @@
         <div th:each="post : ${postList}">
             <!--      <div th:each="post : ${posts}">-->
             <div class="col">
-                <div class="card h-100">
+                <div class="card d-flex flex-column h-100">
                     <div th:if="${post.store} == null">
                         <img class="card-img-top img-fluid" th:src="'https://picsum.photos/400/300?random='+${post.id}"
                              alt="Card image cap">
