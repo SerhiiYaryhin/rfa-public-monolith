@@ -4,77 +4,86 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
 <!-- MessageBox -->
-<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+<div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
 <!-- Navigation-->
 <div th:insert="~{/fragments/navbar :: navbarUniverse}"
 <div style="padding-top: 100px"/>
 <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
-<section class="page-section" id="news" >
+<section class="page-section" id="news">
     <div class="container-fluid">
         <div class="row">
             <!-- Колонка постів -->
             <div class="col-lg-9 col-sm-12">
-                <div class="card" >
+                <div class="card">
                     <div class="card-header"><h3>Новини на Толоці</h3></div>
                     <div class="card-body">
                         <div class="container">
-                                <div class="row row-cols-1 row-cols-md-4 g-4">
-                                    <div th:each="post : ${postList}">
-                                        <div class="col">
-                                            <div class="card ">
-                                                <a href="#">
-                                                    <div th:if="${post.store} == null">
-                                                        <!--              post.coverstoreuuid == null-->
-                                                        <img class="card-img-top img-fluid"  th:src="'https://picsum.photos/400/300?random='+${post.id}" alt="Card image cap">
-                                                    </div>
-                                                    <div th:if="${post.store} != null">
-                                                        <!--              post.coverstoreuuid != null-->
-                                                        <img class="card-img-top img-fluid"  th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Card image cap">
-                                                    </div>
-
-
-<!--                                                    <img class="card-img-top img-fluid"  th:src="'https://picsum.photos/400/300?random='+${post.id}" alt="Card image cap">-->
-                                                    <div class="card-body">
-                                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.id}"><span th:text="${post.posttitle}"/></a></h5>
-                                                        <p class="card-text">
-                                                            <small class="text-muted">
-                                                                <i class="fas fa-eye"></i><span th:text="' '+${post.looked}+' '"/>
-                                                                <i class="far fa-user"></i><span th:text="' ' + ${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/><br>
-                                                                <i class="fas fa-calendar-alt"></i><span th:text="' ' + ${#dates.format(post.publishdate, 'dd-MM-yyyy')}"/>
-                                                            </small>
-                                                        </p>
-                                                    </div>
-                                                </a>
+                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                                <!--                                    <div th:each="post : ${postList}">-->
+                                <div th:each="post : ${postList}" class="col">
+                                    <div class="card ">
+                                        <a href="#">
+                                            <div th:if="${post.store} == null">
+                                                <!--              post.coverstoreuuid == null-->
+                                                <img class="card-img-top img-fluid"
+                                                     th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                                                     alt="Card image cap">
                                             </div>
-                                        </div>
+                                            <div th:if="${post.store} != null">
+                                                <!--              post.coverstoreuuid != null-->
+                                                <img class="card-img-top img-fluid"
+                                                     th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}"
+                                                     alt="Card image cap">
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title"><a th:href="'/post/postview/'+${post.id}"><span
+                                                        th:text="${post.posttitle}"/></a></h5>
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-eye"></i><span
+                                                            th:text="' '+${post.looked}+' '"/>
+                                                        <i class="far fa-user"></i><span
+                                                            th:text="' ' + ${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/><br>
+                                                        <i class="fas fa-calendar-alt"></i><span
+                                                            th:text="' ' + ${#dates.format(post.publishdate, 'dd-MM-yyyy')}"/>
+                                                    </small>
+                                                </p>
+                                            </div>
+                                        </a>
                                     </div>
                                 </div>
+                                <!--                                    </div>-->
                             </div>
+                        </div>
                     </div>
                     <div class="card-footer text-muted">
                         <nav aria-label="Page navigation example">
-                            <ul class="pagination" >
-                                <li class="page-item"><a class="page-link"  th:href="'/guest/postall/'+${privpagepost}">Попередня</a></li>
+                            <ul class="pagination">
+                                <li class="page-item"><a class="page-link" th:href="'/guest/postall/'+${privpagepost}">Попередня</a>
+                                </li>
                                 <div th:each="lpage : ${#numbers.sequence(0, __${totalpagepost-1}__)}">
-                                    <li class="page-item"><a class="page-link"  th:href="'/guest/postall/'+${lpage}" ><span th:text="${lpage+1}">1</a></li>
+                                    <li class="page-item"><a class="page-link"
+                                                             th:href="'/guest/postall/'+${lpage}"><span
+                                            th:text="${lpage+1}">1</a></li>
                                 </div>
-                                <li class="page-item"><a class="page-link" th:href="'/guest/postall/'+${nextpagepost}">Наступна</a></li>
+                                <li class="page-item"><a class="page-link" th:href="'/guest/postall/'+${nextpagepost}">Наступна</a>
+                                </li>
                             </ul>
                         </nav>
 
@@ -84,7 +93,7 @@
             <!-- колонка медіа хаб-->
             <div class="col-lg-3 col-sm-12">
 
-                <div th:insert="~{/fragments/mediahub :: lasttrecks}">  </div>
+                <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
             </div>
         </div>
 
