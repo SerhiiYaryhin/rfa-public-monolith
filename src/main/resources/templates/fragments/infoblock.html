@@ -10,7 +10,7 @@
         <div th:each="post : ${postList}">
             <!--      <div th:each="post : ${posts}">-->
             <div class="col">
-                <div class="card ">
+                <div class="card h-100">
                     <div th:if="${post.store} == null">
                         <img class="card-img-top img-fluid" th:src="'https://picsum.photos/400/300?random='+${post.id}"
                              alt="Card image cap">
@@ -20,7 +20,7 @@
                              th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}"
                              alt="Card image cap">
                     </div>
-                    <div class="card-body flex-grow-1">
+                    <div class="card-body ">
                         <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.id}"><span
                                 th:text="${post.posttitle}"/></a></h5>
                         <!--                <p class="card-text">-->
