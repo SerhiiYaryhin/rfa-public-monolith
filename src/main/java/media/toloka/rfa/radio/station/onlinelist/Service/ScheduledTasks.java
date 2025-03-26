@@ -70,14 +70,18 @@ public class ScheduledTasks {
                 // сформували урл для станції
                 url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
             } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
+                logger.info("GetStationOnlineList: MalformedURLException new URL");
+                continue;
+//                throw new RuntimeException(e);
             }
             String json;
             // Перекидаємо отриману строку в JSON
             try {
                 json = IOUtils.toString(url, Charset.forName("UTF-8"));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.info("GetStationOnlineList: IOException IOUtils.toString ");
+                continue;
+//                throw new RuntimeException(e);
             }
             GsonBuilder builder = new GsonBuilder();
             Object o = builder.create().fromJson(json, Object.class);
@@ -108,7 +112,8 @@ public class ScheduledTasks {
         }
         for (ListOnlineFront tlof : listOnlineFronts) {
             if (tlof.getCurdate() != currentUpdate) {
-                // todo видаляємо застарілі елементи
+                // видаляємо застарілі елементи
+                listOnlineFronts.remove(tlof);
             }
         }
 //        logger.info("GetStationOnlineList: END The time is now {}", dateFormat.format(new Date()));
