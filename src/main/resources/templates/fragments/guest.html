@@ -94,7 +94,7 @@
                                         <table class="table">
                                             <tbody>
                                             <tr th:each="post : ${postList}">
-                                                <td><span th:text="${post.posttitle}"></span></td>
+                                                <td><a th:href="'/post/postview/'+${post.id}"> <span th:text="${post.posttitle}"></span></a></td>
 <!--                                                <td><span th:text="${post.autor}"></span></td>-->
                                             </tr>
                                             </tbody>

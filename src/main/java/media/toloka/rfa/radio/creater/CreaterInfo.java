@@ -4,8 +4,10 @@ package media.toloka.rfa.radio.creater;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.login.service.TokenService;
+import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.Track;
 import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -109,11 +112,17 @@ public class CreaterInfo {
         // вся інша інформація розміщується у трьох колонках нижче.
 
         // Альбоми
-        model.addAttribute("albumList", cd.getAlbumList() );
-        // Треки
-        model.addAttribute("trackList", cd.getTrackList() );
+        List<Album> ral = cd.getAlbumList();
+        Collections.reverse(ral);
+        model.addAttribute("albumList", ral );
+        // Треки cd.getTrackList()
+        List<Track> rtr = cd.getTrackList();
+        Collections.reverse(rtr);
+        model.addAttribute("trackList", rtr );
         // Пости
-        model.addAttribute("postList", cd.getPostList() );
+        List<Post> rpt = cd.getPostList();
+        Collections.reverse(rpt);
+        model.addAttribute("postList", rpt );
 
         model.addAttribute("clientdetail", cd );
 
