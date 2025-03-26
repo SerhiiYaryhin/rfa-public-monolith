@@ -42,7 +42,7 @@
                 <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>
                 <h1 th:text="${curtrack.name}" style="padding-top: 20px"></h1>
                 <h2> <span>Автор:</span><span th:text ="${curtrack.autor}"/> </h2>
-                <h5 > <span th:if="${#strings.length(curtrack.style) > 0}">Стиль:<span th:text ="' '+${curtrack.style}"/></span> </h5>
+                <h5 th:if="${curtrack.style != null} "> <span th:if=" ${#strings.length(curtrack.style) > 0}">Стиль:<span th:text ="' '+${curtrack.style}"/></span> </h5>
 <!--                <hr>-->
 <!--                <div th:utext="${curtrack.description}"></div>-->
 

@@ -11,7 +11,11 @@
     -->
     <div class="container">
         <div class="row">
-            <h1>Сторінка в розробці.</h1>
+            <h1>
+                <span th:if="${clientdetail.custname} != null" th:text="${clientdetail.custname}"/>
+                <span th:if="${clientdetail.custsurname} != null" th:text="' '+${clientdetail.custsurname}"/>
+                <span th:if="${clientdetail.firmname} != null" th:text="' / '+${clientdetail.firmname}"/>
+            </h1>
             <div class="col-xl-8">
                 <div class="card">
                     <div class="card-body pb-0">
@@ -71,7 +75,7 @@
                                         <table class="table">
                                             <tbody>
                                             <tr th:each="track : ${trackList}">
-                                                <td><span th:text="${track.name}"></span></td>
+                                                <td><a th:href="'/guest/viewtrack/'+${track.uuid}"><span th:text="${track.name}"></span></a></td>
                                                 <td><span th:text="${track.autor}"></span></td>
                                             </tr>
                                             </tbody>
