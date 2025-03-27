@@ -52,7 +52,7 @@ public class WebSocketConfig  implements WebSocketMessageBrokerConfigurer {
                 "/public",
                 "/heartbeats")
                 .setTaskScheduler(heartBeatScheduler())
-                .setHeartbeatValue(new long[]{0,8000});
+                .setHeartbeatValue(new long[]{8000,8000});
         config.setApplicationDestinationPrefixes("/app");
     }
 
