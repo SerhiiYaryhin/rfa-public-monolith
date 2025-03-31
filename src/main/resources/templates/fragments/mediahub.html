@@ -496,7 +496,12 @@
                                 <i class="fas fa-play fa-stack-1x fa-inverse"></i>
                             </div>
                         </div>
-                        <div class="col-11 col-lg-11 col-sm-11">
+                        <div class="col-1 col-lg-1 col-sm-1">
+                            <a th:href="'/store/content/og/' + ${track.storeitem.uuid} + '/' + ${track.storeitem.filename}">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        </div>
+                        <div class="col-10 col-lg-10 col-sm-10">
                             <small>
                                 <a th:href="'/creater/profile/'+${track.clientdetail.uuid}"><span
                                         th:text="${track.autor}"/></a><br>
@@ -507,31 +512,6 @@
                         </div>
                     </div>
                 </li>
-                <!--<li  class="list-group-item">
-                    <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
-                        <div class="col-1 col-sm-1 col-lg-1" style="padding-left: 0px;">
-                            <span class="fa-stack fa-1x" th:id="'/store/audio/'+${track.storeuuid}">
-                                <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                                <i class="fas fa-play fa-stack-1x fa-inverse"></i>
-                            </span>
-                        </div>
-                        <div class="col-11 col-lg-11 col-sm-11">
-                            <small >
-                                <span th:text="${track.autor}"/><br>
-                                <a th:href="'/guest/viewtrack/'+${track.uuid}">
-                                    <span th:text="${track.name}"/><br>
-                                </a>
-                            </small>
-
-                        </div>
-                        <div>
-                            <audio id="'voice'+${track.id}" controls>
-                                <source th:src="'/store/audio/'+${track.storeuuid}">
-                            </audio>
-                        </div>
-                    </div>
-                </li>
-                -->
             </div>
         </ul>
         <div class="card-footer">
