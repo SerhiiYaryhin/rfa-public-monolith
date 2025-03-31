@@ -497,7 +497,7 @@
                             </div>
                         </div>
                         <div class="col-1 col-lg-1 col-sm-1">
-                            <a th:href="'/store/content/og/' + ${track.storeitem.uuid} + '/' + ${track.storeitem.filename}">
+                            <a th:href="'/store/content/' + ${track.storeitem.uuid}" th:download="${track.storeitem.filename}">
                                 <i class="fa-solid fa-download"></i>
                             </a>
                         </div>
