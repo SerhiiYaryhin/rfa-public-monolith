@@ -109,7 +109,7 @@ public class AdminStationController {
                         curStation.setStationstate(true);
                         stationService.saveStation(curStation);
                     } else {
-                        curStation.setStationstate(true);
+                        curStation.setStationstate(false);
                         stationService.saveStation(curStation);
                     }
                 }
