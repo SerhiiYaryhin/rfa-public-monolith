@@ -573,7 +573,7 @@ public class ServerRunnerService {
     }
 
     public List<String> StationGetRunStation(NewsRPC rjob) {
-        String localCommand = "docker ps --format \"{{.Names}}}\"|grep playout|awk '{print substr($2,1,36)   }'";
+        String localCommand = "docker ps --format \"{{.Names}}}\"|grep playout|awk '{print substr($1,1,36)   }'";
 //        String localCommand = "ls -la";
 //        Gson gson = gsonService.CreateGson();
 //        Station station = gson.fromJson(rjob.getRjobdata(), Station.class);
