@@ -23,17 +23,20 @@
             <!--            <div th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">-->
             <td>
                 <!-- Клієнт -->
+                <b>
                 <span th:if="${station.clientdetail.custname != null}"
                       th:text="${station.clientdetail.custname}+' '"/>
-                <span th:if="${station.clientdetail.custsurname != null}"
-                      th:text="${station.clientdetail.custsurname}+' '"/>
-                <span th:if="${station.clientdetail.firmname != null}"
-                      th:text="${station.clientdetail.firmname}+' '"/><br>
+                    <span th:if="${station.clientdetail.custsurname != null}"
+                          th:text="${station.clientdetail.custsurname}+' '"/>
+                    <span th:if="${station.clientdetail.firmname != null}"
+                          th:text="${station.clientdetail.firmname}+' '"/>
+                </b><br>
                 <span th:text="${station.clientdetail.uuid}+' '"/>
+
             </td>
             <td>
                 <!-- Станція -->
-                <span th:text="${station.name}"></span><br>
+                <b><span th:text="${station.name}"></span></b><br>
                 <span th:text="${station.uuid}"/>
             </td>
             <td>
@@ -44,9 +47,9 @@
                 <!-- Дія -->
                 <!--                <a class="btn btn-primary" th:href="@{'/user/controlstation?id='+${station.id} }" target="_blank">Керувати</a>-->
                 <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-primary"
-                   target="_blank">Стартувати</a>
+                   target="_blank">Старт</a>
                 <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-primary"
-                   target="_blank">Зупинити</a>
+                   target="_blank">Стоп</a>
                 <!--                <a class="btn btn-primary" th:href="@{'/creater/stationstart/'+${station.uuid} }">Стоп</a>-->
                 <!--                <a class="btn btn-primary" th:href="@{'/admin/stationlisten/'+${station.uuid} }">Слухати</a>-->
                 <!--                <a class="btn btn-primary" th:href="@{'/admin/stationpanel/'+${station.uuid} }">Панель</a>-->
