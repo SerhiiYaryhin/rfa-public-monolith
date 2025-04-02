@@ -27,12 +27,21 @@ public class NewsRPC {
         private String user = null;
     }
 
+    @Data
+    @ToString
+    public class sBackServer {
+        @Expose
+        private String server = null;
+    }
+
     @Expose
     private ERPCJobType rJobType;
     @Expose
     private TTS tts = new TTS();
     @Expose
     private Front front = new Front();
+    @Expose
+    private sBackServer backServer;
     @Expose
     private String stationUUID;
     @Expose

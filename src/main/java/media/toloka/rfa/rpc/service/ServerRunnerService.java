@@ -5,6 +5,7 @@ import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.email.service.EmailSenderService;
 import media.toloka.rfa.radio.model.Station;
+import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.rpc.model.RPCJob;
 import org.slf4j.Logger;
@@ -20,7 +21,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -260,8 +263,6 @@ public class ServerRunnerService {
 
         return rc;
     }
-
-
 
     public Long  StationStop(RPCJob rpcJob) {
         Long rc = 129L;
@@ -570,4 +571,35 @@ public class ServerRunnerService {
 //        // TODO Занести в історию запись
         return rc;
     }
+
+    public List<String> StationGetRunStation(NewsRPC rjob) {
+        String localCommand = "docker ps --format \"{{.Names}}}\"|grep playout|awk '{print substr($2,1,36)   }'";
+//        String localCommand = "ls -la";
+//        Gson gson = gsonService.CreateGson();
+//        Station station = gson.fromJson(rjob.getRjobdata(), Station.class);
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", localCommand);
+        Map<String, String> env = pb.environment();
+        String server_workdir = env.get("HOME");
+        pb.directory(new File(server_workdir));
+        pb.redirectErrorStream(true);
+        List<String> listResponce = new ArrayList<>();
+        try {
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                listResponce.add(line);
+            }
+            int exitcode = p.waitFor();
+        } catch (IOException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
+            e.printStackTrace();
+        } catch (InterruptedException e){
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+            e.printStackTrace();
+        }
+        // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
+        return listResponce;
+    }
+
 }

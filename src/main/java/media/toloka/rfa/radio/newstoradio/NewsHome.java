@@ -13,7 +13,7 @@ import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
 import media.toloka.rfa.radio.newstoradio.model.ENewsStatus;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
-import media.toloka.rfa.radio.newstoradio.service.NewsService;
+import media.toloka.rfa.radio.newstoradio.service.NewsBackServerService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.security.model.Users;
@@ -30,14 +30,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.io.*;
 import java.util.*;
 
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToRadio;
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_UserSendMailSetPassword;
 import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
-import static org.bouncycastle.asn1.iana.IANAObjectIdentifiers.mail;
 
 @Controller
 public class NewsHome {
@@ -76,7 +72,7 @@ public class NewsHome {
     private StationService stationService;
 
     @Autowired
-    private NewsService newsService;
+    private NewsBackServerService NewsBackServerService;
 
     @Autowired
     private HistoryService historyService;
@@ -95,7 +91,7 @@ public class NewsHome {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        News news = newsService.GetByUUID(uuidnews);
+        News news = NewsBackServerService.GetByUUID(uuidnews);
         if (news == null) {
             return "redirect:/newsradio/home/0";
         }
@@ -107,11 +103,11 @@ public class NewsHome {
         model.addAttribute("currentPage", scurpage);
         // Саме тут видаляємо файл та запис в Сховищі
         Long rc = 0L;
-        if (news != null) rc = newsService.deleteNewsTrackFromStore(uuidnews);
+        if (news != null) rc = NewsBackServerService.deleteNewsTrackFromStore(uuidnews);
         if (rc == 0L) {
-            newsService.GetByUUID(uuidnews).setStorespeach(null);
-            newsService.GetByUUID(uuidnews).setStatus(NEWS_STATUS_CREATE);
-            newsService.Save(newsService.GetByUUID(uuidnews));
+            NewsBackServerService.GetByUUID(uuidnews).setStorespeach(null);
+            NewsBackServerService.GetByUUID(uuidnews).setStatus(NEWS_STATUS_CREATE);
+            NewsBackServerService.Save(NewsBackServerService.GetByUUID(uuidnews));
             model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
             return "/newstoradio/editnews";
         }
@@ -132,7 +128,7 @@ public class NewsHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        News curnews = newsService.GetByUUID(uuidnews);
+        News curnews = NewsBackServerService.GetByUUID(uuidnews);
 
 
         if (curnews == null) {
@@ -150,7 +146,7 @@ public class NewsHome {
         model.addAttribute("currentPage", scurpage);
 
         Long rc = 0L;
-        if (curnews != null) rc = newsService.deleteNews(uuidnews);
+        if (curnews != null) rc = NewsBackServerService.deleteNews(uuidnews);
         if (rc == 0L) model.addAttribute("success", "Новину успішно видалено");
         else model.addAttribute("error", "Новину не видалено");
         return "redirect:/newstoradio/home/0";
@@ -174,15 +170,15 @@ public class NewsHome {
         logger.info("================= виконуємо трансляцію на радіостанцію");
         Long rc = 129L;
         String radioserver;
-        News news = newsService.GetByUUID(uuidnews);
+        News news = NewsBackServerService.GetByUUID(uuidnews);
         if (news == null) {
             return "redirect:/newstoradio/home/" + curpage.toString();
         }
 
-        if (newsService.GetByUUID(uuidnews).getStation().getRadioserver() != null )
-            radioserver = newsService.GetByUUID(uuidnews).getStation().getRadioserver();
+        if (NewsBackServerService.GetByUUID(uuidnews).getStation().getRadioserver() != null )
+            radioserver = NewsBackServerService.GetByUUID(uuidnews).getStation().getRadioserver();
         else
-            radioserver = newsService.GetByUUID(uuidnews).getStation().getGuiserver();
+            radioserver = NewsBackServerService.GetByUUID(uuidnews).getStation().getGuiserver();
 
 //        String toRadioCommand = "ssh toradio@" + toradiosevername + " ffmpeg -re -v quiet -stats -i https://"+baseSiteAddress+"/store/audio/"
 //                + newsService.GetByUUID(uuidnews).getStorespeach().getUuid() + " -f mp3 icecast://"
@@ -199,9 +195,9 @@ public class NewsHome {
         if (news.getStation().getRadioserver() != null) localGuiServer = news.getStation().getRadioserver();
         if (news.getStation().getToradiopassword() == null) {
             // Пейджинг для сторінки
-            Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
+            Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
             List<News> viewList = pageStore.stream().toList();
-            List<News> newsList = newsService.GetListNewsByCd(cd);
+            List<News> newsList = NewsBackServerService.GetListNewsByCd(cd);
             Boolean runTTS = false;
             for (News runnews : newsList) {
                 if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
@@ -264,7 +260,7 @@ public class NewsHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        News curnews = newsService.GetByUUID(uuidnews);
+        News curnews = NewsBackServerService.GetByUUID(uuidnews);
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
@@ -292,7 +288,7 @@ public class NewsHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        News curnews = newsService.GetByUUID(uuidnews);
+        News curnews = NewsBackServerService.GetByUUID(uuidnews);
         if (curnews != null) {
             // знайшли новину. Відправляємо на tts
             NewsRPC rjob = new NewsRPC();
@@ -309,7 +305,7 @@ public class NewsHome {
             model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
             curnews.setStatus(ENewsStatus.NEWS_STATUS_SEND);
             curnews.setDatechangestatus(new Date());
-            newsService.Save(curnews);
+            NewsBackServerService.Save(curnews);
 
         } else {
             model.addAttribute("error", "<b>Щось пішло не так - не знайшли новину "
@@ -320,7 +316,7 @@ public class NewsHome {
         Integer curpage = 0;
 
 // Пейджинг для сторінки
-        Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
@@ -344,9 +340,9 @@ public class NewsHome {
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
-        Page pageStore = newsService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
-        List<News> newsList = newsService.GetListNewsByCd(cd);
+        List<News> newsList = NewsBackServerService.GetListNewsByCd(cd);
         Boolean runTTS = false;
         for (News runnews : newsList) {
             if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
@@ -376,7 +372,7 @@ public class NewsHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        News curnews = newsService.GetByUUID(uuidnews);
+        News curnews = NewsBackServerService.GetByUUID(uuidnews);
         if (curnews == null) {
             curnews = new News();
             curnews.setClientdetail(cd);
@@ -413,7 +409,7 @@ public class NewsHome {
 
         News news = null;
         if (fnews.getUuid() != null) {
-            news = newsService.GetByUUID(fnews.getUuid());
+            news = NewsBackServerService.GetByUUID(fnews.getUuid());
         }
         Boolean type;
         if (news != null) {
@@ -437,7 +433,7 @@ public class NewsHome {
         }
 
 //        logger.info(news.toString());
-        if (news != null) newsService.Save(news);
+        if (news != null) NewsBackServerService.Save(news);
 
         if (type) return "redirect:/newstoradio/home/0";
         return "redirect:/newstoradio/home/" + pagelist;

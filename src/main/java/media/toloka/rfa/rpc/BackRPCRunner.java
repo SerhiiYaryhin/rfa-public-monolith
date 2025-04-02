@@ -1,10 +1,13 @@
-package media.toloka.rfa.radio.newstoradio;
+package media.toloka.rfa.rpc;
+/// RPC для сервера з радіо
 
 import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
-import media.toloka.rfa.radio.newstoradio.service.NewsService;
+import media.toloka.rfa.radio.newstoradio.service.NewsBackServerService;
 import media.toloka.rfa.rpc.model.ERPCJobType;
+import media.toloka.rfa.rpc.model.ResultJob;
+import media.toloka.rfa.rpc.service.ServerRunnerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -13,9 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Profile("Front")
 @Component
-public class NewsFrontRPC {
+public class BackRPCRunner {
 
     @Autowired
     RabbitTemplate template;
@@ -24,9 +29,13 @@ public class NewsFrontRPC {
     private GsonService gsonService;
 
     @Autowired
-    private NewsService newsService;
+    private NewsBackServerService NewsBackServerService;
 
-    Logger logger = LoggerFactory.getLogger(NewsFrontRPC.class);
+    @Autowired
+    private ServerRunnerService serverRunnerService;
+
+
+    Logger logger = LoggerFactory.getLogger(BackRPCRunner.class);
 
     @RabbitListener(queues = "${media.toloka.rfa.server.libretime.guiserver}")
     public void processedFromFront(String message) {
@@ -36,7 +45,7 @@ public class NewsFrontRPC {
 
         ERPCJobType curJob = rjob.getRJobType();
         if (curJob == null) {
-            logger.info("News RPC Listener: Якась дивнbq json рядок прелетів ======= {}", message);
+            logger.info("RPC Server Listener: Якийсь дивний json рядок прелетів ======= {}", message);
             return;
         }
         switch (curJob) {
@@ -44,10 +53,17 @@ public class NewsFrontRPC {
             case JOB_TTS_FILES_READY:  // Перетягуємо файли після TTS
                 // текстовий файл перетворено за аудіо
                 logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
-                rc = newsService.GetMp3FromTts(rjob);
-                        rjob.setRc(rc);
+                rc = NewsBackServerService.GetMp3FromTts(rjob);
+                rjob.setRc(rc);
                 logger.info("+++++++++++++++++ END JOB_TTS_FILES_READY");
                 break;
+// перенесено до BackRPCResponce
+//            case JOB_GETRUNSTATIOM:
+//                logger.info("+++++++++++++++++ START JOB_GETRUNSTATIOM");
+//                List<String> lrc = serverRunnerService.StationGetRunStation(rjob);
+//                //rjob.setRc(rc);
+//                logger.info("+++++++++++++++++ END JOB_GETRUNSTATIOM rc={}", rc);
+//                break;
             default:
                 logger.info("News RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}", rjob.getRJobType());
                 break;

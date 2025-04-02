@@ -24,7 +24,7 @@ import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_R
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Service
-public class NewsService {
+public class NewsBackServerService {
 
     @Autowired
     private NewsRepositore newsRepositore;

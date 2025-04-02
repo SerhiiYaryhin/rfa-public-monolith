@@ -102,8 +102,9 @@ Logger logger = LoggerFactory.getLogger(RPCListener.class);
             case JOB_CONTRACT_ADD_STATION:
                 logger.info("======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
                 break;
+
             default:
-                logger.info("RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
+                logger.info("Create Station RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}    {}", rjob.getRJobType(), rjob.getRjobdata());
                 break;
         }
         serverRunnerService.CompletedPartRPCJob(rjob);

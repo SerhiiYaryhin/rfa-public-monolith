@@ -7,10 +7,9 @@ import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.newstoradio.model.ENewsStatus;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
-import media.toloka.rfa.radio.newstoradio.service.NewsService;
+import media.toloka.rfa.radio.newstoradio.service.NewsBackServerService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.rpc.model.RPCJob;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,6 @@ import java.io.*;
 import java.util.Map;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_NewsSendToTTS;
-import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS_FILES_READY;
 
 @Profile("tts")
@@ -47,7 +45,7 @@ public class RPCSpeachService {
     private StoreService storeService;
 
     @Autowired
-    private NewsService newsService;
+    private NewsBackServerService NewsBackServerService;
 
     @Autowired
     private GsonService gsonService;
@@ -73,7 +71,7 @@ public class RPCSpeachService {
         Long rc = 10000L;
         // Витягнути новину з переданого gson
         String sUuidNews = rjob.getNewsUUID();
-        News news = newsService.GetByUUID(sUuidNews);
+        News news = NewsBackServerService.GetByUUID(sUuidNews);
         // витягли користувача
         Users user = news.getClientdetail().getUser();
 
@@ -94,7 +92,7 @@ public class RPCSpeachService {
         }
         // Закінчили перетворення на голос та змінюємо статус
         news.setStatus(ENewsStatus.NEWS_STATUS_DONE);
-        newsService.Save(news);
+        NewsBackServerService.Save(news);
         // Забираємо фінальний файл до сховища
         rc = SendJobForPutMp3ToStore(rjob);
         if (rc != 0L) {
@@ -197,18 +195,6 @@ public class RPCSpeachService {
         Gson gson = gsonService.CreateGson();
         template.convertAndSend(rjob.getFront().getServer(), gson.toJson(rjob).toString());
         logger.info(rjob.toString());
-//
-//        String patch = "/tmp/" + rjob.getNewsUUID() + ".mp3";
-//        File initialFile = new File(patch);
-//        InputStream targetStream = null;
-//        try {
-//            targetStream = new FileInputStream(initialFile);
-//        } catch (FileNotFoundException e) {
-//            logger.info("==== Щось пішло не так! Не можу знайти результат TTS. {}", "/tmp/" + rjob.getNewsUUID() + ".mp3");
-//        }
-//        String storeUUID = storeService.PutFileToStore(targetStream, rjob.getNewsUUID() + ".mp3", newsService.GetByUUID(rjob.getNewsUUID()).getClientdetail(), STORE_TTS);
-//        newsService.GetByUUID(rjob.getNewsUUID()).setStorespeach(storeService.GetStoreByUUID(storeUUID));
-//        logger.info("uploaded file " + rjob.getNewsUUID() + ".mp3");
 
         return 0L;
     }
