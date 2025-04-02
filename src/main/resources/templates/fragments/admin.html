@@ -14,13 +14,11 @@
             <th scope="col">Станція</th>
             <th scope="col">База</th>
             <th scope="col">Дія</th>
-            <!--            <th scope="col">Дії</th>-->
         </tr>
         </thead>
         <tbody>
 
         <tr th:each="station, iStat : ${stationList}" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">
-            <!--            <div th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">-->
             <td>
                 <!-- Клієнт -->
                 <b>
@@ -45,14 +43,10 @@
             </td>
             <td>
                 <!-- Дія -->
-                <!--                <a class="btn btn-primary" th:href="@{'/user/controlstation?id='+${station.id} }" target="_blank">Керувати</a>-->
                 <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-primary"
                    target="_blank">Старт</a>
                 <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-primary"
                    target="_blank">Стоп</a>
-                <!--                <a class="btn btn-primary" th:href="@{'/creater/stationstart/'+${station.uuid} }">Стоп</a>-->
-                <!--                <a class="btn btn-primary" th:href="@{'/admin/stationlisten/'+${station.uuid} }">Слухати</a>-->
-                <!--                <a class="btn btn-primary" th:href="@{'/admin/stationpanel/'+${station.uuid} }">Панель</a>-->
             </td>
         </tr>
         </tbody>
