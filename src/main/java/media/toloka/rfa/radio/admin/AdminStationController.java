@@ -94,12 +94,30 @@ public class AdminStationController {
             Type listType = new TypeToken<List<String>>() {}.getType();
             List<String> listResponse = gson.fromJson(response, listType);
 
+            HashSet<String> stationInCurrentServer = new HashSet<String>();
             for (String sStation : listResponse) {
                 logger.info("Server: {} Station: {}",curServer,sStation);
+                stationInCurrentServer.add(sStation);
+            }
+            // перегоняємо отримані станції, що працюють, в Set
+
+
+            for (Station curStation : stationList) {
+                if (curStation.getGuiserver().equals(curServer)) {
+                    // Оновили статус станції на актуальний
+                    if (stationInCurrentServer.contains(curStation.getUuid())) {
+                        curStation.setStationstate(true);
+                        stationService.saveStation(curStation);
+                    } else {
+                        curStation.setStationstate(true);
+                        stationService.saveStation(curStation);
+                    }
+                }
             }
         }
 
-        model.addAttribute("stationList", stationList );
+
+        model.addAttribute("stationList", stationService.listAll() );
 
         return "/admin/station";
     }
