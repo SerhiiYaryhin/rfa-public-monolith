@@ -27,8 +27,18 @@
     <div class="row">
         <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
     </div>
-<p>Тут буде керування станціями.
-    Поки не знаю яке.</p>
+<p>Тут буде керування станціями. Поки не знаю яке.</p>
+    <!--// User page container-->
+    <div style="padding-top: 100px">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12 col-sm-12">
+                    <div th:insert="~{/fragments/admin :: liststationcontrol}"> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>

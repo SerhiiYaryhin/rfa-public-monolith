@@ -6,13 +6,64 @@
 </head>
 <body>
 
-<div th:fragment="searchuser" class="container" >
+<div th:fragment="liststationcontrol">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Клієнт</th>
+            <th scope="col">Станція</th>
+            <th scope="col">База</th>
+            <th scope="col">Дія</th>
+            <!--            <th scope="col">Дії</th>-->
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="station, iStat : ${stationList}" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">
+            <!--            <div th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">-->
+            <td>
+                <!-- Клієнт -->
+                <span th:if="${station.clientdetail.custname != null}"
+                      th:text="${station.clientdetail.custname}+' '"/>
+                <span th:if="${station.clientdetail.custsurname != null}"
+                      th:text="${station.clientdetail.custsurname}+' '"/>
+                <span th:if="${station.clientdetail.firmname != null}"
+                      th:text="${station.clientdetail.firmname}+' '"/><br>
+                <span th:text="${station.clientdetail.uuid}+' '"/>
+            </td>
+            <td>
+                <!-- Станція -->
+                <span th:text="${station.name}"></span><br>
+                <span th:text="${station.uuid}"/>
+            </td>
+            <td>
+                <!-- База  -->
+                <span th:text="${station.dbname}"></span><br>
+            </td>
+            <td>
+                <!-- Дія -->
+                <!--                <a class="btn btn-primary" th:href="@{'/user/controlstation?id='+${station.id} }" target="_blank">Керувати</a>-->
+                <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-primary"
+                   target="_blank">Стартувати</a>
+                <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-primary"
+                   target="_blank">Зупинити</a>
+                <!--                <a class="btn btn-primary" th:href="@{'/creater/stationstart/'+${station.uuid} }">Стоп</a>-->
+                <!--                <a class="btn btn-primary" th:href="@{'/admin/stationlisten/'+${station.uuid} }">Слухати</a>-->
+                <!--                <a class="btn btn-primary" th:href="@{'/admin/stationpanel/'+${station.uuid} }">Панель</a>-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:fragment="searchuser" class="container">
     <div class="row">
         <div class="col-lg-12 col-sm-12" th:style="'background-color: rgb(230,230, 230'">
             <form th:action="@{'/admin/users'}" th:object="${ss}" method="post">
                 <!--            <form th:action="@{'/admin/searchuser'}"  th:object="${clientsearch}" method="post">-->
                 <div class="form-group row">
-                    <label for="searchString" class="col col-form-label">Будь що, що міститься в полях користувача</label>
+                    <label for="searchString" class="col col-form-label">Будь що, що міститься в полях
+                        користувача</label>
                     <input th:field="*{searchString}" type="text" class="form-control">
                 </div>
                 <div class="form-group row" style="padding-bottom: 10px; padding-top: 10px;">
@@ -23,25 +74,26 @@
     </div>
 </div>
 
-<div th:fragment="listusercontrol" class="container" >
+<div th:fragment="listusercontrol" class="container">
     <div class="form-group row" style="padding-top: 20px">
         <div class="col-lg-12 col-sm-12">
-            <div th:each="user, iStat : ${usersList}" >
+            <div th:each="user, iStat : ${usersList}">
                 <div th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
                     <!-- Загальна інформація про користувача                   -->
-                    <div >
+                    <div>
                         <span th:text="${user.clientdetail.custname}+' '+${user.clientdetail.custsurname}"/><br>
                         <span th:if="${user.clientdetail.firmname} != null">
-                            <span th:if="${#strings.length(user.clientdetail.firmname)} > 0" th:text="${user.clientdetail.firmname}"/><br>
+                            <span th:if="${#strings.length(user.clientdetail.firmname)} > 0"
+                                  th:text="${user.clientdetail.firmname}"/><br>
                         </span>
-<!--                        <span th:if="${#strings.length(user.clientdetail.firmname)} > 0" th:text="${user.clientdetail.firmname}"/><br>-->
+                        <!--                        <span th:if="${#strings.length(user.clientdetail.firmname)} > 0" th:text="${user.clientdetail.firmname}"/><br>-->
                         <span th:text="${user.email}"/><br>
                         <span th:utext="' Створення: <b>'+${#dates.format(user.clientdetail.createdate, 'dd-MM-yyyy')}"/>
                         <span th:utext="'</b>  Погодження: <b>'+${#dates.format(user.clientdetail.confirmDate, 'dd-MM-yyyy')}+'</b>'"/>
                         <br>
                         <span th:each="role, iStat : ${user.roles}">
                             <span th:if="${iStat.first}" th:utext="'Роль:<b> '+${role.role.label}+'</b>'"/>
-                            <span th:if="!${iStat.first}"  th:utext="', <b>'+${role.role.label}+'</b>'"/>
+                            <span th:if="!${iStat.first}" th:utext="', <b>'+${role.role.label}+'</b>'"/>
                         </span>
                         <!--            <span class="badge rounded-pill bg-primary">Редагувати</span>-->
                         <br>
@@ -69,27 +121,31 @@
                                 <!-- document -->
                                 <div class="accordion-item" th:if="${#lists.size(user.clientdetail.documentslist)} > 0">
                                     <h2 class="accordion-header" id="headingDoc">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#documentslist-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='documentslist-'+${user.clientdetail.uuid}">
                                             <span th:text="'Документи '+${#lists.size(user.clientdetail.documentslist)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'documentslist-'+${user.clientdetail.uuid}" class="accordion-collapse collapse "
+                                    <div th:id="'documentslist-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse "
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='documentslist-'+${user.clientdetail.uuid}">
-<!--                                    <div id="documentslist" class="accordion-collapse collapse " th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid} + ' ' + data-bs-parent='accordion-'+${user.clientdetail.uuid}">-->
+                                        <!--                                    <div id="documentslist" class="accordion-collapse collapse " th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid} + ' ' + data-bs-parent='accordion-'+${user.clientdetail.uuid}">-->
                                         <!--                         data-bs-parent="${user.clientdetail.uuid}">-->
                                         <div class="accordion-body">
-                                            <div th:each="doc, iStat : ${user.clientdetail.documentslist}" >
+                                            <div th:each="doc, iStat : ${user.clientdetail.documentslist}">
                                                 <span th:utext="'<b>Файл: </b>'+${doc.store.filename}"/>
                                                 <br>
                                                 <span th:utext="'<b>Статус: </b>'+${doc.status.label}+' <b>Створено: </b>'+${#dates.format(doc.loaddate, 'dd-MM-yyyy')}"/>
                                                 <br>
-                                                <input class="form-control" id="userComment" name="userComment" th:value="${doc.userComment}" type="text" disabled/>
+                                                <input class="form-control" id="userComment" name="userComment"
+                                                       th:value="${doc.userComment}" type="text" disabled/>
                                                 <br>
-                                                <input class="form-control" th:value="${doc.adminComment}" type="text" disabled/>
+                                                <input class="form-control" th:value="${doc.adminComment}" type="text"
+                                                       disabled/>
                                                 <a
                                                         th:attr="download=${doc.store.filename}"
                                                         th:type="${doc.store.contentMimeType}"
@@ -97,7 +153,7 @@
                                                     <span class="badge rounded-pill bg-primary">Завантажити</span>
                                                 </a>
                                                 <a th:href="'/admin/documentedit/'+${doc.id}" target=”_blank”>
-                                                    <span class="badge rounded-pill bg-primary" >Редагувати</span>
+                                                    <span class="badge rounded-pill bg-primary">Редагувати</span>
                                                 </a>
                                                 <a
                                                         th:attr="download=${doc.store.filename}"
@@ -117,21 +173,25 @@
                                     </div>
                                 </div> <!-- document -->
                                 <!--  clientaddressList  -->
-                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.clientaddressList)} > 0"> <!--  clientaddressList  -->
+                                <div class="accordion-item"
+                                     th:if="${#lists.size(user.clientdetail.clientaddressList)} > 0">
+                                    <!--  clientaddressList  -->
                                     <h2 class="accordion-header" id="headingTwo">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#clientaddressList-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='clientaddressList-'+${user.clientdetail.uuid}">
                                             <span th:text="'Адреси '+${#lists.size(user.clientdetail.clientaddressList)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'clientaddressList-'+${user.clientdetail.uuid}" class="accordion-collapse collapse"
+                                    <div th:id="'clientaddressList-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse"
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='clientaddressList-'+${user.clientdetail.uuid}">
                                         <div class="accordion-body">
-                                            <div th:each="clientaddress, iStat : ${user.clientdetail.clientaddressList}" >
-<!--                                                <span th:text="${clientaddress.uuid}"/><br>-->
+                                            <div th:each="clientaddress, iStat : ${user.clientdetail.clientaddressList}">
+                                                <!--                                                <span th:text="${clientaddress.uuid}"/><br>-->
                                                 <span th:if="${clientaddress.apruve} != null">
                                                     <span th:text="${clientaddress.apruve} ? 'Підтверджено' : 'Очікує'"/><br>
                                                 </span>
@@ -178,20 +238,23 @@
                                     </div>
                                 </div> <!--  clientaddressList  -->
                                 <!-- contractList  -->
-                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.contractList)} > 0"> <!-- contractList  -->
+                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.contractList)} > 0">
+                                    <!-- contractList  -->
                                     <h2 class="accordion-header" id="headingThree">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#contractList-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='contractList-'+${user.clientdetail.uuid}">
                                             <span th:text="'Контракти '+${#lists.size(user.clientdetail.contractList)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'contractList-'+${user.clientdetail.uuid}" class="accordion-collapse collapse"
+                                    <div th:id="'contractList-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse"
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='contractList-'+${user.clientdetail.uuid}">
                                         <div class="accordion-body">
-                                            <div th:each="contract, iStat : ${user.clientdetail.contractList}" >
+                                            <div th:each="contract, iStat : ${user.clientdetail.contractList}">
                                                 <span th:if="${contract.contractStatus} != null">
                                                     <span th:text="${contract.contractStatus.label}"/><br>
                                                 </span>
@@ -215,10 +278,10 @@
                                                             <th>Імʼя</th>
                                                             <th>База</th>
                                                         </tr>
-                                                    </thead>
+                                                        </thead>
                                                         <tbody>
-                                                            <div th:each="cstation, iStat : ${contract.stationList}" >
-                                                                <tr>
+                                                        <div th:each="cstation, iStat : ${contract.stationList}">
+                                                            <tr>
                                                                 <td>
                                                                     <span th:text="${cstation.name}"/>
                                                                 </td>
@@ -226,7 +289,7 @@
                                                                     <span th:text="${cstation.dbname}"/>
                                                                 </td>
                                                             </tr>
-                                                            </div>
+                                                        </div>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -238,24 +301,28 @@
                             </div>
                             <div class="col">
                                 <!-- stationList -->
-                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.stationList)} > 0"> <!-- stationList row -->
+                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.stationList)} > 0">
+                                    <!-- stationList row -->
                                     <h2 class="accordion-header" id="headingThree">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#stationList-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='stationList-'+${user.clientdetail.uuid}">
                                             <span th:text="'Станции '+${#lists.size(user.clientdetail.stationList)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'stationList-'+${user.clientdetail.uuid}" class="accordion-collapse collapse"
+                                    <div th:id="'stationList-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse"
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='stationList-'+${user.clientdetail.uuid}">
                                         <div class="accordion-body">
-                                            <div th:each="station, iStat : ${user.clientdetail.stationList}" >
-<!--                                                <span th:text="${station.uuid}"/><br>-->
+                                            <div th:each="station, iStat : ${user.clientdetail.stationList}">
+                                                <!--                                                <span th:text="${station.uuid}"/><br>-->
                                                 <span th:if="${station.name} != null">
                                                     <span> Імʼя </span>
-                                                    <a th:href="@{https://{dbname}.rfa.toloka.media (dbname=${station.dbname})}" target="_blank">
+                                                    <a th:href="@{https://{dbname}.rfa.toloka.media (dbname=${station.dbname})}"
+                                                       target="_blank">
                                                         <span th:text="' '+${station.name}"/>
                                                     </a>
                                                     <br>
@@ -271,14 +338,20 @@
 
                                                 <span th:if="${station.guiserver} != null">
                                                     <span th:text="'Сервер: '+${station.guiserver}"/><br>
-                                                    <span th:if="${station.guiport} != null" th:utext="'Порти: guiport: <b>'+${station.guiport}+'</b>'"/>
-                                                    <span th:if="${station.main} != null" th:utext="' main: <b>'+${station.main}+'</b>'"/>
-                                                    <span th:if="${station.show} != null" th:utext="' show: <b>'+${station.show}+'</b>'"/>
+                                                    <span th:if="${station.guiport} != null"
+                                                          th:utext="'Порти: guiport: <b>'+${station.guiport}+'</b>'"/>
+                                                    <span th:if="${station.main} != null"
+                                                          th:utext="' main: <b>'+${station.main}+'</b>'"/>
+                                                    <span th:if="${station.show} != null"
+                                                          th:utext="' show: <b>'+${station.show}+'</b>'"/>
                                                 </span>
                                                 <br>
-                                                <span th:if="${station.createdate} != null" th:utext="'Створена: <b>'+${#dates.format(station.createdate, 'dd-MM-yyyy')}+'</b>'"/>
-                                                <span th:if="${station.startdate} != null" th:utext="' Стартувала: <b>'+${#dates.format(station.startdate, 'dd-MM-yyyy')}+'</b>'"/>
-                                                <span th:if="${station.endworkdate} != null" th:utext="' Працює до: <b>'+${#dates.format(station.endworkdate, 'dd-MM-yyyy')}+'</b>'"/><br>
+                                                <span th:if="${station.createdate} != null"
+                                                      th:utext="'Створена: <b>'+${#dates.format(station.createdate, 'dd-MM-yyyy')}+'</b>'"/>
+                                                <span th:if="${station.startdate} != null"
+                                                      th:utext="' Стартувала: <b>'+${#dates.format(station.startdate, 'dd-MM-yyyy')}+'</b>'"/>
+                                                <span th:if="${station.endworkdate} != null"
+                                                      th:utext="' Працює до: <b>'+${#dates.format(station.endworkdate, 'dd-MM-yyyy')}+'</b>'"/><br>
 
                                                 <hr>
                                             </div>
@@ -286,20 +359,23 @@
                                     </div>
                                 </div> <!-- stationList -->
                                 <!-- albumList -->
-                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.albumList)} > 0"> <!-- albumList row -->
+                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.albumList)} > 0">
+                                    <!-- albumList row -->
                                     <h2 class="accordion-header" id="headingThree">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#albumList-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='albumList-'+${user.clientdetail.uuid}">
                                             <span th:text="'Альбоми '+${#lists.size(user.clientdetail.albumList)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'albumList-'+${user.clientdetail.uuid}" class="accordion-collapse collapse "
+                                    <div th:id="'albumList-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse "
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='albumList-'+${user.clientdetail.uuid}">
                                         <div class="accordion-body">
-                                            <div th:each="album, iStat : ${user.clientdetail.albumList}" >
+                                            <div th:each="album, iStat : ${user.clientdetail.albumList}">
                                                 <span th:if="${album.name} != null">
                                                     <span th:utext="'<b>Назва:</b> '+${album.name}"/><br>
                                                 </span>
@@ -314,7 +390,8 @@
                                                     <span><b>Треки:</b></span><br>
                                                     <span th:each="ttrack, iStat : ${album.track}">
 <!--                                                        <span>&#45;&#45;</span>-->
-                                                        <span th:utext="'--  '+${ttrack.name}+'<br>'" style="color:green"/>
+                                                        <span th:utext="'--  '+${ttrack.name}+'<br>'"
+                                                              style="color:green"/>
                                                     </span>
                                                 </span>
                                                 <hr>
@@ -323,22 +400,25 @@
                                     </div>
                                 </div> <!-- albumList -->
                                 <!-- trackList -->
-                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.trackList)} > 0"> <!-- trackList row -->
+                                <div class="accordion-item" th:if="${#lists.size(user.clientdetail.trackList)} > 0">
+                                    <!-- trackList row -->
                                     <h2 class="accordion-header" id="headingThree">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse"
                                                 th:attr="data-bs-target='#trackList-'+${user.clientdetail.uuid}"
                                                 aria-expanded="false"
                                                 th:attrappend="aria-controls='trackList-'+${user.clientdetail.uuid}">
                                             <span th:text="'Треки '+${#lists.size(user.clientdetail.trackList)}"/>
                                         </button>
                                     </h2>
-                                    <div th:id="'trackList-'+${user.clientdetail.uuid}" class="accordion-collapse collapse "
+                                    <div th:id="'trackList-'+${user.clientdetail.uuid}"
+                                         class="accordion-collapse collapse "
                                          th:attr="aria-labelledby='labelledby-'+${user.clientdetail.uuid}"
                                          th:attrappend="data-bs-parent='trackList-'+${user.clientdetail.uuid}">
                                         <div class="accordion-body">
                                             Перелік Треки
 
-                                            <div th:each="track, iStat : ${user.clientdetail.trackList}" >
+                                            <div th:each="track, iStat : ${user.clientdetail.trackList}">
                                                 <span th:text="${track.name}"/><br>
                                             </div>
                                         </div>
@@ -362,7 +442,7 @@
             <th scope="col">Статус</th>
             <th scope="col">Створено</th>
             <th scope="col">Опубліковано</th>
-<!--            <th scope="col">Дії</th>-->
+            <!--            <th scope="col">Дії</th>-->
         </tr>
         </thead>
         <tbody>
@@ -375,34 +455,32 @@
                 <a class="btn btn-primary" th:href="@{'/admin/delpost/'+${post.id} }">Видалити</a>
             </td>
             <td><span th:text="${post.clientdetail.custname}+' '+${post.clientdetail.custsurname}">Автор</span></td>
-            <td><span  th:text="${post.postStatus.label}" >Статус</span></td>
-            <td><span  th:text="${#dates.format(post.createdate, 'dd-MM-yyyy HH:mm')}" >Створено</span></td>
-            <td><span  th:text="${#dates.format(post.publishdate, 'dd-MM-yyyy HH:mm')}" >Опубліковано</span></td>
+            <td><span th:text="${post.postStatus.label}">Статус</span></td>
+            <td><span th:text="${#dates.format(post.createdate, 'dd-MM-yyyy HH:mm')}">Створено</span></td>
+            <td><span th:text="${#dates.format(post.publishdate, 'dd-MM-yyyy HH:mm')}">Опубліковано</span></td>
         </tr>
         </tbody>
     </table>
 </div>
 
 
-
-
 <div th:fragment="listuserdocuments">
 
     <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Новий</a>
     <div th:each="cd : ${clientdetailList}">
-            <b>
-                <span th:text="${cd.custname}+' '+${cd.custsurname}+' | '+${cd.user.email}"/>
-                <span th:utext="${cd.firmname != null} ? '<br>'+${cd.firmname}"/>
-            </b>
+        <b>
+            <span th:text="${cd.custname}+' '+${cd.custsurname}+' | '+${cd.user.email}"/>
+            <span th:utext="${cd.firmname != null} ? '<br>'+${cd.firmname}"/>
+        </b>
         <div style="padding-left:3rem;" th:each="document : ${cd.documentslist}">
             <a th:href="'/admin/documentedit/'+${document.id}">
                 <span th:text="' Створення: '+${#dates.format(document.loaddate, 'dd-MM-yyyy')} + ' Статус: '+${document.status.label}"/>
             </a>
-<!--            <br>-->
-<!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/enableuser/'+${cd.user.id} }">Дозволити</a>-->
-<!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/rejectuser/'+${cd.user.id} }">Відхилити</a>-->
-<!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/apruveinfouser/'+${cd.user.id} }">Підтвердити інформацію</a>-->
-<!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/lockuser/'+${cd.user.id} }">Блокувати</a>-->
+            <!--            <br>-->
+            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/enableuser/'+${cd.user.id} }">Дозволити</a>-->
+            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/rejectuser/'+${cd.user.id} }">Відхилити</a>-->
+            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/apruveinfouser/'+${cd.user.id} }">Підтвердити інформацію</a>-->
+            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/lockuser/'+${cd.user.id} }">Блокувати</a>-->
         </div>
 
     </div>
@@ -417,19 +495,20 @@
         <span th:utext="'<b>Файл: </b>'+${document.store.filename}"/><br>
         <span class="form-label"><b>Статус:</b>
             <select th:field="*{status}" class="form-control">
-                <option th:each="linetype : ${options}"  th:value="${linetype}" th:text="${linetype.label}" >Wireframe</option>
+                <option th:each="linetype : ${options}" th:value="${linetype}"
+                        th:text="${linetype.label}">Wireframe</option>
             </select>
         </span>
         <br>
         <span><b>Тип документу</b></span>
-        <input class="form-control"  th:field="${document.documenttype}"
+        <input class="form-control" th:field="${document.documenttype}"
                type="text"/>
-        <label class="form-label" for="documenttype">Вкажіть тип документу  (паспорт, свідотство, угода тощо)</label>
+        <label class="form-label" for="documenttype">Вкажіть тип документу (паспорт, свідотство, угода тощо)</label>
         <br><span><b>Коментар користувача, який пояснює, що це за документ</b></span>
         <input class="form-control" id="userComment" name="userComment" th:value="${document.userComment}" type="text"/>
         <label class="form-label" for="userComment">Коментар користувача до документу</label>
         <br><span><b>Зауваження модератора.</b> Зверніть на них увагу.</span>
-        <input class="form-control" th:field="*{adminComment}" type="text" />
+        <input class="form-control" th:field="*{adminComment}" type="text"/>
         <label class="form-label" for="adminComment">Коментар служби підтримки до документу</label>
 
         <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
@@ -441,20 +520,20 @@
 
 <div th:fragment="listuseraddresses">
     <div th:each="cd : ${clientdetailList}">
-           <b>
-                <span th:text="${cd.custname}+' '+${cd.custsurname}+' | '+${cd.user.email}"/>
-                <span th:utext="${cd.firmname != null} ? '<br>'+${cd.firmname}"/>
-           </b>
-           <div style="padding-left:3rem;" th:each="adr : ${cd.clientaddressList}">
-               <a th:href="'/admin/invertaddressapruve/'+${adr.id}">
-<!--                    <span th:text="${adr.apruve != true}' Статус: '+${adr.apruve}"/><br>-->
-                    <span th:text="' вул: '+${adr.street} + ' буд: '+${adr.buildnumber} + ' корп: '+${adr.korpus}+ ' кв/оф: '+${adr.appartment}"/><br>
-                    <span th:text="' місто: '+${adr.cityname} + ' обл: '+${adr.region} + ' р-н: '+${adr.area}"/><br>
-                    <span th:text="' країна: '+${adr.country} + ' інд: '+${adr.zip} + ' тел: '+${adr.phone}"/><br>
-               </a>
-               <a class="btn btn-primary padding_button" th:href="@{'/admin/editaddress/'+${adr.id} }">Редагувати</a>
-               <a class="btn btn-primary padding_button" th:href="@{'/admin/invertaddressapruve/'+${adr.id} }">Схвалити</a>
-           </div>
+        <b>
+            <span th:text="${cd.custname}+' '+${cd.custsurname}+' | '+${cd.user.email}"/>
+            <span th:utext="${cd.firmname != null} ? '<br>'+${cd.firmname}"/>
+        </b>
+        <div style="padding-left:3rem;" th:each="adr : ${cd.clientaddressList}">
+            <a th:href="'/admin/invertaddressapruve/'+${adr.id}">
+                <!--                    <span th:text="${adr.apruve != true}' Статус: '+${adr.apruve}"/><br>-->
+                <span th:text="' вул: '+${adr.street} + ' буд: '+${adr.buildnumber} + ' корп: '+${adr.korpus}+ ' кв/оф: '+${adr.appartment}"/><br>
+                <span th:text="' місто: '+${adr.cityname} + ' обл: '+${adr.region} + ' р-н: '+${adr.area}"/><br>
+                <span th:text="' країна: '+${adr.country} + ' інд: '+${adr.zip} + ' тел: '+${adr.phone}"/><br>
+            </a>
+            <a class="btn btn-primary padding_button" th:href="@{'/admin/editaddress/'+${adr.id} }">Редагувати</a>
+            <a class="btn btn-primary padding_button" th:href="@{'/admin/invertaddressapruve/'+${adr.id} }">Схвалити</a>
+        </div>
     </div>
 
 </div>
