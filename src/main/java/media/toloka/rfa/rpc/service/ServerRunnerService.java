@@ -589,6 +589,7 @@ public class ServerRunnerService {
             String line;
             while ((line = reader.readLine()) != null) {
                 listResponce.add(line);
+                logger.info("==== Local station:{}",line);
             }
             int exitcode = p.waitFor();
         } catch (IOException e) {
