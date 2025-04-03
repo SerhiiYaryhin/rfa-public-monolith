@@ -507,7 +507,7 @@
         </tr>
         </thead>
         <tbody>
-        <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>
+<!--        <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>-->
         <tr th:each="post : ${posts}">
             <td><span th:text="${post.posttitle}"></span><br>
                 <a class="btn btn-primary" th:href="@{'/admin/publishpost/'+${post.id} }">Опублікувати</a>
@@ -527,7 +527,7 @@
 
 <div th:fragment="listuserdocuments">
 
-    <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Новий</a>
+<!--    <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Новий</a>-->
     <div th:each="cd : ${clientdetailList}">
         <b>
             <span th:text="${cd.custname}+' '+${cd.custsurname}+' | '+${cd.user.email}"/>
@@ -537,11 +537,7 @@
             <a th:href="'/admin/documentedit/'+${document.id}">
                 <span th:text="' Створення: '+${#dates.format(document.loaddate, 'dd-MM-yyyy')} + ' Статус: '+${document.status.label}"/>
             </a>
-            <!--            <br>-->
-            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/enableuser/'+${cd.user.id} }">Дозволити</a>-->
-            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/rejectuser/'+${cd.user.id} }">Відхилити</a>-->
-            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/apruveinfouser/'+${cd.user.id} }">Підтвердити інформацію</a>-->
-            <!--            <a class="btn btn-primary padding_button" th:href="@{'/admin/lockuser/'+${cd.user.id} }">Блокувати</a>-->
+
         </div>
 
     </div>
