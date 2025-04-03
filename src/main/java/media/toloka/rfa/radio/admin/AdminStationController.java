@@ -119,7 +119,8 @@ public class AdminStationController {
             }
         }
         // тепер ми отримуємо з бази перелік всіх станцій з актуальним статусом.
-        model.addAttribute("stationList", stationService.listAll() );
+        List<Station> updstationList = stationService.listAll();
+        model.addAttribute("stationList", updstationList );
 
         return "/admin/station";
     }
