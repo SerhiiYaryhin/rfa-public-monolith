@@ -1,5 +1,7 @@
 package media.toloka.rfa.radio.admin;
 
+///  Контролер адміністратора для керування станціями - станом та статусом
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import media.toloka.rfa.config.gson.service.GsonService;
@@ -56,9 +58,7 @@ public class AdminStationController {
     @Autowired
     private GsonService gsonService;
 
-
     final Logger logger = LoggerFactory.getLogger(AdminStationController.class);
-
 
     // керування всіма станціями
     @GetMapping(value = "/admin/station")
@@ -69,54 +69,48 @@ public class AdminStationController {
             return "redirect:/";
         }
 
-        // Отримати статус всіх станцій
         List<Station> stationList = stationService.listAll();
+        // отримуємо перелік серверів на яких можуть бути запущені станції
         HashSet<String> setStationServer = new HashSet<String>();
         for (Station server : stationList) {
             setStationServer.add(server.getGuiserver());
         }
-        logger.info ("Кількість серверів станцій в базі:{}",setStationServer.size());
-
-        // Вибираємо сервери на яких розташовані станції
-
+        // команда, яка повертає в консоль перелік запущених станцій
         // docker ps --format "table {{.ID}}\t{{.Names}}}"|grep playout|awk '{print substr($2,1,36)   }'
-
+        // Отримати стан станцій на серверах
         NewsRPC rjob = new NewsRPC();
         rjob.setRJobType(ERPCJobType.JOB_GETRUNSTATIOM);
-
         Gson gson = gsonService.CreateGson();
-
+        // цикл по серверах на яких розташовані станції
         for (String curServer : setStationServer) {
             logger.info("====== Server: {} ",curServer);
             // todo Відпрацювати таймаут для відповіді
             String response = (String) template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
             // забрали з відповіді масив String uuid станцій, які працюють
-//            Type listType = new TypeToken<List<String>>() {}.getType();
-//            List<String> listResponse = gson.fromJson(response, listType);
             List<String> listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
 
+            // отримуємо в Set перелік uuid станцій, що працюють.
             HashSet<String> stationInCurrentServer = new HashSet<String>();
             for (String sStation : listResponse) {
                 logger.info("Server: {} Station: {}",curServer,sStation);
                 stationInCurrentServer.add(sStation);
             }
-            // перегоняємо отримані станції, що працюють, в Set
 
-
+            // Перевіряємо відповідність статусів станцій в базі на відповідність запущеним.
             for (Station curStation : stationList) {
                 if (curStation.getGuiserver().equals(curServer)) {
                     // todo не оновлювати стан коли він актуальний.
-                    // Оновили статус станції на актуальний
+                    // Оновили статус станції на актуальний в базі
                     if (stationInCurrentServer.contains(curStation.getUuid())) {
                         if (curStation.getStationstate() != true)
                         {
-                            // Оновили статус та зберігли
+                            // Оновили статус та зберігли у базі
                             curStation.setStationstate(true);
                             stationService.saveStation(curStation);
                         }
                     } else {
                         if (curStation.getStationstate() != false) {
-                            // Оновили статус та зберігли
+                            // Оновили статус та зберігли у базі
                             curStation.setStationstate(false);
                             stationService.saveStation(curStation);
                         }
@@ -124,8 +118,7 @@ public class AdminStationController {
                 }
             }
         }
-
-
+        // тепер ми отримуємо з бази перелік всіх станцій з актуальним статусом.
         model.addAttribute("stationList", stationService.listAll() );
 
         return "/admin/station";

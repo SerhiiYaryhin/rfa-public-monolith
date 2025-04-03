@@ -6,6 +6,61 @@
 </head>
 <body>
 
+<div th:fragment="adminstoreсontrol">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Клієнт</th>
+            <th scope="col">Тип</th>
+            <th scope="col">Файл</th>
+            <th scope="col">Mime</th>
+            <th scope="col">Дата</th>
+            <th scope="col">Дія</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="store, iStat : ${storeList}" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">
+            <td>
+                <!-- Клієнт -->
+                <b>
+                <span th:if="${store.clientdetail.custname != null}"
+                      th:text="${store.clientdetail.custname}+' '"/>
+                    <span th:if="${store.clientdetail.custsurname != null}"
+                          th:text="${store.clientdetail.custsurname}+' '"/>
+                    <span th:if="${store.clientdetail.firmname != null}"
+                          th:text="${store.clientdetail.firmname}+' '"/>
+                </b><br>
+                <span th:text="${store.clientdetail.user.email} + ' '" style="color:blue"/>
+                <span th:text="${store.clientdetail.uuid}+' '"/>
+
+            </td>
+            <td>
+                <!-- Тип -->
+                <b><span th:text="${store.storefiletype}"></span></b>
+            </td>
+            <td>
+                <!-- Файл -->
+                <span th:text="${store.filename}"></span><br>
+            </td>
+            <td>
+                <!-- Mime  -->
+                <span th:text="${store.contentMimeType}"></span><br>
+            </td>
+            <td>
+                <!-- Дата  -->
+                <span th:text="${store.contentMimeType}"></span><br>
+            </td>            <td>
+                <!-- Дія -->
+                <a th:href="@{/user/_startstation(id=${store.id})}" id="startStation" class="btn btn-primary"
+                   target="_blank">Видалити</a>
+                <a th:href="@{/user/_stopstation(id=${store.id})}" id="stopStation" class="btn btn-primary"
+                   target="_blank">Подивитися</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
 <div th:fragment="liststationcontrol">
     <table class="table">
         <thead>
