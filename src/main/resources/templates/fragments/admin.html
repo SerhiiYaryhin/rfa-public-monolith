@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Admin Fragments</title>
@@ -29,7 +29,7 @@
                     <span th:if="${station.clientdetail.firmname != null}"
                           th:text="${station.clientdetail.firmname}+' '"/>
                 </b><br>
-                <span th:text="${station.clientdetail.user.email} + ' '"/>
+                <span th:text="${station.clientdetail.user.email} + ' '"style="color:red"/>
                 <span th:text="${station.clientdetail.uuid}+' '"/>
 
             </td>
