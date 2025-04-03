@@ -29,7 +29,7 @@
                     <span th:if="${station.clientdetail.firmname != null}"
                           th:text="${station.clientdetail.firmname}+' '"/>
                 </b><br>
-                <span th:text="${station.clientdetail.user.email} + ' '"style="color:red"/>
+                <span th:text="${station.clientdetail.user.email} + ' '" style="color:blue"/>
                 <span th:text="${station.clientdetail.uuid}+' '"/>
 
             </td>
@@ -39,7 +39,7 @@
                 <span th:text="${station.uuid}"/>
             </td>
             <td>
-                <span th:if="${station.stationstate}">Працює</span>
+                <span th:if="${station.stationstate}" style="color:red">Працює</span>
                 <span th:if="${!station.stationstate}">Вимкнена</span>
             </td>
             <td>
