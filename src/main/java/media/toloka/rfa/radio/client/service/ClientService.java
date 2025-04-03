@@ -184,7 +184,8 @@ public class ClientService {
     }
 
     public List<Users> GetAllUsers() {
-        return userRepository.findAll();
+//        return userRepository.findAll();
+        return userRepository.findAllByOrderByIdDesc();
     }
 
     public List<Users> GetSearchUsers(String template) {

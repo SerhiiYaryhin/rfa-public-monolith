@@ -21,4 +21,7 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             + "LOWER(a.email) LIKE LOWER(CONCAT('%', ?1, '%'))")
     List<Users> findUsersByTemplateEmail(String Template);
 
+    List<Users> findAllByOrderByIdAsc();
+
+    List<Users> findAllByOrderByIdDesc();
 }

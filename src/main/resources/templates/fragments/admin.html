@@ -139,9 +139,10 @@
             <div th:each="user, iStat : ${usersList}">
                 <div th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
                     <!-- Загальна інформація про користувача                   -->
-                    <div>
-                        <span th:if="${user.clientdetail.custname} != null}" th:text="${user.clientdetail.custname}+' '}"/><br>
-                        <span th:if="${user.clientdetail.custsurname} != null}" th:text="${user.clientdetail.custsurname}"/><br>
+                    <div th:if="${user.clientdetail} != null">
+                        <span th:text="${user.id}+' '"/>
+                        <span th:if="${user.clientdetail.custname} != null" th:text="${user.clientdetail.custname}+' '"/>
+                        <span th:if="${user.clientdetail.custsurname} != null" th:text="${user.clientdetail.custsurname}"/><br>
                         <span th:if="${user.clientdetail.firmname} != null">
                             <span th:if="${#strings.length(user.clientdetail.firmname)} > 0"
                                   th:text="${user.clientdetail.firmname}"/><br>
@@ -175,7 +176,7 @@
                     </div> <!-- end Head row -->
 
                     <!-- id="accordionExample" Виникають проблеми з однаковим - відкриваються всі :( -->
-                    <div class="row">
+                    <div class="row" th:if="${user.clientdetail} != null">
                         <div class="accordion" th:id="'accordion-'+${user.clientdetail.uuid}">
                             <div class="col">
                                 <!-- document -->
