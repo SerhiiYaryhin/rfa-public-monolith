@@ -48,7 +48,8 @@
             </td>
             <td>
                 <!-- Дата  -->
-                <span th:text="${store.contentMimeType}"></span><br>
+                <span th:text="${#dates.format(store.createdate, 'dd-MM-yy')}"></span><br>
+                <span th:text="${#dates.format(store.createdate, 'HH:mm:ss')}"></span>
             </td>            <td>
                 <!-- Дія -->
                 <a th:href="@{/user/_startstation(id=${store.id})}" id="startStation" class="btn btn-primary"
