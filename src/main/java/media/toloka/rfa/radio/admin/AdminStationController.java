@@ -88,11 +88,12 @@ public class AdminStationController {
 
         for (String curServer : setStationServer) {
             logger.info("====== Server: {} ",curServer);
-//            List<String> response = (List<String>) template.convertSendAndReceive(curServer, gson.toJson(rjob).toString() );
+            // todo Відпрацювати таймаут для відповіді
             String response = (String) template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
-//            logger.info("Response RPC: {} ",response);
-            Type listType = new TypeToken<List<String>>() {}.getType();
-            List<String> listResponse = gson.fromJson(response, listType);
+            // забрали з відповіді масив String uuid станцій, які працюють
+//            Type listType = new TypeToken<List<String>>() {}.getType();
+//            List<String> listResponse = gson.fromJson(response, listType);
+            List<String> listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
 
             HashSet<String> stationInCurrentServer = new HashSet<String>();
             for (String sStation : listResponse) {
@@ -104,13 +105,21 @@ public class AdminStationController {
 
             for (Station curStation : stationList) {
                 if (curStation.getGuiserver().equals(curServer)) {
+                    // todo не оновлювати стан коли він актуальний.
                     // Оновили статус станції на актуальний
                     if (stationInCurrentServer.contains(curStation.getUuid())) {
-                        curStation.setStationstate(true);
-                        stationService.saveStation(curStation);
+                        if (curStation.getStationstate() != true)
+                        {
+                            // Оновили статус та зберігли
+                            curStation.setStationstate(true);
+                            stationService.saveStation(curStation);
+                        }
                     } else {
-                        curStation.setStationstate(false);
-                        stationService.saveStation(curStation);
+                        if (curStation.getStationstate() != false) {
+                            // Оновили статус та зберігли
+                            curStation.setStationstate(false);
+                            stationService.saveStation(curStation);
+                        }
                     }
                 }
             }

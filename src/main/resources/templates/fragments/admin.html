@@ -13,6 +13,7 @@
             <th scope="col">Клієнт</th>
             <th scope="col">Станція</th>
             <th scope="col">База</th>
+            <th scope="col">Стан</th>
             <th scope="col">Дія</th>
         </tr>
         </thead>
@@ -35,6 +36,10 @@
                 <!-- Станція -->
                 <b><span th:text="${station.name}"></span></b><br>
                 <span th:text="${station.uuid}"/>
+            </td>
+            <td>
+                <span th:if="${station.stationstate}">Працює</span>
+                <span th:if="${!station.stationstate}">Вимкнена</span>
             </td>
             <td>
                 <!-- База  -->
