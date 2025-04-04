@@ -101,26 +101,27 @@ public class AdminStationController {
                 if (curStation.getGuiserver().equals(curServer)) {
                     // todo не оновлювати стан коли він актуальний.
                     // Оновили статус станції на актуальний в базі
-                    if (stationInCurrentServer.contains(curStation.getUuid())) {
-                        if (curStation.getStationstate() != true)
-                        {
-                            // Оновили статус та зберігли у базі
-                            curStation.setStationstate(true);
-                            stationService.saveStation(curStation);
-                        }
-                    } else {
-                        if (curStation.getStationstate() != false) {
-                            // Оновили статус та зберігли у базі
-                            curStation.setStationstate(false);
-                            stationService.saveStation(curStation);
-                        }
-                    }
+//                    if (stationInCurrentServer.contains(curStation.getUuid())) {
+//                        if (curStation.getStationstate() != true)
+//                        {
+//                            // Оновили статус та зберігли у базі
+//                            curStation.setStationstate(true);
+//                            stationService.saveStation(curStation);
+//                        }
+//                    }
+//                    else {
+//                        if (curStation.getStationstate() != false) {
+//                            // Оновили статус та зберігли у базі
+//                            curStation.setStationstate(false);
+//                            stationService.saveStation(curStation);
+//                        }
+//                    }
+                    curStation.setStationstate(stationInCurrentServer.contains(curStation.getUuid()));
                 }
             }
         }
         // тепер ми отримуємо з бази перелік всіх станцій з актуальним статусом.
-        List<Station> updstationList = stationService.listAll();
-        model.addAttribute("stationList", updstationList );
+        model.addAttribute("stationList", stationService.listAll() );
 
         return "/admin/station";
     }
