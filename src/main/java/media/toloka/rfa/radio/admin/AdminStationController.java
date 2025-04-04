@@ -25,6 +25,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,7 +74,8 @@ public class AdminStationController {
         // отримуємо перелік серверів на яких можуть бути запущені станції
         HashSet<String> setStationServer = new HashSet<String>();
         for (Station server : stationList) {
-            setStationServer.add(server.getGuiserver());
+            setStationServer.add(server.getRadioserver());
+//            setStationServer.add(server.getGuiserver());
         }
         // команда, яка повертає в консоль перелік запущених станцій
         // docker ps --format "table {{.ID}}\t{{.Names}}}"|grep playout|awk '{print substr($2,1,36)   }'
@@ -83,11 +85,27 @@ public class AdminStationController {
         Gson gson = gsonService.CreateGson();
         // цикл по серверах на яких розташовані станції
         for (String curServer : setStationServer) {
+//        for (String curServer : setStationServer) {
             logger.info("====== Server: {} ",curServer);
             // todo Відпрацювати таймаут для відповіді
-            String response = (String) template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
+            List<String> listResponse;
+            Object rawResponse =  template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
+            if (rawResponse instanceof byte[]) {
+                String response = new String((byte[]) rawResponse, StandardCharsets.UTF_8);
+                listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
+            } else if (rawResponse instanceof String) {
+                listResponse = gson.fromJson((String) rawResponse, new TypeToken<List<String>>() {}.getType());
+            } else {
+                continue;
+//                throw new IllegalStateException("Unknown response type: " + rawResponse.getClass());
+            }
+
+
+//            String response = new String(body, StandardCharsets.UTF_8);
+//            String response = (String) template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
+            if (listResponse.isEmpty()) continue;
             // забрали з відповіді масив String uuid станцій, які працюють
-            List<String> listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
+//            List<String> listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
 
             // отримуємо в Set перелік uuid станцій, що працюють.
             HashSet<String> stationInCurrentServer = new HashSet<String>();
@@ -98,7 +116,7 @@ public class AdminStationController {
 
             // Перевіряємо відповідність статусів станцій в базі на відповідність запущеним.
             for (Station curStation : stationList) {
-                if (curStation.getGuiserver().equals(curServer)) {
+                if (curStation.getRadioserver().equals(curServer)) {
                     // todo не оновлювати стан коли він актуальний.
                     // Оновили статус станції на актуальний в базі
 //                    if (stationInCurrentServer.contains(curStation.getUuid())) {
