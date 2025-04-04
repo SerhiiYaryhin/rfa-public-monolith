@@ -116,7 +116,8 @@ public class AdminStationController {
 //                            stationService.saveStation(curStation);
 //                        }
 //                    }
-                    curStation.setStationstate(stationInCurrentServer.contains(curStation.getUuid()));
+                    // тимчасово
+//                    curStation.setStationstate(stationInCurrentServer.contains(curStation.getUuid()));
                 }
             }
         }
