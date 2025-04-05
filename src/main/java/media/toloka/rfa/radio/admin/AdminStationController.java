@@ -111,6 +111,7 @@ public class AdminStationController {
             HashSet<String> stationInCurrentServer = new HashSet<String>();
             for (String sStation : listResponse) {
                 logger.info("Server: {} Station: {}",curServer,sStation);
+                // зібрав сервери на яких крутяться станції до купи без повторів.
                 stationInCurrentServer.add(sStation);
             }
 
