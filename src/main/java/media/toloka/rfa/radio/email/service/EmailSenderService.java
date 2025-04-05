@@ -67,14 +67,6 @@ public class EmailSenderService {
 //            throw new RuntimeException(e);
         }
 
-//        String html = getHtmlContent(mail);
-
-
-//        helper.setTo(mail.getTo());
-//        helper.setFrom(mail.getFrom());
-//        helper.setSubject(mail.getSubject());
-//        helper.setText(html, true);
-
         emailSender.send(message);
     }
 
