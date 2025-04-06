@@ -28,9 +28,11 @@ public class Station {
     @Column(columnDefinition = "TEXT")
     private String description; // Опис радіостанції
     @Expose
-    private String dbname;
+    private String dbname; // імʼя бази даних
     @Expose
-    private boolean enable = false;
+    private String purchaseditem = null; // куплене коротке та гарне імʼя
+    @Expose
+    private boolean enable = false; // станцію можна запускати
     @Expose
     private Date startdate;  // дата останього старту
     @Expose
@@ -66,10 +68,10 @@ public class Station {
     @Expose
     private String roomuuid = null;
     @Expose
-    private String toradiouser;
+    private String toradiouser; // імʼя користувача для трансляцій
     @Expose
     @Column(columnDefinition = "TEXT")
-    private String toradiopassword;
+    private String toradiopassword; // шифрований пароль для трансляції в Libretime
 
 //    private transient Contract contract;
 
