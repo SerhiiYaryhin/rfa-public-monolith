@@ -104,6 +104,7 @@ public class AdminStationController {
 //            String response = new String(body, StandardCharsets.UTF_8);
 //            String response = (String) template.convertSendAndReceive(curServer+".callback", gson.toJson(rjob).toString() );
             if (listResponse.isEmpty()) continue;
+            logger.info("Сервер: {} Станцій: {}",curServer,listResponse.size());
             // забрали з відповіді масив String uuid станцій, які працюють
 //            List<String> listResponse = gson.fromJson(response, new TypeToken<List<String>>() {}.getType());
 
