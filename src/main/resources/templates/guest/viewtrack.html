@@ -4,63 +4,76 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
+            referrerpolicy="origin"></script>
 
 </head>
 <body>
-<script type="module" src="/js/audioplayer/rfapodcastplayer.js" ></script>
+<script type="module" src="/js/audioplayer/rfapodcastplayer.js"></script>
 <div th:insert="~{/fragments/RFAPlayer :: rfaplayertemplate}"/>
 <header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 <div style="padding-top: 1px">
-<!--<div style="padding-top: 10px">-->
+    <!--<div style="padding-top: 10px">-->
     <div class="container-fluid">
         <div class="row text-center" style="padding-top: 60px">
             <div class="col align-center">
-                <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
         </div>
-<!--        <div class="row">-->
-<!--            <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>-->
-<!--        </div>-->
+        <!--        <div class="row">-->
+        <!--            <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>-->
+        <!--        </div>-->
         <div class="row" style="padding-top: 0px">
             <!-- Колонка -->
             <div class="col-lg-6 col-sm-12">
                 <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>
                 <h1 th:text="${curtrack.name}" style="padding-top: 20px"></h1>
-                <h2> <span>Автор:</span><span th:text ="${curtrack.autor}"/> </h2>
-                <h5 th:if="${curtrack.style != null} "> <span th:if=" ${#strings.length(curtrack.style) > 0}">Стиль:<span th:text ="' '+${curtrack.style}"/></span> </h5>
-<!--                <hr>-->
-<!--                <div th:utext="${curtrack.description}"></div>-->
+                <h2><span>Автор:</span><span th:text="${curtrack.autor}"/></h2>
+                <h5 th:if="${curtrack.style != null} "><span th:if=" ${#strings.length(curtrack.style) > 0}">Стиль:<span
+                        th:text="' '+${curtrack.style}"/></span></h5>
+                <!--                <hr>-->
+                <!--                <div th:utext="${curtrack.description}"></div>-->
 
             </div>
             <div class="col-lg-6 col-sm-12">
                 <!-- Медіа Хаб-->
-<!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
+                <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
             </div>
         </div>
         <hr>
         <div class="row" style="padding-top: 0px">
             <div class="col-lg-12 col-sm-12" th:utext="${curtrack.description}"></div>
         </div>
+        <!--Завантажити -->
+        <div class="row text-center" style="padding-top: 20px">
+            <div class="col ">
+                <hr>
+                <a class="mx-auto"
+                   th:href="'/store/content/'+${curtrack.storeitem.uuid}"
+                   th:download="${curtrack.storeitem.filename}">
+                    <span class="badge rounded-pill bg-primary">Завантажити трек</span>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-
-
+<!--Футер -->
+<div th:insert="~{/fragments/common :: footer}"></div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>

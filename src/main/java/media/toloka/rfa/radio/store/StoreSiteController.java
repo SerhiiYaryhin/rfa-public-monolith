@@ -420,14 +420,18 @@ public class StoreSiteController  {
         return null;
     }
 
-    // вигрібаємо зі сховища встановлюючи тип контенту.
-    // використовується для відображення на сайті та для завантаження з сайту.
+    /// вигрібаємо зі сховища встановлюючи тип контенту.
+    /// використовується для відображення на сайті та для завантаження з сайту.
     @GetMapping(value = "/store/content/{storeUUID}")
     public @ResponseBody byte[] getStoreContent(
             @PathVariable String storeUUID,
             HttpServletResponse response,
             Model model ) {
         Store storeObject = storeService.GetStoreByUUID(storeUUID);
+        if (storeObject == null) {
+            logger.info("getStoreContent: UUID не знайдено у сховищі {}",storeUUID);
+            return null;
+        }
 //        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
         response.setContentType(storeObject.getContentMimeType());
         response.setContentLength(storeObject.getFilelength().intValue());
