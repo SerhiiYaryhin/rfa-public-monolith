@@ -42,6 +42,7 @@
 
       <span th:text="'Станція: '+${curnews.station.name}" /><br>
       <span th:text="'Розділ: '+${curnews.category.label}" /><br>
+      <span th:text="'Голос: '+${curnews.voice.label}" /><br>
       <span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
       <hr>
       <span>Заголовок новини</span>

@@ -52,6 +52,12 @@
                             th:value="${item.name}"
                             th:text="${item.label}"/>
                 </select>
+                <span>Голос:</span>
+                <select th:field="*{voice}">
+                    <option th:each="ft : ${voices}"
+                            th:value="${ft}" th:text="${ft.label}"></option>
+                </select>
+
                 <br><span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
                 <hr>
                 <span>Заголовок новини</span>

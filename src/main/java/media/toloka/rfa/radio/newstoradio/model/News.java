@@ -32,6 +32,8 @@ public class News {
 //    @Expose
     @Column(columnDefinition = "TEXT")
     private String newsbody = "";
+
+    private ENewsVoice voice;
 //    @Expose
     private Date createdate = new Date();
 //    @Expose

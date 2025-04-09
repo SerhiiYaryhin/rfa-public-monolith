@@ -58,6 +58,7 @@
                 <tr>
                     <th scope="col">Дата</th>
                     <th scope="col">Заголовок</th>
+                    <th scope="col">Голос</th>
                     <th scope="col">Станція</th>
                     <th scope="col">Стан</th>
                     <th scope="col">Дія</th>
@@ -73,6 +74,9 @@
                     </td>
                     <td>
                         <span th:text="${lnew.newstitle}"/>
+                    </td>
+                    <td>
+                        <span th:if="${lnew.voice} != null" th:text="${lnew.voice.label} "/>
                     </td>
                     <td>
                         <span th:if="${lnew.station} != null" th:text="${lnew.station.name} "/>

@@ -9,10 +9,7 @@ import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
-import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
-import media.toloka.rfa.radio.newstoradio.model.ENewsStatus;
-import media.toloka.rfa.radio.newstoradio.model.News;
-import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
+import media.toloka.rfa.radio.newstoradio.model.*;
 import media.toloka.rfa.radio.newstoradio.service.NewsBackServerService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
@@ -266,6 +263,9 @@ public class NewsHome {
 
         List<Station> listStation = stationService.GetListStationByCd(cd);
 
+        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
+
+        model.addAttribute("voices", voices);
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
@@ -298,6 +298,7 @@ public class NewsHome {
             rjob.setNewsUUID(curnews.getUuid());
             rjob.setStationUUID(curnews.getStation().getUuid());
             rjob.setText(curnews.getNewsbody());
+            rjob.setVoice(curnews.getVoice().label);
             rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
@@ -360,7 +361,7 @@ public class NewsHome {
         return "/newstoradio/home";
     }
 
-    /// редагуємо новину
+    /// Створюємо або редагуємо новину
     @GetMapping(value = "/newstoradio/editnews/{scurpage}/{uuidnews}")
     public String GetEditNews(
             @PathVariable String uuidnews,
@@ -376,14 +377,18 @@ public class NewsHome {
         if (curnews == null) {
             curnews = new News();
             curnews.setClientdetail(cd);
+            curnews.setVoice(ENewsVoice.NEWS_VOICE_DMYTRO);
 //            curnews.setId(0L);
         }
-        curnews.setClientdetail(cd);
+//        curnews.setClientdetail(cd);
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
         List<Station> listStation = stationService.GetListStationByCd(cd);
 
+        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
+
+        model.addAttribute("voices", voices);
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", curnews);
@@ -392,7 +397,7 @@ public class NewsHome {
         return "/newstoradio/editnews";
     }
 
-    /// зберігаємо відредаговану новину
+    /// зберігаємо створену або відредаговану новину
     @PostMapping(value = "/newstoradio/editnews/{pagelist}")
     public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
@@ -418,6 +423,7 @@ public class NewsHome {
             news.setNewsbody(fnews.getNewsbody());
             news.setStation(fnews.getStation());
             news.setCategory(fnews.getCategory());
+            news.setVoice(fnews.getVoice());
             type = false;
         } else {
             logger.info("Створюємо новину");
@@ -429,6 +435,7 @@ public class NewsHome {
             news.setNewstitle(fnews.getNewstitle());
             news.setNewsbody(fnews.getNewsbody());
             news.setStation(fnews.getStation());
+            news.setVoice(fnews.getVoice());
             type = true;
         }
 

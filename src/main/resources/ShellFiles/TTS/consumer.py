@@ -54,6 +54,7 @@ tts = TTS(device="cpu")  # Можна змінити на "gpu" або "mps" д�
 # Функція обробки повідомлення
 def process_tts(news_rpc_obj):
     text =  news_rpc_obj["text"]
+    voice = news_rpc_obj["voice"]
     sentences = sent_tokenize(text, language="russian")  # Для української використовуємо "russian"
     final_audio = AudioSegment.silent(duration=1000)  # Додаємо коротку паузу перед початком
 
@@ -61,7 +62,18 @@ def process_tts(news_rpc_obj):
         #print(f"{len(sentence)} - {i}: {sentence} ")
         with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_wav:
             with open(temp_wav.name, mode="wb") as file:
-                _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
+                match voice:
+                    case "Микита"
+                        _, output_text = tts.tts(sentence, Voices.Mykyta.value, Stress.Dictionary.value, file)
+                    case "Тетяна"
+                        _, output_text = tts.tts(sentence, Voices.Tetiana.value, Stress.Dictionary.value, file)
+                    case "Лада"
+                        _, output_text = tts.tts(sentence, Voices.Lada.value, Stress.Dictionary.value, file)
+                    case "Олекса"
+                        _, output_text = tts.tts(sentence, Voices.Oleksa.value, Stress.Dictionary.value, file)
+                    case "Дмитро"
+                        _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
+                # _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
             # _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
             temp_wav.seek(0)
             audio_segment = AudioSegment.from_wav(temp_wav.name)

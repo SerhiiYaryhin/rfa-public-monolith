@@ -49,5 +49,7 @@ public class NewsRPC {
     @Expose
     private String text;
     @Expose
+    private String voice;
+    @Expose
     private Long rc;
 }
