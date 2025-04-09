@@ -63,15 +63,15 @@ def process_tts(news_rpc_obj):
         with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_wav:
             with open(temp_wav.name, mode="wb") as file:
                 match voice:
-                    case "Микита"
+                    case "Микита":
                         _, output_text = tts.tts(sentence, Voices.Mykyta.value, Stress.Dictionary.value, file)
-                    case "Тетяна"
+                    case "Тетяна":
                         _, output_text = tts.tts(sentence, Voices.Tetiana.value, Stress.Dictionary.value, file)
-                    case "Лада"
+                    case "Лада":
                         _, output_text = tts.tts(sentence, Voices.Lada.value, Stress.Dictionary.value, file)
-                    case "Олекса"
+                    case "Олекса":
                         _, output_text = tts.tts(sentence, Voices.Oleksa.value, Stress.Dictionary.value, file)
-                    case "Дмитро"
+                    case "Дмитро":
                         _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
                 # _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
             # _, output_text = tts.tts(sentence, Voices.Dmytro.value, Stress.Dictionary.value, file)
