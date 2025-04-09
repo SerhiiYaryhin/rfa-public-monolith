@@ -94,7 +94,8 @@ public class NewsHome {
         }
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
         List<Station> listStation = stationService.GetListStationByCd(cd);
-        model.addAttribute("liststation", listStation);
+        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
+        model.addAttribute("voices", voices);        model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
         model.addAttribute("curnews", news);
         model.addAttribute("currentPage", scurpage);
@@ -146,7 +147,7 @@ public class NewsHome {
         if (curnews != null) rc = NewsBackServerService.deleteNews(uuidnews);
         if (rc == 0L) model.addAttribute("success", "Новину успішно видалено");
         else model.addAttribute("error", "Новину не видалено");
-        return "redirect:/newstoradio/home/0";
+        return "redirect:/newstoradio/home/"+scurpage;
     }
 
     /// Відтворюємо на радіо
@@ -299,6 +300,7 @@ public class NewsHome {
             rjob.setStationUUID(curnews.getStation().getUuid());
             rjob.setText(curnews.getNewsbody());
             rjob.setVoice(curnews.getVoice().label);
+
             rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
