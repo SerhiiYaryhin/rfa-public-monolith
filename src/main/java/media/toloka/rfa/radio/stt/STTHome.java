@@ -202,9 +202,9 @@ public class STTHome {
     }
 
     /// Створюємо або редагуємо новину
-    @GetMapping(value = "/stt/editstt/{scurpage}/{uuidstt}")
+    @GetMapping(value = "/stt/editstt/{scurpage}/{uuid}")
     public String GetEditNews(
-            @PathVariable String uuidstt,
+            @PathVariable String uuid, // uuid або запису stt, або запису storage
             @PathVariable String scurpage,
             Model model) {
         Users user = clientService.GetCurrentUser();
@@ -213,11 +213,11 @@ public class STTHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        Stt curstt = sttBackServerService.GetByUUID(uuidstt);
+        Stt curstt = sttBackServerService.GetByUUID(uuid);
         if (curstt == null) {
             curstt = new Stt();
             curstt.setClientdetail(cd);
-            curstt.setStorespeach(storeService.GetStoreByUUID(uuidstt));
+            curstt.setStorespeach(storeService.GetStoreByUUID(uuid));
         }
 //        curstt.setClientdetail(cd);
 
