@@ -22,10 +22,16 @@ public class BlockPost {
     }
 
     public String getContent() {
+        if (this.content == null) {
+            return "{}";
+        } else if (this.content.length() == 0) {
+            return "{}";
+        }
         return content;
     }
 
     public void setContent(String content) {
+
         this.content = content;
     }
 }

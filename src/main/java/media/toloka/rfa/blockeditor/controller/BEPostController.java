@@ -2,8 +2,8 @@ package media.toloka.rfa.blockeditor.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import media.toloka.editor.model.Post;
-import media.toloka.editor.repository.PostRepository;
+import media.toloka.rfa.blockeditor.model.BlockPost;
+import media.toloka.rfa.blockeditor.repository.BEPostRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,43 +14,42 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.Optional;
 
 @Controller
-public class PostController {
+public class BEPostController {
 
-    private final PostRepository postRepository;
+    private final BEPostRepository bePostRepository;
 
-    public PostController(PostRepository postRepository) {
-        this.postRepository = postRepository;
+    public BEPostController(BEPostRepository postRepository) {
+        this.bePostRepository = postRepository;
     }
 
-    @GetMapping("/create")
+    @GetMapping("/blockeditor/create")
     public String showForm(Model model) {
-        model.addAttribute("post", new Post());
-        return "editor-form";
+        model.addAttribute("post", new BlockPost());
+        return "/blockeditor/editor-form";
     }
 
-    @PostMapping("/save")
-    public String savePost(@ModelAttribute Post fpost) {
-        Optional<Post> post = postRepository.findById(1L);
+    @PostMapping("/blockeditor/save")
+    public String savePost(@ModelAttribute BlockPost fpost) {
+        Optional<BlockPost> post = bePostRepository.findById(1L);
         if (post.isPresent()) {
-            Post lpost = post.get();
+            BlockPost lpost = post.get();
             lpost.setContent(fpost.getContent());
-            postRepository.save(lpost);
+            bePostRepository.save(lpost);
         } else {
-            postRepository.save(fpost);
-
+            bePostRepository.save(fpost);
         }
-        return "redirect:/posts";
+        return "redirect:/blockeditor/posts";
     }
 
-    @GetMapping("/posts")
+    @GetMapping("/blockeditor/posts")
     public String showPosts(Model model) {
-        model.addAttribute("posts", postRepository.findAll());
-        return "post-list";
+        model.addAttribute("posts", bePostRepository.findAll());
+        return "/blockeditor/post-list";
     }
 
-    @GetMapping("/edit/{id}")
+    @GetMapping("/blockeditor/edit/{id}")
     public String editPost(@PathVariable Long id, Model model) {
-        Optional<Post> post = postRepository.findById(id);
+        Optional<BlockPost> post = bePostRepository.findById(id);
         if (post.isPresent()) {
             model.addAttribute("post", post.get());
             ObjectMapper objectMapper = new ObjectMapper();
@@ -65,15 +64,15 @@ public class PostController {
 
             model.addAttribute("postContentJson", contentJson);
 
-            return "editor-form";
+            return "/blockeditor/editor-form";
         } else {
-            return "redirect:/posts";
+            return "redirect:/blockeditor/posts";
         }
     }
 
-    @GetMapping("/view/{id}")
+    @GetMapping("/blockeditor/view/{id}")
     public String viewPost(@PathVariable Long id, Model model) {
-        Optional<Post> post = postRepository.findById(id);
+        Optional<BlockPost> post = bePostRepository.findById(id);
         if (post.isPresent()) {
             model.addAttribute("post", post.get());
 
@@ -89,49 +88,9 @@ public class PostController {
 
             model.addAttribute("postContentJson", contentJson);
 
-            return "post-view";
+            return "/blockeditor/post-view";
         } else {
-            return "redirect:/posts";
+            return "redirect:/blockeditor/posts";
         }
     }
 }
-
-
-
-//
-//import media.toloka.editor.model.Post;
-//import media.toloka.editor.repository.PostRepository;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.ui.Model;
-//import org.springframework.web.bind.annotation.*;
-//
-//@Controller
-//
-//
-//
-//public class PostController {
-//
-//    private final PostRepository postRepository;
-//
-//    public PostController(PostRepository postRepository) {
-//        this.postRepository = postRepository;
-//    }
-//
-//    @GetMapping("/create")
-//    public String showForm(Model model) {
-//        model.addAttribute("post", new Post());
-//        return "editor-form";
-//    }
-//
-//    @PostMapping("/save")
-//    public String savePost(@ModelAttribute Post post) {
-//        postRepository.save(post);
-//        return "redirect:/posts";
-//    }
-//
-//    @GetMapping("/posts")
-//    public String showPosts(Model model) {
-//        model.addAttribute("posts", postRepository.findAll());
-//        return "post-list";
-//    }
-//}

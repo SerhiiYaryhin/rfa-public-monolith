@@ -21,9 +21,10 @@
 <body>
 
 <h2>Створити пост</h2>
+<a href="/blockeditor/posts">← Назад до списку</a>
 <div id="postContent" th:text="${postContentJson}" hidden></div>
 
-<form method="post" th:action="@{/save}" th:object="${post}">
+<form method="post" th:action="@{/blockeditor/save}" th:object="${post}">
     <button type="submit">Зберегти</button>
     <div id="editorjs"></div>
     <input type="hidden" name="content" id="editorContent"/>
