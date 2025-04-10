@@ -81,40 +81,8 @@ public class STTHome {
     final Logger logger = LoggerFactory.getLogger(STTHome.class);
 
     /// видаляємо трек
-//    @GetMapping(value = "/stt/clearstore/{scurpage}/{uuidstt}")
-//    public String userDeleteFromStore(
-//            @PathVariable String uuidstt,
-//            @PathVariable String scurpage,
-//            Model model) {
-//
-//        Users user = clientService.GetCurrentUser();
-//        if (user == null) {
-//            return "redirect:/";
-//        }
-//        Clientdetail cd = clientService.GetClientDetailByUser(user);
-//        Stt stt = sttBackServerService.GetByUUID(uuidstt);
-//        if (stt == null) {
-//            return "redirect:/stt/home/0";
-//        }
-//        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
-//        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
-//        model.addAttribute("curstt", stt);
-//        model.addAttribute("currentPage", scurpage);
-//        // Саме тут видаляємо файл та запис в Сховищі
-//        Long rc = 0L;
-//        if (uuidstt != null) rc = sttBackServerService.deleteSttTrackFromStore(uuidstt);
-//        if (rc == 0L) {
-//            sttBackServerService.GetByUUID(uuidstt).setStorespeach(null);
-//            sttBackServerService.GetByUUID(uuidstt).setStatus(STT_STATUS_CREATE);
-//            sttBackServerService.Save(sttBackServerService.GetByUUID(uuidstt));
-//            model.addAttribute("success", "Озвучений текст успішно видалено зі сховища");
-//            return "/stt/editnews";
-//        }
-//        model.addAttribute("error", "Озвучений текст не видалено зі сховища");
-//        return "/stt/viewnews";
-//    }
 
-    /// видаляємо новину
+    /// видаляємо запис
     @GetMapping(value = "/stt/deletestt/{scurpage}/{uuidstt}")
     public String userDeleteStt(
             @PathVariable String uuidstt,
@@ -249,17 +217,17 @@ public class STTHome {
         if (curstt == null) {
             curstt = new Stt();
             curstt.setClientdetail(cd);
-//            curstt.setId(0L);
+            curstt.setStorespeach(storeService.GetStoreByUUID(uuidstt));
         }
 //        curstt.setClientdetail(cd);
 
-        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
+//        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
 
-        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
+//        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
 
-        model.addAttribute("voices", voices);
-        model.addAttribute("categorys", category);
+//        model.addAttribute("voices", voices);
+//        model.addAttribute("categorys", category);
         model.addAttribute("curstt", curstt);
         model.addAttribute("currentPage", scurpage);
 
