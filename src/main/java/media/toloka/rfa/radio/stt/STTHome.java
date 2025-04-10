@@ -261,6 +261,7 @@ public class STTHome {
             stt = new Stt();
             stt.setClientdetail(cd);
             stt.setTitle(fStt.getTitle());
+            stt.setStorespeach(fStt.getStorespeach());
             stt.setId(System.currentTimeMillis());
             stt.setUuid(UUID.randomUUID().toString());
             type = true;

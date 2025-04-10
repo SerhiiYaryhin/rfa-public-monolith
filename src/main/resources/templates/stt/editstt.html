@@ -43,6 +43,7 @@
                 <hr>
                 <span>Назва</span>
                 <input th:field="*{title}" type="text" class="form-control"/>
+                <input th:field="*{storespeach}" type="text" class="form-control" hidden/>
                 <hr>
                 <audio th:if="*{storespeach} != null" th:id="'stt'+*{storespeach.uuid}" controls>
                     <source th:src="'/store/audio/'+*{storespeach.uuid}">
