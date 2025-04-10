@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Перегляд посту</title>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+</head>
+<body>
+
+<h2>Перегляд посту</h2>
+<div id="viewer"></div>
+
+<div id="postContent" th:text="${postContentJson}" hidden></div>
+<script>
+    const savedData = JSON.parse(document.getElementById("postContent").innerText);
+    const viewer = new EditorJS({
+        holder: 'viewer',
+        readOnly: true,
+        tools: {
+            header: Header,
+            quote: Quote,
+
+        },
+        data: JSON.parse(savedData)
+    });
+</script>
+
+<a href="/posts">← Назад до списку</a>
+
+</body>
+</html>

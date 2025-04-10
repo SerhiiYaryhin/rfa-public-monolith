@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Пости</title>
+</head>
+<body>
+<h2>Список постів</h2>
+<ul>
+    <li th:each="post : ${posts}">
+        <a th:href="@{/view/{id}(id=${post.id})}">Переглянути</a> |
+        <a th:href="@{/edit/{id}(id=${post.id})}">Редагувати</a>
+    </li>
+</ul>
+<a href="/create">+ Новий пост</a>
+</body>
+</html>

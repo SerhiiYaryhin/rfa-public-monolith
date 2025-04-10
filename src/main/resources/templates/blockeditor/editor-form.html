@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editor.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>-->
+
+</head>
+<body>
+
+<h2>Створити пост</h2>
+<div id="postContent" th:text="${postContentJson}" hidden></div>
+
+<form method="post" th:action="@{/save}" th:object="${post}">
+    <button type="submit">Зберегти</button>
+    <div id="editorjs"></div>
+    <input type="hidden" name="content" id="editorContent"/>
+
+</form>
+
+<script>
+    const savedData = JSON.parse(document.getElementById("postContent").innerText);
+    const editor = new EditorJS({
+        holder: 'editorjs',
+        tools: {
+            header: Header,
+            quote: {
+                class: Quote,
+                inlineToolbar: true,
+                shortcut: 'CMD+SHIFT+O',
+                config: {
+                    quotePlaceholder: 'Enter a quote',
+                    captionPlaceholder: 'Quote\'s author',
+                },
+            },
+        },
+        data: JSON.parse(savedData),
+        onChange: async () => {
+            const output = await editor.save();
+            document.getElementById('editorContent').value = JSON.stringify(output);
+        }
+});
+</script>
+
+</body>
+</html>
