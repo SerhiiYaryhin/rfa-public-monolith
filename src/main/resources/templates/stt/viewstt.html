@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Толока - радіо для всіх!</title>
+  <!-- Favicon-->
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <!-- Font Awesome icons (free version)-->
+  <!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
+  <!-- Google fonts-->
+  <!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
+  <!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
+  <!-- Core theme CSS (includes Bootstrap)-->
+  <!-- Bootstrap icons-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+  <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+</head>
+<body>
+<header>
+  <!-- Navigation-->
+  <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+</header>
+<!-- MessageBox -->
+<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+
+<div class="row" style="padding-top: 40px">
+  <div class="col-lg-9 col-sm-12" th:object="${curnews}" style="padding-top: 40px">
+    <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
+    <form th:action="@{/newstoradio/editnews/${currentPage}}"  method="post" th:object="${curnews}">
+      <input type="hidden" th:field="${curnews.uuid}"/>
+      <a class="btn btn-primary badge rounded-pill btn-danger" th:href="@{'/newstoradio/deletenews/'+${currentPage}+'/'+*{uuid} }">Видалити новину</a>
+      <a th:if="*{storespeach} != null"  class="btn btn-primary badge rounded-pill btn-danger" th:href="@{'/newstoradio/clearstore/'+${currentPage}+'/'+*{uuid} }">Видалити трек</a>
+      <br>
+
+      <span th:text="'Станція: '+${curnews.station.name}" /><br>
+      <span th:text="'Розділ: '+${curnews.category.label}" /><br>
+      <span th:text="'Голос: '+${curnews.voice.label}" /><br>
+      <span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
+      <hr>
+      <span>Заголовок новини</span>
+      <input th:field="*{newstitle}" type="text" class="form-control" disabled/>
+      <!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
+      <span>Новина</span>
+      <div>
+        <textarea th:field="*{newsbody}" class="form-control" rows="10" disabled/>
+      </div>
+      <hr>
+      <audio th:if="*{storespeach} != null" th:id="'news'+*{storespeach.uuid}" controls>
+        <source th:src="'/store/audio/'+*{storespeach.uuid}">
+      </audio>
+      <hr>
+      <a class="btn btn-primary badge rounded-pill" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+*{uuid} }">Редагувати</a>
+      <a class="btn btn-primary badge rounded-pill" th:href="@{'/newstoradio/home/'+${currentPage} }">Повернутися</a>
+    </form>
+  </div>
+  <div class="col-lg-3 col-sm-12">
+    <!--                    вставляем Медіа Хаб-->
+  </div>
+</div>
+
+<!-- Footer -->
+<div th:insert="~{/fragments/common :: footer}">  </div>
+<!-- Footer -->
+<div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
+<!-- різні скріпти -->
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

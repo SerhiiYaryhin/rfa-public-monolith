@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - радіо для всіх!</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <!--    TinyMCE-->
+<!--    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"-->
+<!--            referrerpolicy="origin"></script>-->
+
+</head>
+<body>
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+<h1>Редагуємо новину</h1>
+<div class="container-fluid">
+    <div class="row text-center" style="padding-top: 20px">
+        <div class="col align-center">
+            <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+        </div>
+    </div>
+    <div class="row" style="padding-top: 20px">
+        <div class="col-lg-9 col-sm-12" th:object="${curstt}">
+<!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
+            <form th:action="@{'/stt/editstt/'+${currentPage}}"  method="post" th:object="${curstt}">
+                <input type="hidden" th:field="${curstt.uuid}"/>
+
+                <br><span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curstt.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
+                <hr>
+                <span>Назва</span>
+                <input th:field="*{title}" type="text" class="form-control"/>
+                <hr>
+                <audio th:if="*{storespeach} != null" th:id="'stt'+*{storespeach.uuid}" controls>
+                    <source th:src="'/store/audio/'+*{storespeach.uuid}">
+                </audio>
+                <hr th:if="*{storespeach} != null">
+                <button type="submit" class="btn btn-primary badge rounded-pill">Зберегти</button>
+                <a class="btn btn-primary badge rounded-pill" th:href="@{'/stt/home/'+${currentPage} }">Повернутися</a>
+            </form>
+        </div>
+        <div class="col-lg-3 col-sm-12">
+        </div>
+    </div>
+
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
