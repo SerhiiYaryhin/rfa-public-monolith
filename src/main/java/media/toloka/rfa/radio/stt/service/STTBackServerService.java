@@ -157,4 +157,12 @@ public class STTBackServerService {
     }
 
 
+    public void StationGetSttResult(SttRPC sttrjob) {
+        Stt curstt = GetByUUID(sttrjob.getSttUUID());
+        curstt.setText(sttrjob.getText());
+        curstt.setJsonresult(sttrjob.getBackServer().getAddparametrs());
+        // Додати збереження результату роботи whisper
+        Save(curstt);
+
+    }
 }

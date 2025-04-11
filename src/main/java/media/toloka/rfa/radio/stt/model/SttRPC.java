@@ -13,9 +13,9 @@ public class SttRPC {
     @ToString
     public class STTServer { // Сервер на який відправляємо повідомлення
         @Expose
-        private String server = null;
+        private String server = "null";
         @Expose
-        private String user = null;
+        private String user = "null";
     }
 
     @Data
@@ -35,7 +35,7 @@ public class SttRPC {
     @ToString
     public class sBackServer { // С
         @Expose
-        private String addparametrs = null;
+        private String addparametrs = "null";
     }
 
     @Expose
@@ -44,8 +44,8 @@ public class SttRPC {
     private STTServer stt = new STTServer();
     @Expose
     private Front front = new Front();
-//    @Expose
-//    private sBackServer backServer = new sBackServer;
+    @Expose
+    private sBackServer backServer = new sBackServer();
     @Expose
     private String sttUUID; // uuid запису на перетворення
     @Expose

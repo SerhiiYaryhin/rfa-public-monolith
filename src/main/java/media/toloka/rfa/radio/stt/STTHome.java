@@ -134,6 +134,7 @@ public class STTHome {
 
             rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
             rjob.setSttUUID(curstt.getUuid());
+            rjob.setModel(curstt.getModel().label);
             rjob.setUuidvoice(curstt.getStorespeach().getUuid());
 
             rjob.setRc(1024L);

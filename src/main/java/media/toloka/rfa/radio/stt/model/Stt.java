@@ -29,6 +29,12 @@ public class Stt {
     @Expose
     @Column(columnDefinition = "TEXT")
     private String runbody = "";
+    @Expose
+    @Column(columnDefinition = "TEXT")
+    private String text = "";
+    @Expose
+    @Column(columnDefinition = "TEXT")
+    private String jsonresult = " ";
     private Date createdate = new Date();
     private ESttStatus status = ESttStatus.STT_STATUS_CREATE;
     private Date datechangestatus = new Date();
