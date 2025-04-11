@@ -2,6 +2,9 @@ package media.toloka.rfa.rpc;
 /// RPC для сервера з радіо
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
 import media.toloka.rfa.radio.newstoradio.service.NewsBackServerService;
@@ -41,6 +44,25 @@ public class BackRPCRunner {
     public void processedFromFront(String message) {
         Long rc = 0L;
         Gson gson = gsonService.CreateGson();
+
+        // Парсимо строку в JsonObject (через JsonElement)
+        String namejob = "";
+        JsonElement element = JsonParser.parseString(message);
+
+        if (element.isJsonObject()) {
+            JsonObject obj = element.getAsJsonObject();
+
+            // Отримуємо конкретне поле
+            namejob = obj.get("rJobType").getAsString();
+        }
+
+
+
+
+
+
+
+
         NewsRPC rjob = gson.fromJson(message, NewsRPC.class);
 
         ERPCJobType curJob = rjob.getRJobType();

@@ -54,7 +54,7 @@ public class STTHome {
     @Value("${media.toloka.rfa.server.toradiosever.queue}")
     private String toRadioServerQueue;
     @Value("${media.toloka.rfa.server.libretime.guiserver}")
-    private String localGuiServer;
+    private String localGuiServer;  // сервер, на який приходить відповідь
 
     @Autowired
     private RabbitTemplate template;
@@ -133,6 +133,9 @@ public class STTHome {
             SttRPC rjob = new SttRPC();
             rjob.setRJobType(JOB_STT);
             rjob.getFront().setUser(System.getenv("USER"));
+
+            rjob.getFront().setServer(localGuiServer); // сервер з якого беремо файл через curl
+            rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
             rjob.setSttUUID(curstt.getUuid());
             rjob.setUuidvoice(curstt.getStorespeach().getUuid());
 

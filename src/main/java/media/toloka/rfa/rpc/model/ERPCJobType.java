@@ -29,6 +29,7 @@ public enum ERPCJobType {
     JOB_TTS("JOB_TTS"), // TTS перетворення тексту в голос
     JOB_TTS_FILES_READY("JOB_TTS_FILES_READY"), // TTS відпрацювало, можна забирати файли
     JOB_STT("JOB_STT"), // TTS перетворення голосу в текст
+    JOB_STT_FILES_READY("JOB_STT_FILES_READY"), // STT відпрацювало, можна забирати файли
     JOB_GETRUNSTATIOM("JOB_GETRUNSTATIOM"); // Беремо з сервера перелік станцій, які працюють в цей момент
 
     public final String label;

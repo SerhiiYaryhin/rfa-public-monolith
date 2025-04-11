@@ -27,27 +27,31 @@ public class SttRPC {
         private String user = null;
     }
 
-//    @Data
-//    @ToString
-//    public class sBackServer {
-//        @Expose
-//        private String server = null;
-//    }
+    @Data
+    @ToString
+    public class sBackServer {
+        @Expose
+        private String server = null;
+    }
 
     @Expose
     private ERPCJobType rJobType = ERPCJobType.JOB_STT;
-//    @Expose
-//    private STTServer = new STTServer();
+    @Expose
+    private STTServer server= new STTServer();
     @Expose
     private Front front = new Front();
-//    @Expose
-//    private sBackServer backServer;
+    @Expose
+    private sBackServer backServer;
     @Expose
     private String sttUUID;
     @Expose
     private String text;
     @Expose
     private String uuidvoice;
+    @Expose
+    private String filenamevoice;
+    @Expose
+    private String model;
     @Expose
     private Long rc;
 }
