@@ -42,19 +42,14 @@ public class STTHome {
 
     @Value("${rabbitmq.queueSTT}")
     private String queueSTT;
-    @Value("${media.toloka.rfa.station.basename}")
-    private String baseSiteAddress;
+//    @Value("${media.toloka.rfa.station.basename}")
+//    private String baseSiteAddress;
 
-    @Value("${media.toloka.rfa.server.toradiosever.name}")
-    private String toradiosevername;
-    @Value("${media.toloka.rfa.server.toradiosever.user}")
-    private String toradioseveruser;
-    @Value("${media.toloka.rfa.server.toradiosever.psw}")
-    private String toradioseverpsw;
-    @Value("${media.toloka.rfa.server.toradiosever.queue}")
-    private String toRadioServerQueue;
-    @Value("${media.toloka.rfa.server.libretime.guiserver}")
-    private String localGuiServer;  // сервер, на який приходить відповідь
+//    @Value("${media.toloka.rfa.server.libretime.output.site}")
+    @Value("${media.toloka.rfa.server.globalname}")
+    private String globalServerName; // глобальний url порталу
+    @Value("${media.toloka.rfa.server.localname}")
+    private String localServerName;  // сервер, на який приходить RabbitMQ відповідь
 
     @Autowired
     private RabbitTemplate template;
@@ -132,9 +127,11 @@ public class STTHome {
             // знайшли новину. Відправляємо на tts
             SttRPC rjob = new SttRPC();
             rjob.setRJobType(JOB_STT);
-            rjob.getFront().setUser(System.getenv("USER"));
 
-            rjob.getFront().setServer(localGuiServer); // сервер з якого беремо файл через curl
+            rjob.getFront().setUser(System.getenv("USER"));
+            rjob.getFront().setLocalserver(localServerName); // сервер на який відправляємо відповідь
+            rjob.getFront().setGlobalserver(globalServerName); // сервер з якого беремо файл через curl
+
             rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
             rjob.setSttUUID(curstt.getUuid());
             rjob.setUuidvoice(curstt.getStorespeach().getUuid());

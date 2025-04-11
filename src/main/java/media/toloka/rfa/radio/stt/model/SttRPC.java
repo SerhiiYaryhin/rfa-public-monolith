@@ -11,7 +11,7 @@ public class SttRPC {
 
     @Data
     @ToString
-    public class STTServer {
+    public class STTServer { // Сервер на який відправляємо повідомлення
         @Expose
         private String server = null;
         @Expose
@@ -20,30 +20,34 @@ public class SttRPC {
 
     @Data
     @ToString
-    public class Front {
+    public class Front { //сервер з якого відправляємо повідомлення
         @Expose
-        private String server = null;
+        private String globalserver = null;
+        @Expose
+        private String localserver = null;
         @Expose
         private String user = null;
+        @Expose
+        private String addparametrs = null; // додаткові параметри
     }
 
     @Data
     @ToString
-    public class sBackServer {
+    public class sBackServer { // С
         @Expose
-        private String server = null;
+        private String addparametrs = null;
     }
 
     @Expose
     private ERPCJobType rJobType = ERPCJobType.JOB_STT;
     @Expose
-    private STTServer server= new STTServer();
+    private STTServer stt = new STTServer();
     @Expose
     private Front front = new Front();
+//    @Expose
+//    private sBackServer backServer = new sBackServer;
     @Expose
-    private sBackServer backServer;
-    @Expose
-    private String sttUUID;
+    private String sttUUID; // uuid запису на перетворення
     @Expose
     private String text;
     @Expose
