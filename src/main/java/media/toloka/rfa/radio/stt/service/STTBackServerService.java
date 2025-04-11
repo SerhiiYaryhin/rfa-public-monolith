@@ -1,9 +1,6 @@
 package media.toloka.rfa.radio.stt.service;
 
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.newstoradio.model.News;
-import media.toloka.rfa.radio.newstoradio.model.NewsRPC;
-import media.toloka.rfa.radio.newstoradio.repository.NewsRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.stt.model.ESttStatus;
@@ -24,7 +21,6 @@ import java.io.*;
 import java.util.List;
 import java.util.Map;
 
-import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_READY;
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TTS;
 
 @Service
@@ -36,13 +32,13 @@ public class STTBackServerService {
     @Autowired
     private StoreService storeService;
 
-    @Value("${media.toloka.tts.server.runGetFromSTT}")
+    @Value("${media.toloka.stt.server.runGetFromSTT}")
     private String runGetFromStt;
 
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
 
-    public Page GetNewsPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+    public Page GetSttPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable NewsPage = PageRequest.of(pageNumber, pageCount);
         return sttRepositore.findByClientdetailOrderByCreatedateDesc(NewsPage, cd);
     }
@@ -55,7 +51,7 @@ public class STTBackServerService {
         sttRepositore.save(fnews);
     }
 
-    public List<Stt> GetListNewsByCd(Clientdetail cd) {
+    public List<Stt> GetListSttByCd(Clientdetail cd) {
         return sttRepositore.findByClientdetail(cd);
     }
 
@@ -159,4 +155,6 @@ public class STTBackServerService {
             return 2L;
         }
     }
+
+
 }

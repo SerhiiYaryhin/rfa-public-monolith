@@ -2,17 +2,16 @@ package media.toloka.rfa.radio.stt;
 
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.newstoradio.model.*;
-import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.stt.model.ESttModel;
 import media.toloka.rfa.radio.stt.model.ESttStatus;
 import media.toloka.rfa.radio.stt.model.Stt;
+import media.toloka.rfa.radio.stt.model.SttRPC;
 import media.toloka.rfa.radio.stt.service.STTBackServerService;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -33,10 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static media.toloka.rfa.radio.newstoradio.model.ENewsStatus.NEWS_STATUS_CREATE;
-import static media.toloka.rfa.radio.stt.model.ESttStatus.STT_STATUS_CREATE;
 import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_STT;
-import static media.toloka.rfa.rpc.model.ERPCJobType.JOB_TTS;
 
 @Controller
 public class STTHome {
@@ -131,22 +127,24 @@ public class STTHome {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        Stt curnews = sttBackServerService.GetByUUID(uuidstt);
-        if (curnews != null) {
+        Stt curstt = sttBackServerService.GetByUUID(uuidstt);
+        if (curstt != null) {
             // знайшли новину. Відправляємо на tts
-            NewsRPC rjob = new NewsRPC();
+            SttRPC rjob = new SttRPC();
             rjob.setRJobType(JOB_STT);
             rjob.getFront().setUser(System.getenv("USER"));
-            rjob.setNewsUUID(curnews.getUuid());
+            rjob.setSttUUID(curstt.getUuid());
+            rjob.setUuidvoice(curstt.getStorespeach().getUuid());
 
             rjob.setRc(1024L);
 
             Gson gson = gsonService.CreateGson();
-            template.convertAndSend(queueTTS, gson.toJson(rjob).toString());
+            String sgson = gson.toJson(rjob).toString();
+            template.convertAndSend(queueSTT, sgson);
             model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
-            curnews.setStatus(ESttStatus.STT_STATUS_SEND);
-            curnews.setDatechangestatus(new Date());
-            sttBackServerService.Save(curnews);
+            curstt.setStatus(ESttStatus.STT_STATUS_SEND);
+            curstt.setDatechangestatus(new Date());
+            sttBackServerService.Save(curstt);
 
         } else {
             model.addAttribute("error", "<b>Щось пішло не так - не знайшли новину "
@@ -157,7 +155,7 @@ public class STTHome {
         Integer curpage = 0;
 
 // Пейджинг для сторінки
-        Page pageStore = sttBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
@@ -181,9 +179,9 @@ public class STTHome {
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
-        Page pageStore = sttBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
         List<Stt> viewList = pageStore.stream().toList();
-        List<Stt> sttList = sttBackServerService.GetListNewsByCd(cd);
+        List<Stt> sttList = sttBackServerService.GetListSttByCd(cd);
 //        Boolean runTTS = false;
 //        for (Stt runnews : sttList) {
 //            if (runnews.getStatus() == ENewsStatus.NEWS_STATUS_SEND) {
@@ -219,6 +217,8 @@ public class STTHome {
             curstt.setClientdetail(cd);
             curstt.setStorespeach(storeService.GetStoreByUUID(uuid));
         }
+
+        List<ESttModel> modelList = Arrays.asList(ESttModel.values());
 //        curstt.setClientdetail(cd);
 
 //        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
@@ -227,7 +227,7 @@ public class STTHome {
 //        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
 
 //        model.addAttribute("voices", voices);
-//        model.addAttribute("categorys", category);
+        model.addAttribute("modelList", modelList);
         model.addAttribute("curstt", curstt);
         model.addAttribute("currentPage", scurpage);
 
@@ -256,6 +256,7 @@ public class STTHome {
         Boolean type;
         if (stt != null) {
             stt.setTitle(fStt.getTitle());
+            stt.setModel(fStt.getModel());
             type = false;
         } else {
             stt = new Stt();
@@ -264,6 +265,7 @@ public class STTHome {
             stt.setStorespeach(fStt.getStorespeach());
             stt.setId(System.currentTimeMillis());
             stt.setUuid(UUID.randomUUID().toString());
+            stt.setModel(fStt.getModel());
             type = true;
         }
 

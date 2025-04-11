@@ -35,7 +35,7 @@ public class SttRPC {
 //    }
 
     @Expose
-    private ERPCJobType rJobType;
+    private ERPCJobType rJobType = ERPCJobType.JOB_STT;
 //    @Expose
 //    private STTServer = new STTServer();
     @Expose
@@ -47,7 +47,7 @@ public class SttRPC {
     @Expose
     private String text;
     @Expose
-    private String voice;
+    private String uuidvoice;
     @Expose
     private Long rc;
 }

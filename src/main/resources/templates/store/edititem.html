@@ -25,18 +25,20 @@
 
 <!--// User page container-->
 <div style="padding-top: 100px">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <div th:insert="~{/fragments/creater :: service}"> </div>
-            </div>
-        </div>
-    </div>
+<!--    <div class="container-fluid">-->
+<!--        <div class="row">-->
+<!--            <div class="col-lg-12 col-sm-12">-->
+<!--                <div th:insert="~{/fragments/creater :: service}"> </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
     <div class="container-fluid">
         <div class="row" style="padding-top: 40px">
             <div class="col-lg-12 col-sm-12">
                 <form th:action="@{'/store/edititem/'+${store.uuid} }" th:object="${store}" method="post">
                     <input type="hidden" th:field="*{id}"/>
+                    <a class="btn btn-primary badge rounded-pill"
+                            th:href="@{'/stt/editstt/0/'+*{uuid} }">STT</a>
                     <div class="form-group">
                         <label for="createdate">Дата завантаження</label>
                         <input th:field="*{createdate}" type="text"  class="form-control" disabled>

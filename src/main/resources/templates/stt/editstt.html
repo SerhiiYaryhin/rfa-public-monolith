@@ -43,6 +43,12 @@
                 <hr>
                 <span>Назва</span>
                 <input th:field="*{title}" type="text" class="form-control"/>
+                <span>Модель:</span>
+                <select th:field="*{model}">
+                    <option th:each="item: ${modelList}"
+                            th:value="${item.name}"
+                            th:text="${item.label}"/>
+                </select>
                 <input th:field="*{storespeach}" type="text" class="form-control" hidden/>
                 <hr>
                 <audio th:if="*{storespeach} != null" th:id="'stt'+*{storespeach.uuid}" controls>
