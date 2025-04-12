@@ -57,6 +57,7 @@
         <source th:src="'/store/audio/'+*{storespeach.uuid}">
       </audio>
       <hr>
+
       <a class="btn btn-primary badge rounded-pill" th:href="@{'/newstoradio/editnews/'+${currentPage}+'/'+*{uuid} }">Редагувати</a>
       <a class="btn btn-primary badge rounded-pill" th:href="@{'/newstoradio/home/'+${currentPage} }">Повернутися</a>
     </form>
