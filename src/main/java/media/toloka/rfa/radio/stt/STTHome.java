@@ -112,10 +112,6 @@ public class STTHome {
 
                 return "/stt/home/0";
             }
-
-
-//        model.addAttribute("liststation", listStation);
-//        model.addAttribute("categorys", category);
             model.addAttribute("curstt", uuidstt);
             model.addAttribute("currentPage", scurpage);
 
