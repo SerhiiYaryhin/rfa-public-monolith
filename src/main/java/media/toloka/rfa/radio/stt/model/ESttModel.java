@@ -9,7 +9,6 @@ public enum ESttModel {
     STT_MODEL_TURBO("turbo");
 
     public final String label;
-//    public final Boolean rootPage;
 
     private ESttModel(String label) {
         this.label = label;
