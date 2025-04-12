@@ -63,17 +63,15 @@ public class STTBackServerService {
         String storeUUID = "";
         if (store != null) {
             storeUUID = store.getUuid();
-            if (stt.getStorespeach() != null) {
-
+            if (store != null) {
                 stt.setStorespeach(null);
                 storeRC =  storeService.DeleteStoreRecord(store);
-
-                if (storeService.GetStoreByUUID(storeUUID) != null) storeRC = false;
                 if (storeRC) {
-                    logger.info("\nВидаляємо запис у сховищі. \n storeUUID={} \n sttUUID={}", storeUUID, sttuuid);
+                    logger.info("\nОчіщуємо посилання на сховище. \n storeUUID={} \n sttUUID={}", storeUUID, sttuuid);
                     stt.setStorespeach(null);
-                    Save(stt);
+                    //Save(stt);
                 }
+                Save(stt);
             }
         }
 
@@ -81,6 +79,7 @@ public class STTBackServerService {
             logger.info("\n===== Успішно видалили запис у сховищі. \nsttUUID={}  \nstoreUUID={}", sttuuid, storeUUID);
             return 0L;
         } else {
+            logger.info("\n===== Запис у сховищі залишили. \nsttUUID={}  \nstoreUUID={}", sttuuid, storeUUID);
             return 1L;
         }
     }
@@ -89,9 +88,9 @@ public class STTBackServerService {
     public Long deleteStt(String uuidStt) {
 
         Long rc = deleteSttTrackFromStore(uuidStt);
-        if (rc != 0L) return rc;
+//        if (rc != 0L) return rc;
         sttRepositore.delete(GetByUUID(uuidStt));
-        return rc;
+        return 0L;
     }
 
     /// Забираємо Файл з серверу, на якому відбувалося перетворення

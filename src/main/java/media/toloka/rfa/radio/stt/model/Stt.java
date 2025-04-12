@@ -38,7 +38,7 @@ public class Stt {
     private Date createdate = new Date();
     private ESttStatus status = ESttStatus.STT_STATUS_CREATE;
     private Date datechangestatus = new Date();
-    private ESttModel model = ESttModel.STT_MODEL_TURBO;
+    private ESttModel model = ESttModel.STT_MODEL_TINY;
 
     @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})

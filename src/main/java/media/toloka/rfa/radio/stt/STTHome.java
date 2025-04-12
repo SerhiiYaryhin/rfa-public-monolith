@@ -118,7 +118,7 @@ public class STTHome {
             Long rc = 0L;
             if (stt != null) rc = sttBackServerService.deleteStt(uuidstt);
             if (rc == 0L) model.addAttribute("success", "Файл з голосом успішно видалено");
-            else model.addAttribute("error", "Файл з голосом не видалено");
+            else model.addAttribute("error", "Файл з голосом залишили у сховищі.");
             return "redirect:/stt/home/" + scurpage;
         }
 
