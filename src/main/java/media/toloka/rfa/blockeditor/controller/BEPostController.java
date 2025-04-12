@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import media.toloka.rfa.blockeditor.model.BlockPost;
 import media.toloka.rfa.blockeditor.repository.BEPostRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ public class BEPostController {
     }
 
     @GetMapping("/blockeditor/create")
-    public String showForm(Model model) {
+    public String showForm(@NotNull Model model) {
         model.addAttribute("post", new BlockPost());
         return "/blockeditor/editor-form";
     }
@@ -42,7 +43,7 @@ public class BEPostController {
     }
 
     @GetMapping("/blockeditor/posts")
-    public String showPosts(Model model) {
+    public String showPosts(@NotNull Model model) {
         model.addAttribute("posts", bePostRepository.findAll());
         return "/blockeditor/post-list";
     }
