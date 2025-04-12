@@ -85,148 +85,144 @@ public class STTHome {
         }
         try {
             return SttObject.getText().getBytes("UTF8");
-        }catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             return null;
         }
     }
 
-        /// видаляємо трек
+    /// видаляємо трек
 
-        /// видаляємо запис
-        @GetMapping(value = "/stt/deletestt/{scurpage}/{uuidstt}")
-        public String userDeleteStt (
-                @PathVariable String uuidstt,
-                @PathVariable String scurpage,
-                Model model){
+    /// видаляємо запис
+    @GetMapping(value = "/stt/deletestt/{scurpage}/{uuidstt}")
+    public String userDeleteStt(
+            @PathVariable String uuidstt,
+            @PathVariable String scurpage,
+            Model model) {
 
-            Users user = clientService.GetCurrentUser();
-            if (user == null) {
-                return "redirect:/";
-            }
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
-
-            Stt stt = sttBackServerService.GetByUUID(uuidstt);
-
-
-            if (stt == null) {
-
-                return "/stt/home/0";
-            }
-            model.addAttribute("curstt", uuidstt);
-            model.addAttribute("currentPage", scurpage);
-
-            Long rc = 0L;
-            if (stt != null) rc = sttBackServerService.deleteStt(uuidstt);
-            if (rc == 0L) model.addAttribute("success", "Файл з голосом успішно видалено");
-            else model.addAttribute("error", "Файл з голосом залишили у сховищі.");
-            return "redirect:/stt/home/" + scurpage;
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
         }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Stt stt = sttBackServerService.GetByUUID(uuidstt);
+        if (stt == null) {
+            model.addAttribute("success", "Запис не знайдено");
+            return "/stt/home/0";
+        }
+        model.addAttribute("curstt", uuidstt);
+        model.addAttribute("currentPage", scurpage);
 
-        /// відправляємо текст на перетворення
-        @GetMapping(value = "/stt/sttprepare/{scurpage}/{uuidstt}")
-        public String ttsprepare (
-                @PathVariable String uuidstt,
-                @PathVariable String scurpage,
-                Model model){
+        Long rc = sttBackServerService.deleteStt(uuidstt);
+        if (rc == 0L) model.addAttribute("success", "Запис успішно видалено");
+        else model.addAttribute("error", "Файл з голосом залишили у сховищі.");
+        return "/stt/home";
+    }
 
-            Users user = clientService.GetCurrentUser();
-            Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
-            if (user == null) {
-                return "redirect:/";
-            }
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
+    /// відправляємо текст на перетворення
+    @GetMapping(value = "/stt/sttprepare/{scurpage}/{uuidstt}")
+    public String ttsprepare(
+            @PathVariable String uuidstt,
+            @PathVariable String scurpage,
+            Model model) {
 
-            Stt curstt = sttBackServerService.GetByUUID(uuidstt);
-            if (curstt != null) {
-                // знайшли новину. Відправляємо на tts
-                SttRPC rjob = new SttRPC();
-                rjob.setRJobType(JOB_STT);
+        Users user = clientService.GetCurrentUser();
+        Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-                rjob.getFront().setUser(System.getenv("USER"));
-                rjob.getFront().setLocalserver(localServerName); // сервер на який відправляємо відповідь
-                rjob.getFront().setGlobalserver(globalServerName); // сервер з якого беремо файл через curl
+        Stt curstt = sttBackServerService.GetByUUID(uuidstt);
+        if (curstt != null) {
+            // знайшли новину. Відправляємо на tts
+            SttRPC rjob = new SttRPC();
+            rjob.setRJobType(JOB_STT);
 
-                rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
-                rjob.setSttUUID(curstt.getUuid());
-                rjob.setModel(curstt.getModel().label);
-                rjob.setUuidvoice(curstt.getStorespeach().getUuid());
+            rjob.getFront().setUser(System.getenv("USER"));
+            rjob.getFront().setLocalserver(localServerName); // сервер на який відправляємо відповідь
+            rjob.getFront().setGlobalserver(globalServerName); // сервер з якого беремо файл через curl
 
-                rjob.setRc(1024L);
+            rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
+            rjob.setSttUUID(curstt.getUuid());
+            rjob.setModel(curstt.getModel().label);
+            rjob.setUuidvoice(curstt.getStorespeach().getUuid());
 
-                Gson gson = gsonService.CreateGson();
-                String sgson = gson.toJson(rjob).toString();
-                template.convertAndSend(queueSTT, sgson);
-                model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
-                curstt.setStatus(ESttStatus.STT_STATUS_SEND);
-                curstt.setDatechangestatus(new Date());
-                sttBackServerService.Save(curstt);
+            rjob.setRc(1024L);
 
-            } else {
-                model.addAttribute("error", "<b>Щось пішло не так - не знайшли новину "
-                        + ".Завдання перетворення тексту в голос не надіслано на обробку.</b>");
-                logger.info("==== NEWS ttsprepare: Щось пішло не так - не знайшли новину {}", uuidstt);
-            }
-            // формуємо інформацію для відображення
-            Integer curpage = 0;
+            Gson gson = gsonService.CreateGson();
+            String sgson = gson.toJson(rjob).toString();
+            template.convertAndSend(queueSTT, sgson);
+            model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
+            curstt.setStatus(ESttStatus.STT_STATUS_SEND);
+            curstt.setDatechangestatus(new Date());
+            sttBackServerService.Save(curstt);
+
+        } else {
+            model.addAttribute("error", "<b>Щось пішло не так - не знайшли новину "
+                    + ".Завдання перетворення тексту в голос не надіслано на обробку.</b>");
+            logger.info("==== NEWS ttsprepare: Щось пішло не так - не знайшли новину {}", uuidstt);
+        }
+        // формуємо інформацію для відображення
+        Integer curpage = 0;
 
 // Пейджинг для сторінки
-            Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
-            List<News> viewList = pageStore.stream().toList();
+        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
+        List<News> viewList = pageStore.stream().toList();
 
-            model.addAttribute("totalPages", pageStore.getTotalPages());
-            model.addAttribute("currentPage", scurpage);
-            model.addAttribute("linkPage", "/creater/tracks/");
-            model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", scurpage);
+        model.addAttribute("linkPage", "/creater/tracks/");
+        model.addAttribute("viewList", viewList);
 
-            return "redirect:/stt/home/" + scurpage;
+        return "redirect:/stt/home/" + scurpage;
+    }
+
+    /// відображаємо сторінку з новинами
+    @GetMapping(value = "/stt/home/{cPage}")
+    public String GetNewsHome(
+            @PathVariable String cPage,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
         }
-
-        /// відображаємо сторінку з новинами
-        @GetMapping(value = "/stt/home/{cPage}")
-        public String GetNewsHome (
-                @PathVariable String cPage,
-                Model model){
-            Users user = clientService.GetCurrentUser();
-            if (user == null) {
-                return "redirect:/";
-            }
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
-            Integer curpage = Integer.parseInt(cPage);
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
-            Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
-            List<Stt> viewList = pageStore.stream().toList();
-            List<Stt> sttList = sttBackServerService.GetListSttByCd(cd);
+        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
+        List<Stt> viewList = pageStore.stream().toList();
+        List<Stt> sttList = sttBackServerService.GetListSttByCd(cd);
 
-            //        model.addAttribute("runstatus", runTTS);
-            model.addAttribute("totalPages", pageStore.getTotalPages());
-            model.addAttribute("currentPage", curpage);
-            model.addAttribute("linkPage", "/creater/tracks/");
-            model.addAttribute("viewList", viewList);
+        //        model.addAttribute("runstatus", runTTS);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/tracks/");
+        model.addAttribute("viewList", viewList);
 
-            return "/stt/home";
+        return "/stt/home";
+    }
+
+    /// Створюємо або редагуємо новину
+    @GetMapping(value = "/stt/editstt/{scurpage}/{uuid}")
+    public String GetEditNews(
+            @PathVariable String uuid, // uuid або запису stt, або запису storage
+            @PathVariable String scurpage,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+
+        Stt curstt = sttBackServerService.GetByUUID(uuid);
+        if (curstt == null) {
+            curstt = new Stt();
+            curstt.setClientdetail(cd);
+            curstt.setStorespeach(storeService.GetStoreByUUID(uuid));
         }
 
-        /// Створюємо або редагуємо новину
-        @GetMapping(value = "/stt/editstt/{scurpage}/{uuid}")
-        public String GetEditNews (
-                @PathVariable String uuid, // uuid або запису stt, або запису storage
-                @PathVariable String scurpage,
-                Model model){
-            Users user = clientService.GetCurrentUser();
-            if (user == null) {
-                return "redirect:/";
-            }
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
-
-            Stt curstt = sttBackServerService.GetByUUID(uuid);
-            if (curstt == null) {
-                curstt = new Stt();
-                curstt.setClientdetail(cd);
-                curstt.setStorespeach(storeService.GetStoreByUUID(uuid));
-            }
-
-            List<ESttModel> modelList = Arrays.asList(ESttModel.values());
+        List<ESttModel> modelList = Arrays.asList(ESttModel.values());
 //        curstt.setClientdetail(cd);
 
 //        List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
@@ -235,54 +231,54 @@ public class STTHome {
 //        List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
 
 //        model.addAttribute("voices", voices);
-            model.addAttribute("modelList", modelList);
-            model.addAttribute("curstt", curstt);
-            model.addAttribute("currentPage", scurpage);
+        model.addAttribute("modelList", modelList);
+        model.addAttribute("curstt", curstt);
+        model.addAttribute("currentPage", scurpage);
 
-            return "/stt/editstt";
-        }
+        return "/stt/editstt";
+    }
 
-        /// зберігаємо створену або відредаговану новину
-        @PostMapping(value = "/stt/editstt/{pagelist}")
-        public String newsCreateEditNews (
+    /// зберігаємо створену або відредаговану новину
+    @PostMapping(value = "/stt/editstt/{pagelist}")
+    public String newsCreateEditNews(
 //            @PathVariable String uuidNews,
-                @PathVariable String pagelist,
-                @ModelAttribute Stt fStt,
-                Model model){
-            Users user = clientService.GetCurrentUser();
-            if (user == null) {
-                return "redirect:/";
-            }
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            @PathVariable String pagelist,
+            @ModelAttribute Stt fStt,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
 
 //        News stt = newsService.GetByUUID(uuidNews);
 
-            Stt stt = null;
-            if (fStt.getUuid() != null) {
-                stt = sttBackServerService.GetByUUID(fStt.getUuid());
-            }
-            Boolean type;
-            if (stt != null) {
-                stt.setTitle(fStt.getTitle());
-                stt.setModel(fStt.getModel());
-                type = false;
-            } else {
-                stt = new Stt();
-                stt.setClientdetail(cd);
-                stt.setTitle(fStt.getTitle());
-                stt.setStorespeach(fStt.getStorespeach());
-                stt.setId(System.currentTimeMillis());
-                stt.setUuid(UUID.randomUUID().toString());
-                stt.setModel(fStt.getModel());
-                type = true;
-            }
-
-//        logger.info(stt.toString());
-            if (stt != null) sttBackServerService.Save(stt);
-
-            if (type) return "redirect:/stt/home/0";
-            return "redirect:/stt/home/" + pagelist;
-
+        Stt stt = null;
+        if (fStt.getUuid() != null) {
+            stt = sttBackServerService.GetByUUID(fStt.getUuid());
+        }
+        Boolean type;
+        if (stt != null) {
+            stt.setTitle(fStt.getTitle());
+            stt.setModel(fStt.getModel());
+            type = false;
+        } else {
+            stt = new Stt();
+            stt.setClientdetail(cd);
+            stt.setTitle(fStt.getTitle());
+            stt.setStorespeach(fStt.getStorespeach());
+            stt.setId(System.currentTimeMillis());
+            stt.setUuid(UUID.randomUUID().toString());
+            stt.setModel(fStt.getModel());
+            type = true;
         }
 
+//        logger.info(stt.toString());
+        if (stt != null) sttBackServerService.Save(stt);
+
+        if (type) return "redirect:/stt/home/0";
+        return "redirect:/stt/home/" + pagelist;
+
     }
+
+}

@@ -90,7 +90,7 @@ public class STTBackServerService {
         Long rc = deleteSttTrackFromStore(uuidStt);
 //        if (rc != 0L) return rc;
         sttRepositore.delete(GetByUUID(uuidStt));
-        return 0L;
+        return rc;
     }
 
     /// Забираємо Файл з серверу, на якому відбувалося перетворення
