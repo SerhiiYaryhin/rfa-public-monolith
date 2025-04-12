@@ -35,7 +35,6 @@
     </div>
     <div class="row" style="padding-top: 20px">
         <div class="col-lg-9 col-sm-12" th:object="${curstt}">
-<!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
             <form th:action="@{'/stt/editstt/'+${currentPage}}"  method="post" th:object="${curstt}">
                 <input type="hidden" th:field="${curstt.uuid}"/>
 
@@ -47,20 +46,11 @@
                             th:text="${item.label}"/>
                 </select>
                 <span th:if="*{status} != null" th:text="'   Статус: ' + *{status.label} + ' - ' + ${#dates.format(curstt.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}"/>
-<!--                <span th:if="*{status} != null" th:text="'   Статус: '+${#dates.format(curstt.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>-->
-
                 <hr>
 
                 <audio th:if="*{storespeach} != null" th:id="'stt'+*{storespeach.uuid}" controls>
                     <source th:src="'/store/audio/'+*{storespeach.uuid}">
                 </audio>
-                <hr>
-<!--                <span>Модель:</span>-->
-<!--                <select th:field="*{model}">-->
-<!--                    <option th:each="item: ${modelList}"-->
-<!--                            th:value="${item.name}"-->
-<!--                            th:text="${item.label}"/>-->
-<!--                </select>-->
                 <hr>
                 <span>Назва</span>
                 <input th:field="*{title}" type="text" class="form-control"/>
