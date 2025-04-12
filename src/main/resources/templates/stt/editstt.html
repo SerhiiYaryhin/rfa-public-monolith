@@ -58,6 +58,7 @@
                 <hr>
                 <div class="mb-3">
                     <a class="btn btn-primary badge rounded-pill" th:href="@{'/stt/download/' + ${currentPage} + '/'+ *{uuid} }" th:download="${curstt.uuid}+'.txt'">Завантажити</a>
+                    <a class="btn btn-primary badge rounded-pill" th:href="@{'/stt/downloadtime/' + ${currentPage} + '/'+ *{uuid} }" th:download="${curstt.uuid}+'.time.txt'">Завантажити з мітками часу</a>
                     <label for="description" class="form-label">Транскрибований текст</label>
                     <textarea class="form-control" id="description" rows="20"
                               name="description"

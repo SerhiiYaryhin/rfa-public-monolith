@@ -2,6 +2,7 @@ package media.toloka.rfa.radio.stt;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletResponse;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -10,10 +11,7 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.newstoradio.model.*;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
-import media.toloka.rfa.radio.stt.model.ESttModel;
-import media.toloka.rfa.radio.stt.model.ESttStatus;
-import media.toloka.rfa.radio.stt.model.Stt;
-import media.toloka.rfa.radio.stt.model.SttRPC;
+import media.toloka.rfa.radio.stt.model.*;
 import media.toloka.rfa.radio.stt.service.STTBackServerService;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -70,6 +68,45 @@ public class STTHome {
     private HistoryService historyService;
 
     final Logger logger = LoggerFactory.getLogger(STTHome.class);
+
+    /// Зберегти результат
+    @GetMapping(value = "/stt/downloadtime/{scurpage}/{uuid}")
+    public @ResponseBody byte[] getSttResultSubtitle(
+            @PathVariable String uuid, // uuid або запису stt, або запису storage
+            @PathVariable String scurpage,
+            HttpServletResponse response,
+            Model model) {
+        Stt SttObject = sttBackServerService.GetByUUID(uuid);
+        if (SttObject == null) {
+            logger.info("getSttResultContent: UUID не знайдено  {}", uuid);
+            return null;
+        }
+
+        String json = SttObject.getJsonresult();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        WhisperResult.WhisperResultFull root = gson.fromJson(json, WhisperResult.WhisperResultFull.class);
+
+        for (WhisperResult.Segment segment : root.segments) {
+            System.out.println("Text: " + segment.text);
+        }
+
+        // Якщо хочеш зібрати в список
+        List<String> allTexts = root.segments.stream()
+                .map(segment -> "[ "
+                        + String.format("%8.2f", segment.start)
+                        + " --> "
+                        + String.format("%-8.2f", segment.end)
+                        + " ] "
+                        + segment.text)
+                .toList();
+
+        String content = String.join(System.lineSeparator(), allTexts);
+        try {
+            return content.getBytes("UTF8");
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+    }
 
     /// Зберегти результат
     @GetMapping(value = "/stt/download/{scurpage}/{uuid}")
