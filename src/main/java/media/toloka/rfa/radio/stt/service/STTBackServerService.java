@@ -161,6 +161,7 @@ public class STTBackServerService {
         Stt curstt = GetByUUID(sttrjob.getSttUUID());
         curstt.setText(sttrjob.getText());
         curstt.setJsonresult(sttrjob.getBackServer().getAddparametrs());
+        curstt.setStatus(ESttStatus.STT_STATUS_DONE);
         // Додати збереження результату роботи whisper
         Save(curstt);
 
