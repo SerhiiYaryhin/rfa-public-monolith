@@ -1,7 +1,7 @@
 package media.toloka.rfa.radio.stt.model;
 
 public enum ESttModel {
-    STT_MODEL_TINY("tyni"),
+    STT_MODEL_TINY("tiny"),
     STT_MODEL_BASE("base"),
     STT_MODEL_SMALL("small"),
     STT_MODEL_MEDIUM("medium"),
