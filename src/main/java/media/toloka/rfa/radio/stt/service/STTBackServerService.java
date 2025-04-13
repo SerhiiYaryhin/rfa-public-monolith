@@ -65,7 +65,7 @@ public class STTBackServerService {
             storeUUID = store.getUuid();
             if (store != null) {
                 stt.setStorespeach(null);
-                storeRC =  storeService.DeleteStoreRecord(store);
+                storeRC = storeService.DeleteStoreRecord(store);
                 if (storeRC) {
                     logger.info("\nОчіщуємо посилання на сховище. \n storeUUID={} \n sttUUID={}", storeUUID, sttuuid);
                     stt.setStorespeach(null);
@@ -99,12 +99,6 @@ public class STTBackServerService {
         Long rc = 129L;
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", runGetFromStt);
         Map<String, String> env = pb.environment();
-//        logger.info(rjob.getNewsUUID());
-//        logger.info(rjob.getTts().getServer());
-//        logger.info(rjob.getTts().getUser());
-//        env.put("NEWSUUID", rjob.getNewsUUID());
-//        env.put("TTSSERVER", rjob.getTts().getServer());
-//        env.put("TTSUSER", rjob.getTts().getUser());
 
         pb.redirectErrorStream(true);
         try {
@@ -112,9 +106,9 @@ public class STTBackServerService {
 //            logger.info("started");
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while ((line = reader.readLine()) != null) {
+//            while ((line = reader.readLine()) != null) {
 //                logger.info(line);
-            }
+//            }
             int exitcode = p.waitFor();
             rc = Long.valueOf(exitcode);
         } catch (IOException e) {
@@ -143,10 +137,10 @@ public class STTBackServerService {
                 stt.setStorespeach(storeService.GetStoreByUUID(storeUUID));
                 stt.setStatus(ESttStatus.STT_STATUS_DONE);
                 Save(stt);
-                logger.info("Stt uploaded file {}  StoreUUID {}", patch, storeUUID);
+//                logger.info("Stt uploaded file {}  StoreUUID {}", patch, storeUUID);
                 return 0L;
             } else {
-                logger.info("Stt uploaded file. Не можемо знайти Clientdetail новини за UUID {}", rjob.getSttUUID());
+                logger.info("Get Stt. Не можемо знайти Clientdetail за UUID {}", rjob.getSttUUID());
                 return 1L;
             }
         } else {
@@ -161,6 +155,8 @@ public class STTBackServerService {
         curstt.setText(sttrjob.getText());
         curstt.setJsonresult(sttrjob.getBackServer().getAddparametrs());
         curstt.setStatus(ESttStatus.STT_STATUS_DONE);
+        curstt.setStartjob(sttrjob.getStartjob());
+        curstt.setEndjob(sttrjob.getEndjob());
         // Додати збереження результату роботи whisper
         Save(curstt);
 

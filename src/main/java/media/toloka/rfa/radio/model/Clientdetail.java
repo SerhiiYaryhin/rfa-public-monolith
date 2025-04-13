@@ -50,8 +50,7 @@ public class Clientdetail {
     @Expose
     private Double account = 0.0;
 
-    //    @Expose
-//    @ElementCollection
+
     @ToString.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
     private Store profilephoto;
