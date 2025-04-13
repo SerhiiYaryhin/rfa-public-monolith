@@ -72,9 +72,10 @@ public class AccauntController {
     }
 
     /// Редагування рахунку
-    @GetMapping("/acc/editacc/{uuid}")
+    @GetMapping("/acc/editbox/{page}/{uuid}")
     public String GetFormEditAccount(
             @PathVariable String uuid,
+            @PathVariable Integer page,
             @NotNull Model model) {
         // взяли поточного користувача
         Users user = clientService.GetCurrentUser();
@@ -92,13 +93,14 @@ public class AccauntController {
         if (curacc == null) {
             // Записали інцендент до історії
             curacc = new AccAccaunts();
-            curacc.setAcc(123L);
-            curacc.setAccname("Name");
-            curacc.setOperationcomment("=============================");
+//            curacc.setAcc(123L);
+//            curacc.setAccname("Name");
+//            curacc.setOperationcomment("=============================");
         }
 
         List<AccAccaunts> listAcc = accService.GetListAccaunts();
 
+        model.addAttribute("currentPage", page );
         model.addAttribute("listacc", listAcc);
         model.addAttribute("operatorcd", operatorcd);
         model.addAttribute("curacc", curacc);
@@ -106,10 +108,11 @@ public class AccauntController {
     }
 
     /// Збереження змін в рахунку
-//    @PostMapping("/acc/editacc/{uuid}")
-    @PostMapping("/acc/editbox")
+//    @PostMapping("/acc/editacc/{}/{uuid}")
+    @PostMapping("/acc/editbox/{pageNumber}/{uuid}")
     public String PostFormEditAccount (
             @PathVariable String uuid,
+            @PathVariable Integer pageNumber,
             @ModelAttribute AccAccaunts acc,
             @NotNull Model model) {
         // взяли поточного користувача
@@ -122,11 +125,26 @@ public class AccauntController {
         if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
             return "/";
         }
-
+        accService.Save(acc);
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
         List<AccAccaunts> listAcc = accService.GetListAccaunts();
 
-        model.addAttribute("listacc", listAcc);
+        accService.GetListAccaunts();
+
+        Page pageStore = accService.GetPage(pageNumber,10);
+        List<AccAccaunts> storeList = pageStore.stream().toList();
+
+//        model.addAttribute("trackList", trackList );
+        int privpage ;
+        int nextpage ;
+        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
+        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
+        // новий рядок навігації
+
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
+        model.addAttribute("currentPage", pageNumber );
+        model.addAttribute("viewList", storeList );
+        model.addAttribute("pagetrack", pageStore );
         model.addAttribute("operatorcd", operatorcd);
         return "/acc/acc";
     }

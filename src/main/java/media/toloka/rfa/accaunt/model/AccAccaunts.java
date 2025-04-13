@@ -15,7 +15,7 @@ import java.util.UUID;
 public class AccAccaunts {
     @Id
     @Expose
-    private String uuid;
+    private String uuid = UUID.randomUUID().toString();
 
     @Expose
     @GeneratedValue

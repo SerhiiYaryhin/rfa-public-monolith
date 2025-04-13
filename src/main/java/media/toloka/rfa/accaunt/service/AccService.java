@@ -29,4 +29,7 @@ public class AccService {
         return accRepositore.findAll(PageRequest.of(pageNumber, pageCount));
     }
 
+    public AccAccaunts Save(AccAccaunts acc) {
+        return accRepositore.save(acc);
+    }
 }

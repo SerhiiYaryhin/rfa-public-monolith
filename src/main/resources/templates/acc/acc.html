@@ -26,7 +26,7 @@
 </header>
 
 <section>
-    <div class="container-fluid">
+    <div class="container-fluid" style="padding-top: 80px">
         <div class="row text-center">
             <div class="col align-center">
                 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
@@ -48,20 +48,19 @@
                 <tbody>
                 <tr th:each="lstt : ${viewList}">
                     <td>
-                        <span th:if="${lstt.accname} != null" th:text="${lstt.acc}"></span>
+                        <span th:if="${lstt.acc} != null" th:text="${lstt.acc}"></span>
                     </td>
                     <td>
                         <span th:if="${lstt.accname} != null" th:text="${lstt.accname}"/>
                     </td>
                     <td>
-                        <span th:if="${lstt.operationcomment} != null" th:text="${lstt.operationcomment} "/><br>
-                        <span th:if="${lstt.model} != null" th:text="${lstt.model.label} "/>
+                        <span th:if="${lstt.operationcomment} != null" th:text="${lstt.operationcomment} "/>
                     </td>
                     <td>
 
                         <a
                                 class="btn btn-primary badge rounded-pill"
-                                th:href="@{'/stt/editstt/'+${currentPage}+'/'+${lstt.uuid} }">Редагувати</a>
+                                th:href="@{'/acc/editbox/'+${currentPage}+'/'+${lstt.uuid} }">Редагувати</a>
                         <a
                                 class="btn btn-primary badge rounded-pill "
                                 th:href="@{'/stt/sttprepare/'+${currentPage}+'/'+${lstt.uuid}}">Перетворити</a>
