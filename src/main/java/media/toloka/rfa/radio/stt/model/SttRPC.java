@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.rpc.model.ERPCJobType;
 
+import java.util.Date;
+
 @Data
 @ToString
 public class SttRPC {
@@ -56,6 +58,11 @@ public class SttRPC {
     private String filenamevoice;
     @Expose
     private String model;
+    // поля для обрахунку вартості машинного часу
+    @Expose
+    private Date startjob; // час старту завдання на сервері
+    @Expose
+    private Date endjob; // час закінчення роботи завдання
     @Expose
     private Long rc;
 }

@@ -35,10 +35,18 @@ public class Stt {
     @Expose
     @Column(columnDefinition = "TEXT")
     private String jsonresult = " ";
+    @Expose
     private Date createdate = new Date();
+    @Expose
     private ESttStatus status = ESttStatus.STT_STATUS_CREATE;
+    @Expose
     private Date datechangestatus = new Date();
-    private ESttModel model = ESttModel.STT_MODEL_TINY;
+    @Expose
+    private ESttModel model = ESttModel.STT_MODEL_TURBO;
+    @Expose
+    private Date startjob;
+    @Expose
+    private Date endjob;
 
     @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})
