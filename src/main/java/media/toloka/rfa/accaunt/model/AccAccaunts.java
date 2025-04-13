@@ -1,17 +1,18 @@
 package media.toloka.rfa.accaunt.model;
 
 import com.google.gson.annotations.Expose;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
 @Entity
-public class Accaunts {
+@Table(indexes = {
+        @Index(columnList = "uuid"),
+        @Index(columnList = "id")}
+)
+public class AccAccaunts {
     @Id
     @Expose
     private String uuid;
@@ -22,8 +23,10 @@ public class Accaunts {
 
     @Expose
     private Long acc;
+    @Expose
     private String accname;
-    private String acccomment;
+    @Expose
+    private String operationcomment;
 
     @PrePersist
     public void generateUUID() {

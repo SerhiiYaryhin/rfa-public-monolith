@@ -6,43 +6,40 @@ import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
 
-import java.util.Date;
 import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id")})
-public class AccCashFlow {
+public class AccOperation {
     @Id
     @Expose
     private String uuid;
+
     @Expose
     @GeneratedValue
     private Long id;
 
     @Expose
-    private Date operationdate;
-
-    @Expose
-    private Long value;
-    @Expose
     private EAccJobType jobtype;
-
     @Expose
-    @Column(columnDefinition = "TEXT")
-    private String comments;
+    private Long sum;
 
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "acc_uuid")
-    private AccAccaunts acc;
+    @JoinColumn(name = "debitacc_uuid")
+    private AccAccaunts debitacc;
+
+    @Expose
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "creditacc_uuid")
+    private AccAccaunts creditacc;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail client;
-
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "operator_id")
