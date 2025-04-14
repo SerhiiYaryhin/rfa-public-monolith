@@ -8,9 +8,16 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {
-        @Index(columnList = "uuid"),
-        @Index(columnList = "id")}
+@Table(
+        indexes = {
+                @Index(columnList = "uuid"),
+                @Index(columnList = "acc"),
+                @Index(columnList = "id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"acc"}),
+                @UniqueConstraint(columnNames = {"id"})
+        }
 )
 public class AccAccounts {
     @Id

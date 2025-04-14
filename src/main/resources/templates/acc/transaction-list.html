@@ -28,7 +28,6 @@
 <table>
   <thead>
   <tr>
-    <th>UUID</th>
     <th>Назва</th>
     <th>Коментар</th>
     <th>Кількість проводок</th>
@@ -36,7 +35,6 @@
   </thead>
   <tbody>
   <tr th:each="tx : ${transactions}">
-    <td th:text="${tx.uuid}"></td>
     <td th:text="${tx.name}"></td>
     <td th:text="${tx.comment}"></td>
     <td th:text="${#lists.size(tx.entry)}"></td>

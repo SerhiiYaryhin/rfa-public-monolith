@@ -7,22 +7,22 @@
 <body>
 
 <div th:fragment="navbarUniverse" class="container">
-    <nav  class="navbar bg-dark navbar-dark fixed-top navbar-expand-lg" id="mainNav">
+    <nav class="navbar bg-dark navbar-dark fixed-top navbar-expand-lg" id="mainNav">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/"><img src="/assets/rfa-logo.png" alt="..." /></a>
+            <a class="navbar-brand" href="/"><img src="/assets/rfa-logo.png" alt="..."/></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
                     aria-controls="navbarResponsive" aria-expanded="false" aria-label="">
                 <i class="fas fa-bars ms-1"></i>
             </button>
         </div>
-        <div  sec:authorize="!isAuthenticated()">
+        <div sec:authorize="!isAuthenticated()">
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ">
                     <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#services">Що це?</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#portfolio">Для кого?</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#contact">Напишіть нам</a></li>
-<!--                    <li class="nav-item"><a class="nav-link" href="/#about">Хто ми?</a></li>-->
+                    <!--                    <li class="nav-item"><a class="nav-link" href="/#about">Хто ми?</a></li>-->
                     <li class="nav-item"><a class="nav-link" href="/#team">Наша команда</a></li>
                     <li class="nav-item"><a class="nav-link" href="/login">Вхід</a></li>
                 </ul>
@@ -34,34 +34,38 @@
                 <li sec:authorize="hasRole('ROLE_USER')"><a class="nav-link" href="/user/user_page">Головна</a></li>
                 <li sec:authorize="hasRole('ROLE_CREATER')"><a class="nav-link" href="/user/user_page">Головна</a></li>
                 <li sec:authorize="hasRole('ROLE_ADMIN')"><a class="nav-link" href="/admin/home">Головна</a></li>
-                <li sec:authorize="hasRole('ROLE_MODERATOR')"><a class="nav-link" href="/moderator/home">Головна</a></li>
-            <!-- User -->
+                <li sec:authorize="hasRole('ROLE_MODERATOR')"><a class="nav-link" href="/moderator/home">Головна</a>
+                </li>
+                <!-- User -->
                 <li sec:authorize="isAuthenticated()" class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarRadio" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Радіо
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarRadio">
-                    <li><a class="dropdown-item" href="/user/home/managecontract">Документи</a></li>
-                    <li><a class="dropdown-item" href="/user/contract">Угоди</a></li>
-                    <li><a class="dropdown-item" href="/user/home/managestations">Станції</a></li>
-                    <li><a class="dropdown-item" href="/newstoradio/home/0">Текст->Голос->Ефір</a></li>
-                    <li><a class="dropdown-item" href="/stt/home/0">Голос->Текст</a></li>
-                </ul>
-            </li> <!-- User -->
-            <!-- Creater -->
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarRadio" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Радіо
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarRadio">
+                        <li><a class="dropdown-item" href="/user/home/managecontract">Документи</a></li>
+                        <li><a class="dropdown-item" href="/user/contract">Угоди</a></li>
+                        <li><a class="dropdown-item" href="/user/home/managestations">Станції</a></li>
+                        <li><a class="dropdown-item" href="/newstoradio/home/0">Текст->Голос->Ефір</a></li>
+                        <li><a class="dropdown-item" href="/stt/home/0">Голос->Текст</a></li>
+                    </ul>
+                </li> <!-- User -->
+                <!-- Creater -->
                 <li sec:authorize="isAuthenticated()" class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarCreater" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Контент
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarCreater">
-                    <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
-                    <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
-                    <li><a class="dropdown-item" href="/creater/posts/0">Пости</a></li>
-                    <li><a class="dropdown-item" href="/podcast/home">Подкасти</a></li>
-                </ul>
-            </li>  <!-- Creater -->
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarCreater" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Контент
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarCreater">
+                        <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
+                        <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
+                        <li><a class="dropdown-item" href="/creater/posts/0">Пости</a></li>
+                        <li><a class="dropdown-item" href="/podcast/home">Подкасти</a></li>
+                    </ul>
+                </li>  <!-- Creater -->
                 <li sec:authorize="hasRole('ROLE_EDITOR')" class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarEditor" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarEditor" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
                         Редактор
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarEditor">
@@ -69,56 +73,63 @@
                     </ul>
                 </li>
                 <li sec:authorize="hasRole('ROLE_MODERATOR')" class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarModerator" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Модератор
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarModerator">
-                    <li><a class="dropdown-item" href="/creater/home">Головна</a></li>
-                    <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
-                    <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
-                    <li><a class="dropdown-item" href="/podcast/getRSSFromUrl">Подкасти</a></li>
-                </ul>
-            </li>            <!-- admin -->
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarModerator" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Модератор
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarModerator">
+                        <li><a class="dropdown-item" href="/creater/home">Головна</a></li>
+                        <li><a class="dropdown-item" href="/creater/albums">Альбоми</a></li>
+                        <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
+                        <li><a class="dropdown-item" href="/podcast/getRSSFromUrl">Подкасти</a></li>
+                    </ul>
+                </li>            <!-- admin -->
                 <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Адмін
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarAdmin">
-                    <li><a class="dropdown-item" href="/admin/users">Користувачі</a></li>
-                    <li><a class="dropdown-item" href="/admin/addresses">Адреси</a></li>
-                    <li><a class="dropdown-item" href="/admin/documents">Документи</a></li>
-                    <li><a class="dropdown-item" href="/admin/posts">Пости</a></li>
-                    <li><a class="dropdown-item" href="/admin/station">Станції</a></li>
-                    <li><a class="dropdown-item" href="/admin/storage">Сховище</a></li>
-                    <li><a class="dropdown-item" href="/admin/financeuser">Фінанси</a></li>
-                </ul>
-            </li>  <!-- admin -->
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">Адмін</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarAdmin">
+                        <li><a class="dropdown-item" href="/admin/users">Користувачі</a></li>
+                        <li><a class="dropdown-item" href="/admin/addresses">Адреси</a></li>
+                        <li><a class="dropdown-item" href="/admin/documents">Документи</a></li>
+                        <li><a class="dropdown-item" href="/admin/posts">Пости</a></li>
+                        <li><a class="dropdown-item" href="/admin/station">Станції</a></li>
+                        <li><a class="dropdown-item" href="/admin/storage">Сховище</a></li>
+                        <li><a class="dropdown-item" href="/admin/financeuser">Фінанси</a></li>
+                    </ul>
+                </li>  <!-- admin -->
+                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarAcc">
+                        <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>
+                        <li><a class="dropdown-item" href="/acc/transactionlist">Шаблони операцій</a></li>
+                        <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>
+                    </ul>
+                </li>  <!-- admin -->
                 <li class="nav-item"><a class="nav-link" href="/creater/store/0">Сховище
-                <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.7em; font-weight: bold;"/>
-            </a></li>
-            <li class="nav-item"><a class="nav-link" href="/creater/info">Профайл</a></li>
-            <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
-        </ul>
+                    <li class="nav-item"><a class="nav-link" href="/chat">Чат
+                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                              style="color:red;font-size: 0.7em; font-weight: bold;"/>
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link" href="/creater/info">Профайл</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
+            </ul>
         </div>
     </nav>
 </div>
 
 
-
-
-
 <div th:fragment="mynavbar" class="container">
-    <nav  class="navbar bg-dark navbar-dark fixed-top navbar-expand-lg" id="mainNav">
+    <nav class="navbar bg-dark navbar-dark fixed-top navbar-expand-lg" id="mainNav">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/"><img src="/assets/rfa-logo.png" alt="..." /></a>
+            <a class="navbar-brand" href="/"><img src="/assets/rfa-logo.png" alt="..."/></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                aria-controls="navbarResponsive" aria-expanded="false" aria-label="">
-            <i class="fas fa-bars ms-1"></i>
+                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="">
+                <i class="fas fa-bars ms-1"></i>
             </button>
         </div>
 
-        <div  sec:authorize="!isAuthenticated()">
+        <div sec:authorize="!isAuthenticated()">
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ">
                     <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
@@ -133,24 +144,26 @@
         </div>
 
         <div sec:authorize="hasRole('ROLE_CREATER')" class="collapse navbar-collapse" id="navbarResponsive">
-            <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/creater/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/albums">Альбоми</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/tracks/0">Треки</a></li>
                 <li class="nav-item"><a class="nav-link" href="/podcast/home">Подкаст</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
+                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                              style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/creater/info">Профайл</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
         <div sec:authorize="hasRole('ROLE_USER')" class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/user/user_page">Головна</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarRadio" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarRadio" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
                         Радіо
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarRadio">
@@ -159,14 +172,15 @@
                         <li class="nav-item"><a class="nav-link" href="/user/home/managestations">Станції</a></li>
                     </ul>
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                    <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.7em; font-weight: bold;"/>
-                    </a>
+                    <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                          style="color:red;font-size: 0.7em; font-weight: bold;"/>
+                </a>
                 </li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
         <div sec:authorize="hasRole('ROLE_ADMIN')" class="collapse navbar-collapse" id="navbarResponsive">
-            <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/admin/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/users">Користувачі</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/addresses">Адреси</a></li>
@@ -179,34 +193,36 @@
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/></a>
+                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                              style="color:red;font-size: 0.75em; font-weight: bold;"/></a>
                 </li>
 
-                <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
         <div sec:authorize="hasRole('ROLE_EDITOR')" class="collapse navbar-collapse" id="navbarResponsive">
-            <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/moderator/home">Головна</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}" style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
+                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                              style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
         <div sec:authorize="hasRole('ROLE_MODERATOR')" class="collapse navbar-collapse" id="navbarResponsive">
-            <ul  class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/creater/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/albums">Альбоми</a></li>
                 <li class="nav-item"><a class="nav-link" href="/creater/tracks/0">Треки</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-<!--                        <span th:if="${quantitynewmessage gt 0} " th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/>-->
+                        <!--                        <span th:if="${quantitynewmessage gt 0} " th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/>-->
                     </a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/creater/info">Профайл</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/logout}" >Вихід</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
     </nav>
@@ -215,7 +231,8 @@
 <nav th:fragment="bottomnavbar" class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Bottom navbar</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -230,7 +247,8 @@
                     <a class="nav-link disabled" aria-disabled="true">Disabled</a>
                 </li>
                 <li class="nav-item dropup">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Dropup</a>
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                       aria-expanded="false">Dropup</a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#">Action</a></li>
                         <li><a class="dropdown-item" href="#">Another action</a></li>

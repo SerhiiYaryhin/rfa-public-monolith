@@ -30,6 +30,8 @@
 <form th:action="@{/acc/templatetransactionsave}" method="post" th:object="${transaction}">
     <label>Назва транзакції: </label>
     <input type="text" th:field="*{name}" />
+    <label>Коментар: </label>
+    <input type="text" th:field="*{comment}" />
     <br/>
 
     <table>
