@@ -1,12 +1,9 @@
-package media.toloka.rfa.accaunt.controller;
+package media.toloka.rfa.account.controller;
 
-import media.toloka.rfa.accaunt.model.AccAccaunts;
-import media.toloka.rfa.accaunt.service.AccService;
-import media.toloka.rfa.blockeditor.model.BlockPost;
+import media.toloka.rfa.account.model.AccAccounts;
+import media.toloka.rfa.account.service.AccService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Track;
-import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 
 @Controller
-public class AccauntController {
+public class AccController {
 
     @Autowired
     private ClientService clientService;
@@ -53,8 +50,8 @@ public class AccauntController {
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
-        Page pageStore = accService.GetPage(pageNumber,10);
-        List<AccAccaunts> storeList = pageStore.stream().toList();
+        Page pageStore = accService.GetPageAcc(pageNumber,10);
+        List<AccAccounts> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
         int privpage ;
@@ -89,16 +86,16 @@ public class AccauntController {
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        AccAccaunts curacc = accService.GetAccAccauntByUUID(uuid);
+        AccAccounts curacc = accService.GetAccAccountByUUID(uuid);
         if (curacc == null) {
             // Записали інцендент до історії
-            curacc = new AccAccaunts();
+            curacc = new AccAccounts();
 //            curacc.setAcc(123L);
 //            curacc.setAccname("Name");
 //            curacc.setOperationcomment("=============================");
         }
 
-        List<AccAccaunts> listAcc = accService.GetListAccaunts();
+        List<AccAccounts> listAcc = accService.GetListAccounts();
 
         model.addAttribute("currentPage", page );
         model.addAttribute("listacc", listAcc);
@@ -113,7 +110,7 @@ public class AccauntController {
     public String PostFormEditAccount (
             @PathVariable String uuid,
             @PathVariable Integer pageNumber,
-            @ModelAttribute AccAccaunts acc,
+            @ModelAttribute AccAccounts acc,
             @NotNull Model model) {
         // взяли поточного користувача
         Users user = clientService.GetCurrentUser();
@@ -127,12 +124,12 @@ public class AccauntController {
         }
         accService.Save(acc);
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        List<AccAccaunts> listAcc = accService.GetListAccaunts();
+        List<AccAccounts> listAcc = accService.GetListAccounts();
 
-        accService.GetListAccaunts();
+        accService.GetListAccounts();
 
-        Page pageStore = accService.GetPage(pageNumber,10);
-        List<AccAccaunts> storeList = pageStore.stream().toList();
+        Page pageStore = accService.GetPageAcc(pageNumber,10);
+        List<AccAccounts> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
         int privpage ;
@@ -166,7 +163,7 @@ public class AccauntController {
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        List<AccAccaunts> listAcc = accService.GetListAccaunts();
+        List<AccAccounts> listAcc = accService.GetListAccounts();
 
         model.addAttribute("listacc", listAcc);
         model.addAttribute("operatorcd", operatorcd);

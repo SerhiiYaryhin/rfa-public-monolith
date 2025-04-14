@@ -1,4 +1,4 @@
-package media.toloka.rfa.accaunt.model;
+package media.toloka.rfa.account.model;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
@@ -6,47 +6,51 @@ import lombok.Data;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
 
-import java.util.Date;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id")})
-public class AccCashFlow {
+public class AccOperation {
     @Id
     @Expose
     private String uuid;
+
     @Expose
     @GeneratedValue
     private Long id;
 
     @Expose
-    private Date operationdate;
-
-    @Expose
-    private Long value;
-    @Expose
     private EAccJobType jobtype;
-
     @Expose
-    @Column(columnDefinition = "TEXT")
-    private String comments;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal sum;
 
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "acc_uuid")
-    private AccAccaunts acc;
+    @JoinColumn(name = "debitacc")
+    private AccAccounts debitacc;
+
+    @Expose
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "creditacc")
+    private AccAccounts creditacc;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "clientdetail_id")
+    @JoinColumn(name = "client")
     private Clientdetail client;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "operator")
+    private Clientdetail operator;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "operator_id")
-    private Clientdetail operator;
+    @JoinColumn(name = "set")
+    private AccOperationSet operationSet;
 
     @PrePersist
     public void generateUUID() {

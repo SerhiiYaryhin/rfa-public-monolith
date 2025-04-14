@@ -1,32 +1,31 @@
-package media.toloka.rfa.accaunt.model;
+package media.toloka.rfa.account.model;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {
-        @Index(columnList = "uuid"),
-        @Index(columnList = "id")}
-)
-public class AccAccaunts {
+public class AccTemplateTransaction {
     @Id
     @Expose
-    private String uuid = UUID.randomUUID().toString();
+    private String uuid;
 
     @Expose
-    @GeneratedValue
     private Long id;
 
     @Expose
-    private Long acc;
+    private String name;
+
     @Expose
-    private String accname;
+    private String comment;
+
     @Expose
-    private String operationcomment;
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<AccTemplateEntry> entry;
 
     @PrePersist
     public void generateUUID() {

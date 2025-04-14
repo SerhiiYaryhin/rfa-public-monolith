@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Список шаблонних транзакцій</title>
+  <meta charset="UTF-8">
+  <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    table, th, td {
+        border: 1px solid #aaa;
+        padding: 8px;
+    }
+
+    th {
+        background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+<h2>Список шаблонних транзакцій</h2>
+
+<a href="/acc/template-form">➕ Створити нову</a>
+<br/><br/>
+
+<table>
+  <thead>
+  <tr>
+    <th>UUID</th>
+    <th>Назва</th>
+    <th>Коментар</th>
+    <th>Кількість проводок</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="tx : ${transactions}">
+    <td th:text="${tx.uuid}"></td>
+    <td th:text="${tx.name}"></td>
+    <td th:text="${tx.comment}"></td>
+    <td th:text="${#lists.size(tx.entry)}"></td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

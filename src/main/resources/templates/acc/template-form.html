@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Template Transaction</title>
+    <script>
+        function addEntryRow() {
+            const table = document.getElementById("entryTableBody");
+            const rowCount = table.rows.length;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="text" name="entry[${rowCount}].name" /></td>
+                <td><input type="text" name="entry[${rowCount}].comment" /></td>
+                <td><input type="text" name="entry[${rowCount}].debit" /></td>
+                <td><input type="text" name="entry[${rowCount}].credit"  /></td>
+                <td><button type="button" onclick="removeRow(this)">🗑️</button></td>
+            `;
+            table.appendChild(row);
+        }
+
+        function removeRow(button) {
+            const row = button.closest("tr");
+            row.remove();
+        }
+    </script>
+</head>
+<body>
+<h2>Нова транзакція</h2>
+
+<form th:action="@{/acc/templatetransactionsave}" method="post" th:object="${transaction}">
+    <label>Назва транзакції: </label>
+    <input type="text" th:field="*{name}" />
+    <br/>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Назва</th>
+            <th>Коментар</th>
+            <th>Дебет</th>
+            <th>Кредит</th>
+            <th>Дія</th>
+        </tr>
+        </thead>
+        <tbody id="entryTableBody">
+        <tr th:each="entry, iterStat : *{entry}">
+            <td><input type="text" th:field="*{entry[__${iterStat.index}__].name}" /></td>
+            <td><input type="text" th:field="*{entry[__${iterStat.index}__].comment}" /></td>
+            <td><input type="text" th:field="*{entry[__${iterStat.index}__].debit}"  /></td>
+            <td><input type="text" th:field="*{entry[__${iterStat.index}__].credit}"  /></td>
+            <td><button type="button" onclick="removeRow(this)">🗑️</button></td>
+        </tr>
+        </tbody>
+    </table>
+    <br/>
+    <button type="button" onclick="addEntryRow()">➕ Додати рядок</button>
+    <br/><br/>
+    <button type="submit">💾 Зберегти</button>
+</form>
+</body>
+</html>

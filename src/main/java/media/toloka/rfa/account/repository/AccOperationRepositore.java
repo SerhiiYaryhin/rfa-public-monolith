@@ -1,6 +1,6 @@
-package media.toloka.rfa.accaunt.repository;
+package media.toloka.rfa.account.repository;
 
-import media.toloka.rfa.accaunt.model.AccOperation;
+import media.toloka.rfa.account.model.AccOperation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 

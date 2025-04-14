@@ -1,13 +1,9 @@
-package media.toloka.rfa.accaunt.model;
+package media.toloka.rfa.account.model;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.ToString;
-import media.toloka.rfa.radio.model.Clientaddress;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -16,25 +12,21 @@ import java.util.UUID;
         @Index(columnList = "uuid"),
         @Index(columnList = "id")}
 )
-public class AccOperationSet {
+public class AccAccounts {
     @Id
     @Expose
-    private String uuid;
+    private String uuid = UUID.randomUUID().toString();
 
     @Expose
     @GeneratedValue
     private Long id;
 
-
     @Expose
-    @ToString.Exclude
-//    @OneToMany(mappedBy = "acc_operation", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    private List<AccOperation> operationList = new ArrayList<>();
-
-
+    private Long acc;
     @Expose
-    private String comment;
+    private String accname;
+    @Expose
+    private String operationcomment;
 
     @PrePersist
     public void generateUUID() {

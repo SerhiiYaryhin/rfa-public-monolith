@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Толока - радіо для всіх!</title>
+  <!-- Favicon-->
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<header>
+
+</header>
+<!-- Navigation-->
+<div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+<header>
+  <!--    Плашка з інформацією про оператора -->
+</header>
+
+<section>
+  <div class="container-fluid" style="padding-top: 80px">
+    <div class="row text-center">
+      <div class="col align-center">
+        <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+      </div>
+    </div>
+    <!-- Перелік новин-->
+    <div class="row ">
+      <!-- початок циклу виводу рахунків -->
+      <div th:insert="~{/fragments/common :: pagingline}"/>
+      <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+          <th scope="col">Рахунок</th>
+          <th scope="col">Назва</th>
+          <th scope="col">Сума</th>
+          <th scope="col">Дія</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="lstt : ${viewList}">
+          <td>
+            <span th:if="${lstt.acc} != null" th:text="${lstt.acc}"></span>
+          </td>
+          <td>
+            <span th:if="${lstt.accname} != null" th:text="${lstt.accname}"/>
+          </td>
+          <td>
+            <span th:if="${lstt.totalValue} != null" th:text="${lstt.totalValue} "/>
+          </td>
+          <td>
+            <a
+                    class="btn btn-primary badge rounded-pill"
+                    th:href="@{'/acc/cfvievbox/'+${lstt.uuid} }">Подивитися</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <div th:insert="~{/fragments/common :: pagingline}"/>
+      <!-- кінець циклу виводу новин -->
+    </div>
+  </div>
+</section>
+
+
+<!-- Footer -->
+<div th:insert="~{/fragments/common :: footer}"></div>
+
+<!-- Footer -->
+
+<div th:insert="~{/fragments/navbar :: bottomnavbar}"></div>
+
+
+<!-- різні скріпти -->
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
