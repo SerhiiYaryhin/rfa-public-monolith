@@ -13,6 +13,7 @@ import media.toloka.rfa.account.repository.AccTemplateTransactionRepositore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class AccService {
     }
 
     public Page GetPageAcc(int pageNumber, int pageCount) {
-        return accRepositore.findAll(PageRequest.of(pageNumber, pageCount));
+        return accRepositore.findAll(PageRequest.of(pageNumber, pageCount, Sort.by("acc").ascending()));
     }
 
     public AccAccounts Save(AccAccounts acc) {
@@ -84,5 +85,13 @@ public class AccService {
 
     public AccAccounts GetAccByNumder(Long number) {
         return accRepositore.getByAcc(number);
+    }
+
+    public void DelAcc(AccAccounts acc) {
+        accRepositore.delete(acc);
+    }
+
+    public AccTemplateTransaction GetTemplareTransaction(String uuid) {
+       return transactionRepository.getByUuid(uuid);
     }
 }

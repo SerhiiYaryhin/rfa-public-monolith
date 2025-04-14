@@ -8,6 +8,7 @@ import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,11 +41,7 @@ public class AccController {
 
         // перевірили права для роботи з планом рахунків
         // Admin та Cheef of Accaunts
-        Boolean ttt = clientService.checkRole(user, ERole.ROLE_ADMIN);
-        Boolean rrr = clientService.checkRole(user, ERole.ROLE_ACCCHEAF);
-        Boolean eee = ttt | rrr;
-//        if (    !clientService.checkRole(user, ERole.ROLE_ADMIN) | !clientService.checkRole(user, ERole.ROLE_ACCCHEAF)) {
-        if ( !eee) {
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
             return "redirect:/";
         }
 
@@ -54,10 +51,10 @@ public class AccController {
         List<AccAccounts> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
-        int privpage ;
-        int nextpage ;
-        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
-        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
+//        int privpage ;
+//        int nextpage ;
+//        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
+//        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
         // новий рядок навігації
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
@@ -69,7 +66,7 @@ public class AccController {
     }
 
     /// Редагування рахунку
-    @GetMapping("/acc/editbox/{page}/{uuid}")
+    @GetMapping("/acc/editacc/{page}/{uuid}")
     public String GetFormEditAccount(
             @PathVariable String uuid,
             @PathVariable Integer page,
@@ -122,7 +119,15 @@ public class AccController {
         if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
             return "/";
         }
-        accService.Save(acc);
+
+        try {
+            accService.Save(acc);
+        } catch (DataIntegrityViolationException e) {
+            // тут можна повернути повідомлення, що запис з такими даними вже існує
+            model.addAttribute("danger", "Рахунок "+ acc.getAcc().toString()+" вже існує!");
+
+        }
+
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
         List<AccAccounts> listAcc = accService.GetListAccounts();
 
@@ -158,15 +163,30 @@ public class AccController {
         }
         // перевірили права для роботи з планом рахунків
         // Admin та Cheef of Accaunts
-        if (    !clientService.checkRole(user, ERole.ROLE_ADMIN) | !clientService.checkRole(user, ERole.ROLE_ACCCHEAF)) {
-            return "/";
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        List<AccAccounts> listAcc = accService.GetListAccounts();
 
-        model.addAttribute("listacc", listAcc);
+        AccAccounts acc = accService.GetAccAccountByUUID(uuid);
+        accService.DelAcc(acc);
+
+        Page pageStore = accService.GetPageAcc(0,10);
+        List<AccAccounts> storeList = pageStore.stream().toList();
+
+//        model.addAttribute("trackList", trackList );
+//        int privpage ;
+//        int nextpage ;
+//        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
+//        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
+        // новий рядок навігації
+
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
+        model.addAttribute("currentPage", 0 );
+        model.addAttribute("viewList", storeList );
+        model.addAttribute("pagetrack", pageStore );
         model.addAttribute("operatorcd", operatorcd);
-        return "/acc/acc";
+        return "redirect:/acc/acc/0";
     }
 }

@@ -4,8 +4,10 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import media.toloka.rfa.radio.model.Clientdetail;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,16 +26,24 @@ public class AccOperationSet {
     @GeneratedValue
     private Long id;
 
-
     @Expose
-    @ToString.Exclude
-//    @OneToMany(mappedBy = "acc_operation", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    private List<AccOperation> operationList = new ArrayList<>();
-
+    private String name;
 
     @Expose
     private String comment;
+
+    @Expose
+    private Date date = new Date();
+
+    @Expose
+    @ToString.Exclude
+    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    private List<AccOperation> operationList = new ArrayList<>();
+
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "operator_id")
+    private Clientdetail operator;
 
     @PrePersist
     public void generateUUID() {

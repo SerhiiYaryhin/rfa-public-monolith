@@ -10,4 +10,5 @@ public interface AccTemplateTransactionRepositore extends
         PagingAndSortingRepository<AccTemplateTransaction, String>,
         JpaRepository<AccTemplateTransaction, String> {
 
+    AccTemplateTransaction getByUuid(String uuid);
 }

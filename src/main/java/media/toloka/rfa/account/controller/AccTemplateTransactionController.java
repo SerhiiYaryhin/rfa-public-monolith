@@ -30,10 +30,17 @@ public class AccTemplateTransactionController {
         return "/acc/transaction-list";
     }
 
-    @GetMapping("/acc/template-form")
-    public String createForm(Model model) {
-        AccTemplateTransaction transaction = new AccTemplateTransaction();
-        transaction.setEntry(new ArrayList<>());
+    @GetMapping("/acc/template-form/{uuid}")
+    public String createForm(
+            @PathVariable String uuid,
+            Model model) {
+
+        AccTemplateTransaction transaction;
+        transaction = accService.GetTemplareTransaction(uuid);
+        if (transaction == null) {
+            transaction = new AccTemplateTransaction();
+            transaction.setEntry(new ArrayList<>());
+        }
         model.addAttribute("transaction", transaction);
         return "/acc/template-form.html";
     }
@@ -45,7 +52,8 @@ public class AccTemplateTransactionController {
             curentry.setCreditacc( accService.GetAccByNumder(curentry.getCredit()) );
         }
         accService.SaveTransaction(transaction);
-        return "redirect:/template/template-form";
+//        model.addAttribute("transaction", transaction);
+        return "redirect:/acc/transactionlist";
     }
 
     @InitBinder

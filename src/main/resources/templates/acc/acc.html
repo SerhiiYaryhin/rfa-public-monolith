@@ -34,6 +34,8 @@
         </div>
         <!-- Перелік новин-->
         <div class="row ">
+
+            <a href="/acc/editacc/0/0">➕ Додати рахунок</a>
             <!-- початок циклу виводу рахунків -->
             <div th:insert="~{/fragments/common :: pagingline}"/>
             <table class="table table-striped table-hover">
@@ -60,13 +62,10 @@
 
                         <a
                                 class="btn btn-primary badge rounded-pill"
-                                th:href="@{'/acc/editbox/'+${currentPage}+'/'+${lstt.uuid} }">Редагувати</a>
-                        <a
-                                class="btn btn-primary badge rounded-pill "
-                                th:href="@{'/stt/sttprepare/'+${currentPage}+'/'+${lstt.uuid}}">Перетворити</a>
+                                th:href="@{'/acc/editacc/'+${currentPage}+'/'+${lstt.uuid} }">📝</a>
                         <a
                                 class="btn btn-primary badge rounded-pill"
-                                th:href="@{'/stt/deletestt/'+${currentPage}+'/'+${lstt.uuid} }">Видалити!</a>
+                                th:href="@{'/acc/delacc/'+${lstt.uuid} }">🗑</a>
                     </td>
                 </tr>
                 </tbody>

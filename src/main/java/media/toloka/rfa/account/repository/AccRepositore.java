@@ -15,5 +15,6 @@ public interface AccRepositore extends
     AccAccounts getByUuid(String uuid);
     AccAccounts save(AccAccounts acc);
     AccAccounts getByAcc(Long acc);
+    List<AccAccounts> findAllByOrderByAccAsc();
 
 }
