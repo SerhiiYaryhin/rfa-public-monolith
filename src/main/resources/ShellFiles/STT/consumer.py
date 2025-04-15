@@ -107,7 +107,7 @@ def process_stt(stt_rpc_obj):
 def callback(ch, method, properties, body):
     print(f"📥 Отримано повідомлення: {body}")
 
-    # start_time = datetime.now()
+    start_time = datetime.now()
     # Розбираємо JSON у Python-словник
     rpc_obj = json.loads(body.decode())
 
