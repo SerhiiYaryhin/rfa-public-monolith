@@ -1,5 +1,5 @@
 #!/bin/bash
-# script for TTS/STT
+# script for STT
 # ssh-copy-id git@gate.rfa
 # git clone git@gate.rfa:~/rfa
 cd ~/rfa
