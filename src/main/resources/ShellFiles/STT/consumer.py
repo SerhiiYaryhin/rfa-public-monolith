@@ -101,7 +101,7 @@ def process_stt(stt_rpc_obj):
     # result = "Результат роботи Whisper"
 
     # видаляємо файл з голосом
-    shutil.rmtree(pathdir)
+    # shutil.rmtree(pathdir)
 
     # зберігаємо результат
     resultText = result["text"]

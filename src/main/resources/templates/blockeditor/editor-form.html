@@ -11,7 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6/dist/quote.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@calumk/editorjs-columns@latest"></script>
 
     <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
     <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
@@ -37,14 +38,8 @@
         holder: 'editorjs',
         tools: {
             header: Header,
-            quote: {
-                class: Quote,
-                inlineToolbar: true,
-                shortcut: 'CMD+SHIFT+O',
-                config: {
-                    quotePlaceholder: 'Enter a quote',
-                    captionPlaceholder: 'Quote\'s author',
-                },
+            quote: Quote,
+
             },
         },
         data: JSON.parse(savedData),
