@@ -122,8 +122,9 @@ def callback(ch, method, properties, body):
     rpc_obj["stt"]["user"] = tts_user
     rpc_obj["text"] = resultText
     rpc_obj['backServer']['addparametrs'] = json.dumps(resultObject)
-    # rpc_obj["endjob"] = datetime.now()
-    # rpc_obj["startjob"] = start_time
+    endjob = datetime.now()
+    rpc_obj["endjob"] = endjob.isoformat()
+    rpc_obj["startjob"] = start_time.isoformat()
     # Перетворюємо назад у JSON
     output_json = json.dumps(rpc_obj)
     # print("Output json: " + output_json)
