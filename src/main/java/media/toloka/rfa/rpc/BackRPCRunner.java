@@ -85,6 +85,7 @@ public class BackRPCRunner {
                 logger.info("+++++++++++++++++ START JOB_STT_FILES_READY");
                 SttRPC sttrjob = gson.fromJson(message, SttRPC.class);
 //                List<String> lrc =
+                logger.info("Run time server.Start: {} Stop: {}", sttrjob.getStartjob(), sttrjob.getEndjob());
                 sttBackServerService.StationGetSttResult(sttrjob);
                 //rjob.setRc(rc);
                 logger.info("+++++++++++++++++ END JOB_STT_FILES_READY");
