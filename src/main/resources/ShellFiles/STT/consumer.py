@@ -61,7 +61,24 @@ def process_stt(stt_rpc_obj):
     # https://rfa.toloka.media/store/content/og/c856b21c-3b51-40c5-a010-f9739b474312/8a362736-8965-461f-ad2f-e37433fcad27.mp3
     url = f"{stt_rpc_obj['front']['globalserver']}/store/content/og/{stt_rpc_obj['uuidvoice']}/{stt_rpc_obj['filenamevoice']}"
 
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()  # викликає HTTPError для 4xx/5xx
+    except HTTPError as e:
+        print(f"❌ HTTP помилка: {e} (код {e.response.status_code})")
+
+    except Timeout:
+        print("⏰ Запит перевищив час очікування!")
+
+    except ConnectionError:
+        print("🔌 Проблема з підключенням!")
+
+    except RequestException as e:
+        print(f"💥 Інша помилка запиту: {e}")
+
+    except ValueError:
+        print("⚠️ Відповідь не є JSON")
+
     # Формуємо імʼя файлу
     # print(f"FileNameVoice: {stt_rpc_obj['filenamevoice']}")
     localVoiceFileName = pathdir + "/" + stt_rpc_obj["sttUUID"] + pathlib.Path(stt_rpc_obj['filenamevoice']).suffix
@@ -107,7 +124,7 @@ def process_stt(stt_rpc_obj):
 def callback(ch, method, properties, body):
     print(f"📥 Отримано повідомлення: {body} ")
 
-    start_time = datetime.now()
+    startjob = datetime.now()
     # Розбираємо JSON у Python-словник
     rpc_obj = json.loads(body.decode())
 
@@ -122,9 +139,9 @@ def callback(ch, method, properties, body):
     rpc_obj["stt"]["user"] = tts_user
     rpc_obj["text"] = resultText
     rpc_obj['backServer']['addparametrs'] = json.dumps(resultObject)
-    # endjob = datetime.now()
-    # rpc_obj["endjob"] = endjob.isoformat()
-    # rpc_obj["startjob"] = start_time.isoformat()
+    endjob = datetime.now()
+    rpc_obj["endjob"] = endjob.isoformat()
+    rpc_obj["startjob"] = startjob.isoformat()
     # Перетворюємо назад у JSON
     output_json = json.dumps(rpc_obj)
     # print("Output json: " + output_json)
