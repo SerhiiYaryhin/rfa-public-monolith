@@ -2,6 +2,7 @@ package media.toloka.rfa.account.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.account.model.AccAccounts;
 import media.toloka.rfa.account.model.AccTemplateEntry;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AccService {
 
     @Autowired
@@ -70,6 +72,10 @@ public class AccService {
     @Transactional
     public void SaveTransaction(AccTemplateTransaction transaction) {
 //        if (transaction.getUuid() == null) transaction.generateUUID();
+        AccTemplateTransaction curTrancaction = GetTemplareTransaction(transaction.getUuid());
+        if (curTrancaction == null) {
+            log.info("Зберігаємо нову");
+        }
         for (AccTemplateEntry entry : transaction.getEntry()) {
             if (entry.getUuid() == null) entry.generateUUID();
             entry.setTransaction(transaction);

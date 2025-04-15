@@ -144,7 +144,7 @@ public class STTHome {
         Stt stt = sttBackServerService.GetByUUID(uuidstt);
         if (stt == null) {
             model.addAttribute("success", "Запис не знайдено");
-            return "/stt/home/0";
+            return "redirect:/stt/home/0";
         }
         model.addAttribute("curstt", uuidstt);
         model.addAttribute("currentPage", scurpage);

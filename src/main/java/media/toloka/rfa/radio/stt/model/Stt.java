@@ -42,7 +42,7 @@ public class Stt {
     @Expose
     private Date datechangestatus = new Date();
     @Expose
-    private ESttModel model = ESttModel.STT_MODEL_LARGEV3TURBO;
+    private ESttModel model = ESttModel.STT_MODEL_TINY;
     @Expose
     private Date startjob;
     @Expose

@@ -25,6 +25,7 @@ public class AccTemplateTransactionController {
 
     @GetMapping("/acc/transactionlist")
     public String listTransactions(Model model) {
+
         List<AccTemplateTransaction> transactions = accService.findAllTransaction();
         model.addAttribute("transactions", transactions);
         return "/acc/transaction-list";
@@ -45,7 +46,7 @@ public class AccTemplateTransactionController {
         return "/acc/template-form.html";
     }
 
-    @PostMapping("/acc/templatetransactionsave")
+    @PostMapping("/acc/templatetransactionsave/")
     public String save(@ModelAttribute("transaction") AccTemplateTransaction transaction) {
         for (AccTemplateEntry curentry : transaction.getEntry()) {
             curentry.setDebitacc( accService.GetAccByNumder(curentry.getDebit()) );

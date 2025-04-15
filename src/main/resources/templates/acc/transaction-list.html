@@ -42,7 +42,11 @@
             </thead>
             <tbody>
             <tr th:each="tx : ${transactions}">
-                <td th:text="${tx.name}"></td>
+                <td>
+                    <a th:href="'/acc/template-form/'+${tx.uuid}">
+                        <span th:text="${tx.name}"/>
+                    </a>
+                </td>
                 <td th:text="${tx.comment}"></td>
                 <td th:text="${#lists.size(tx.entry)}"></td>
             </tr>
