@@ -105,7 +105,7 @@ def process_stt(stt_rpc_obj):
 
 # Функція зворотного виклику для обробки повідомлення
 def callback(ch, method, properties, body):
-    print(f"📥 Отримано повідомлення: {body}")
+    print(f"📥 Отримано повідомлення: {body} ")
 
     start_time = datetime.now()
     # Розбираємо JSON у Python-словник
