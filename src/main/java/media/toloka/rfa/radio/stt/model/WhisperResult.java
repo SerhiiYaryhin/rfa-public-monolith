@@ -16,16 +16,16 @@ public class WhisperResult {
 
     @Data
     public class Segment {
-        public int id;
-        public int seek;
+        public String id;
+        public String seek;
         public double start;
         public double end;
         public String text;
         public List<Long> tokens;
-        public int temperature;
-        public double avg_logprob;
-        public double compression_ratio;
-        public double no_speech_prob;
+        public String temperature;
+        public String avg_logprob;
+        public String compression_ratio;
+        public String no_speech_prob;
 //        public Tokens tokens;
     }
 
