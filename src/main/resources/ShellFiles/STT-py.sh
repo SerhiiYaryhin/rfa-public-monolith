@@ -5,6 +5,7 @@
 cd ~/rfa
 git switch prodact
 git pull
+cp ~/rfa/src/main/resources/ShellFiles/* ~/bin/
 cp ~/rfa/src/main/resources/ShellFiles/STT/* ~/stt/
 cd ~/stt
 source ~/stt/whisper/bin/activate
