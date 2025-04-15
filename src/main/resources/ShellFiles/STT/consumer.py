@@ -107,7 +107,7 @@ def process_stt(stt_rpc_obj):
 def callback(ch, method, properties, body):
     print(f"📥 Отримано повідомлення: {body}")
 
-    start_time = datetime.now()
+    # start_time = datetime.now()
     # Розбираємо JSON у Python-словник
     rpc_obj = json.loads(body.decode())
 
@@ -122,7 +122,7 @@ def callback(ch, method, properties, body):
     rpc_obj["stt"]["user"] = tts_user
     rpc_obj["text"] = resultText
     rpc_obj['backServer']['addparametrs'] = json.dumps(resultObject)
-    rpc_obj["endjob"] = datetime.now()
+    # rpc_obj["endjob"] = datetime.now()
     rpc_obj["startjob"] = start_time
     # Перетворюємо назад у JSON
     output_json = json.dumps(rpc_obj)
