@@ -1,0 +1,15 @@
+[Unit]
+Description=RFA TTS service
+
+[Service]
+ExecStart=/home/tts/bin/TTS-py.sh
+User=tts
+Group=tts
+Type=simple
+WorkingDirectory=/home/tts/tts
+Restart=on-failure
+Environment="TELEGRAMBOTNAME=TolokaMediaBot"
+Environment="TELEGRAMBOTKEY=1856110317:AAEem1mOzK96bRDWPO9amEctmUF8dtTXBWM"
+
+[Install]
+WantedBy=multi-user.target

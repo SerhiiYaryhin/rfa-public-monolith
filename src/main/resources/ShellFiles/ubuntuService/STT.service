@@ -1,0 +1,16 @@
+[Unit]
+Description=RFA STT service
+
+[Service]
+ExecStart=/home/stt/bin/STT-py.sh
+User=stt
+Group=stt
+Type=simple
+WorkingDirectory=/home/stt/tts
+Restart=always
+RestartSec=3
+Environment="TELEGRAMBOTNAME=TolokaMediaBot"
+Environment="TELEGRAMBOTKEY=1856110317:AAEem1mOzK96bRDWPO9amEctmUF8dtTXBWM"
+
+[Install]
+WantedBy=multi-user.target
