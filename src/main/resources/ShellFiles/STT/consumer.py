@@ -6,6 +6,7 @@ from config_loader import config
 import whisper
 import pathlib
 import requests
+import datetime
 
 # https://labex.io/tutorials/linux-how-to-install-whisper-cli-on-linux-437909
 # https://www.digitalocean.com/community/tutorials/how-to-generate-and-add-subtitles-to-videos-using-python-openai-whisper-and-ffmpeg
