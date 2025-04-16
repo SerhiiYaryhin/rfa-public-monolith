@@ -28,11 +28,11 @@ public class MyErrorController implements ErrorController {
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", new Date());
 
-        if (exception != null) {
-            model.addAttribute("trace", ((Throwable) exception).getStackTrace());
-        }
+//        if (exception != null) {
+//            model.addAttribute("trace", ((Throwable) exception).getStackTrace());
+//        }
 
+//        return "/error/rfaerror"; // Повертаємо ім'я шаблону (404.html)
         return "/error/templateserror"; // Повертаємо ім'я шаблону (404.html)
-//        return "/error/myerrorcontroller"; // Повертаємо ім'я шаблону (404.html)
     }
 }
