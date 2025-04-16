@@ -40,7 +40,7 @@
       <a th:if="*{storespeach} != null"  class="btn btn-primary badge rounded-pill btn-danger" th:href="@{'/newstoradio/clearstore/'+${currentPage}+'/'+*{uuid} }">Видалити трек</a>
       <br>
 
-      <span th:text="'Станція: '+${curnews.station.name}" /><br>
+      <span th:if="${curnews.station} != null" th:text="'Станція: '+${curnews.station.name}" /><br>
       <span th:text="'Розділ: '+${curnews.category.label}" /><br>
       <span th:text="'Голос: '+${curnews.voice.label}" /><br>
       <span th:if="*{status} != null" th:text="'Статус: '+${#dates.format(curnews.datechangestatus, 'dd-MM-yyyy HH:mm:ss')}+' - '+*{status.label} "/>
