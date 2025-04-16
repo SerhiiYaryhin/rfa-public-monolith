@@ -40,7 +40,9 @@ public class AccTemplateEntry {
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "transaction")
+//    @JoinColumn(name = "transaction")
+//    private AccTemplateTransaction transaction;
+    @JoinColumn(name = "transaction") // <-- SQL-стовпець
     private AccTemplateTransaction transaction;
 
     @PrePersist
