@@ -24,7 +24,8 @@ public class AccTemplateTransaction {
     private String comment;
 
     @Expose
-    @OneToMany(fetch = FetchType.EAGER)
+//    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccTemplateEntry> entry;
 
     @PrePersist
