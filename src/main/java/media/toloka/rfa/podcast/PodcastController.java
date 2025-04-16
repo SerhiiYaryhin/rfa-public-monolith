@@ -187,7 +187,7 @@ public class PodcastController {
                 return ResponseEntity.status(HttpStatus.OK).headers(headers).body(byteArray);
             } else {
                 pc = podcastItemList.get(0).getChanel();
-                logger.info("========== хтось довбиться за назвою епізоду: " + decodedUrl);
+                logger.info("\n========== хтось довбиться за назвою епізоду:\n" + decodedUrl);
             }
         }
         // саме тут ми формуємо RSS feed

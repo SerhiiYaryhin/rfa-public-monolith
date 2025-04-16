@@ -46,6 +46,8 @@ public class BackRPCRunner {
 
     @RabbitListener(queues = "${media.toloka.rfa.server.libretime.guiserver}")
     public void processedFromFront(String message) {
+        logger.info("\nBackRPCRunner. RPC Server Listener:  {}", message);
+
         Long rc = 0L;
         Gson gson = gsonService.CreateGson();
 
@@ -68,7 +70,7 @@ public class BackRPCRunner {
 //        curJob = rjob.getRJobType();
 //        ERPCJobType curJob = rjob.getRJobType();
         if (curJob == null) {
-            logger.info("RPC Server Listener: Якийсь дивний json рядок прелетів ======= {}", message);
+            logger.info("\nRPC Server Listener: Якийсь дивний json рядок прелетів ======= {}", message);
             return;
         }
         switch (curJob) {
@@ -76,22 +78,22 @@ public class BackRPCRunner {
             case JOB_TTS_FILES_READY:  // Перетягуємо файли після TTS
                 NewsRPC lrjob = gson.fromJson(message, NewsRPC.class);
                 // текстовий файл перетворено за аудіо
-                logger.info("+++++++++++++++++ START JOB_TTS_FILES_READY");
+                logger.info("\n+++++++++++++++++ START JOB_TTS_FILES_READY");
                 rc = NewsBackServerService.GetMp3FromTts(lrjob);
                 rjob.setRc(rc);
-                logger.info("+++++++++++++++++ END JOB_TTS_FILES_READY");
+                logger.info("\n+++++++++++++++++ END JOB_TTS_FILES_READY");
                 break;
             case JOB_STT_FILES_READY:
-                logger.info("+++++++++++++++++ START JOB_STT_FILES_READY");
+                logger.info("\n+++++++++++++++++ START JOB_STT_FILES_READY");
                 SttRPC sttrjob = gson.fromJson(message, SttRPC.class);
 //                List<String> lrc =
-                logger.info("Run time server.Start: {} Stop: {}", sttrjob.getStartjob(), sttrjob.getEndjob());
+                logger.info("\nRun time server.Start: {} Stop: {}", sttrjob.getStartjob(), sttrjob.getEndjob());
                 sttBackServerService.StationGetSttResult(sttrjob);
                 //rjob.setRc(rc);
-                logger.info("+++++++++++++++++ END JOB_STT_FILES_READY");
+                logger.info("\n+++++++++++++++++ END JOB_STT_FILES_READY");
                 break;
             default:
-                logger.info("News RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}", rjob.getRJobType());
+                logger.info("\nNews RPC Listener CASE DEFAULT: Якась дивна команда прелетіла ======= {}", rjob.getRJobType());
                 break;
         }
     }
