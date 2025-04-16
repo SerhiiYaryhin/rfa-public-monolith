@@ -49,7 +49,8 @@ public class NewsHome {
     private String toradioseverpsw;
     @Value("${media.toloka.rfa.server.toradiosever.queue}")
     private String toRadioServerQueue;
-    @Value("${media.toloka.rfa.server.libretime.guiserver}")
+//    @Value("${media.toloka.rfa.server.libretime.guiserver}")
+    @Value("${media.toloka.rfa.server.localname}")
     private String localGuiServer;
 
     @Autowired
@@ -295,9 +296,13 @@ public class NewsHome {
             NewsRPC rjob = new NewsRPC();
             rjob.setRJobType(JOB_TTS);
             rjob.getFront().setUser(System.getenv("USER"));
-            rjob.getFront().setServer(curnews.getStation().getGuiserver());
+
+            // media.toloka.rfa.server.localname
+
+            rjob.getFront().setServer(localGuiServer);
             rjob.setNewsUUID(curnews.getUuid());
-            rjob.setStationUUID(curnews.getStation().getUuid());
+            if (curnews.getStation() == null) { rjob.setStationUUID(null); }
+            else {rjob.setStationUUID(curnews.getStation().getUuid());}
             rjob.setText(curnews.getNewsbody());
             rjob.setVoice(curnews.getVoice().label);
 

@@ -39,8 +39,8 @@
             <form th:action="@{'/newstoradio/editnews/'+${currentPage}}"  method="post" th:object="${curnews}">
                 <input type="hidden" th:field="${curnews.uuid}"/>
 
-                <span>Станція:</span>
-                <select th:field="*{station}">
+                <span>Станція:</span> <span th:if="${#lists.isEmpty(liststation)}" th:text="' Станції відсутні'"/>
+                <select th:if="${not #lists.isEmpty(liststation)}" th:field="*{station}">
                     <option th:each="item: ${liststation}"
                             th:value="${item.id}"
                             th:text="${item.name}"/>
