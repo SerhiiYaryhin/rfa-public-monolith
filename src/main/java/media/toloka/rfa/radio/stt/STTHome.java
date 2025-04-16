@@ -178,6 +178,10 @@ public class STTHome {
             rjob.getFront().setUser(System.getenv("USER"));
             rjob.getFront().setLocalserver(localServerName); // сервер на який відправляємо відповідь
             rjob.getFront().setGlobalserver(globalServerName); // сервер з якого беремо файл через curl
+            rjob.getBackServer().setAddparametrs("User: "
+                    +cd.getCustname()+" "
+                    +cd.getCustsurname()
+            );
 
             rjob.setFilenamevoice(curstt.getStorespeach().getFilename()); // Імʼя файлу з голосом
             rjob.setSttUUID(curstt.getUuid());
@@ -189,7 +193,7 @@ public class STTHome {
             Gson gson = gsonService.CreateGson();
             String sgson = gson.toJson(rjob).toString();
             template.convertAndSend(queueSTT, sgson);
-            model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку.");
+            model.addAttribute("success", "Завдання перетворення тексту в голос надіслано на обробку." );
             curstt.setStatus(ESttStatus.STT_STATUS_SEND);
             curstt.setDatechangestatus(new Date());
             sttBackServerService.Save(curstt);
