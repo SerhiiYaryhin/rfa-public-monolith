@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import media.toloka.rfa.account.model.accenum.EAccJobType;
 import media.toloka.rfa.radio.model.Clientdetail;
 
 import java.math.BigDecimal;

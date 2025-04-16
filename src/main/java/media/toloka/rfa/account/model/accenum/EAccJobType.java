@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.accenum;
 
 public enum EAccJobType {
     EACCJOBTYPE_ClientPayment("Оплата від користувача"),

@@ -3,6 +3,8 @@ plugins {
 	id 'war'
 	id 'org.springframework.boot' version '3.2.1'
 	id 'io.spring.dependency-management' version '1.1.4'
+//	id 'org.antlr' version '4.10.1'  // Переконайтесь, що версія плагіна відповідає версії Runtime
+//	id 'org.antlr' version '4.13.0'  // Переконайтесь, що версія плагіна відповідає версії Runtime
 }
 
 group = 'media.toloka'
@@ -14,6 +16,10 @@ java {
 
 repositories {
 	mavenCentral()
+}
+
+ext {
+	hibernateVersion = '6.3.2.Final'
 }
 
 dependencies {
@@ -44,6 +50,10 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
 
 
+	// для @PolymorphicTarget hibernate
+//	implementation "org.hibernate.orm:hibernate-core:${hibernateVersion}"
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+	implementation("org.hibernate:hibernate-core:6.6.13.Final")
 
 
 	// stomp web socket
@@ -62,12 +72,31 @@ dependencies {
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+//	implementation 'org.antlr:antlr4-runtime:4.13.0'  // Переконайтесь, що ця версія відповідає версії інструменту
+	implementation 'org.antlr:antlr4-runtime:4.10.1'  // Переконайтесь, що ця версія відповідає версії інструменту
+//	implementation 'org.hibernate:hibernate-core:5.4.32.Final'  // Або останню доступну версію
+// https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+	implementation("org.hibernate:hibernate-core:6.6.13.Final")
+
+
+
 //	implementation 'jakarta.mail:jakarta.mail-api:2.1.1'
 	implementation 'com.google.code.gson:gson'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 
+
+
+}
+
+// Примусово використовуємо Hibernate 6.3.2.Final замість того, що йде в складі Spring Boot
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.group == 'org.hibernate.orm' && details.requested.name == 'hibernate-core') {
+			details.useVersion hibernateVersion
+		}
+	}
 }
 
 tasks.named('test') {

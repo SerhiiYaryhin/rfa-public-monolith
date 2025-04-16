@@ -40,8 +40,8 @@ public class AccTemplateEntry {
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "transaction")
-    private AccTemplateTransaction transaction;
+//    @JoinColumn(name = "transaction_id")
+    private AccTemplateTransaction entry_transaction;
 
     @PrePersist
     public void generateUUID() {

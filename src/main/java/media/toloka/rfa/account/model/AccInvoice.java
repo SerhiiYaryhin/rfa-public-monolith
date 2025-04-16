@@ -1,30 +1,36 @@
 package media.toloka.rfa.account.model;
 
 import com.google.gson.annotations.Expose;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import org.springframework.stereotype.Controller;
+import jakarta.persistence.*;
+import lombok.Data;
+import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class Invoice extends FatherDocuments  {
+@Data
+@Entity
+public class AccInvoice implements PolymorphicTarget {
     @Id
     @Expose
     private String uuid;
     @Expose
     @GeneratedValue
     private Long id;
-
-    @Column(precision = 12, scale = 2)
-    private BigDecimal total;
-
     @Expose
     private Long docNumber; // Номер документа
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal total; // Сума документу
+
+
 // наш Товар
 //    private List<AccGoods> service;
+
+    @Override
+    public String getTypeCode() {
+        return "INVOICE";
+    }
 
     @PrePersist
     public void generateUUID() {

@@ -24,8 +24,8 @@ public class AccTemplateTransaction {
     private String comment;
 
     @Expose
-    @OneToMany(fetch = FetchType.EAGER)
-    private List<AccTemplateEntry> entry;
+//    @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccTemplateEntry> entryList;
 
     @PrePersist
     public void generateUUID() {
