@@ -160,7 +160,7 @@ public class STTBackServerService {
         // Додати збереження результату роботи whisper
         Save(curstt);
         long diffInMillis = curstt.getEndjob().getTime() - curstt.getStartjob().getTime(); // різниця в мілісекундах
-        logger.info("\nЧас на виконання перетворення - {},{} секунд",diffInMillis / 1000, diffInMillis - (diffInMillis / 1000) );
+        logger.info("\nЧас на виконання перетворення - {},{} секунд",diffInMillis / 1000, diffInMillis - (diffInMillis / 1000)*1000 );
 
 //        long seconds = diffInMillis / 1000;
 //        long minutes = seconds / 60;
