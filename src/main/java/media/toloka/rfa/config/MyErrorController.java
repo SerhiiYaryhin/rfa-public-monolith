@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Date;
@@ -14,6 +15,10 @@ import java.util.Date;
 public class MyErrorController implements ErrorController {
 
     @RequestMapping("/error")
+    @ExceptionHandler(Exception.class)
+//    @ExceptionHandler(NoHandlerFoundException.class)
+
+//    public String handleError(HttpServletRequest request, Model model) {
     public String handleError(HttpServletRequest request, Model model) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object exception = request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
@@ -27,6 +32,7 @@ public class MyErrorController implements ErrorController {
             model.addAttribute("trace", ((Throwable) exception).getStackTrace());
         }
 
-        return "/error/myerrorcontroller"; // Повертаємо ім'я шаблону (error.html)
+        return "/error/templateserror"; // Повертаємо ім'я шаблону (404.html)
+//        return "/error/myerrorcontroller"; // Повертаємо ім'я шаблону (404.html)
     }
 }
