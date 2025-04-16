@@ -76,12 +76,12 @@ public class AccService {
         if (curTrancaction == null) {
             log.info("Зберігаємо нову");
         }
-        for (AccTemplateEntry entry : transaction.getEntryList()) {
+        for (AccTemplateEntry entry : transaction.getEntry()) {
             if (entry.getUuid() == null) entry.generateUUID();
-            entry.setEntry_transaction(transaction);
+            entry.setTransaction(transaction);
         }
         transactionRepository.save(transaction);
-        entryRepository.saveAll(transaction.getEntryList());
+        entryRepository.saveAll(transaction.getEntry());
     }
 
 
