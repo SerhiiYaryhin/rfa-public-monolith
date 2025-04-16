@@ -95,7 +95,7 @@
                         <a th:if="${lnew.storespeach} == null and !${runstatus}"
                            class="btn btn-primary badge rounded-pill btn-warning"
                            th:href="@{'/newstoradio/ttsprepare/'+${currentPage}+'/'+${lnew.uuid}}">Перетворити</a>
-                        <a th:if="${lnew.storespeach} != null"
+                        <a th:if="${lnew.storespeach} != null and ${lnew.station} != null"
                            class="btn btn-primary badge rounded-pill btn-success"
                            th:href="@{'/newstoradio/newstoradio/'+${currentPage}+'/'+${lnew.uuid} }">В етер!</a>
                         <a th:if="!${runstatus}"
