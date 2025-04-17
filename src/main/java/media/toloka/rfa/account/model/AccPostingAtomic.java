@@ -10,37 +10,33 @@ import media.toloka.rfa.account.model.accEnum.EAccJobType;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccPosting extends AccBaseEntityDoc {
+public class AccPostingAtomic extends AccBaseEntityDoc {
 
-    @Expose
-    private EAccJobType jobtype;
     @Expose
     @Column(precision = 12, scale = 2)
     private BigDecimal value;
 
-    @OneToMany(mappedBy = "accPosting", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AccPostingAtomic> accPostingAtomicList;
-
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "debitacc")
-    private AccAccountsPlan debitacc;
+    @JoinColumn(name = "acc")
+    private AccAccountsPlan acc;
 
     @Expose
-    @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "creditacc")
-    private AccAccountsPlan creditacc;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal debit;
+    @Expose
+    @Column(precision = 12, scale = 2)
+    private BigDecimal credit;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "transaction")
-    private AccTransaction operationSet;
+    @JoinColumn(name = "accPosting")
+    private AccPosting accPosting;
+
 
 }

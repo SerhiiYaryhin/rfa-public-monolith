@@ -6,31 +6,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class AccDocument  {
-    @Id
-    @Expose
-    private String uuid;
-    @Expose
-    @GeneratedValue
-    private Long id;
+public class AccDocument extends AccBaseEntityDoc {
 
     @Column(precision = 12, scale = 2)
     private BigDecimal total;
-// наш Товар
-//    private List<AccGoods> service;
-
-    @PrePersist
-    public void generateUUID() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID().toString();
-        }
-        if (this.id == null) {
-            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
-        }
-    }
 
 }

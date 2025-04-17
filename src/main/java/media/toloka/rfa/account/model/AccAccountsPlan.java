@@ -38,7 +38,7 @@ public class AccAccountsPlan extends AccBaseEntityDoc {
     @Expose
     private String accname;
     @Expose
-    private String operationcomment;
+    private String comment;
 
 
 }
