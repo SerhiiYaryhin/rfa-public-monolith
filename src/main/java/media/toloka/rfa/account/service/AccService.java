@@ -3,8 +3,8 @@ package media.toloka.rfa.account.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.account.model.AccAccounts;
-import media.toloka.rfa.account.model.AccTemplateEntry;
+import media.toloka.rfa.account.model.AccAccountsPlan;
+import media.toloka.rfa.account.model.AccTemplatePosting;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
 import media.toloka.rfa.account.model.dto.AccSummaryDto;
 import media.toloka.rfa.account.repository.AccCachFlowRepositore;
@@ -36,11 +36,11 @@ public class AccService {
     @Autowired
     private final AccTemplateEntryRepositore entryRepository;
     /// Перелік в плані рахунків
-    public List<AccAccounts> GetListAccounts() {
+    public List<AccAccountsPlan> GetListAccounts() {
         return null; //accRepositore.findAll();
     }
 
-    public AccAccounts GetAccAccountByUUID(String uuid) {
+    public AccAccountsPlan GetAccAccountByUUID(String uuid) {
         return accRepositore.getByUuid(uuid);
     }
 
@@ -48,7 +48,7 @@ public class AccService {
         return accRepositore.findAll(PageRequest.of(pageNumber, pageCount, Sort.by("acc").ascending()));
     }
 
-    public AccAccounts Save(AccAccounts acc) {
+    public AccAccountsPlan Save(AccAccountsPlan acc) {
         return accRepositore.save(acc);
     }
 
@@ -57,15 +57,15 @@ public class AccService {
 //        return accRepositore.findAll(PageRequest.of(pageNumber, pageCount));
 //    }
 
-    public List<AccSummaryDto> GetCachFlowAll() {
-        List<AccSummaryDto> accSummaryDtoList = accCachFlowRepositore.getAccsWithTotalValues();
-        return accSummaryDtoList;
-    }
+//    public List<AccSummaryDto> GetCachFlowAll() {
+//        List<AccSummaryDto> accSummaryDtoList = accCachFlowRepositore.getAccsWithTotalValues();
+//        return accSummaryDtoList;
+//    }
 
-    public List<AccSummaryDto> getAccsWithSumOnMaxDate() {
-        List<AccSummaryDto> accsWithSumOnMaxDate = accCachFlowRepositore.getAccsWithSumOnMaxDate();
-        return accsWithSumOnMaxDate;
-    }
+//    public List<AccSummaryDto> getAccsWithSumOnMaxDate() {
+//        List<AccSummaryDto> accsWithSumOnMaxDate = accCachFlowRepositore.getAccsWithSumOnMaxDate();
+//        return accsWithSumOnMaxDate;
+//    }
 
     // transaction Service
 
@@ -76,7 +76,7 @@ public class AccService {
         if (curTrancaction == null) {
             log.info("Зберігаємо нову");
         }
-        for (AccTemplateEntry entry : transaction.getEntry()) {
+        for (AccTemplatePosting entry : transaction.getEntry()) {
             if (entry.getUuid() == null) entry.generateUUID();
             entry.setTransaction(transaction);
         }
@@ -89,11 +89,11 @@ public class AccService {
         return transactionRepository.findAll();
     }
 
-    public AccAccounts GetAccByNumder(Long number) {
+    public AccAccountsPlan GetAccByNumder(Long number) {
         return accRepositore.getByAcc(number);
     }
 
-    public void DelAcc(AccAccounts acc) {
+    public void DelAcc(AccAccountsPlan acc) {
         accRepositore.delete(acc);
     }
 

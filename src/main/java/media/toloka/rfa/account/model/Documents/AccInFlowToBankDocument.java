@@ -6,11 +6,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Data;
+import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 
-//@Data
-//@Entity
-public class AccInFlowToBankDocument { //implements PolymorphicTarget {
+@Data
+@Entity
+public class AccInFlowToBankDocument  extends AccBaseEntityDoc implements PolymorphicTarget  { //implements PolymorphicTarget {
 //    @Id
 //    @Expose
 //    private String uuid;
@@ -20,8 +21,8 @@ public class AccInFlowToBankDocument { //implements PolymorphicTarget {
 //    @Expose
 //    private Long docNumber; // Номер документа
 
-//    @Override
-//    public String getTypeCode() {
-//        return "FLOWTOBANK";
-//    }
+    @Override
+    public String getTypeCode() {
+        return "FLOWTOBANK";
+    }
 }

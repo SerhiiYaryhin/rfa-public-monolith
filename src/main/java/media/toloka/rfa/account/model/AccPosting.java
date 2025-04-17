@@ -1,6 +1,6 @@
 package media.toloka.rfa.account.model;
-/// рух коштів по рахункам, які здійсьнює конкретна проводка
-
+///  проводка.
+///  повинна враховувати вид рах
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,24 +10,17 @@ import media.toloka.rfa.account.model.accEnum.EAccJobType;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-@Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id")})
-public class AccCashFlow extends AccBaseEntityDoc  {
-
-    @Expose
-    @Column(precision = 12, scale = 2)
-    private BigDecimal value;
+public class AccPosting extends AccBaseEntityDoc {
 
     @Expose
     private EAccJobType jobtype;
-
     @Expose
-    @Column(columnDefinition = "TEXT")
-    private String comments;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal value;
 
     @Expose
     @ToString.Exclude
@@ -40,5 +33,10 @@ public class AccCashFlow extends AccBaseEntityDoc  {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "creditacc")
     private AccAccountsPlan creditacc;
+
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "transaction")
+    private AccTransaction operationSet;
 
 }

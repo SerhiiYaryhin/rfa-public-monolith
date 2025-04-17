@@ -1,17 +1,25 @@
 package media.toloka.rfa.account.model;
+/// Бухгалтерска операція (transaction), що містить проводки (posting)
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Entity
-public class AccOperation {
+@Table(indexes = {
+        @Index(columnList = "uuid"),
+        @Index(columnList = "id")}
+)
+public class AccTransaction {
     @Id
     @Expose
     private String uuid;
@@ -21,36 +29,24 @@ public class AccOperation {
     private Long id;
 
     @Expose
-    private EAccJobType jobtype;
+    private String name;
+
     @Expose
-    @Column(precision = 12, scale = 2)
-    private BigDecimal sum;
+    private String comment;
+
+    @Expose
+    private Date date = new Date();
 
     @Expose
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "debitacc")
-    private AccAccounts debitacc;
-
-    @Expose
-    @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "creditacc")
-    private AccAccounts creditacc;
+    @EqualsAndHashCode.Exclude
+    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    private List<AccPosting> operationList = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "client")
-    private Clientdetail client;
-    @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "operator")
+    @JoinColumn(name = "operator_id")
     private Clientdetail operator;
-
-    @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "set")
-    private AccOperationSet operationSet;
 
     @PrePersist
     public void generateUUID() {
@@ -61,5 +57,4 @@ public class AccOperation {
             this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
         }
     }
-
 }

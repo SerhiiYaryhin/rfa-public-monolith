@@ -6,27 +6,31 @@ import jakarta.persistence.*;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
 import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.util.Date;
 import java.util.UUID;
 
 // Базовий клас
 @MappedSuperclass
-public abstract class AccBaseEntityDoc {
+public abstract class AccBaseEntityDoc implements PolymorphicTarget{
     @Id
     @Expose
     private String uuid;
     @Expose
-    @GeneratedValue
+//    @GeneratedValue
     private Long id;
     @Expose
     private Long docNumber; // Номер документа
     @Expose
+    @LastModifiedDate
     private Date docoperation; // дата проводки
     @Expose
+    @CreatedDate
     private Date docCreate; // дата документа
     @Expose
-    private String name; // найменування документу
+    private String docType = getTypeCode(); // тип документу
     @Expose
     @ManyToOne
     private Clientdetail client; // клієнт
@@ -35,17 +39,20 @@ public abstract class AccBaseEntityDoc {
     private Clientdetail operator; // оператор
     @Expose
     @ManyToOne
-    private AccTemplateTransaction accTT; // типова операція
+    private AccTemplateTransaction accTemplateTransaction = null; // типова операція
 
+    @Override
+    public String getTypeCode() {
+        return null;
+    }
 
-
-//    @PrePersist
-//    public void generateUUID() {
-//        if (uuid == null) {
-//            uuid = UUID.randomUUID().toString();
-//        }
-//        if (this.id == null) {
-//            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
-//        }
-//    }
+    @PrePersist
+    public void generateUUID() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+        if (this.id == null) {
+            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
+        }
+    }
 }

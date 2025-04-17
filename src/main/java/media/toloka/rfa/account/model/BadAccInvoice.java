@@ -9,7 +9,7 @@ import jakarta.persistence.PrePersist;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class AccInvoice extends FatherDocuments  {
+public class BadAccInvoice {
     @Id
     @Expose
     private String uuid;

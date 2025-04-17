@@ -17,37 +17,37 @@ public interface AccCachFlowRepositore extends
     List<AccCashFlow> findAll();
     AccCashFlow getByUuid(String uuid);
 
-    @Query("""
-    SELECT new media.toloka.rfa.account.model.dto.AccSummaryDto(
-        a.uuid,
-        a.id,
-        a.acc,
-        a.accname,
-        a.operationcomment,
-        SUM(f.value)
-    )
-    FROM AccCashFlow f
-    JOIN f.acc a
-    GROUP BY a.uuid, a.id, a.acc, a.accname, a.operationcomment
-    """)
-    List<AccSummaryDto> getAccsWithTotalValues();
+//    @Query("""
+//    SELECT new media.toloka.rfa.account.model.dto.AccSummaryDto(
+//        a.uuid,
+//        a.id,
+//        a.acc,
+//        a.accname,
+//        a.operationcomment,
+//        SUM(f.value)
+//    )
+//    FROM AccCashFlow f
+//    JOIN f.acc a
+//    GROUP BY a.uuid, a.id, a.acc, a.accname, a.operationcomment
+//    """)
+//    List<AccSummaryDto> getAccsWithTotalValues();
 
-    @Query("""
-    SELECT new media.toloka.rfa.account.model.dto.AccSummaryDto(
-        a.uuid,
-        a.id,
-        a.acc,
-        a.accname,
-        a.operationcomment,
-        SUM(f.value)
-    )
-    FROM AccCashFlow f
-    JOIN f.acc a
-    WHERE f.operationdate = (
-        SELECT MAX(f2.operationdate) FROM AccCashFlow f2
-    )
-    GROUP BY a.uuid, a.id, a.acc, a.accname, a.operationcomment
-    """)
-    List<AccSummaryDto> getAccsWithSumOnMaxDate();
+//    @Query("""
+//    SELECT new media.toloka.rfa.account.model.dto.AccSummaryDto(
+//        a.uuid,
+//        a.id,
+//        a.acc,
+//        a.accname,
+//        a.operationcomment,
+//        SUM(f.value)
+//    )
+//    FROM AccCashFlow f
+//    JOIN f.acc a
+//    WHERE f.operationdate = (
+//        SELECT MAX(f2.operationdate) FROM AccCashFlow f2
+//    )
+//    GROUP BY a.uuid, a.id, a.acc, a.accname, a.operationcomment
+//    """)
+//    List<AccSummaryDto> getAccsWithSumOnMaxDate();
 
 }

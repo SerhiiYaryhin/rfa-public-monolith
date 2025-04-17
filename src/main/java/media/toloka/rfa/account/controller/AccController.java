@@ -1,6 +1,6 @@
 package media.toloka.rfa.account.controller;
 
-import media.toloka.rfa.account.model.AccAccounts;
+import media.toloka.rfa.account.model.AccAccountsPlan;
 import media.toloka.rfa.account.service.AccService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -48,7 +48,7 @@ public class AccController {
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
         Page pageStore = accService.GetPageAcc(pageNumber,10);
-        List<AccAccounts> storeList = pageStore.stream().toList();
+        List<AccAccountsPlan> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
 //        int privpage ;
@@ -83,16 +83,16 @@ public class AccController {
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        AccAccounts curacc = accService.GetAccAccountByUUID(uuid);
+        AccAccountsPlan curacc = accService.GetAccAccountByUUID(uuid);
         if (curacc == null) {
             // Записали інцендент до історії
-            curacc = new AccAccounts();
+            curacc = new AccAccountsPlan();
 //            curacc.setAcc(123L);
 //            curacc.setAccname("Name");
 //            curacc.setOperationcomment("=============================");
         }
 
-        List<AccAccounts> listAcc = accService.GetListAccounts();
+        List<AccAccountsPlan> listAcc = accService.GetListAccounts();
 
         model.addAttribute("currentPage", page );
         model.addAttribute("listacc", listAcc);
@@ -107,7 +107,7 @@ public class AccController {
     public String PostFormEditAccount (
             @PathVariable String uuid,
             @PathVariable Integer pageNumber,
-            @ModelAttribute AccAccounts acc,
+            @ModelAttribute AccAccountsPlan acc,
             @NotNull Model model) {
         // взяли поточного користувача
         Users user = clientService.GetCurrentUser();
@@ -129,12 +129,12 @@ public class AccController {
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        List<AccAccounts> listAcc = accService.GetListAccounts();
+        List<AccAccountsPlan> listAcc = accService.GetListAccounts();
 
         accService.GetListAccounts();
 
         Page pageStore = accService.GetPageAcc(pageNumber,10);
-        List<AccAccounts> storeList = pageStore.stream().toList();
+        List<AccAccountsPlan> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
         int privpage ;
@@ -169,11 +169,11 @@ public class AccController {
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
-        AccAccounts acc = accService.GetAccAccountByUUID(uuid);
+        AccAccountsPlan acc = accService.GetAccAccountByUUID(uuid);
         accService.DelAcc(acc);
 
         Page pageStore = accService.GetPageAcc(0,10);
-        List<AccAccounts> storeList = pageStore.stream().toList();
+        List<AccAccountsPlan> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
 //        int privpage ;

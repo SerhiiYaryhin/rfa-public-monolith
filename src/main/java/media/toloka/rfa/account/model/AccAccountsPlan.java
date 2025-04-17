@@ -1,11 +1,14 @@
 package media.toloka.rfa.account.model;
-
+/// Довідник.
+/// перелік наявних рахунків
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import media.toloka.rfa.account.model.accEnum.AccActivePassive;
+import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
-import java.util.UUID;
-
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(
@@ -19,29 +22,23 @@ import java.util.UUID;
                 @UniqueConstraint(columnNames = {"id"})
         }
 )
-public class AccAccounts {
-    @Id
-    @Expose
-    private String uuid = UUID.randomUUID().toString();
-
-    @Expose
-    @GeneratedValue
-    private Long id;
+public class AccAccountsPlan extends AccBaseEntityDoc {
+//    @Id
+//    @Expose
+//    private String uuid = UUID.randomUUID().toString();
+//
+//    @Expose
+//    @GeneratedValue
+//    private Long id;
 
     @Expose
     private Long acc;
+    @Expose
+    private AccActivePassive accType; // пасивний, активний, астивно-пасивний
     @Expose
     private String accname;
     @Expose
     private String operationcomment;
 
-    @PrePersist
-    public void generateUUID() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID().toString();
-        }
-        if (this.id == null) {
-            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
-        }
-    }
+
 }

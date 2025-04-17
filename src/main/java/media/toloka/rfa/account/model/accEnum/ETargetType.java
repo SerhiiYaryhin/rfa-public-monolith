@@ -1,12 +1,7 @@
-package media.toloka.rfa.account.model.polymorphing.accDocEnum;
+package media.toloka.rfa.account.model.accEnum;
 
 
-import media.toloka.rfa.account.model.Documents.AccInFlowToBankDocument;
-import media.toloka.rfa.account.model.Documents.AccOrderedWorkDocument;
-import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
-import media.toloka.rfa.account.model.AccInvoice;
-
-public enum TargetType {
+public enum ETargetType {
 //    USER("FLOWTOBANK", "Приход від клієнта", AccInFlowToBankDocument.class),
 //    INVOICE("INVOICE", "Рахунок клієнту", AccInvoice.class),
 //    PROJECT("ORDERWORK", "Замовлення роботи", AccOrderedWorkDocument.class);

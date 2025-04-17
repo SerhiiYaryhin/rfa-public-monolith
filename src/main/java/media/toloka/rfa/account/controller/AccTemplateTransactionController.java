@@ -1,7 +1,7 @@
 package media.toloka.rfa.account.controller;
 
 import lombok.RequiredArgsConstructor;
-import media.toloka.rfa.account.model.AccTemplateEntry;
+import media.toloka.rfa.account.model.AccTemplatePosting;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
 import media.toloka.rfa.account.service.AccService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class AccTemplateTransactionController {
 
     @PostMapping("/acc/templatetransactionsave/")
     public String save(@ModelAttribute("transaction") AccTemplateTransaction transaction) {
-        for (AccTemplateEntry curentry : transaction.getEntry()) {
+        for (AccTemplatePosting curentry : transaction.getEntry()) {
             curentry.setDebitacc( accService.GetAccByNumder(curentry.getDebit()) );
             curentry.setCreditacc( accService.GetAccByNumder(curentry.getCredit()) );
         }

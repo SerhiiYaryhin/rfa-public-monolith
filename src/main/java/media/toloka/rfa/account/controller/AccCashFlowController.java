@@ -42,9 +42,9 @@ public class AccCashFlowController {
 //        Clientdetail cd = user.getClientdetail();
         Clientdetail operator = clientService.GetClientDetailByUser(user);
 
-        List<AccSummaryDto> accCachFlowList = accService.getAccsWithSumOnMaxDate();
+//        List<AccSummaryDto> accCachFlowList = accService.getAccsWithSumOnMaxDate();
 
-        model.addAttribute("viewList", accCachFlowList );
+//        model.addAttribute("viewList", accCachFlowList );
         model.addAttribute("operatorcd", operator);
         return "/acc/operations";
     }

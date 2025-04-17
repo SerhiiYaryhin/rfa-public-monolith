@@ -1,5 +1,5 @@
 package media.toloka.rfa.account.model;
-
+///  Типова операція (transaction) з типовими проводками (posting)
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -25,7 +25,7 @@ public class AccTemplateTransaction {
 
     @Expose
     @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AccTemplateEntry> entry;
+    private List<AccTemplatePosting> entry;
 
     @PrePersist
     public void generateUUID() {
