@@ -42,6 +42,7 @@
                 <thead>
                 <tr>
                     <th scope="col">Рахунок</th>
+                    <th scope="col">Тип</th>
                     <th scope="col">Назва</th>
                     <th scope="col">Опис</th>
                     <th scope="col">Дія</th>
@@ -53,10 +54,13 @@
                         <span th:if="${lstt.acc} != null" th:text="${lstt.acc}"></span>
                     </td>
                     <td>
-                        <span th:if="${lstt.accname} != null" th:text="${lstt.accname}"/>
+                        <span th:if="${lstt.accType.label} != null" th:text="${lstt.accType.label}"/>
                     </td>
                     <td>
-                        <span th:if="${lstt.operationcomment} != null" th:text="${lstt.operationcomment} "/>
+                        <span th:if="${lstt.accName} != null" th:text="${lstt.accName}"/>
+                    </td>
+                    <td>
+                        <span th:if="${lstt.comment} != null" th:text="${lstt.comment} "/>
                     </td>
                     <td>
 

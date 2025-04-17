@@ -19,12 +19,13 @@ public class AccOperationService {
     @Autowired
     private AccRepositore accRepositore;
 
-    @Autowired
-    private AccCachFlowRepositore accCachFlowRepositore;
+//    @Autowired
+//    private AccCachFlowRepositore accCachFlowRepositore;
 
     @Autowired
     private final AccTemplateTransactionRepositore transactionRepository;
 
+    /// проводка документу
     public void RunOperation(AccTemplateTransaction accTT, BigDecimal value, Clientdetail cd, Clientdetail operatorCD, Boolean mode) {
 //        for (AccTemplateEntry accTE : accTT.getEntry()) {
 //            AccCashFlow accCF = new AccCashFlow();

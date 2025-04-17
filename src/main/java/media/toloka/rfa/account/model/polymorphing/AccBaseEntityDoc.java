@@ -53,8 +53,8 @@ public abstract class AccBaseEntityDoc implements PolymorphicTarget{
 
     @PrePersist
     public void generateUUID() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID().toString();
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
         }
         if (this.id == null) {
             this.id = System.currentTimeMillis(); // Метод для генерації унікального ID

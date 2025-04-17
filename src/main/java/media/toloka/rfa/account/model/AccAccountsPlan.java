@@ -5,8 +5,10 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import media.toloka.rfa.account.model.accEnum.AccActivePassive;
+import media.toloka.rfa.account.model.accEnum.EAccActivePassive;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
+
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -23,22 +25,24 @@ import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
         }
 )
 public class AccAccountsPlan extends AccBaseEntityDoc {
-//    @Id
-//    @Expose
-//    private String uuid = UUID.randomUUID().toString();
-//
-//    @Expose
-//    @GeneratedValue
-//    private Long id;
 
     @Expose
-    private Long acc;
+    private Integer acc;
     @Expose
-    private AccActivePassive accType; // пасивний, активний, астивно-пасивний
+    private EAccActivePassive accType; // пасивний, активний, астивно-пасивний
     @Expose
-    private String accname;
+    private String accName;
     @Expose
     private String comment;
 
-
+//    @PrePersist
+//    @Override
+//    public void generateUUID() {
+//        if (this.uuid == null) {
+//            this.uuid = UUID.randomUUID().toString();
+//        }
+//        if (this.id == null) {
+//            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
+//        }
+//    }
 }

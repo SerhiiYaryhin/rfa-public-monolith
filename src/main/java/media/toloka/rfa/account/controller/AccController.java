@@ -1,9 +1,11 @@
 package media.toloka.rfa.account.controller;
 
 import media.toloka.rfa.account.model.AccAccountsPlan;
+import media.toloka.rfa.account.model.accEnum.EAccActivePassive;
 import media.toloka.rfa.account.service.AccService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.newstoradio.model.ENewsVoice;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.jetbrains.annotations.NotNull;
@@ -12,13 +14,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+
+@RequestMapping("/acc")
 @Controller
 public class AccController {
 
@@ -29,7 +33,7 @@ public class AccController {
     private AccService accService;
 
 
-    @GetMapping("/acc/acc/{pageNumber}")
+    @GetMapping("/acc/{pageNumber}")
     public String showForm(
             @PathVariable int pageNumber,
             @NotNull Model model) {
@@ -49,6 +53,7 @@ public class AccController {
 
         Page pageStore = accService.GetPageAcc(pageNumber,10);
         List<AccAccountsPlan> storeList = pageStore.stream().toList();
+        List<EAccActivePassive> eAccActivePassives = Arrays.asList(EAccActivePassive.values());
 
 //        model.addAttribute("trackList", trackList );
 //        int privpage ;
@@ -59,6 +64,7 @@ public class AccController {
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage", pageNumber );
+        model.addAttribute("eAccActivePassives", eAccActivePassives );
         model.addAttribute("viewList", storeList );
         model.addAttribute("pagetrack", pageStore );
         model.addAttribute("operatorcd", operatorcd);
@@ -66,7 +72,7 @@ public class AccController {
     }
 
     /// Редагування рахунку
-    @GetMapping("/acc/editacc/{page}/{uuid}")
+    @GetMapping("/editacc/{page}/{uuid}")
     public String GetFormEditAccount(
             @PathVariable String uuid,
             @PathVariable Integer page,
@@ -87,15 +93,25 @@ public class AccController {
         if (curacc == null) {
             // Записали інцендент до історії
             curacc = new AccAccountsPlan();
+            if (curacc.getUuid() == null) {
+                curacc.setUuid(UUID.randomUUID().toString());
+            }
+            if (curacc.getId() == null) {
+                curacc.setId(System.currentTimeMillis()); // Метод для генерації унікального ID
+            }
+            curacc.setOperator( clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
+            curacc.setDocCreate(new Date());
 //            curacc.setAcc(123L);
 //            curacc.setAccname("Name");
 //            curacc.setOperationcomment("=============================");
         }
 
         List<AccAccountsPlan> listAcc = accService.GetListAccounts();
+        List<EAccActivePassive> eAccActivePassives = Arrays.asList(EAccActivePassive.values());
 
         model.addAttribute("currentPage", page );
         model.addAttribute("listacc", listAcc);
+        model.addAttribute("eAccActivePassives", eAccActivePassives);
         model.addAttribute("operatorcd", operatorcd);
         model.addAttribute("curacc", curacc);
         return "/acc/editacc";
@@ -103,7 +119,7 @@ public class AccController {
 
     /// Збереження змін в рахунку
 //    @PostMapping("/acc/editacc/{}/{uuid}")
-    @PostMapping("/acc/editbox/{pageNumber}/{uuid}")
+    @PostMapping("/editbox/{pageNumber}/{uuid}")
     public String PostFormEditAccount (
             @PathVariable String uuid,
             @PathVariable Integer pageNumber,
@@ -152,7 +168,7 @@ public class AccController {
     }
 
     /// Видалити рахунок
-    @GetMapping("/acc/delacc/{uuid}")
+    @GetMapping("/delacc/{uuid}")
     public String PostFormDelAccount (
             @PathVariable String uuid,
             @NotNull Model model) {

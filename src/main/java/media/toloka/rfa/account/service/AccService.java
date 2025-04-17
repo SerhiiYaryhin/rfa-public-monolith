@@ -6,23 +6,30 @@ import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.account.model.AccAccountsPlan;
 import media.toloka.rfa.account.model.AccTemplatePosting;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
-import media.toloka.rfa.account.model.dto.AccSummaryDto;
+import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 import media.toloka.rfa.account.repository.AccCachFlowRepositore;
 import media.toloka.rfa.account.repository.AccRepositore;
 import media.toloka.rfa.account.repository.AccTemplateEntryRepositore;
 import media.toloka.rfa.account.repository.AccTemplateTransactionRepositore;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AccService {
+
+    @Autowired
+    private ClientService clientService;
 
     @Autowired
     private AccRepositore accRepositore;
@@ -31,7 +38,7 @@ public class AccService {
     private AccCachFlowRepositore accCachFlowRepositore;
 
     @Autowired
-    private final AccTemplateTransactionRepositore transactionRepository;
+    private final AccTemplateTransactionRepositore accTemplateTransactionRepositore;
 
     @Autowired
     private final AccTemplateEntryRepositore entryRepository;
@@ -49,6 +56,10 @@ public class AccService {
     }
 
     public AccAccountsPlan Save(AccAccountsPlan acc) {
+        if (acc.getUuid() == null) acc.setUuid(UUID.randomUUID().toString());
+        if (acc.getId() == null) acc.setId(System.currentTimeMillis()); // Метод для генерації унікального ID
+        if (acc.getDocCreate() == null) acc.setDocCreate(new Date());
+        acc.setOperator( clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
         return accRepositore.save(acc);
     }
 
@@ -80,13 +91,13 @@ public class AccService {
             if (entry.getUuid() == null) entry.generateUUID();
             entry.setTransaction(transaction);
         }
-        transactionRepository.save(transaction);
+        accTemplateTransactionRepositore.save(transaction);
         entryRepository.saveAll(transaction.getEntry());
     }
 
 
     public List<AccTemplateTransaction> findAllTransaction() {
-        return transactionRepository.findAll();
+        return accTemplateTransactionRepositore.findAll();
     }
 
     public AccAccountsPlan GetAccByNumder(Long number) {
@@ -98,6 +109,6 @@ public class AccService {
     }
 
     public AccTemplateTransaction GetTemplareTransaction(String uuid) {
-       return transactionRepository.getByUuid(uuid);
+       return accTemplateTransactionRepositore.getByUuid(uuid);
     }
 }

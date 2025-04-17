@@ -27,10 +27,17 @@
                 <input type="text" th:field="*{acc}" class="form-control" placeholder="Номер">
             </div>
             <div class="col-2">
-                <input type="text" th:field="*{accname}" class="form-control" placeholder="Назва">
+                <input type="text" th:field="*{accName}" class="form-control" placeholder="Назва">
+            </div>
+            <div class="col-2">
+            <span>Тип рахунку:</span> <span th:if="${#lists.isEmpty(eAccActivePassives)}" th:text="' Станції відсутні'"/>
+                <select th:field="*{accType}">
+                    <option th:each="ft : ${eAccActivePassives}"
+                            th:value="${ft}" th:text="${ft.label}"></option>
+                </select>
             </div>
             <div class="col-8">
-                <input type="text"  th:field="*{operationcomment}" class="form-control" placeholder="Коментар">
+                <input type="text"  th:field="*{comment}" class="form-control" placeholder="Коментар">
             </div>
         </div>
         <hr>
