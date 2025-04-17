@@ -28,10 +28,13 @@ public abstract class AccBaseEntityDoc {
     @Expose
     private String name; // найменування документу
     @Expose
+    @ManyToOne
     private Clientdetail client; // клієнт
     @Expose
+    @ManyToOne
     private Clientdetail operator; // оператор
     @Expose
+    @ManyToOne
     private AccTemplateTransaction accTT; // типова операція
 
 

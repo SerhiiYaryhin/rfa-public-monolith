@@ -40,7 +40,7 @@ public class AccTemplateTransactionController {
         transaction = accService.GetTemplareTransaction(uuid);
         if (transaction == null) {
             transaction = new AccTemplateTransaction();
-            transaction.setEntry(new ArrayList<>());
+            transaction.setAccentry(new ArrayList<>());
         }
         model.addAttribute("transaction", transaction);
         return "/acc/template-form.html";
@@ -48,7 +48,7 @@ public class AccTemplateTransactionController {
 
     @PostMapping("/acc/templatetransactionsave/")
     public String save(@ModelAttribute("transaction") AccTemplateTransaction transaction) {
-        for (AccTemplateEntry curentry : transaction.getEntry()) {
+        for (AccTemplateEntry curentry : transaction.getAccentry()) {
             curentry.setDebitacc( accService.GetAccByNumder(curentry.getDebit()) );
             curentry.setCreditacc( accService.GetAccByNumder(curentry.getCredit()) );
         }

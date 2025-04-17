@@ -28,10 +28,10 @@ public class AccOperationService {
     @Autowired
     private final AccTemplateTransactionRepositore transactionRepository;
 
-    public void RunOperation(AccTemplateTransaction accTT, BigDecimal value, Clientdetail cd, Clientdetail operatorCD, Boolean mode) {
+//    public void RunOperation(AccTemplateTransaction accTT, BigDecimal value, Clientdetail cd, Clientdetail operatorCD, Boolean mode) {
 //        for (AccTemplateEntry accTE : accTT.getEntry()) {
 //            AccCashFlow accCF = new AccCashFlow();
 //            accCF.setAcc();
 //        }
-    }
+//    }
 }

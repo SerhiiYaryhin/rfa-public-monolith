@@ -72,16 +72,16 @@ public class AccService {
     @Transactional
     public void SaveTransaction(AccTemplateTransaction transaction) {
 //        if (transaction.getUuid() == null) transaction.generateUUID();
-        AccTemplateTransaction curTrancaction = GetTemplareTransaction(transaction.getUuid());
-        if (curTrancaction == null) {
+        AccTemplateTransaction curTransaction = GetTemplareTransaction(transaction.getUuid());
+        if (curTransaction == null) {
             log.info("Зберігаємо нову");
         }
-        for (AccTemplateEntry entry : transaction.getEntry()) {
+        for (AccTemplateEntry entry : transaction.getAccentry()) {
             if (entry.getUuid() == null) entry.generateUUID();
-            entry.setTransaction(transaction);
+            entry.setAcctransaction(transaction);
         }
         transactionRepository.save(transaction);
-        entryRepository.saveAll(transaction.getEntry());
+        entryRepository.saveAll(transaction.getAccentry());
     }
 
 

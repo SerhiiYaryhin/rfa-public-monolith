@@ -13,7 +13,7 @@ import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 public class AccActCompletedWorkDocument extends AccBaseEntityDoc implements PolymorphicTarget  {
 
     @Expose
-    private String test;
+    private String test = "************";
 
 
     @Override
