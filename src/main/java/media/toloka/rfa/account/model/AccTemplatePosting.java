@@ -3,18 +3,16 @@ package media.toloka.rfa.account.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccTemplatePosting {
-    @Id
-    @Expose
-    private String uuid;
-    @Expose
-    private Long id;
+public class AccTemplatePosting extends AccBaseEntityDoc {
 
     @Expose
     private Long debit;
@@ -43,13 +41,4 @@ public class AccTemplatePosting {
     @JoinColumn(name = "transaction") // <-- SQL-стовпець
     private AccTemplateTransaction transaction;
 
-    @PrePersist
-    public void generateUUID() {
-        if (uuid == null) {
-            uuid = UUID.randomUUID().toString();
-        }
-        if (this.id == null) {
-            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
-        }
-    }
 }

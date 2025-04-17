@@ -1,24 +1,26 @@
 package media.toloka.rfa.account.model.Documents;
-// замовлення на виконання роботи
+// Рахунок на сплату
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import media.toloka.rfa.account.model.AccAccountsPlan;
+import media.toloka.rfa.account.model.AccGoodsReference;
 import media.toloka.rfa.account.model.AccMeasurementReference;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
-import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
-import media.toloka.rfa.radio.model.Clientdetail;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccOrderedWorkDocument  extends AccBaseEntityDoc implements PolymorphicTarget  {
+public class AccInvoiceTable extends AccBaseEntityDoc {
+
+    @Expose
+    @OneToMany  // (mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccGoodsReference> accGoodReferences;
 
     @Expose
     @ManyToOne
@@ -30,21 +32,15 @@ public class AccOrderedWorkDocument  extends AccBaseEntityDoc implements Polymor
     @Column(precision = 12, scale = 2)
     private BigDecimal price;
 
-    //
-    @Expose
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer")
-    private Clientdetail customer;
-
-    // типова транзакція
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "templatetransaction")
-    private AccAccountsPlan templatetransaction;
+    @JoinColumn(name = "invoice") // <-- SQL-стовпець
+    private AccInvoiceDocument invoice;
+
 
     @Override
     public String getTypeCode() {
-        return "ORDERWORK";
+        return "INVOICE";
     }
 }

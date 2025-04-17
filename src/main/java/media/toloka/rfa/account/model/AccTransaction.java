@@ -40,12 +40,13 @@ public class AccTransaction {
     @Expose
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+//    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     private List<AccPosting> operationList = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "operator_id")
+    @JoinColumn(name = "operator")
     private Clientdetail operator;
 
     @PrePersist

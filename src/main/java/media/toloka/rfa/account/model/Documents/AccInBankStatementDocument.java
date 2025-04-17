@@ -1,6 +1,7 @@
 package media.toloka.rfa.account.model.Documents;
-/// Акт Виконаних робіт
-/// формується на підставі окремих виконаних робіт
+/// Банківська виписка
+/// надходження грошей на рахунок
+
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -12,26 +13,23 @@ import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 
 import java.util.List;
 
-
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccActCompletedWorkDocument extends AccBaseEntityDoc implements PolymorphicTarget  {
+public class AccInBankStatementDocument extends AccBaseEntityDoc implements PolymorphicTarget  { //implements PolymorphicTarget {
 
     @Expose
-    @ToString.Exclude
-    @OneToMany(mappedBy = "act", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AccActCompletedWorkTable> completedWorkList;
-// типова транзакція
+    @OneToMany(mappedBy = "statementdocument", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccInBankStatementTable> statementTableList;
+    // типова транзакція
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "templatetransaction")
     private AccAccountsPlan templatetransaction;
 
-
     @Override
     public String getTypeCode() {
-        return "ACTCOMPLETEWORK";
+        return "FLOWTOBANK";
     }
 }

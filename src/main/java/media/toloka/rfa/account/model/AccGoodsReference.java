@@ -8,12 +8,11 @@ import lombok.EqualsAndHashCode;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccGoods extends AccBaseEntityDoc {
+public class AccGoodsReference extends AccBaseEntityDoc {
 //    @Id
 //    @Expose
 //    private String uuid;
@@ -29,10 +28,10 @@ public class AccGoods extends AccBaseEntityDoc {
     @Expose
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "measurement")
-    private AccReferenceMeasurement measurement;
-    @Expose
-    @Column(precision = 12, scale = 3)
-    private BigDecimal quantity;
+    private AccMeasurementReference measurement;
+//    @Expose
+//    @Column(precision = 12, scale = 3)
+//    private BigDecimal quantity;
     @Expose
     @Column(precision = 12, scale = 2)
     private BigDecimal price;

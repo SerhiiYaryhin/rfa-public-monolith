@@ -22,6 +22,9 @@ public class AccPosting extends AccBaseEntityDoc {
     @Expose
     @Column(precision = 12, scale = 2)
     private BigDecimal value;
+    @Expose
+    @Column(precision = 12, scale = 3)
+    private BigDecimal quantity;
 
     @OneToMany(mappedBy = "accPosting", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccPostingAtomic> accPostingAtomicList;
@@ -41,6 +44,6 @@ public class AccPosting extends AccBaseEntityDoc {
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "transaction")
-    private AccTransaction operationSet;
+    private AccTransaction transaction;
 
 }

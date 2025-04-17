@@ -3,6 +3,7 @@ package media.toloka.rfa.account.model.polymorphing;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
+import lombok.Data;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
 import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.UUID;
 
 // Базовий клас
+@Data
 @MappedSuperclass
 public abstract class AccBaseEntityDoc implements PolymorphicTarget{
     @Id
@@ -33,13 +35,16 @@ public abstract class AccBaseEntityDoc implements PolymorphicTarget{
     private String docType = getTypeCode(); // тип документу
     @Expose
     @ManyToOne
-    private Clientdetail client; // клієнт
+    private Clientdetail customer; // клієнт
     @Expose
     @ManyToOne
     private Clientdetail operator; // оператор
-    @Expose
-    @ManyToOne
-    private AccTemplateTransaction accTemplateTransaction = null; // типова операція
+
+// прибрав, бо це є не у всіх таблицях. Потрібно тільки в документах
+// Виніс у ті таблиці, в яких це потрібно
+//    @Expose
+//    @ManyToOne
+//    private AccTemplateTransaction accTemplateTransaction = null; // типова операція
 
     @Override
     public String getTypeCode() {

@@ -13,16 +13,12 @@ public class AccTemplateTransaction {
     @Id
     @Expose
     private String uuid;
-
     @Expose
     private Long id;
-
     @Expose
     private String name;
-
     @Expose
     private String comment;
-
     @Expose
     @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccTemplatePosting> entry;

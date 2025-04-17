@@ -1,12 +1,11 @@
 package media.toloka.rfa.account.model.Documents;
-// замовлення на виконання роботи
+// надходження грошей на рахунок
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import media.toloka.rfa.account.model.AccAccountsPlan;
 import media.toloka.rfa.account.model.AccMeasurementReference;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
@@ -18,33 +17,31 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccOrderedWorkDocument  extends AccBaseEntityDoc implements PolymorphicTarget  {
+public class AccInBankStatementTable extends AccBaseEntityDoc {
 
     @Expose
-    @ManyToOne
-    private AccMeasurementReference measurement;
-    @Expose
-    @Column(precision = 12, scale = 3)
-    private BigDecimal quantity;
+    private Date datePosting;
     @Expose
     @Column(precision = 12, scale = 2)
-    private BigDecimal price;
-
-    //
+    private BigDecimal value;
     @Expose
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer")
-    private Clientdetail customer;
+    private String documentType = null;
+    @Expose
+    private String documentUuid = null;
+    @Expose
+    private String comment = null;
+    @Expose
+    @ManyToOne
+    private Clientdetail payer;
 
-    // типова транзакція
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "templatetransaction")
-    private AccAccountsPlan templatetransaction;
+    @JoinColumn(name = "statementdocument") // <-- SQL-стовпець
+    private AccInBankStatementDocument statementdocument;
 
     @Override
     public String getTypeCode() {
-        return "ORDERWORK";
+        return "BankStatement";
     }
 }

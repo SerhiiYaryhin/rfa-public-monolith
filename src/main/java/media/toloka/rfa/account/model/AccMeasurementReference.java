@@ -1,5 +1,5 @@
 package media.toloka.rfa.account.model;
-
+/// Довідник одиниць виміру
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,7 +9,7 @@ import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccReferenceMeasurement extends AccBaseEntityDoc {
+public class AccMeasurementReference extends AccBaseEntityDoc {
 
     @Expose
     private String name;
