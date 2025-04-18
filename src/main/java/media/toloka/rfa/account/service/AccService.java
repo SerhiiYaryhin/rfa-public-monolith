@@ -47,7 +47,7 @@ public class AccService {
         return null; //accRepositore.findAll();
     }
 
-    public AccAccountsPlan GetAccAccountByUUID(String uuid) {
+    public AccAccountsPlan GetAccAccountByUUID(UUID uuid) {
         return accRepositore.getByUuid(uuid);
     }
 
@@ -56,7 +56,7 @@ public class AccService {
     }
 
     public AccAccountsPlan Save(AccAccountsPlan acc) {
-        if (acc.getUuid() == null) acc.setUuid(UUID.randomUUID().toString());
+        if (acc.getUuid() == null) acc.setUuid(UUID.randomUUID());
         if (acc.getId() == null) acc.setId(System.currentTimeMillis()); // Метод для генерації унікального ID
         if (acc.getDocCreate() == null) acc.setDocCreate(new Date());
         acc.setOperator( clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
@@ -109,6 +109,6 @@ public class AccService {
     }
 
     public AccTemplateTransaction GetTemplareTransaction(String uuid) {
-       return accTemplateTransactionRepositore.getByUuid(uuid);
+       return accTemplateTransactionRepositore.getByUuid(UUID.fromString(uuid));
     }
 }

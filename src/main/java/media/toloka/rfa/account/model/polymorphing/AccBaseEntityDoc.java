@@ -7,6 +7,7 @@ import lombok.Data;
 import media.toloka.rfa.account.model.AccTemplateTransaction;
 import media.toloka.rfa.account.model.polymorphing.iface.PolymorphicTarget;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -15,11 +16,15 @@ import java.util.UUID;
 
 // Базовий клас
 @Data
-@MappedSuperclass
+@Entity
+//@MappedSuperclass
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AccBaseEntityDoc implements PolymorphicTarget{
     @Id
     @Expose
-    private String uuid;
+    @GeneratedValue
+    @UuidGenerator
+    private UUID uuid;
     @Expose
 //    @GeneratedValue
     private Long id;
@@ -54,7 +59,7 @@ public abstract class AccBaseEntityDoc implements PolymorphicTarget{
     @PrePersist
     public void generateUUID() {
         if (this.uuid == null) {
-            this.uuid = UUID.randomUUID().toString();
+            this.uuid = UUID.randomUUID();
         }
         if (this.id == null) {
             this.id = System.currentTimeMillis(); // Метод для генерації унікального ID

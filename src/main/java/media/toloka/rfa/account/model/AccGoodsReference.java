@@ -6,19 +6,38 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import media.toloka.rfa.account.model.polymorphing.AccBaseEntityDoc;
+import org.hibernate.annotations.UuidGenerator;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 public class AccGoodsReference extends AccBaseEntityDoc {
-//    @Id
-//    @Expose
-//    private String uuid;
-//    @Expose
-//    @GeneratedValue
-//    private Long id;
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    @Expose
+    private UUID uuid;
+    @Expose
+    private Long id;
+    @Expose
+    private Long docNumber; // Номер документа
+    @Expose
+    @LastModifiedDate
+    private Date docoperation; // дата проводки
+    @Expose
+    @CreatedDate
+    private Date docCreate; // дата документа
+    @Expose
+    private String docType = getTypeCode(); // тип документу
+
+    // =====================================================
+
 
     @Expose
     private String name;

@@ -7,15 +7,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface AccCachFlowRepositore extends
-        PagingAndSortingRepository<AccCashFlow, String>,
-        JpaRepository<AccCashFlow, String>
+        PagingAndSortingRepository<AccCashFlow, UUID>,
+        JpaRepository<AccCashFlow, UUID>
 {
 
     /// Перелік в плані рахунків
     List<AccCashFlow> findAll();
-    AccCashFlow getByUuid(String uuid);
+    AccCashFlow getByUuid(UUID uuid);
 
 //    @Query("""
 //    SELECT new media.toloka.rfa.account.model.dto.AccSummaryDto(

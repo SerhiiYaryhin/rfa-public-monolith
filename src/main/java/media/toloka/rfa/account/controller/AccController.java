@@ -89,12 +89,12 @@ public class AccController {
         }
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
-        AccAccountsPlan curacc = accService.GetAccAccountByUUID(uuid);
+        AccAccountsPlan curacc = accService.GetAccAccountByUUID(UUID.fromString(uuid));
         if (curacc == null) {
             // Записали інцендент до історії
             curacc = new AccAccountsPlan();
             if (curacc.getUuid() == null) {
-                curacc.setUuid(UUID.randomUUID().toString());
+                curacc.setUuid(UUID.randomUUID());
             }
             if (curacc.getId() == null) {
                 curacc.setId(System.currentTimeMillis()); // Метод для генерації унікального ID
@@ -185,7 +185,7 @@ public class AccController {
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
-        AccAccountsPlan acc = accService.GetAccAccountByUUID(uuid);
+        AccAccountsPlan acc = accService.GetAccAccountByUUID(UUID.fromString(uuid));
         accService.DelAcc(acc);
 
         Page pageStore = accService.GetPageAcc(0,10);

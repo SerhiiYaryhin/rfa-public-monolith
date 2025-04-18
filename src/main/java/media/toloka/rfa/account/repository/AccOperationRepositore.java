@@ -5,13 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface AccOperationRepositore extends
-        PagingAndSortingRepository<AccPosting, String>, JpaRepository<AccPosting, String>
+        PagingAndSortingRepository<AccPosting, UUID>, JpaRepository<AccPosting, UUID>
 {
 
     /// Перелік в плані рахунків
     List<AccPosting> findAll();
-    AccPosting getByUuid(String uuid);
+    AccPosting getByUuid(UUID uuid);
 
 }
