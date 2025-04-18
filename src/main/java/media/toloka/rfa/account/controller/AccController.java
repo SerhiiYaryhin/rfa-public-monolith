@@ -36,7 +36,7 @@ public class AccController {
 
 
     @GetMapping("/acc/{pageNumber}")
-    public String showForm(
+    public String ShowPageAccList(
             @PathVariable int pageNumber,
             @NotNull Model model) {
         // взяли поточного користувача
