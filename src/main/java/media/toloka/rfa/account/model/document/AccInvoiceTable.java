@@ -7,21 +7,24 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.account.model.base.AccBaseDoc;
+import media.toloka.rfa.account.model.referens.AccGoodsReference;
+import media.toloka.rfa.account.model.referens.AccMeasurementReference;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 public class AccInvoiceTable extends AccBaseDoc {
 
-//    @Expose
-//    @OneToMany  // (mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<AccGoodsReference> accGoodReferences;
-//
-//    @Expose
-//    @ManyToOne
-//    private AccMeasurementReference measurement;
+    @Expose
+    @OneToMany  // (mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccGoodsReference> accGoodReferences;
+
+    @Expose
+    @ManyToOne
+    private AccMeasurementReference measurement;
     @Expose
     @Column(precision = 12, scale = 3)
     private BigDecimal quantity;
