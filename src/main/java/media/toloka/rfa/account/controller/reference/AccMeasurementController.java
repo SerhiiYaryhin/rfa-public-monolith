@@ -6,6 +6,7 @@ import media.toloka.rfa.account.model.referens.AccMeasurementReference;
 import media.toloka.rfa.account.sevice.reference.AccMeasurementService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -38,6 +39,11 @@ public class AccMeasurementController {
         if (cd == null) {
             return "redirect:/";
         }
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
 
         model.addAttribute("measurement", measurmentService.FindAll());
 //        /home/ysv/IdeaProjects/rfa/src/main/resources/templates/acc/reference/goods/list.html
@@ -52,6 +58,11 @@ public class AccMeasurementController {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) {
+            return "redirect:/";
+        }
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
             return "redirect:/";
         }
         AccMeasurementReference measurementReference = new AccMeasurementReference();
@@ -71,6 +82,12 @@ public class AccMeasurementController {
         if (cd == null) {
             return "redirect:/";
         }
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
+
         measurement.setOperator(cd);
         try {
             measurmentService.Save(measurement);
@@ -90,6 +107,12 @@ public class AccMeasurementController {
         if (cd == null) {
             return "redirect:/";
         }
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
+
         var measurement = measurmentService.FindByUiid(uuid).orElseThrow();
         model.addAttribute("measurement", measurement);
         return "/acc/reference/measurement/form";
@@ -105,6 +128,12 @@ public class AccMeasurementController {
         if (cd == null) {
             return "redirect:/";
         }
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
+
         measurmentService.DeleteById(uuid);
         return "redirect:/acc/reference/measurement/list";
     }

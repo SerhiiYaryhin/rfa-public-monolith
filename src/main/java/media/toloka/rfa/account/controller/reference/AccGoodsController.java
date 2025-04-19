@@ -8,6 +8,7 @@ import media.toloka.rfa.account.sevice.reference.AccGoodsService;
 import media.toloka.rfa.account.sevice.reference.AccMeasurementService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -40,7 +41,11 @@ public class AccGoodsController {
         if (user == null) return "redirect:/";
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) return "redirect:/";
-
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
         List<AccGoodsReference> goodsReferenceList = goodsService.FindAll();
         model.addAttribute("goods", goodsReferenceList);
 //        /home/ysv/IdeaProjects/rfa/src/main/resources/templates/acc/reference/goods/list.html
@@ -53,6 +58,11 @@ public class AccGoodsController {
         if (user == null) return "redirect:/";
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) return "redirect:/";
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
         AccGoodsReference goodsReference = new AccGoodsReference();
         goodsReference.setOperator(cd);
 
@@ -68,6 +78,11 @@ public class AccGoodsController {
         if (user == null) return "redirect:/";
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) return "redirect:/";
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
         goods.setOperator(cd);
         try {
             log.info("{}",goods.getUuid());
@@ -86,6 +101,11 @@ public class AccGoodsController {
         if (user == null) return "redirect:/";
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) return "redirect:/";
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
         model.addAttribute("measurementList", measurementService.FindAll());
         model.addAttribute("goods", goods);
         return "/acc/reference/goods/form";
@@ -97,6 +117,11 @@ public class AccGoodsController {
         if (user == null) return "redirect:/";
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) return "redirect:/";
+        // перевірили права для роботи з планом рахунків
+        // Admin та Cheef of Accaunts
+        if (!(clientService.checkRole(user, ERole.ROLE_ADMIN) | clientService.checkRole(user, ERole.ROLE_ACCCHEAF))) {
+            return "redirect:/";
+        }
         goodsService.DeleteById(uuid);
         return "redirect:/acc/reference/goods/list";
     }
