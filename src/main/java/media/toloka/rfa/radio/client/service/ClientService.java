@@ -285,6 +285,10 @@ public class ClientService {
         return false;
     }
 
+    public List<Clientdetail> GetAllClientDetail() {
+        return clientDetailRepository.findAll();
+    }
+
 //    public void SetProfilePhoto(String storeUUID, Clientdetail cd) {
 //        Store storeNewPhoto = storeService.GetStoreByUUID(storeUUID);
 //        if (storeNewPhoto == null) {

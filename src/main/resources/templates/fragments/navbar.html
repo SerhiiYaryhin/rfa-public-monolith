@@ -7,6 +7,24 @@
 <body>
 
 <div th:fragment="navbarUniverse" class="container">
+    <style>
+        /* Субменю */
+        .dropdown-submenu {
+            position: relative;
+        }
+
+        .dropdown-submenu > .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -1px;
+            display: none;
+            position: absolute;
+        }
+
+        .dropdown-submenu:hover > .dropdown-menu {
+            display: block;
+        }
+    </style>
     <nav class="navbar bg-dark navbar-dark fixed-top navbar-expand-lg" id="mainNav">
         <div class="container-fluid">
             <a class="navbar-brand" href="/"><img src="/assets/rfa-logo.png" alt="..."/></a>
@@ -100,12 +118,37 @@
                 <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>
+
                     <ul class="dropdown-menu" aria-labelledby="navbarAcc">
-                        <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>
+
+                        <!-- Підменю "Довідники" -->
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">Довідники</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>
+                                <li><a class="dropdown-item" href="/acc/reference/clients/list">Клієнти</a></li>
+                                <li><a class="dropdown-item" href="/acc/reference/goods/list">Послуги</a></li>
+                                <li><a class="dropdown-item" href="/acc/reference/measurement/list">Одиниці виміру</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Інші пункти -->
                         <li><a class="dropdown-item" href="/acc/transactionlist">Шаблони операцій</a></li>
                         <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>
                     </ul>
-                </li>  <!-- admin -->
+                </li>
+<!--                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">-->
+<!--                    <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"-->
+<!--                       data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>-->
+<!--                    <ul class="dropdown-menu" aria-labelledby="navbarAcc">-->
+<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>-->
+<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Клієнти</a></li>-->
+<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Послуги</a></li>-->
+<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Одиниці виміру</a></li>-->
+<!--                        <li><a class="dropdown-item" href="/acc/transactionlist">Шаблони операцій</a></li>-->
+<!--                        <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>-->
+<!--                    </ul>-->
+<!--                </li>  &lt;!&ndash; admin &ndash;&gt;-->
                 <li class="nav-item"><a class="nav-link" href="/creater/store/0">Сховище
                     <li class="nav-item"><a class="nav-link" href="/chat">Чат
                         <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
