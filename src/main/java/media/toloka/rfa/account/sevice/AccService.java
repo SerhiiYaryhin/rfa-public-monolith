@@ -3,11 +3,9 @@ package media.toloka.rfa.account.sevice;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.account.model.AccAccountsPlan;
-import media.toloka.rfa.account.model.AccTemplatePosting;
-import media.toloka.rfa.account.model.AccTemplateTransaction;
-import media.toloka.rfa.account.repositore.AccAccountsPlanRepositore;
-import media.toloka.rfa.account.repositore.AccTemplateTransactionRepositore;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
+import media.toloka.rfa.account.model.transaction.AccTemplateTransaction;
+import media.toloka.rfa.account.repositore.transaction.AccTemplateTransactionRepositore;
 import media.toloka.rfa.radio.client.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 

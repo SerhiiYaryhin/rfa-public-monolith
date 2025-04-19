@@ -2,8 +2,8 @@ package media.toloka.rfa.account.sevice;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.account.model.AccAccountsPlan;
-import media.toloka.rfa.account.repositore.AccAccountsPlanRepositore;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
+import media.toloka.rfa.account.repositore.transaction.AccAccountsPlanRepositore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

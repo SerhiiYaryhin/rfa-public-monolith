@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.transaction;
 ///  проводка.
 ///  повинна враховувати вид рах
 import com.google.gson.annotations.Expose;
@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.account.model.accEnum.EAccJobType;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -1,6 +1,6 @@
-package media.toloka.rfa.account.repositore;
+package media.toloka.rfa.account.repositore.transaction;
 
-import media.toloka.rfa.account.model.AccTemplateTransaction;
+import media.toloka.rfa.account.model.transaction.AccTemplateTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.repositore;
+package media.toloka.rfa.account.repositore.transaction;
 
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;

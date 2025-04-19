@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Goods Form</title></head>
+<body>
+<h1>Goods Form</h1>
+<form th:action="@{/goods/save}" th:object="${goods}" method="post">
+    <input type="hidden" th:field="*{uuid}"/>
+    <label>Name: <input type="text" th:field="*{name}"/></label><br/>
+    <label>Comments: <textarea th:field="*{comments}"></textarea></label><br/>
+    <label>Quantity: <input type="number" step="0.001" th:field="*{quantity}"/></label><br/>
+    <label>Price: <input type="number" step="0.01" th:field="*{price}"/></label><br/>
+    <!-- Поки без select для measurement -->
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

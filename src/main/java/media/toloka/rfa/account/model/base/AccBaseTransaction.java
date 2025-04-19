@@ -45,8 +45,6 @@ public abstract class AccBaseTransaction implements PolymorphicTarget {
     @Expose
     @CreatedDate
     private Date docCreate; // дата документа
-//    @Expose
-//    private String dtype; // тип документу
     @Expose
     @ManyToOne
     private Clientdetail customer; // клієнт

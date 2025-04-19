@@ -7,17 +7,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import media.toloka.rfa.account.model.AccAccountsPlan;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 import media.toloka.rfa.account.model.accEnum.EAccJobType;
 import media.toloka.rfa.account.model.base.AccBaseDoc;
 import media.toloka.rfa.radio.model.Clientdetail;
-import org.hibernate.annotations.UuidGenerator;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
 @Data

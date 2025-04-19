@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.transaction;
 /// Бухгалтерска операція (transaction), що містить проводки (posting)
 
 import com.google.gson.annotations.Expose;

@@ -1,12 +1,11 @@
-package media.toloka.rfa.account.controller;
+package media.toloka.rfa.account.controller.rtansactiom;
 
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.account.model.AccAccountsPlan;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 import media.toloka.rfa.account.model.accEnum.EAccActivePassive;
 import media.toloka.rfa.account.sevice.AccService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.newstoradio.model.ENewsVoice;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.jetbrains.annotations.NotNull;

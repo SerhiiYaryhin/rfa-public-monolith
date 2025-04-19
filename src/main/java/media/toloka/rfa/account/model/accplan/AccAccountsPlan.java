@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.accplan;
 /// Довідник.
 /// перелік наявних рахунків
 

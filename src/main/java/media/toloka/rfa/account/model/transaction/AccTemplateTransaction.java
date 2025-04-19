@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.transaction;
 ///  Типова операція (transaction) з типовими проводками (posting)
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;

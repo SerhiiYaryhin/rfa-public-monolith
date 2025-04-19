@@ -5,11 +5,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import media.toloka.rfa.account.model.base.AccBaseDoc;
+import media.toloka.rfa.account.model.base.AccBaseReference;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
-public class AccMeasurementReference extends AccBaseDoc {
+public class AccMeasurementReference extends AccBaseReference {
 
     @Expose
     private String name;

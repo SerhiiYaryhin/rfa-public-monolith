@@ -1,4 +1,4 @@
-package media.toloka.rfa.account.model;
+package media.toloka.rfa.account.model.transaction;
 ///  Типова проводка (posting) що міститься в типовій операції (transaction)
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 
 @EqualsAndHashCode(callSuper = false)
 @Data

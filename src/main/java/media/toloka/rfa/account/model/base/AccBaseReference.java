@@ -20,7 +20,7 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
-public abstract class AccBaseDoc implements PolymorphicTarget {
+public abstract class AccBaseReference implements PolymorphicTarget {
     @Id
     @Expose
     @GeneratedValue
