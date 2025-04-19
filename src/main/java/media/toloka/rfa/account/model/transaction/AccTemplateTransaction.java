@@ -3,10 +3,12 @@ package media.toloka.rfa.account.model.transaction;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 public class AccTemplateTransaction extends AccBaseTransaction {
