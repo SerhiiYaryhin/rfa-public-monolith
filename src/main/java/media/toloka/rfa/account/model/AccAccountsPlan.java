@@ -31,6 +31,8 @@ public class AccAccountsPlan extends AccBaseTransaction {
     @Expose
     private Integer acc;
     @Expose
+    private Integer subacc;
+    @Expose
     private EAccActivePassive accType; // пасивний, активний, астивно-пасивний
     @Expose
     private String accName;

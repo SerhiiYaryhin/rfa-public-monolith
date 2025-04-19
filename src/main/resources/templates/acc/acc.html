@@ -50,26 +50,13 @@
                 </thead>
                 <tbody>
                 <tr th:each="lstt : ${viewList}">
+                    <td><span th:if="${lstt.acc} != null" th:text="${lstt.acc}"></span></td>
+                    <td><span th:if="${lstt.accType.label} != null" th:text="${lstt.accType.label}"/></td>
+                    <td> <span th:if="${lstt.accName} != null" th:text="${lstt.accName}"/> </td>
+                    <td> <span th:if="${lstt.comment} != null" th:text="${lstt.comment} "/> </td>
                     <td>
-                        <span th:if="${lstt.acc} != null" th:text="${lstt.acc}"></span>
-                    </td>
-                    <td>
-                        <span th:if="${lstt.accType.label} != null" th:text="${lstt.accType.label}"/>
-                    </td>
-                    <td>
-                        <span th:if="${lstt.accName} != null" th:text="${lstt.accName}"/>
-                    </td>
-                    <td>
-                        <span th:if="${lstt.comment} != null" th:text="${lstt.comment} "/>
-                    </td>
-                    <td>
-
-                        <a
-                                class="btn btn-primary badge rounded-pill"
-                                th:href="@{'/acc/editacc/'+${currentPage}+'/'+${lstt.uuid} }">📝</a>
-                        <a
-                                class="btn btn-primary badge rounded-pill"
-                                th:href="@{'/acc/delacc/'+${lstt.uuid} }">🗑</a>
+                        <a class="btn btn-primary badge rounded-pill" th:href="@{'/acc/editacc/'+${currentPage}+'/'+${lstt.uuid} }">📝</a>
+                        <a class="btn btn-primary badge rounded-pill" th:href="@{'/acc/delacc/'+${lstt.uuid} }">🗑</a>
                     </td>
                 </tr>
                 </tbody>
