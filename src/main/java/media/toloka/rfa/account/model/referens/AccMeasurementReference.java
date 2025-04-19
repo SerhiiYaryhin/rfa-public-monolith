@@ -16,5 +16,5 @@ public class AccMeasurementReference extends AccBaseReference {
     private String name;
     @Expose
     @Column(columnDefinition = "TEXT")
-    private String comments;
+    private String coments;
 }

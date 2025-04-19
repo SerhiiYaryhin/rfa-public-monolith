@@ -10,27 +10,27 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class AccGoodsReferenceService {
+public class AccGoodsService {
 
     private final AccGoodsReferenceRepository repository;
 
-    public AccGoodsReferenceService(AccGoodsReferenceRepository repository) {
+    public AccGoodsService(AccGoodsReferenceRepository repository) {
         this.repository = repository;
     }
 
-    public List<AccGoodsReference> findAll() {
+    public List<AccGoodsReference> FindAll() {
         return repository.findAll();
     }
 
-    public Optional<AccGoodsReference> findByUiid(UUID id) {
+    public Optional<AccGoodsReference> FindByUiid(UUID id) {
         return repository.findById(id);
     }
 
-    public AccGoodsReference save(AccGoodsReference goods) {
+    public AccGoodsReference Save(AccGoodsReference goods) {
         return repository.save(goods);
     }
 
-    public void deleteById(UUID uuid) {
+    public void DeleteById(UUID uuid) {
         repository.deleteById(uuid);
     }
 }

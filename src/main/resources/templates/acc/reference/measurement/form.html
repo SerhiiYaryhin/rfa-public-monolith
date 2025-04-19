@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Goods Form</title></head>
+<body>
+<h1>Goods Form</h1>
+<form th:action="@{/acc/reference/measurement/save}" th:object="${measurement}" method="post">
+    <input type="hidden" th:field="*{uuid}"/>
+    <label>Name: <input type="text" th:field="*{name}"/></label><br/>
+    <label>Comments: <textarea th:field="*{coments}"></textarea></label><br/>
+    <!-- Поки без select для measurement -->
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

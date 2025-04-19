@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Goods List</title></head>
+<body>
+<h1>Goods List</h1>
+<a th:href="@{/acc/reference/measurement/create}">Create New</a>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Comment</th>
+        <th>Actions</th>
+    </tr>
+    <tr th:each="m : ${measurement}">
+        <td th:text="${m.name}">Name</td>
+        <td th:text="${m.coments}">Quantity</td>
+        <td>
+            <a th:href="@{/acc/reference/measurement/edit/{uuid}(uuid=${m.uuid})}">Edit</a> |
+            <a th:href="@{/acc/reference/measurement/delete/{uuid}(uuid=${m.uuid})}">Delete</a>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

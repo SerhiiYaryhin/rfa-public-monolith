@@ -26,18 +26,6 @@ public abstract class AccBaseReference implements PolymorphicTarget {
     @GeneratedValue
     @UuidGenerator
     private UUID uuid;
-//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "doc_number_seq")
-//    @SequenceGenerator(name = "doc_number_seq", sequenceName = "doc_number_seq", allocationSize = 8)
-
-//    @SequenceGenerator(
-//            name = "doc_number_seq",
-//            sequenceName = "doc_number_seq",
-//            allocationSize = 8 // або 8, якщо кешування ок
-//    )
-//    @GeneratedValue(
-//            strategy = GenerationType.SEQUENCE,
-//            generator = "doc_number_seq"
-//    )
     @Expose
     private Long docNumber; // Номер документа
     @Expose
