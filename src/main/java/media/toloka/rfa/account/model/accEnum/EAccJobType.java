@@ -3,9 +3,9 @@ package media.toloka.rfa.account.model.accEnum;
 public enum EAccJobType {
     EACCJOBTYPE_ClientPayment("Оплата від користувача"),
     EACCJOBTYPE_TransferToUserAccount("Поповнення рахунку користувача"),
-    EACCJOBTYPE_PaymentSTT("Оплата послуги голос в текст"),
-    EACCJOBTYPE_PaymentTTS("Оплата послуги текст в голос"),
-    EACCJOBTYPE_PaymentStation("Оплата роботи радіостанції"),
+    EACCJOBTYPE_PaymentSTT("Виконання послуги голос в текст"),
+    EACCJOBTYPE_PaymentTTS("виконання послуги текст в голос"),
+    EACCJOBTYPE_PaymentStation("Робота радіостанції (місяць)"),
     EACCJOBTYPE_Returning_unused("Повернення невикористаних ресурсів клієнту"),
     EACCJOBTYPE_Charity("Благодійність на потреби Толоки"),
     EACCJOBTYPE_TestPperiod("Тестування сервісу"),

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import media.toloka.rfa.account.model.base.AccBaseDoc;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
 import media.toloka.rfa.radio.model.Clientdetail;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -46,5 +47,11 @@ public class AccTransaction extends AccBaseTransaction {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "operator")
     private Clientdetail operator;
+
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "document")
+    private AccBaseDoc document;
+
 
 }

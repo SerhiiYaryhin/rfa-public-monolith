@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import media.toloka.rfa.account.model.base.AccBaseReference;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
 import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 
@@ -32,6 +33,20 @@ public class AccPostingAtomic extends AccBaseTransaction {
     @Expose
     @Column(precision = 12, scale = 2)
     private BigDecimal credit;
+
+    // аналітіка по операції
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "reflink1")
+    private AccBaseReference anomRefLink1;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "reflink2")
+    private AccBaseReference anomRefLink2;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "reflink3")
+    private AccBaseReference anomRefLink3;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)

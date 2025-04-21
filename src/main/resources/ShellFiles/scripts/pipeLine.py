@@ -1,3 +1,8 @@
+# PipeLine створення субтитрів і україномовної озвучки файлу з відео
+#
+#
+#
+
 import os
 import subprocess
 import srt
@@ -18,7 +23,7 @@ def transcribe_video():
     print(">> 🎙️ Транскрипція відео...")
     subprocess.run([
         "whisper", VIDEO_FILE,
-        "--language", "English",
+#        "--language", "English",
         "--model", "medium",
         "--output_format", "srt"
     ])

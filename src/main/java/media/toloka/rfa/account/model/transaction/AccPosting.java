@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.account.model.accEnum.EAccJobType;
+import media.toloka.rfa.account.model.base.AccBaseDoc;
+import media.toloka.rfa.account.model.base.AccBaseReference;
 import media.toloka.rfa.account.model.base.AccBaseTransaction;
 import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
 
@@ -17,28 +19,10 @@ import java.util.List;
 @Data
 @Entity
 public class AccPosting extends AccBaseTransaction {
-//    @Id
-//    @GeneratedValue
-//    @UuidGenerator
-//    @Expose
-//    private UUID uuid;
-//    @Expose
-//    private Long id;
-//    @Expose
-//    private Long docNumber; // Номер документа
-//    @Expose
-//    @LastModifiedDate
-//    private Date docoperation; // дата проводки
-//    @Expose
-//    @CreatedDate
-//    private Date docCreate; // дата документа
-//    @Expose
-//    private String docType = getTypeCode(); // тип документу
-
-    // =====================================================
-
     @Expose
     private EAccJobType jobtype;
+    @Expose
+    private String jobTypeName;
     @Expose
     @Column(precision = 12, scale = 2)
     private BigDecimal value;
@@ -54,12 +38,38 @@ public class AccPosting extends AccBaseTransaction {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "debitacc")
     private AccAccountsPlan debitacc;
+    // аналітіка по дебиту
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "dtreflink1")
+    private AccBaseReference dtRefLink1;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "dtreflink2")
+    private AccBaseReference dtRefLink2;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "dtreflink3")
+    private AccBaseReference dtRefLink3;
 
     @Expose
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "creditacc")
     private AccAccountsPlan creditacc;
+    // аналітіка по кредиту
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "crreflink1")
+    private AccBaseReference crRefLink1;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "crreflink2")
+    private AccBaseReference crRefLink2;
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "crreflink3")
+    private AccBaseReference crRefLink3;
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
