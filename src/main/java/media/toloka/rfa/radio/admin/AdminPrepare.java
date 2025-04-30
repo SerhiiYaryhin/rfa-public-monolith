@@ -1,5 +1,7 @@
 package media.toloka.rfa.radio.admin;
 
+import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Documents;
@@ -16,6 +18,7 @@ import java.util.List;
 
 @Profile("Front")
 @Controller
+@Log
 public class AdminPrepare {
 
     @Autowired
@@ -29,6 +32,7 @@ public class AdminPrepare {
             return "redirect:/";
         }
 
+        log.info("Опрацьовуємо mp3 файли користувача. ");
 
 //        model.addAttribute("clientdetailList", clientdetailList );
         return "/admin/documents";
