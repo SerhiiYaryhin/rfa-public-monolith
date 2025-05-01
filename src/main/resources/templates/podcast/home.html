@@ -70,7 +70,7 @@
                             </a>
                             <span th:if="${podcast.publishing}" class="badge rounded-pill bg-success" th:text="  Опубліковано  ">  Опубліковано  </span>
                             <span th:unless="${podcast.publishing}" class="badge rounded-pill bg-dark"th:text="'  '+Чорнетка+'  '">  Чорнетка  </span>
-                            <a class="mx-auto" th:href="'/podcast/pdel_local/'+${podcast.uuid}"> <!-- посилання на редагування подкасту -->
+                            <a class="mx-auto" th:href="'/podcast/localpodcastdel/'+${podcast.uuid}">
                                 <span class="badge rounded-pill bg-danger">Видалити</span>
                             </a>
                         </div>

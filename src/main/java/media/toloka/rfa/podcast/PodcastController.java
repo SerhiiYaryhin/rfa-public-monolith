@@ -101,9 +101,9 @@ public class PodcastController {
         logger.info("Зайшли на /podcast/view/{}", puuid);
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(puuid);
         if (podcastChannel == null) {
-            logger.info("Пробуємо знайти за Title: {}",puuid); //гугл часто лізе за назвою
-            List<PodcastChannel> podcastChannelList =  podcastService.GetChanelByTitle(puuid);
-            if (podcastChannelList != null ) {
+            logger.info("Пробуємо знайти за Title: {}", puuid); //гугл часто лізе за назвою
+            List<PodcastChannel> podcastChannelList = podcastService.GetChanelByTitle(puuid);
+            if (podcastChannelList != null) {
                 if (podcastChannelList.size() == 1) {
                     podcastChannel = podcastChannelList.get(0);
                 } else {
@@ -145,7 +145,8 @@ public class PodcastController {
         return "redirect:/podcast/home";
     }
 
-    /** Відображаємо Сторінку з переліком наявних та дозволених подкастів на порталі з пагінацією
+    /**
+     * Відображаємо Сторінку з переліком наявних та дозволених подкастів на порталі з пагінацією
      *
      * @param model
      * @return
@@ -162,6 +163,7 @@ public class PodcastController {
 
     /**
      * формуємо RSS feed для конкретного подкасту.
+     *
      * @param puuid UUID подкасту
      * @param model
      * @return String XML RSS FEED
@@ -200,6 +202,7 @@ public class PodcastController {
 
     /**
      * Відображаємо епізод подкасту
+     *
      * @param euuid UUID  епізоду
      * @param model
      * @return /podcast/episode
@@ -211,7 +214,7 @@ public class PodcastController {
             Model model) {
 
         PodcastItem podcastItem = podcastService.GetEpisodeByUUID(euuid);
-        if ( podcastItem == null) {
+        if (podcastItem == null) {
             podcastItem = podcastService.GetEpisodeByTitle(euuid);
         }
         if (podcastItem != null) {
@@ -219,7 +222,7 @@ public class PodcastController {
             return "/podcast/episode";
         } else {
             model.addAttribute("danger", "Щось пішло не так. Такий епізод не існує або, його переміщено .");
-            logger.warn("Отримали UUID епізоду, який не існує: {}",euuid);
+            logger.warn("Отримали UUID епізоду, який не існує: {}", euuid);
         }
         return "/podcast/episode";
     }
@@ -247,8 +250,6 @@ public class PodcastController {
         if (cd == null) {
             return "redirect:/";
         }
-
-
 
 
 //        EntityManagerFactoryInfo info = (EntityManagerFactoryInfo) entityManager.getEntityManagerFactory();
@@ -312,7 +313,7 @@ public class PodcastController {
      * @call podcastService.PutPodcastFromRSS(model, gstrUrl) // саме тут забираємо подкаст
      */    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
     @GetMapping(value = "/podcast/pdel/{puuid}")
-   public String PostPodcastFromRSSUrl(
+    public String PostPodcastFromRSSUrl(
             @PathVariable String puuid,
 //            @ModelAttribute PodcastService.strUrl gstrUrl,
             Model model) {
@@ -330,7 +331,7 @@ public class PodcastController {
             if (pc.getClientdetail().equals(cd.getUuid())) {
                 PodcastService.strUrl gstrUrl; // = new PodcastService.strUrl();
                 gstrUrl = podcastService.GetNewStrurl();
-                logger.info("Видаляємо подкаст імпортований з: {}",pc.getLinktoimporturl());
+                logger.info("Видаляємо подкаст імпортований з: {}", pc.getLinktoimporturl());
                 gstrUrl.setRSSFromUrl(pc.getLinktoimporturl());
                 gstrUrl.setClrpodcast(true);
                 podcastService.PutPodcastFromRSS(model, gstrUrl);
@@ -354,7 +355,7 @@ public class PodcastController {
      * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
      * @call podcastService.PutPodcastFromRSS(model, gstrUrl) // саме тут забираємо подкаст
      */    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
-    @GetMapping(value = "/podcast/pdel_local/{puuid}")
+    @GetMapping(value = "/podcast/localpodcastdel/{puuid}")
     public String PostPodcastDeleteFromRFA(
             @PathVariable String puuid,
 //            @ModelAttribute PodcastService.strUrl gstrUrl,
@@ -367,23 +368,13 @@ public class PodcastController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) {
             return "redirect:/";
-
         }
         PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
         if (pc != null) {
-            if (pc.getClientdetail().equals(cd.getUuid())) {
-                PodcastService.strUrl gstrUrl; // = new PodcastService.strUrl();
-                gstrUrl = podcastService.GetNewStrurl();
-                logger.info("Видаляємо подкаст імпортований з: {}",pc.getLinktoimporturl());
-                gstrUrl.setRSSFromUrl(pc.getLinktoimporturl());
-                gstrUrl.setClrpodcast(true);
-                podcastService.PutPodcastFromRSS(model, gstrUrl);
-                // беремо епізоди подкасту
-                    // видаляємо картинку
-                    // видаляємо звук
-                    // видаляємо епізод
-                // видаляємо подкаст
-
+            if (pc.getClientdetail().equals(cd.getUuid())) { // якщо подкаст належить цьому користувачу, то чистимо його
+                if (!podcastService.ClearAndDeletePodcastChanel(pc)) {
+                    model.addAttribute("danger", "Подкаст не Видалено.");
+                }
             } else {
                 logger.info("Намагаємося видалити не свій подкаст");
             }

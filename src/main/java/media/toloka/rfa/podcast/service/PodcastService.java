@@ -445,7 +445,7 @@ public class PodcastService {
     /**
      * Завантажуємо подкаст на наш сервер
      * @param model
-     * @param gstrUrl в цьому класі міститься String з адресою RSS та різні прапоці.
+     * @param gstrUrl в цьому класі міститься String з адресою RSS та різні прапорці.
      */
     public void PutPodcastFromRSS(Model model, strUrl gstrUrl) {
 

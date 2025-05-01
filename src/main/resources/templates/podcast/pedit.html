@@ -107,10 +107,20 @@
                 <input type="hidden" th:field="*{id}" />
                 <label for="title" class="form-label">Назва подкасту</label>
                 <input type="text" th:field="*{title}"  class="form-control">
-                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+<!--                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
             </div>
                 <div>
                     <!-- itunesCategory -->
+                    <span>Поточні категорії</span>
+                    <br>
+                    <span>Увага! При збереженні категорій, всі поточні категорії будуть видалені.</span>
+                    <br>
+                    <ul>
+                        <li th:each="itemcat : *{itunescategory}">
+                            <span th:text="${itemcat.firstlevel} + ' | '+ ${itemcat.secondlevel}">Default</span>
+                        </li>
+                    </ul>
+                    <br>
                     <select id="first" onChange="onChangeSelectItunesF(this)">
                         <option value="--------" text="--------------"/>
                         <option th:each="item: ${itunesCategory}"
@@ -126,9 +136,10 @@
                     <span onclick="addCategory()" class="badge rounded-pill bg-primary">Додати категорію</span>
 <!--                    <p onclick="addCategory()">Додати категорію</p>-->
                     <br>
-                    <p onclick="saveCategory()">Зберегти категорії</p><br>
-                    <textarea id="categories" class="form-control" rows="6"></textarea>
 
+                    <textarea id="categories" class="form-control" rows="6"></textarea>
+                    <span onclick="saveCategory()" class="badge rounded-pill bg-primary">Зберегти категорії</span><br>
+                    <hr>
                     <script>
                         var checkChangeCategory = false;
                         let firstLevel = '';
