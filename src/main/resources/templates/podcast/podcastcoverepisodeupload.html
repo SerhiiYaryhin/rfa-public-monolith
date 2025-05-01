@@ -69,10 +69,10 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
                             <!-- Обкладинка епізоду -->
-                            <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${image.storeidimage.uuid} + '/' + ${image.storeidimage.filename}"
+                            <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${image.uuid} + '/' + ${image.filename}"
                                  th:id="${image.uuid}"/>
                             <!-- Файл -->
-                            <p class="mb-0" >Файл:<span th:text="' '+${image.storeidimage.filename}"/></p>
+                            <p class="mb-0" >Файл:<span th:text="' '+${image.filename}"/></p>
                             <hr>
                         </div>
                     </div>

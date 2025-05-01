@@ -61,7 +61,8 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
                             <h3 class="fs-6" th:text="${item.chanel.title}"></h3>
                             <hr>
                             <!-- Файл епізоду -->
-                            <p class="mb-0" >Файл:<span th:text="' '+${item.storeitem.filename}"/></p>
+                            <p class="mb-0" >Файл:<span th:text="' '+${item.enclosurestore.filename}"/></p>
+<!--                            <p class="mb-0" >Файл:<span th:text="' '+${item.storeitem.filename}"/></p>-->
                             <hr>
                             <!-- назва епізоду -->
                             <div th:if="${item.title != null}">

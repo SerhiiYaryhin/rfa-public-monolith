@@ -51,7 +51,7 @@
 <!-- Page Content-->
 <section class="pt-4">
     <div class="container-fluid px-lg-5 form-control-sm">
-        <div th:if="${episode.uuid != null}">
+        <div th:if="${episode.imagestoreitem  != null}">
             <span><b>Обкладинка</b></span><br>
             <!-- Обкладинка епізоду -->
             <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.imagestoreitem.uuid} + '/' + ${episode.imagestoreitem.filename}"

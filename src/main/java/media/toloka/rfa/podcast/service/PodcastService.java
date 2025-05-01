@@ -232,7 +232,7 @@ public class PodcastService {
      * @return List<PodcastItem>
      */
     public List<PodcastItem> GetAllEpisodePaging(Clientdetail cd) {
-        return episodeRepository.findByClientdetailOrderByIdDesc(cd);
+        return episodeRepository.findByClientdetailOrderByIdDesc(cd.getUuid());
     }
 
     /**
@@ -241,7 +241,8 @@ public class PodcastService {
      * @return
      */
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
-        return storeService.GetPodcastCoverListByCd(cd);
+        List<Store> storeList = storeService.GetPodcastCoverListByCd(cd);
+        return storeList;
     }
 
 

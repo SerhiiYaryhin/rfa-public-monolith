@@ -305,7 +305,7 @@ public class PodcastController {
     }
 
     /**
-     * Завантажуємо подкаст за посиланням на RSS
+     * Видаляємо подкаст
      *
      * @param model
      * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
@@ -347,6 +347,54 @@ public class PodcastController {
 
     }
 
+    /**
+     * Видаляємо подкаст
+     *
+     * @param model
+     * @return тимчасову сторінку яка повинна бути доступна тільки модераторам.
+     * @call podcastService.PutPodcastFromRSS(model, gstrUrl) // саме тут забираємо подкаст
+     */    // Виводимо поле з посиланням та результат обробки завантаженого RSS.
+    @GetMapping(value = "/podcast/pdel_local/{puuid}")
+    public String PostPodcastDeleteFromRFA(
+            @PathVariable String puuid,
+//            @ModelAttribute PodcastService.strUrl gstrUrl,
+            Model model) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return "redirect:/";
+        }
+        PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
+        if (pc != null) {
+            if (pc.getClientdetail().equals(cd.getUuid())) {
+                PodcastService.strUrl gstrUrl; // = new PodcastService.strUrl();
+                gstrUrl = podcastService.GetNewStrurl();
+                logger.info("Видаляємо подкаст імпортований з: {}",pc.getLinktoimporturl());
+                gstrUrl.setRSSFromUrl(pc.getLinktoimporturl());
+                gstrUrl.setClrpodcast(true);
+                podcastService.PutPodcastFromRSS(model, gstrUrl);
+                // беремо епізоди подкасту
+                    // видаляємо картинку
+                    // видаляємо звук
+                    // видаляємо епізод
+                // видаляємо подкаст
+
+            } else {
+                logger.info("Намагаємося видалити не свій подкаст");
+            }
+        } else {
+            logger.info("Подкаст, який намагаємося видалити, не знайдено!");
+        }
+
+        // Саме тут видаляємо подкаст
+
+        return "redirect:/podcast/home";
+
+    }
 
 
 }
