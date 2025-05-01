@@ -50,6 +50,7 @@ public class CreaterController {
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
 
+
         Integer curpage = 0;
         Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
         List<Post> viewList = pageStore.stream().toList();
