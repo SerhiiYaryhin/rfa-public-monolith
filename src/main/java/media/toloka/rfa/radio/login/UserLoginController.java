@@ -447,7 +447,7 @@ public class UserLoginController {
             @ModelAttribute Users user,
             Model model
     ) {
-//        System.out.println("========================== Login");
+        System.out.println("========================== Login");
         return "redirect:/user/user";
     }
 }
