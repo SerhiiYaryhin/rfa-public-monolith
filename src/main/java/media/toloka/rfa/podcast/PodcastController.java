@@ -367,6 +367,7 @@ public class PodcastController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) {
             return "redirect:/";
+
         }
         PodcastChannel pc = podcastService.GetChanelByUUID(puuid);
         if (pc != null) {
