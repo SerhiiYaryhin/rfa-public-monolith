@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 //import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -76,9 +77,9 @@ public class PodcastChannel {
 //    @ToString.Exclude
 //    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
 //    @JoinColumn(name = "clientdetail_id", nullable = true )
-//    private Clientdetail clientdetail;  // посилання на запис аутентифікації автора подкасту.
-//    @Expose
+//    private Clientdetail clientdetail_id;  // посилання на запис аутентифікації автора подкасту.
 
+//    @Expose
     @ToString.Exclude
     private String clientdetail;
 
