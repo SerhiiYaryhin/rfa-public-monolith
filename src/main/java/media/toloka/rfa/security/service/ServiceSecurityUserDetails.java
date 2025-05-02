@@ -3,6 +3,7 @@ package media.toloka.rfa.security.service;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
 import media.toloka.rfa.security.repository.UserSecurityRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,15 +16,15 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class ServiceSecurityUserDetails implements ServiceSecurityUsers, UserDetailsService {
-//    public class UserDetailsServiceImpl implements IUserService, UserDetailsService {
+public class ServiceSecurityUserDetails implements UserDetailsService {
+//public class ServiceSecurityUserDetails implements ServiceSecurityUsers, UserDetailsService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
     private UserSecurityRepository repoUsers;
 //    @Override
-    public Long saveUser(Users user) { // TODO Видалити. Без використання
+    public Long saveUser(@NotNull Users user) { // TODO Видалити. Без використання
         String passwd= user.getPassword();
         String encodedPasswod = passwordEncoder.encode(passwd);
         user.setPassword(encodedPasswod);
@@ -39,14 +40,6 @@ public class ServiceSecurityUserDetails implements ServiceSecurityUsers, UserDet
         if(opt.isEmpty()) {
             // Заводимо тимчасового користувача для чата
 
-//            Users auser = new Users();
-//            auser.setEmail("ysv@toloka.kiev.ua");
-//            auser.setPassword("1");
-//            auser.setRoles(new ArrayList<Roles>());
-//            Roles roles = new Roles();
-//            roles.setRole(ERole.ROLE_USER);
-//            auser.getRoles().add(roles);
-//            saveUser(auser);
             throw new UsernameNotFoundException("Користувача з поштою " +email +" не знайдено.");
         }else {
             Users user = opt.get();

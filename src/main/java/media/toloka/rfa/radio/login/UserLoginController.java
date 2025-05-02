@@ -101,7 +101,7 @@ public class UserLoginController {
             HttpServletRequest request,
             Model model
     ) {
-//        logger.info("============ ROUTE to Group page ");
+        logger.info("============ ROUTE to Group page ");
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -120,7 +120,6 @@ public class UserLoginController {
             return "redirect:/admin/home";
         } else if (clientService.checkRole(ROLE_MODERATOR)) {
             return "redirect:/moderator/home";
-//            return "redirect:/moderator/home";
         } else if (clientService.checkRole(ROLE_EDITOR)) {
             return "redirect:/editor/home";
         } else if (clientService.checkRole(ROLE_CREATER)) {
