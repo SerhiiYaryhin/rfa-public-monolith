@@ -31,35 +31,31 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 🌐 Доступ для всіх без авторизації
-                        .requestMatchers(
-                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
-                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
-                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat", // 🔐 Публічні ендпоїнти
-                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
-                        ).permitAll()
-
-                        // 📦 Статичні ресурси
+                                .anyRequest().permitAll()
 //                        .requestMatchers(
-//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**"
+//                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
+//                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
+//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
+//                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat", // 🔐 Публічні ендпоїнти
+//                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
 //                        ).permitAll()
 
-                        // 🔐 Публічні ендпоїнти
+//                         🔐 Публічні ендпоїнти
 //                        .requestMatchers(
 //                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
 //                                "/sendmail", "/setUserPassword", "/savequestion"
 //                        ).permitAll()
 
                         // 👮 Доступи за ролями
-                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
-                        .requestMatchers("/user/**").hasAuthority("User")
-                        .requestMatchers("/creater/**").hasAuthority("Creator")
-                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-
-                        // 🔒 Все інше — тільки для авторизованих
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
+//                        .requestMatchers("/user/**").hasAuthority("User")
+//                        .requestMatchers("/creater/**").hasAuthority("Creator")
+//                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
+//                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
+//                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
+//
+//                        // 🔒 Все інше — тільки для авторизованих
+//                        .anyRequest().authenticated()
                 )
 
                 // 🔐 Форма логіну
