@@ -14,7 +14,7 @@ public interface AccAccountsPlanRepositore extends
     /// Перелік в плані рахунків
     List<AccAccountsPlan> findAll();
     AccAccountsPlan getByUuid(UUID uuid);
-    AccAccountsPlan save(AccAccountsPlan acc);
+//    AccAccountsPlan save(AccAccountsPlan acc);
     AccAccountsPlan getByAcc(Long acc);
     List<AccAccountsPlan> findAllByOrderByAccAsc();
 
