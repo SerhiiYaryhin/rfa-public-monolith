@@ -11,6 +11,7 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class AccGoodsController {
     @Autowired
     private ClientService clientService;
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/list")
     public String listGoods(Model model) {
         Users user = clientService.GetCurrentUser();
@@ -52,6 +54,7 @@ public class AccGoodsController {
         return "/acc/reference/goods/list";
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/create")
     public String createForm(Model model) {
         Users user = clientService.GetCurrentUser();
@@ -72,6 +75,7 @@ public class AccGoodsController {
         return "/acc/reference/goods/form";
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @PostMapping("/save")
     public String save(@ModelAttribute AccGoodsReference goods) {
         Users user = clientService.GetCurrentUser();
@@ -94,6 +98,7 @@ public class AccGoodsController {
         return "redirect:/acc/reference/goods/list";
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/edit/{uuid}")
     public String editForm(@PathVariable UUID uuid, Model model) {
         var goods = goodsService.FindByUuid(uuid).orElseThrow();
@@ -111,6 +116,7 @@ public class AccGoodsController {
         return "/acc/reference/goods/form";
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/delete/{uuid}")
     public String delete(@PathVariable UUID uuid) {
         Users user = clientService.GetCurrentUser();

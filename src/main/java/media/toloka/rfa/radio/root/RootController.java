@@ -56,10 +56,10 @@ public class RootController {
         List<Track> trackList = createrService.GetLastUploadTracks();
 
 //        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pageTrack = createrService.GetTrackPage(0,10);
+        Page<Store> pageTrack = createrService.GetTrackPage(0,10);
         List<Store> storeTrackList = pageTrack.stream().toList();
 
-        Page pagePost = createrService.GetPostPage(0,12);
+        Page<Store> pagePost = createrService.GetPostPage(0,12);
         List<Store> storePostList = pagePost.stream().toList();
 
 

@@ -87,7 +87,7 @@ public class AdminUser {
         }
 //        Objects ma = model.getAttribute("ss");
         SS ss = (SS) model.asMap().get("ss");
-        List<Users> usersList = (List<Users>) model.asMap().get("ss");
+        List<Users> usersList; // = (List<Users>) model.asMap().get("ss");
         if (ss == null) {
             ss = new SS();
             ss.setSearchString("");

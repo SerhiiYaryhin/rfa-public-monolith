@@ -159,9 +159,9 @@ public class CreaterService {
         return trackRepository.findAllTop10ByOrderByUploaddateAsc();
     }
 
-    public Page GetTrackPage(int pageNumber, int pageCount) {
+    public Page<Store> GetTrackPage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = trackRepository.findAllByOrderByUploaddateDesc(storePage);
+        Page<Store> page = trackRepository.findAllByOrderByUploaddateDesc(storePage);
         return page;
     }
 

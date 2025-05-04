@@ -104,7 +104,7 @@ public class AdminService {
     }
 
     public List<Clientdetail> GetClienListWithNotApruvedAdresses() {
-        List<Clientdetail> clientdetailList =  new ArrayList();
+        List<Clientdetail> clientdetailList =  new ArrayList<>();
         List<Clientaddress> clientaddressList = GetNotApruvedAddresses();
         HashMap<Long, Integer> clientdetailLongHashMap = new HashMap<>();
         for (Clientaddress adr : clientaddressList) {
@@ -120,7 +120,7 @@ public class AdminService {
 
     public List<Clientdetail> GetClientsWithNotApruvedDocoments() {
         List<Documents> documentsList = GetNotApruvedDocuments();
-        List<Clientdetail> clientdetailList = new ArrayList();
+        List<Clientdetail> clientdetailList = new ArrayList<>();
         HashMap<Long, Integer> qDocuments = new HashMap<>();
         for (Documents doc : documentsList) {
             if (!qDocuments.containsKey(doc.getClientdetail().getId())) {

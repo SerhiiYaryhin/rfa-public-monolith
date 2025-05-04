@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_TRACK;
@@ -42,7 +43,11 @@ public class TelegramFileService {
         File file = getFilePath(file_id);
 
 //        java.io.File localFile = new java.io.File(localFilePath);
-        InputStream is = new URL(file.getFileUrl(telegramBot.getBotToken())).openStream();
+//        InputStream is = new URL(file.getFileUrl(telegramBot.getBotToken())).openStream();
+
+        InputStream is = URI.create(file.getFileUrl(telegramBot.getBotToken()))
+                .toURL()
+                .openStream();
 
         String storeUUID = storeService.PutFileToStore(is,filename,cd,STORE_TRACK);
         createrService.SaveTrackUploadInfo(storeUUID, cd);

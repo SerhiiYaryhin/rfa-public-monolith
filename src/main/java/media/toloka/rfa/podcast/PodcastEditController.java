@@ -90,8 +90,13 @@ public class PodcastEditController {
         }
 
         Map<String, List<String> > itunesCategory = podcastService.ItunesCategory();
+//        Set<String> languages = Arrays.stream(Locale.getISOLanguages())
+//                .map(Locale::new)
+//                .map(Locale::getDisplayLanguage)
+//                .collect(Collectors.toCollection(TreeSet::new));
+
         Set<String> languages = Arrays.stream(Locale.getISOLanguages())
-                .map(Locale::new)
+                .map(lang -> Locale.forLanguageTag(lang))
                 .map(Locale::getDisplayLanguage)
                 .collect(Collectors.toCollection(TreeSet::new));
 

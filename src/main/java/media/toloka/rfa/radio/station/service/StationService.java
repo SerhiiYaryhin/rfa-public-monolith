@@ -273,7 +273,8 @@ public class StationService {
     }
 
     public void SetStationRunState(Station station, Boolean b) {
-        Station st = stationRepo.getById(station.getId());
+        Station st = stationRepo.getReferenceById(station.getId());
+//        Station st = stationRepo.getById(station.getId());
         st.setStationstate(b);
         stationRepo.save(st);
     }

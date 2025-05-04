@@ -8,6 +8,10 @@ plugins {
 group = 'media.toloka'
 version = '1.0.0'
 
+tasks.withType(JavaCompile) {
+	options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
 java {
 	sourceCompatibility = '17'
 }

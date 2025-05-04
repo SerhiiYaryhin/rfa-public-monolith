@@ -44,6 +44,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
@@ -182,11 +183,15 @@ public class PodcastService {
      */
     public String GetLanguageCode(String lng) {
         if (lng == null) return "ukr";
-        Locale loc = new Locale("en");
+//        Locale loc = new Locale("en");
+//        Locale loc = new Locale("en", "US");
+        Locale loc = Locale.forLanguageTag("en-US");
         String[] name = loc.getISOLanguages(); // list of language codes
 
+
         for (int i = 0; i < name.length; i++) {
-            Locale locale = new Locale(name[i], "US");
+//            Locale locale = new Locale(name[i], "US");
+            Locale locale = Locale.forLanguageTag(name[i] + "-US");
             // get the language name in english for comparison
 //            String langLocal = itemLang.toLowerCase();
             String langLocal = locale.getDisplayLanguage(loc).toLowerCase();
@@ -763,7 +768,8 @@ public class PodcastService {
         URL url = null;
         HttpURLConnection connection;
         try {
-            url = new URL(rssUrl);
+//            url = new URL(rssUrl);
+            url = URI.create(rssUrl).toURL();
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
         } catch (MalformedURLException e) {

@@ -28,7 +28,10 @@ public class FileDownloader {
             if (urlString == null) {
                 throw new DownloadFileException("downloadFile. URL пустий ");
             }
-            URL url = new URL(urlString);
+//            URL url = new URL(urlString);
+            URI uri = URI.create(urlString);
+            URL url = uri.toURL();
+
             // Відкриваємо з'єднання з сервером
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             // Отримуємо код відповіді сервера

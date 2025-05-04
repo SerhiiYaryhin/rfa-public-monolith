@@ -108,7 +108,8 @@ public class ClientService {
 
     public Clientdetail GetClientDetailById(Long id) {
 
-        return clientDetailRepository.getById(id);
+        return clientDetailRepository.getReferenceById(id);
+//        return clientDetailRepository.getById(id);
     }
 
     public Clientdetail GetClientDetailByUUID(String uuid) {
@@ -159,7 +160,8 @@ public class ClientService {
     }
 
     public Users GetUserById(Long iduser) {
-        return userRepository.getById(iduser);
+        return userRepository.getReferenceById(iduser);
+//        return userRepository.getById(iduser);
     }
 
     public List<Clientaddress> GetClientAddressList(Clientdetail clientdetail) {
