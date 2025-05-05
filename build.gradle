@@ -12,8 +12,15 @@ tasks.withType(JavaCompile) {
 	options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
 
+//java {
+//	sourceCompatibility = '17'
+//}
+
 java {
-	sourceCompatibility = '17'
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+//		languageVersion = JavaLanguageVersion.of(17)
+	}
 }
 
 repositories {
@@ -24,7 +31,7 @@ dependencies {
 	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
 	implementation 'org.telegram:telegrambots-client:7.10.0'
 	implementation 'org.telegram:telegrambots-abilities:7.10.0'
-	implementation 'javax.mail:javax.mail-api:1.6.2';
+	implementation 'javax.mail:javax.mail-api:1.6.2'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.boot:spring-boot-starter-mail:3.2.1'
