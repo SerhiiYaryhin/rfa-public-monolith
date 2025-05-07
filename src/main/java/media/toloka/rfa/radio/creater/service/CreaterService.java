@@ -167,7 +167,8 @@ public class CreaterService {
 
     public Page GetPostPage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = postRepositore.findAllByOrderByPublishdateDesc(storePage);
+//        Page page = postRepositore.findAllByOrderByPublishdateDesc(storePage);
+        Page page = postRepositore.findAllByPublishdateIsNotNullOrderByPublishdateDesc(storePage);
         return page;
     }
 

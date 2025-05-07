@@ -4,15 +4,16 @@
     <title>Editor.js</title>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6/dist/quote.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@calumk/editorjs-columns@latest"></script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"/>-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6/dist/quote.umd.min.js"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@calumk/editorjs-columns@latest"></script>-->
 
     <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
     <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
@@ -35,19 +36,18 @@
 <script>
     const savedData = JSON.parse(document.getElementById("postContent").innerText);
     const editor = new EditorJS({
+        autofocus: true,
         holder: 'editorjs',
+        data: JSON.parse(savedData),
         tools: {
             header: Header,
             quote: Quote,
-
-            },
         },
-        data: JSON.parse(savedData),
         onChange: async () => {
             const output = await editor.save();
             document.getElementById('editorContent').value = JSON.stringify(output);
         }
-});
+    });
 </script>
 
 </body>

@@ -127,6 +127,9 @@ public class PodcastController {
                 // todo Вставити нормальне посилання на cover за замовчуванням
                 model.addAttribute("ogimage", "------------");
             }
+            // рахуємо кількість заходів на подкаст
+            podcastChannel.setLooked(podcastChannel.getLooked()+1L);
+            podcastService.SavePodcast(podcastChannel);
         }
         model.addAttribute("podcast", podcastChannel);
         return "/podcast/view";
@@ -218,6 +221,10 @@ public class PodcastController {
             podcastItem = podcastService.GetEpisodeByTitle(euuid);
         }
         if (podcastItem != null) {
+            // рахуємо заходи на епізод
+            podcastItem.setLooked(podcastItem.getLooked()+1L);
+            podcastService.SaveEpisode(podcastItem);
+
             model.addAttribute("podcastItem", podcastItem);
             return "/podcast/episode";
         } else {

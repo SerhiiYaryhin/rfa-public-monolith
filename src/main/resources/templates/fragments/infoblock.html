@@ -38,7 +38,7 @@
                                         th:text="' '+${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/></a><br>
                                 <i class="fas fa-eye"></i><span th:text="' '+${post.looked}+' '"/>
                                 <i class="fas fa-calendar-alt"></i><span
-                                    th:text="' '+${#dates.format(post.createdate, 'dd-MM-yyyy')}"/>
+                                    th:text="' '+${#dates.format(post.publishdate, 'dd.MM.yyyy')}"/>
                             </small>
                         </p>
                     </div>
