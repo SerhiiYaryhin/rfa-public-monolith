@@ -1,4 +1,5 @@
 package media.toloka.rfa.radio.model;
+// повідомлення з головної сторінки. Можна надсилати без реєстрації.
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;

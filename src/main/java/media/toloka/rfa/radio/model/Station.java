@@ -23,7 +23,7 @@ public class Station {
     @Expose
     private EServerState serverState; // user record state (banned, ... etc)
     @Expose
-    private String name;
+    private String name; // назва станції
     @Expose
     @Column(columnDefinition = "TEXT")
     private String description; // Опис радіостанції
@@ -54,7 +54,7 @@ public class Station {
     @Expose
     public Integer show; // port show
     @Expose
-    private String uuid;
+    private String uuid; // заповнюється десь в програмі при створенні станції. Чи можна тут заповнювати?
     @Expose
     private String icecastname;
     @Expose

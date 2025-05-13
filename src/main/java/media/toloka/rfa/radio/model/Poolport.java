@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import media.toloka.rfa.radio.model.enumerate.EServerPortType;
 
+// Пул портів для станції
 
 @Data
 @Entity

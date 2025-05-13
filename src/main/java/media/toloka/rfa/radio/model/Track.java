@@ -27,22 +27,22 @@ public class Track {
     private Date uploaddate = new Date();
 
     @Expose
-    private String name;
+    private String name; // Назва треку
 
     @Expose
-    private String autor;
+    private String autor; // автор
 
     @Expose
     @OneToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "store_id")
-    private Store storeitem;
+    private Store storeitem; // посилання на завантажений трек
 
     @Expose
-    private String storeuuid;
+    private String storeuuid; // уяви не маю, що це таке. Напевно якийсь артефакт
 
     @Expose
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String description; // текстовий опис треку
 
     @Expose
     private String style;
@@ -54,7 +54,10 @@ public class Track {
     private Boolean tochat = true; // можливість опублікувати в чаті RFA
 
     @Expose
-    private EDocumentStatus status;
+    private Boolean apruve = true; // Трек схвалено для публікації. Зроблено на випадок не заповнення інформаційних полів треку.
+
+    @Expose
+    private EDocumentStatus status; // уяви не маю, що це таке. Напевно якийсь артефакт
 
     @Expose
     private Boolean publishstatus = false;  // публікація треку на порталі. Інакше - режим редагування інформації
@@ -62,10 +65,10 @@ public class Track {
     @ToString.Exclude
     @ManyToOne(optional = true, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     @JoinColumn(name = "album_id")
-    private Album album;
+    private Album album; // посилання на альбом в який цей трек входить
 
     @ToString.Exclude
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
-    private Clientdetail clientdetail;
+    private Clientdetail clientdetail; //
 }

@@ -1,4 +1,6 @@
 package media.toloka.rfa.radio.model;
+// Повідомлення в чаті.
+
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;

@@ -1,5 +1,6 @@
 package media.toloka.rfa.radio.model;
-
+// Напевно клас для надсилання пошти
+// що він тут робить - уяви не маю.
 
 import lombok.Getter;
 import lombok.Setter;

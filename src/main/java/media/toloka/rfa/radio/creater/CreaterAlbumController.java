@@ -36,6 +36,7 @@ public class CreaterAlbumController {
     @PostMapping("/creater/setalbumcover/{storealcouuid}/{albumid}/{cdid}")
     public String GetAlbumSetCover(
 //            @PathVariable Map<String, String> pathVarsMap
+            // storealcouuid StoreAlbumCoverUUID
             @PathVariable("storealcouuid") String storealcouuid,
             @PathVariable("albumid") Long albumid,
             @PathVariable("cdid") Long cdid,
