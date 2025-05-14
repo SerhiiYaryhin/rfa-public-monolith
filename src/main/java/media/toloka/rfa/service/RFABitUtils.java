@@ -1,5 +1,5 @@
 package media.toloka.rfa.service;
-
+/// процедури роботи з бітами
 public class RFABitUtils {
 
     // ==== INT ====
