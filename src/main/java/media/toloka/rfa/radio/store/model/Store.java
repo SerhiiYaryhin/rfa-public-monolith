@@ -44,6 +44,10 @@ public class Store {
     private Date createdate = new Date();
     @Expose
     private String comment;
+    @Expose
+    private Date preparedate = null;
+    @Expose
+    private Integer prepared;
 
 
     @ToString.Exclude
