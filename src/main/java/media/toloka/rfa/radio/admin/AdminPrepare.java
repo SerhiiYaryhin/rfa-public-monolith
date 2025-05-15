@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Profile("Front")
 @Controller
@@ -86,6 +87,16 @@ public class AdminPrepare {
         // перебираємо весь store і вибираємо всі звукові файли
         for (Store store : storeList) {
             if (store.getContentMimeType().contains("audio/")) {
+                Date curDate = new Date();
+                Date sDate = store.getPreparedate();
+                Date interval = new Date(curDate.getTime() - TimeUnit.DAYS.toMillis(21));
+                if (sDate != null) {
+                    if (sDate.after(interval)) {
+                        System.out.println("Файл вже оброблено: " + store.getFilepatch());
+                        continue;
+                    }
+                }
+
                 String locateFile = store.getFilepatch(); // повний шлях до файлу у сховищі
                 String fileName = store.getFilename();    // Імʼя файлу
                 String outputFile = dirPrepared + fileName;
@@ -93,6 +104,7 @@ public class AdminPrepare {
                 // Формуємо команду як список аргументів
                 List<String> command = Arrays.asList(
                         "ffmpeg", "-y",
+//                        "-threads 16",
                         "-i", locateFile,
                         "-map", "0:a:0",
                         "-b:a", "48k",
@@ -106,17 +118,18 @@ public class AdminPrepare {
                     Process process = builder.start();
 
                     // Читання виводу команди
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(process.getInputStream()))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
-                        }
-                    }
+//                    try (BufferedReader reader = new BufferedReader(
+//                            new InputStreamReader(process.getInputStream()))) {
+//                        String line;
+//                        while ((line = reader.readLine()) != null) {
+//                            System.out.println(line);
+//                        }
+//                    }
 
                     int exitCode = process.waitFor();
                     if (exitCode != 0) {
                         System.out.println("⚠️ ffmpeg завершився з кодом: " + exitCode + " для файлу: " + locateFile);
+                        continue;
                     } else {
                         System.out.println(" ✅ ffmpeg завершився з чудовим кодом: для файлу: " + locateFile);
                     }
@@ -135,12 +148,12 @@ public class AdminPrepare {
                 // Перевірка існування
                 if (!file1.exists()) {
                     System.out.println("❌ Перший файл не існує: " + file1.getAbsolutePath());
-//                    return;
+                    continue;
                 }
 
                 if (!file2.exists()) {
                     System.out.println("❌ Другий файл не існує: " + file2.getAbsolutePath());
-//                    return;
+                    continue;
                 }
 
                 long size1 = file1.length();
@@ -148,7 +161,7 @@ public class AdminPrepare {
 
                 if (size1 == 0 || size2 == 0) {
                     System.out.println("⚠️ Один із файлів має розмір 0 байт. Порівняння неможливе.");
-//                    return;
+                    continue;
                 }
 
                 // Обчислюємо співвідношення
@@ -174,25 +187,25 @@ public class AdminPrepare {
                     // переносимо перетворений файл в сховище
 
                     // переписуємо розмір файлу.
-                    log.info("Старий розмір {} - новий розмір {} . Коефіціент {}", size1, size2, rounded);
+                    log.info("\nДжерельний файл {}\nСтарий розмір {} - новий розмір {} . Коефіціент {}", file1.getAbsolutePath(), size1, size2, rounded);
                     store.setFilelength(size2);
 
                     // Зберігаємо запис у базі
-                    store.setPreparedate(new Date());
-                    store.setPrepared(0);
-                    storeService.SaveStore(store);
+//                    store.setPreparedate(new Date());
+//                    store.setPrepared(0);
+//                    storeService.SaveStore(store);
                     // видаляємо файл
 //                    File fileToDelete = new File(outputFile);
 //                    boolean success = fileToDelete.delete();
                 } else {
                     System.out.println("ℹ️ Перший файл НЕ перевищує другий у 1.5 рази");
+
                 }
+                store.setPreparedate(new Date());
+                store.setPrepared(0);
+                storeService.SaveStore(store);
             }
-
-
-
         }
-//        model.addAttribute("clientdetailList", clientdetailList );
         return "/admin/documents";
     }
 }
