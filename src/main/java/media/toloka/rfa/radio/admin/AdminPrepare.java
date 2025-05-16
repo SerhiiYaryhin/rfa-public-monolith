@@ -1,11 +1,11 @@
 package media.toloka.rfa.radio.admin;
 
-import lombok.extern.java.Log;
-import lombok.extern.log4j.Log4j;
+//import lombok.extern.java.Log;
+//import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import media.toloka.rfa.radio.client.service.ClientService;
-import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Documents;
+//import media.toloka.rfa.radio.model.Clientdetail;
+//import media.toloka.rfa.radio.model.Documents;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.ERole;
@@ -16,10 +16,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;

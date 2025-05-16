@@ -12,6 +12,7 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -50,6 +51,8 @@ public class RSSXMLService {
     private Document document = null;
     private PodcastChannel podcastChannel;
 
+    @Value("${media.toloka.rfa.server.globalname}")
+    private String siteGlobalName;
 
     public String MakeRSSXMLService(PodcastChannel podcastChannel) {
 
@@ -304,7 +307,11 @@ public class RSSXMLService {
 
     private Node EItemLink(PodcastItem item) {
         Element element = document.createElement("link");
-        element.setTextContent(item.getTitle());
+        // тут посилання на епізод, а не назву епізоду
+        // https://rfa.toloka.media/podcast/episode/3bab6940-b9f1-4088-ac0e-b3ddb3d42a23
+        // media.toloka.rfa.server.globalname=https://rfa.toloka.media
+//        element.setTextContent(item.getTitle());
+        element.setTextContent(siteGlobalName+"/podcast/episode/"+item.getUuid());
         return element;
     }
 
