@@ -13,43 +13,53 @@
         </div>
         <div class="col">
             <div class="ps-3 m-1" style="background-color:#F0F0F0; border-radius: 15px 15px 15px 15px; ">
-                <div class="carousel slide" data-bs-ride="carousel" id="theCarouselStaion">
-                <div class="carousel-inner">
-                    <div th:each="station, iStat : ${stationsonline}">
-                        <!-- IF CUSTOMER IS ANONYMOUS -->
-                        <div th:if="${iStat.first}">
-                            <div class="carousel-item active" th:id="${station.uuid}">
-                                <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
-                                    <h2><strong><span style="color:#FF8000; " th:text="${station.stationname}"></span></strong></h2>
-                                </a>
-                                <small>
-                                    <span th:text="${station.group}">Автор: ----------</span><br>
-                                    <span th:text="${station.track}">Назва: ----------</span>
-                                </small>
+                <div id="theCarouselStation" class="carousel slide carousel-dark" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="station, iStat : ${stationsonline}">
+                            <!-- IF CUSTOMER IS ANONYMOUS -->
+                            <div th:if="${iStat.first}">
+                                <div class="carousel-item active" th:id="${station.uuid}" data-bs-interval="3000">
+                                    <a style="text-decoration: none !important;"
+                                       th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
+                                        <h2><strong><span style="color:#FF8000; "
+                                                          th:text="${station.stationname}"></span></strong></h2>
+                                    </a>
+                                    <small>
+                                        <span th:text="${station.group}">Автор: ----------</span><br>
+                                        <span th:text="${station.track}">Назва: ----------</span>
+                                    </small>
+                                </div>
+                            </div>
+                            <!-- ELSE -->
+                            <div th:unless="${iStat.first}">
+                                <div class="carousel-item" th:id="${station.uuid}" data-bs-interval="3000">
+                                    <a style="text-decoration: none !important;"
+                                       th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
+                                        <h2>
+                                            <strong><span class="font-weight-bold" style="color:#FF8000"
+                                                          th:text="${station.stationname}"></span></strong>
+                                        </h2>
+                                    </a>
+                                    <small>
+                                        <span th:text="${station.group}">Автор: ----------</span><br>
+                                        <span th:text="${station.track}">Назва: ----------</span>
+                                    </small>
+                                </div>
                             </div>
                         </div>
-                        <!-- ELSE -->
-                        <div th:unless="${iStat.first}">
-                            <div class="carousel-item" th:id="${station.uuid}">
-                                <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
-                                    <h2>
-                                        <strong><span class="font-weight-bold" style="color:#FF8000" th:text="${station.stationname}"></span></strong>
-                                    </h2>
-                                </a>
-                                <small>
-                                    <span th:text="${station.group}">Автор: ----------</span><br>
-                                    <span th:text="${station.track}">Назва: ----------</span>
-                                </small>
-                            </div>
-                        </div>
+                        <!--  Example item end -->
                     </div>
-                    <!--  Example item end -->
+<!--                    <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselStation"-->
+<!--                            data-bs-slide="prev">-->
+<!--                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>-->
+<!--                        <span class="visually-hidden">Попередній</span>-->
+<!--                    </button>-->
+<!--                    <button class="carousel-control-next" type="button" data-bs-target="#theCarouselStation"-->
+<!--                            data-bs-slide="next">-->
+<!--                        <span class="carousel-control-next-icon" aria-hidden="true"></span>-->
+<!--                        <span class="visually-hidden">Наступний</span>-->
+<!--                    </button>-->
                 </div>
-                <a class="left carousel-control" href="#theCarouselStaion" data-slide="prev"><i
-                        class="glyphicon glyphicon-chevron-left"></i></a>
-                <a class="right carousel-control" href="#theCarouselStaion" data-slide="next"><i
-                        class="glyphicon glyphicon-chevron-right"></i></a>
-            </div>
             </div>
         </div>
     </div>
@@ -69,7 +79,7 @@
             return data;
         }
 
-     </script>
+    </script>
 </div>
 
 <!-- карусель подкастів -->
@@ -149,8 +159,8 @@
             <div class="card-footer text-muted">
                 <a href="/guest/postall/0">Подивитися всі новини на Толоці</a>
             </div>
-<!--            <div class="card">-->
-<!--            </div>-->
+            <!--            <div class="card">-->
+            <!--            </div>-->
         </div>
         <!-- колонка медіа хаб-->
         <div class="col-lg-3 col-sm-12">
@@ -497,7 +507,8 @@
                             </div>
                         </div>
                         <div class="col-1 col-lg-1 col-sm-1">
-                            <a th:href="'/store/content/' + ${track.storeitem.uuid}" th:download="${track.storeitem.filename}">
+                            <a th:href="'/store/content/' + ${track.storeitem.uuid}"
+                               th:download="${track.storeitem.filename}">
                                 <i class="fa-solid fa-download"></i>
                             </a>
                         </div>
