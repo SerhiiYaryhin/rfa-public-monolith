@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 //
 @EnableWebSecurity
+@EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
 
@@ -31,20 +33,21 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 🌐 Доступ для всіх без авторизації
-                                .anyRequest().permitAll()
-//                        .requestMatchers(
-//                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-//                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
-//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
-//                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat", // 🔐 Публічні ендпоїнти
-//                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
-//                        ).permitAll()
+//                                .anyRequest().permitAll()
+
+                        .requestMatchers(
+                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
+                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
+                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
+                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat", // 🔐 Публічні ендпоїнти
+                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
+                        ).permitAll()
 
 //                         🔐 Публічні ендпоїнти
-//                        .requestMatchers(
-//                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-//                                "/sendmail", "/setUserPassword", "/savequestion"
-//                        ).permitAll()
+                        .requestMatchers(
+                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
+                                "/sendmail", "/setUserPassword", "/savequestion"
+                        ).permitAll()
 
                         // 👮 Доступи за ролями
 //                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
@@ -53,9 +56,10 @@ public class SecurityConfig {
 //                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
 //                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
 //                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-//
-//                        // 🔒 Все інше — тільки для авторизованих
-//                        .anyRequest().authenticated()
+
+                        // 🔒 Все інше — тільки для авторизованих
+                        .anyRequest().authenticated()
+//                                .anyRequest().permitAll()
                 )
 
                 // 🔐 Форма логіну

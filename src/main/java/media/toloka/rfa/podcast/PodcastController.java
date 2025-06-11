@@ -23,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.EntityManagerFactoryInfo;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,7 +72,7 @@ public class PodcastController {
 
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
-
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_USER')")
     @GetMapping(value = "/podcast/home")
     public String podcastroot(
             Model model) {
@@ -135,17 +137,20 @@ public class PodcastController {
         return "/podcast/view";
     }
 
+
+//    @Secured({ "ROLE_ADMIN","ROLE_MODERATOR"})
+//    @Secured({"ROLE_USER", "ROLE_CREATOR", "ROLE_ADMIN","ROLE_MODERATOR"})
     @PostMapping(value = "/podcast/home")
     public String podcastroot(
             @ModelAttribute Station station,
             @ModelAttribute Users formUserPSW,
             Model model) {
 
-        // Users user = clientService.GetCurrentUser();
+         Users user = clientService.GetCurrentUser();
 
         // TODO відправити повідомлення на сторінку
         model.addAttribute("success", "Реакція на POST зі сторінки /podcast/proot");
-        return "redirect:/podcast/home";
+        return "/podcast/home";
     }
 
     /**
