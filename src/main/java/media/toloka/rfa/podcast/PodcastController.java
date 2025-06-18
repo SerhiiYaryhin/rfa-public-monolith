@@ -72,7 +72,7 @@ public class PodcastController {
 
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_USER')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_USER')")
     @GetMapping(value = "/podcast/home")
     public String podcastroot(
             Model model) {

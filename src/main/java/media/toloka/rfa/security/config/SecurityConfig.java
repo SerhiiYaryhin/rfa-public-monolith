@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
                                 "/post/**", "/rss/**", "/error/**", "/robots.txt",
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
-                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat", // 🔐 Публічні ендпоїнти
+                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
+                                "/podcast/**", // 🔐 Публічні ендпоїнти
                                 "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
                         ).permitAll()
 
