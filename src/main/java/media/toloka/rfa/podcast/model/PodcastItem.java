@@ -23,7 +23,7 @@ public class PodcastItem {
     private String uuid;
 
     @Expose
-    @GeneratedValue
+//    @GeneratedValue
     private Long id;
 
     @Expose

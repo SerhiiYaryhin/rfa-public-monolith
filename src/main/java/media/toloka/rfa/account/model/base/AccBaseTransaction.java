@@ -34,10 +34,10 @@ public abstract class AccBaseTransaction implements PolymorphicTarget {
             sequenceName = "doc_number_seq",
             allocationSize = 8 // або 8, якщо кешування ок
     )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "doc_number_seq"
-    )
+//    @GeneratedValue(
+//            strategy = GenerationType.SEQUENCE,
+//            generator = "doc_number_seq"
+//    )
     private Long docNumber; // Номер документа
     @Expose
     @LastModifiedDate

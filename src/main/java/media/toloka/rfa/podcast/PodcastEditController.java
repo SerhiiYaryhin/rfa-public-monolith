@@ -8,6 +8,7 @@ package media.toloka.rfa.podcast;
 //import dev.stalla.model.rss.Enclosure;
 //import dev.stalla.model.rss.RssCategory;
 import com.rometools.rome.io.FeedException;
+import media.toloka.rfa.podcast.model.PodcastItunesCategory;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.podcast.model.PodcastChannel;
@@ -64,7 +65,7 @@ public class PodcastEditController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
-        logger.info("Зайшли на /podcast/pedit/",puuid);
+        logger.info("Зайшли на /podcast/pedit/{}",puuid);
         PodcastChannel podcast;
         if (puuid.length() < 3) {
             // створюємо новий подкаст
@@ -90,6 +91,7 @@ public class PodcastEditController {
         }
 
         Map<String, List<String> > itunesCategory = podcastService.ItunesCategory();
+        List<PodcastItunesCategory> itunescategor = podcast.getItunescategory();
 //        Set<String> languages = Arrays.stream(Locale.getISOLanguages())
 //                .map(Locale::new)
 //                .map(Locale::getDisplayLanguage)

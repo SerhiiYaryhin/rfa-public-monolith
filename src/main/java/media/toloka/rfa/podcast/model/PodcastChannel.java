@@ -21,7 +21,7 @@ public class PodcastChannel {
     @Expose
     private String uuid;
 
-    @GeneratedValue
+//    @GeneratedValue
     @Expose
     private Long id;
 

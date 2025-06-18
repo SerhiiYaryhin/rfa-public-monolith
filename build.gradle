@@ -1,8 +1,11 @@
 plugins {
 	id 'java'
 	id 'war'
-	id 'org.springframework.boot' version '3.2.1'
-	id 'io.spring.dependency-management' version '1.1.4'
+//	id 'org.springframework.boot' version '3.2.1'
+//	id 'io.spring.dependency-management' version '1.1.4'
+
+	id 'org.springframework.boot' version '3.5.0'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'media.toloka'
@@ -25,6 +28,12 @@ java {
 
 repositories {
 	mavenCentral()
+//	maven { url 'https://repo.spring.io/milestone' }
+//	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+	set('springAiVersion', "1.0.0")
 }
 
 dependencies {
@@ -54,6 +63,11 @@ dependencies {
 // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
 
+	// пробуємо Spring AI
+//	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+	implementation group: 'org.springframework.ai', name: 'spring-ai-starter-model-ollama', version: '1.0.0'
+
+
 
 
 
@@ -80,6 +94,13 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 
 }
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
+}
+
 
 tasks.named('test') {
 	useJUnitPlatform()

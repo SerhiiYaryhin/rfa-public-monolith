@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Table
 public class PodcastItunesCategory {
-    @GeneratedValue
+//    @GeneratedValue
     @Expose
     private Long id;
 
@@ -34,6 +34,9 @@ public class PodcastItunesCategory {
     public void generateUUID() {
         if (uuid == null) {
             uuid = UUID.randomUUID().toString();
+        }
+        if (this.id == null) {
+            this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
         }
     }
 

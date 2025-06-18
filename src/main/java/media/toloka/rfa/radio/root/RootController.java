@@ -143,8 +143,8 @@ public class RootController {
 
         return "redirect:/#contact";
     }
-
-    @RequestMapping(value={"/robots.txt", "/robot.txt"})
+// todo Перевірити і прибрати. Виправив в Mvc
+    @RequestMapping(value={"/robots1.txt", "/robot.txt"})
     @ResponseBody
     public String getRobotsTxt() {
         return "User-agent: *\n" +

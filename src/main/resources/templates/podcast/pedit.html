@@ -6,306 +6,310 @@
 >
 
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="podcastUUID" th:content="${podcast.uuid}"/>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
-<!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
+    <!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
     <!-- Google fonts-->
-<!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
-<!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
+    <!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
+    <!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
     <!-- Core theme CSS (includes Bootstrap)-->
     <!-- Bootstrap icons-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet"/>
 
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
-    <header>
-        <!-- Navigation-->
-        <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-    </header>
+<header>
+    <!-- Navigation-->
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
 
-    <!-- Header для главной сторінки подкастов class="py-5" -->
-    <header style="padding-top: 80px">
-        <div class="container-fluid">
-            <div class="bg-light rounded-3 text-center">
-<!--            <div class="p-4 p-lg-5 bg-light rounded-3 text-center">-->
-                <div >
-<!--                <div class="m-4 m-lg-5">-->
-                    <h1 class="display-5 fw-bold" th:text="${podcast.title} "/>
-                    <p>Завантажте файли з епізодами подкасту, додайте обкладинку епізоду та його опис.</p>
-                    <div th:if="${podcast.uuid != null}">
-                        <a class="btn btn-primary btn-sm mx-auto" th:href="'/podcast/episodeupload/'+${podcast.uuid}">Завантажити епізод</a>
-                    </div>
-                    <div th:if="${podcast.imagechanelstore == null}">
-                        <a class="btn btn-primary btn-lg btn-sm mx-auto" th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">Завантажити обкладинку</a>
-                    </div>
+<!-- Header для главной сторінки подкастов class="py-5" -->
+<header style="padding-top: 80px">
+    <div class="container-fluid">
+        <div class="bg-light rounded-3 text-center">
+            <!--            <div class="p-4 p-lg-5 bg-light rounded-3 text-center">-->
+            <div>
+                <!--                <div class="m-4 m-lg-5">-->
+                <h1 class="display-5 fw-bold" th:text="${podcast.title} "/>
+                <p>Завантажте файли з епізодами подкасту, додайте обкладинку епізоду та його опис.</p>
+                <div th:if="${podcast.uuid != null}">
+                    <a class="btn btn-primary btn-sm mx-auto" th:href="'/podcast/episodeupload/'+${podcast.uuid}">Завантажити
+                        епізод</a>
+                </div>
+                <div th:if="${podcast.imagechanelstore == null}">
+                    <a class="btn btn-primary btn-lg btn-sm mx-auto"
+                       th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">Завантажити обкладинку</a>
                 </div>
             </div>
         </div>
-    </header>
-
-    <!-- MessageBox -->
-    <div class="row text-center" style="padding-top: 20px">
-        <div class="col align-center">
-            <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
-        </div>
     </div>
+</header>
 
-    <!-- Обкладинка альбому -->
-    <div th:if="${podcast.imagechanelstore != null}" class="container px-lg-5 form-control-sm">
-        <div class="row" style="padding-top: 40px">
-            <div class="col" >
-                <!-- Обкладинка альбому -->
-                <img th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                      th:id="${podcast.imagechanelstore.uuid}"/>
-                <br><span th:text="${podcast.imagechanelstore.filename}"/>
-                <br><a th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">
-                    <span class="badge rounded-pill bg-primary">Змінити обкладинку</span>
-                </a>
-            </div>
-            <div class="col" >
-                <!-- Опублікувати -->
-                <form th:action="@{/podcast/channelpublish}" th:object="${podcast}" method="post">
-                    <div th:if="*{apruve}">
-                        <input type="hidden" th:field="*{uuid}" />
-                        <!-- IF CUSTOMER IS ANONYMOUS -->
-                        <div th:if="*{publishing}">
-                            <button type="submit" class="btn btn-primary">Приховати</button>
-                            <div ><span>Опубліковано</span><br>
-                                <span th:text="${#dates.format(podcast.datepublish, 'dd-MM-yyyy')}">Publish Date</span><br>
-                                <span th:text="${#dates.format(podcast.datepublish, 'hh:mm:ss')}">Publish Time</span>
-                            </div>
-                        </div>
-                        <!-- ELSE -->
-                        <div th:unless="*{publishing}">
-                            <button type="submit" class="btn btn-primary">Опублікувати</button>
+<!-- MessageBox -->
+<div class="row text-center" style="padding-top: 20px">
+    <div class="col align-center">
+        <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+    </div>
+</div>
+
+<!-- Обкладинка альбому -->
+<div th:if="${podcast.imagechanelstore != null}" class="container px-lg-5 form-control-sm">
+    <div class="row" style="padding-top: 40px">
+        <div class="col">
+            <!-- Обкладинка альбому -->
+            <img th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                 th:id="${podcast.imagechanelstore.uuid}"/>
+            <br><span th:text="${podcast.imagechanelstore.filename}"/>
+            <br><a th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">
+            <span class="badge rounded-pill bg-primary">Змінити обкладинку</span>
+        </a>
+        </div>
+        <div class="col">
+            <!-- Опублікувати -->
+            <form th:action="@{/podcast/channelpublish}" th:object="${podcast}" method="post">
+                <div th:if="*{apruve}">
+                    <input type="hidden" th:field="*{uuid}"/>
+                    <!-- IF CUSTOMER IS ANONYMOUS -->
+                    <div th:if="*{publishing}">
+                        <button type="submit" class="btn btn-primary">Приховати</button>
+                        <div><span>Опубліковано</span><br>
+                            <span th:text="${#dates.format(podcast.datepublish, 'dd-MM-yyyy')}">Publish Date</span><br>
+                            <span th:text="${#dates.format(podcast.datepublish, 'hh:mm:ss')}">Publish Time</span>
                         </div>
                     </div>
-                    <div th:unless="*{apruve}">
-                        <span>Увага! Подкаст не схвалено адміністрвтором або заблоковано.</span>
+                    <!-- ELSE -->
+                    <div th:unless="*{publishing}">
+                        <button type="submit" class="btn btn-primary">Опублікувати</button>
                     </div>
-<!--                    <button type="submit" class="btn btn-primary">Опублікувати</button>-->
-                </form>
-            </div>
+                </div>
+                <div th:unless="*{apruve}">
+                    <span>Увага! Подкаст не схвалено адміністрвтором або заблоковано.</span>
+                </div>
+                <!--                    <button type="submit" class="btn btn-primary">Опублікувати</button>-->
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- редагуємо поля подкасту -->
-    <section class="pt-4">
-        <div class="container-fluid px-lg-5 form-control-sm">
-            <form th:action="@{/podcast/chanelsave}" th:object="${podcast}" method="post">
-            <div class="mb-3">
-                <input type="hidden" th:field="*{uuid}" />
-                <input type="hidden" th:field="*{id}" />
-                <label for="title" class="form-label">Назва подкасту</label>
-                <input type="text" th:field="*{title}"  class="form-control">
-<!--                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
-            </div>
-                <div>
-                    <!-- itunesCategory -->
-                    <span>Поточні категорії</span>
-                    <br>
-                    <span>Увага! При збереженні категорій, всі поточні категорії будуть видалені.</span>
-                    <br>
+<!-- редагуємо поля подкасту -->
+<section class="pt-4">
+    <div class="container-fluid px-lg-5 form-control-sm">
+        <form th:action="@{/podcast/chanelsave}" th:object="${podcast}" method="post">
+            <div>
+                <!-- itunesCategory -->
+                <span><u>Поточні категорії</u></span>
+                <p><b>
                     <ul>
                         <li th:each="itemcat : *{itunescategory}">
                             <span th:text="${itemcat.firstlevel} + ' | '+ ${itemcat.secondlevel}">Default</span>
                         </li>
                     </ul>
-                    <br>
-                    <select id="first" onChange="onChangeSelectItunesF(this)">
-                        <option value="--------" text="--------------"/>
-                        <option th:each="item: ${itunesCategory}"
-                                th:value="${item['key']}"
-                                th:text="${item['key']}" />
-                    </select>
-                    <select id="second" onChange="onChangeSelectItunesS(this)" hidden>
-                        <option value="--------" text="--------------"/>
-                        <option th:each="item: ${itunesCategory}"
-                                th:value="${item['key']}"
-                                th:text="${item['key']}" />
-                    </select>
-                    <span onclick="addCategory()" class="badge rounded-pill bg-primary">Додати категорію</span>
-<!--                    <p onclick="addCategory()">Додати категорію</p>-->
-                    <br>
+                </b></p>
+                <span style="color:red">Увага! При збереженні категорій, всі поточні категорії будуть видалені.</span>
+                <p></p>
 
-                    <textarea id="categories" class="form-control" rows="6"></textarea>
-                    <span onclick="saveCategory()" class="badge rounded-pill bg-primary">Зберегти категорії</span><br>
-                    <hr>
-                    <script>
-                        var checkChangeCategory = false;
-                        let firstLevel = '';
-                        let secondLevel = '';
-                        let categoryList = [];
-                        var categoryElement = {};
-                        async function saveCategory() {
-                            let tosite = {};
+                <select id="first" onChange="onChangeSelectItunesF(this)">
+                    <option value="--------" text="--------------"/>
+                    <option th:each="item: ${itunesCategory}"
+                            th:value="${item['key']}"
+                            th:text="${item['key']}"/>
+                </select>
+                <select id="second" onChange="onChangeSelectItunesS(this)" hidden>
+                    <option value="--------" text="--------------"/>
+                    <option th:each="item: ${itunesCategory}"
+                            th:value="${item['key']}"
+                            th:text="${item['key']}"/>
+                </select>
+                <span onclick="addCategory()" class="badge rounded-pill bg-primary">Додати категорію</span>
+                <!--                    <p onclick="addCategory()">Додати категорію</p>-->
+                <br>
 
-                                // https://stackoverflow.com/questions/50486314/how-to-solve-403-error-in-spring-boot-post-request
-                                let token = document.querySelector('meta[name="_csrf"]').getAttribute('content')
-                                let header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content')
+                <textarea id="categories" class="form-control" rows="6"></textarea>
+                <span onclick="saveCategory()" class="badge rounded-pill bg-primary">Зберегти категорії</span><br>
+                <hr>
+                <script>
+                    var checkChangeCategory = false;
+                    let firstLevel = '';
+                    let secondLevel = '';
+                    let categoryList = [];
+                    var categoryElement = {};
+                    async function saveCategory() {
+                        let tosite = {};
 
-                            tosite.putCategories = categoryList;
-                            tosite.podcastUUID = document.querySelector('meta[name="podcastUUID"]').getAttribute('content');
+                            // https://stackoverflow.com/questions/50486314/how-to-solve-403-error-in-spring-boot-post-request
+                            let token = document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                            let header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content')
 
-                            var encoded_url = encodeURI("/api/1.0/itunes/putcategory");
-                            const response = await fetch(encoded_url, {
-                                method: "POST",
-                                    headers: {
-                                        [header]: token,
-                                        "charset": "UTF-8",
-                                        "Content-Type": "application/json"
-                                    },
-                                body: JSON.stringify(tosite),
-                            }).then(res => console.log(res)).catch(err => console.log(err));
+                        tosite.putCategories = categoryList;
+                        tosite.podcastUUID = document.querySelector('meta[name="podcastUUID"]').getAttribute('content');
+
+                        var encoded_url = encodeURI("/api/1.0/itunes/putcategory");
+                        const response = await fetch(encoded_url, {
+                            method: "POST",
+                                headers: {
+                                    [header]: token,
+                                    "charset": "UTF-8",
+                                    "Content-Type": "application/json"
+                                },
+                            body: JSON.stringify(tosite),
+                        }).then(res => console.log(res)).catch(err => console.log(err));
 
 
+                    }
+                    //==============================================
+                    async function onChangeSelectItunesF(element) {
+                        firstLevel = element.options[element.selectedIndex].text;
+                        var encoded_url = encodeURI("/api/1.0/itunes/getsecondcategory/"+firstLevel);
+                        const response = await fetch(encoded_url);
+                        const listsecond = await response.json();
+
+                        categoryElement.first = firstLevel;
+                        categoryElement.second = '';
+                        var second = document.getElementById("second");
+
+                        // clear option in second select
+                        var i, L = second.options.length - 1;
+                        for(i = L; i >= 0; i--) {
+                            second.remove(i);
                         }
-                        //==============================================
-                        async function onChangeSelectItunesF(element) {
-                            firstLevel = element.options[element.selectedIndex].text;
-                            var encoded_url = encodeURI("/api/1.0/itunes/getsecondcategory/"+firstLevel);
-                            const response = await fetch(encoded_url);
-                            const listsecond = await response.json();
 
-                            categoryElement.first = firstLevel;
-                            categoryElement.second = '';
+                        if (listsecond.length > 0) {
+
                             var second = document.getElementById("second");
+                            // додаємо option в другий селект
+                            var option = document.createElement("option");
+                                option.text = '';
+                                option.value = '';
+                                second.add(option);
+                            for (var i = 0; i < listsecond.length; i++) {
+                                var option = document.createElement("option");
+                                option.text = listsecond[i];
+                                option.value = listsecond[i];
+                                second.add(option);
+                            }
 
+                            document.getElementById("second").hidden = false;
+                        } else {
+                            categoryElement.second = '';
+                            document.getElementById("second").hidden = true;
                             // clear option in second select
                             var i, L = second.options.length - 1;
                             for(i = L; i >= 0; i--) {
                                 second.remove(i);
                             }
+                        }
+                    }
 
-                            if (listsecond.length > 0) {
+                    function onChangeSelectItunesS(element) {
+                        secondLevel = element.options[element.selectedIndex].text;
+                        categoryElement.second = secondLevel;
 
-                                var second = document.getElementById("second");
-                                // додаємо option в другий селект
-                                var option = document.createElement("option");
-                                    option.text = '';
-                                    option.value = '';
-                                    second.add(option);
-                                for (var i = 0; i < listsecond.length; i++) {
-                                    var option = document.createElement("option");
-                                    option.text = listsecond[i];
-                                    option.value = listsecond[i];
-                                    second.add(option);
-                                }
+                    }
 
-                                document.getElementById("second").hidden = false;
+                    function addCategory() {
+                        var txtArea;
+
+                        console.log("================");
+                        console.log(categoryList);
+                        console.log(categoryElement);
+
+                        checkChangeCategory = true;
+                        let ce = {};
+                        ce.first = categoryElement.first;
+                        ce.second = categoryElement.second;
+                        if(categoryElement.second === undefined) {
+                          console.log("Ще рано");
+                        } else {
+                            categoryList.push(ce);
+                        }
+                        txtArea = document.getElementById("categories");
+                        txtArea.value += categoryElement.first;
+
+                        if(categoryElement.second === undefined) {
+                          console.log("Ще рано");
+                        } else {
+                            let ttt = categoryElement.second;
+                            if (ttt.length > 0) {
+                                txtArea.value += " | " + categoryElement.second + '\r\n';
                             } else {
-                                categoryElement.second = '';
-                                document.getElementById("second").hidden = true;
-                                // clear option in second select
-                                var i, L = second.options.length - 1;
-                                for(i = L; i >= 0; i--) {
-                                    second.remove(i);
-                                }
+                                txtArea.value += '\r\n';
                             }
                         }
-
-                        function onChangeSelectItunesS(element) {
-                            secondLevel = element.options[element.selectedIndex].text;
-                            categoryElement.second = secondLevel;
-
-                        }
-
-                        function addCategory() {
-                            var txtArea;
-
-                            console.log("================");
-                            console.log(categoryList);
-                            console.log(categoryElement);
-
-                            checkChangeCategory = true;
-                            let ce = {};
-                            ce.first = categoryElement.first;
-                            ce.second = categoryElement.second;
-                            if(categoryElement.second === undefined) {
-                              console.log("Ще рано");
-                            } else {
-                                categoryList.push(ce);
-                            }
-                            txtArea = document.getElementById("categories");
-                            txtArea.value += categoryElement.first;
-
-                            if(categoryElement.second === undefined) {
-                              console.log("Ще рано");
-                            } else {
-                                let ttt = categoryElement.second;
-                                if (ttt.length > 0) {
-                                    txtArea.value += " | " + categoryElement.second + '\r\n';
-                                } else {
-                                    txtArea.value += '\r\n';
-                                }
-                            }
-                        }
-                    </script>
-                </div>
+                    }
+                </script>
+            </div>
+            <div class="mb-3">
+                <input type="hidden" th:field="*{uuid}"/>
+                <input type="hidden" th:field="*{id}"/>
+                <label for="title" class="form-label">Назва подкасту</label>
+                <input type="text" th:field="*{title}" class="form-control">
+                <!--                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
+            </div>
             <div class="form-outline mb-4">
                 <label for="description" class="form-label">Опис подкасту</label>
                 <textarea th:field="*{description}" class="form-control" rows="6"></textarea>
             </div>
-                <div class="form-outline mb-4">
-                    <span>Оберіть мову подкасту</span>
-                    <select th:field="*{language}" >
-                        <option th:each="lang: ${languages}"
-                                th:value="${lang}"
-                                th:text="${lang}" />
-                    </select>
-                </div>
+            <div class="form-outline mb-4">
+                <span>Оберіть мову подкасту</span>
+                <select th:field="*{language}">
+                    <option th:each="lang: ${languages}"
+                            th:value="${lang}"
+                            th:text="${lang}"/>
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-primary">Зберегти</button>
-                <a class="btn btn-primary" href="/podcast/home">Повернутися</a>
+            <a class="btn btn-primary" href="/podcast/home">Повернутися</a>
         </form>
-        </div>
-    </section>
-    <!-- Episode list-->
+    </div>
+</section>
+<!-- Episode list-->
 
-    <section class="pt-4">
-        <div class="container-fluid px-lg-5">
-            <!-- Епізоди подкасту-->
-            <div class="row gx-lg-5">
-                <div th:each="item : ${podcast.item}" class="col-lg-6 col-xxl-4 mb-5">
-                    <div class="card bg-light border-0 h-100">
-                        <div class="card-header">
-                            <a class="mx-auto" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">
-                                <span class="badge rounded-pill bg-primary">Редагувати</span>
-                            </a>
+<section class="pt-4">
+    <div class="container-fluid px-lg-5">
+        <!-- Епізоди подкасту-->
+        <div class="row gx-lg-5">
+            <div th:each="item : ${podcast.item}" class="col-lg-6 col-xxl-4 mb-5">
+                <div class="card bg-light border-0 h-100">
+                    <div class="card-header">
+                        <a class="mx-auto" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">
+                            <span class="badge rounded-pill bg-primary">Редагувати</span>
+                        </a>
+                    </div>
+                    <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                        <img class="img-fluid" th:if="${item.imagestoreitem != null}"
+                             th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
+                             th:id="${item.imagestoreitem.uuid}"/>
+                        <div th:if="${item.title != null}">
+                            <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
                         </div>
-                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${item.imagestoreitem != null}"
-                                 th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
-                                 th:id="${item.imagestoreitem.uuid}"/>
-                            <div th:if="${item.title != null}">
-                                <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
-                            </div>
-<!--                            <div th:if="${item.description != null}">-->
-<!--                                <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
-<!--                                <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>-->
-<!--                            </div>-->
-                            <p class="mb-0" >Файл: <span th:if="${item.enclosurestore} != null" th:text="${item.enclosurestore.filename}"/></p>
-                        </div>
+                        <!--                            <div th:if="${item.description != null}">-->
+                        <!--                                <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
+                        <!--                                <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>-->
+                        <!--                            </div>-->
+                        <p class="mb-0">Файл: <span th:if="${item.enclosurestore} != null"
+                                                    th:text="${item.enclosurestore.filename}"/></p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Footer -->
-    <div th:insert="~{/fragments/common :: footer}">  </div>
-    <div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>
+<!-- Footer -->
+<div th:insert="~{/fragments/common :: footer}"></div>
+<div th:insert="~{/fragments/navbar :: bottomnavbar}"></div>
 
-    <!-- різні скріпти -->
+<!-- різні скріпти -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
