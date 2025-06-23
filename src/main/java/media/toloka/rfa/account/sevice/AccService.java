@@ -39,7 +39,7 @@ public class AccService {
         return accAccountsPlanService.GetByUuid(uuid);
     }
 
-    public Page GetPageAcc(int pageNumber, int pageCount) {
+    public Page<AccAccountsPlan> GetPageAcc(int pageNumber, int pageCount) {
         return accAccountsPlanService.FindAll(PageRequest.of(pageNumber, pageCount, Sort.by("acc").ascending()));
     }
 

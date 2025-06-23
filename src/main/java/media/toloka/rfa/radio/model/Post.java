@@ -46,10 +46,10 @@ public class Post {
     private PostCategory postcategory = null;   // ще одна категорія? todo розібратися 25.05.13
 
     @ToString.Exclude
-    @OneToOne(cascade = {CascadeType.ALL})
+//    @OneToOne(cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @JoinColumn(name = "store_id")
     private Store store;  // уяви не маю що це :(
-//    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-//    @JoinColumn(name = "store_id")
 //    private Store store;
 
     @ToString.Exclude

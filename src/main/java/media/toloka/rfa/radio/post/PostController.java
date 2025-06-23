@@ -225,7 +225,7 @@ public class PostController {
 //        model.addAttribute("posts", posts );
 
         Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
         List<Post> viewList = pageStore.stream().toList();
 
         model.addAttribute("viewList", viewList );
@@ -250,10 +250,9 @@ public class PostController {
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Store store = storeService.GetStoreByUUID(storeitemuuid);
-        Post post;
-        post = postService.GetByUiid(uuidpost);
+        Post post = postService.GetByUiid(uuidpost);
         post.setCoverstoreuuid(store.getUuid());
-        post.setStore(store);
+//        post.setStore(store);
 
         postService.SavePost(post);
 

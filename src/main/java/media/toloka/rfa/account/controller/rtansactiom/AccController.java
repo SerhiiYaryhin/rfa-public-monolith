@@ -143,7 +143,7 @@ public class AccController {
 
         accService.GetListAccounts();
 
-        Page pageStore = accService.GetPageAcc(pageNumber,10);
+        Page<AccAccountsPlan> pageStore = accService.GetPageAcc(pageNumber,10);
         List<AccAccountsPlan> storeList = pageStore.stream().toList();
 
 //        model.addAttribute("trackList", trackList );
@@ -182,8 +182,9 @@ public class AccController {
         AccAccountsPlan acc = accService.GetAccAccountByUUID(UUID.fromString(uuid));
         accService.DelAcc(acc);
 
-        Page pageStore = accService.GetPageAcc(0,10);
+        Page<AccAccountsPlan> pageStore = accService.GetPageAcc(0,10);
         List<AccAccountsPlan> storeList = pageStore.stream().toList();
+
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage", 0 );
@@ -191,5 +192,6 @@ public class AccController {
         model.addAttribute("pagetrack", pageStore );
         model.addAttribute("operatorcd", operatorcd);
         return "redirect:/acc/acc/0";
+
     }
 }
