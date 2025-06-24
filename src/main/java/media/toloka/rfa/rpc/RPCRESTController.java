@@ -1,7 +1,6 @@
 package media.toloka.rfa.rpc;
 
 
-
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,7 +64,7 @@ public class RPCRESTController {
     @Autowired
     private PodcastService podcastService;
 
-    @ToString(includeFieldNames=true)
+    @ToString(includeFieldNames = true)
     @Getter
     @Setter
     private class PutCategory {
@@ -73,7 +72,7 @@ public class RPCRESTController {
         private String second;
     }
 
-    @ToString(includeFieldNames=true)
+    @ToString(includeFieldNames = true)
     @Getter
     @Setter
     private class CategoryFromSite {
@@ -102,14 +101,14 @@ public class RPCRESTController {
 
 
         // записуємо новий перелік категорій
-            for (PutCategory secondLevel : categoryFromSite.getPutCategories()) {
+        for (PutCategory secondLevel : categoryFromSite.getPutCategories()) {
 //                logger.info("Category --- " + secondLevel.getFirst() + " | " + secondLevel.getSecond() );
-                PodcastItunesCategory tpodcastItunesCategory = new PodcastItunesCategory();
-                tpodcastItunesCategory.setFirstlevel(secondLevel.getFirst());
-                tpodcastItunesCategory.setSecondlevel(secondLevel.getSecond());
-                tpodcastItunesCategory.setChanel(podcastChannel);
-                podcastService.SaveItunesCategory(tpodcastItunesCategory);
-            }
+            PodcastItunesCategory tpodcastItunesCategory = new PodcastItunesCategory();
+            tpodcastItunesCategory.setFirstlevel(secondLevel.getFirst());
+            tpodcastItunesCategory.setSecondlevel(secondLevel.getSecond());
+            tpodcastItunesCategory.setChanel(podcastChannel);
+            podcastService.SaveItunesCategory(tpodcastItunesCategory);
+        }
 //        podcastService.SavePodcast(podcastChannel);
 
         return "OK";
@@ -122,7 +121,7 @@ public class RPCRESTController {
 
         //        працюємо з переліком категорій
 //        ITUNES
-        Map<String, List<String> > itunesCategory = podcastService.ItunesCategory();
+        Map<String, List<String>> itunesCategory = podcastService.ItunesCategory();
         ArrayList<String> listFirstLevel;
         List<String> listSecondLevel = (List<String>) (itunesCategory.get(firstcategory));
 //        logger.info("REST First" + firstcategory );
@@ -156,52 +155,58 @@ public class RPCRESTController {
         // для сайту - запит та асінхронна обробка. https://www.cat-in-web.ru/fetch-async-await/
 
         Station station = stationService.GetStationById(id);
-        if (station == null){
+        if (station == null) {
             // не знайшли станцію
-            logger.info("GetStateStationREST: Йой! не знайшли станцію id={}",id);
+            logger.info("GetStateStationREST: Йой! не знайшли станцію id={}", id);
             return null;
         }
-        logger.info("RPCRESTController -> GetStateStationREST Get Station: {}",station.getUuid());
+        logger.info("RPCRESTController -> GetStateStationREST Get Station: {}", station.getUuid());
         // todo Перевірити. передбачити маршрутизацію на сервер, на якому виконується докер
         // application-default.properties: media.toloka.rfa.server.libretime.guiserver=localhost
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
 
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep "+station.getUuid());
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",170);
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep " + station.getUuid());
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 170);
         Map<String, String> env = pb.environment();
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",172);
-        serverRunnerService.SetEnvironmentForProcessBuilder(env, station);
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",174);
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 172);
+        try {
+            serverRunnerService.SetEnvironmentForProcessBuilder(env, station);
+            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 174);
+        } catch (Exception e) {
+            // **ЛОГУЙТЕ ВИКЛЮЧЕННЯ!!!**
+            System.err.println("Помилка під час потокової передачі файлу: " + e.getMessage());
+            e.printStackTrace(); // Для налагодження
+        }
         String server_workdir;
-        server_workdir = env.get("HOME")+ clientdir + "/" + env.get("CLIENT_UUID") + "/" +env.get("STATION_UUID");
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from server_workdir= {}",server_workdir);
+        server_workdir = env.get("HOME") + clientdir + "/" + env.get("CLIENT_UUID") + "/" + env.get("STATION_UUID");
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from server_workdir= {}", server_workdir);
         pb.directory(new File(server_workdir));
         int exitcode;
         List<String> resultStringList = new ArrayList<>();
         try {
             Process p = pb.start();
-            logger.info("RPCRESTController -> GetStateStationREST pb.start(): {}",station.getUuid());
+            logger.info("RPCRESTController -> GetStateStationREST pb.start(): {}", station.getUuid());
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             // виводимо на консоль
             String line;
             while ((line = reader.readLine()) != null) {
                 resultStringList.add(line);
-                System.out.println("RPCRESTController -> GetStateStationREST PS: "+line);
+                System.out.println("RPCRESTController -> GetStateStationREST PS: " + line);
             }
             exitcode = p.waitFor();
-            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from ps= {}",exitcode);
+            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from ps= {}", exitcode);
         } catch (IOException e) {
-            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі: {}",e.getMessage());
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі: {}", e.getMessage());
             e.printStackTrace();
-        } catch (InterruptedException e){
-            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException {}",e.getMessage());
+        } catch (InterruptedException e) {
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException {}", e.getMessage());
             e.printStackTrace();
         }
 
         // обробляємо строки зі статусом сервісу
-        final List<String> serviseName = List.of("nginx","liquidsoap","legacy","playout","api","analyzer");
-        Map<String, String> result = new HashMap<String,String>();
+        final List<String> serviseName = List.of("nginx", "liquidsoap", "legacy", "playout", "api", "analyzer");
+        Map<String, String> result = new HashMap<String, String>();
         int count = 0;
         for (String key : serviseName) {
 //            System.out.println(key);
@@ -214,21 +219,21 @@ public class RPCRESTController {
                     if (value.indexOf("runn") != -1) {
                         count = count + 1;
                     }
-                    result.put(key,value);
+                    result.put(key, value);
                 }
             }
         }
-        result.put("status",String.valueOf(count) );
+        result.put("status", String.valueOf(count));
         return result;
     }
 
     @GetMapping("/api/1.0/test")
     Map<String, String> GetTest() {
-        Map<String, String> result = new HashMap<String,String>();
+        Map<String, String> result = new HashMap<String, String>();
         String getstring = "running 2024-02-03 11:22:01 +0200 EET b843ec36-51af-4416-8f90-24471d53dd05-analyzer-1";
-        int sindex = getstring.indexOf(" ")+1;
+        int sindex = getstring.indexOf(" ") + 1;
         int eindex = getstring.lastIndexOf(" ");
-        String sDate = getstring.substring(sindex,eindex);
+        String sDate = getstring.substring(sindex, eindex);
         String[] strParts = getstring.split(" ");
         String[] strPartsm = getstring.split("-");
 
@@ -240,13 +245,13 @@ public class RPCRESTController {
 
         ZoneId defaultZoneId = ZoneId.systemDefault();
 
-        result.put("length",String.valueOf(strPartsm.length));
-        result.put("service",strPartsm[strPartsm.length - 2]);
-        result.put("date",strParts[1]);
-        result.put("time",strParts[2]);
-        result.put("TZ",defaultZoneId.toString());
-        result.put("sindex",String.valueOf(sindex));
-        result.put("eindex",String.valueOf(eindex));
+        result.put("length", String.valueOf(strPartsm.length));
+        result.put("service", strPartsm[strPartsm.length - 2]);
+        result.put("date", strParts[1]);
+        result.put("time", strParts[2]);
+        result.put("TZ", defaultZoneId.toString());
+        result.put("sindex", String.valueOf(sindex));
+        result.put("eindex", String.valueOf(eindex));
 //        result.put("defaultZoneId",defaultZoneId.toString());
 
         return result;
