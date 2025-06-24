@@ -37,16 +37,18 @@ public class SecurityConfig {
                                 "/post/**", "/rss/**", "/error/**", "/robots.txt","/api/**",
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
                                 "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-                                "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**","/user/**"
+                                "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**",
+                                "/user/**","/creater/**","/newstoradio/**"
                         ).permitAll()
 
                         // 👮 Доступи за ролями (від більш конкретних до загальних)
                         .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
-//                        .requestMatchers("/user/**").hasAnyAuthority("User", "Admin")
-                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "Admin")
+                        .requestMatchers("/user/**").hasAnyAuthority("User", "Moderator", "Admin")
+                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
+                        .requestMatchers("/newstoradio/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
                         .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
                         .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
+                        .requestMatchers("/upload/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
 
                         // 🔒 Все інше — тільки для авторизованих (МАЄ БУТИ ОСТАННІМ!)
                         .anyRequest().authenticated()

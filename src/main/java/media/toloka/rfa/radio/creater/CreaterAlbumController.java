@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
-@Profile("Front")
+//@Profile("Front")
 @Controller
 public class CreaterAlbumController {
 
