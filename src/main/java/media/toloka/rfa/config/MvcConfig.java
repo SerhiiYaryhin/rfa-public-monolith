@@ -73,8 +73,10 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
         registry.addResourceHandler("/newstoradio/**")
                 .addResourceLocations("classpath:/newstoradio/");
 
-        registry.addResourceHandler("/podcast/**");
-        registry.addResourceHandler("/error/**");
+        registry.addResourceHandler("/podcast/**")
+                .addResourceLocations("classpath:/podcast/");
+        registry.addResourceHandler("/error/**")
+                .addResourceLocations("classpath:/error/");
 
         registry.addResourceHandler("/robots.txt")
                 .addResourceLocations("classpath:/static/");

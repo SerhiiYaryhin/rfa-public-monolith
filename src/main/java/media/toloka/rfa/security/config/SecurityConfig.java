@@ -29,45 +29,34 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
                 .authorizeHttpRequests(auth -> auth
-                        // 🌐 Доступ для всіх без авторизації
-//                                .anyRequest().permitAll()
-
+                        // 🌐 Доступ для всіх без авторизації (всі публічні шляхи в одному місці)
                         .requestMatchers(
-                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
-                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
+                                "/*","/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
+                                "/post/**", "/rss/**", "/error/**", "/robots.txt","/api/**",
+                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
                                 "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-                                "/podcast/**", // 🔐 Публічні ендпоїнти
-                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**" // 🔐 Публічні ендпоїнти
+                                "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**","/user/**"
                         ).permitAll()
 
-//                         🔐 Публічні ендпоїнти
-                        .requestMatchers(
-                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-                                "/sendmail", "/setUserPassword", "/savequestion"
-                        ).permitAll()
+                        // 👮 Доступи за ролями (від більш конкретних до загальних)
+                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
+//                        .requestMatchers("/user/**").hasAnyAuthority("User", "Admin")
+                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "Admin")
+                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
+                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
+                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
 
-                        // 👮 Доступи за ролями
-//                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
-//                        .requestMatchers("/user/**").hasAuthority("User")
-//                        .requestMatchers("/creater/**").hasAuthority("Creator")
-//                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-//                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-//                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-
-                        // 🔒 Все інше — тільки для авторизованих
+                        // 🔒 Все інше — тільки для авторизованих (МАЄ БУТИ ОСТАННІМ!)
                         .anyRequest().authenticated()
-//                                .anyRequest().permitAll()
                 )
 
                 // 🔐 Форма логіну
                 .formLogin(fL -> fL
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/login/route",true)
+                        .defaultSuccessUrl("/login/route", true)
                         .permitAll()
                 )
 
@@ -87,6 +76,69 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    // старий
+
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//
+//        http
+//                .authorizeHttpRequests(auth -> auth
+//                        // 🌐 Доступ для всіх без авторизації
+////                                .anyRequest().permitAll()
+//
+//                        .requestMatchers(
+//                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
+//                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
+//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
+//                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
+//                                "/podcast/**", // 🔐 Публічні ендпоїнти
+//                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**", // 🔐 Публічні ендпоїнти
+////                        ).permitAll()
+////
+////                         🔐 Публічні ендпоїнти
+////                        .requestMatchers(
+//                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
+//                                "/sendmail", "/setUserPassword", "/savequestion"
+//                        ).permitAll()
+//
+//                        // 👮 Доступи за ролями
+//                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
+//                        .requestMatchers("/user/**").hasAnyAuthority("User", "Admin")
+//                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "Admin")
+//                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
+//                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
+//                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
+//
+//                        // 🔒 Все інше — тільки для авторизованих
+//                        .anyRequest().authenticated()
+//                                .anyRequest().permitAll()
+//                )
+//
+//                // 🔐 Форма логіну
+//                .formLogin(fL -> fL
+//                        .loginPage("/login")
+//                        .loginProcessingUrl("/login")
+//                        .defaultSuccessUrl("/login/route",true)
+//                        .permitAll()
+//                )
+//
+//                // 🚪 Логаут
+//                .logout(logout -> logout
+//                        .invalidateHttpSession(true)
+//                        .clearAuthentication(true)
+//                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+//                        .logoutSuccessUrl("/")
+//                        .permitAll()
+//                )
+//
+//                // 🛡️ Дозволити iframe (наприклад, для H2 console)
+//                .headers(headers -> headers
+//                        .frameOptions(frame -> frame.sameOrigin())
+//                );
+//
+//        return http.build();
+//    }
 
 
     @Bean
