@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,6 +31,9 @@ public class RPCListener {
     @Autowired
     private GsonService gsonService;
 
+    @Value("${rabbitmq.queue}")
+    private String queueName;
+
 Logger logger = LoggerFactory.getLogger(RPCListener.class);
 
     @RabbitListener(queues = "${rabbitmq.queue}")
@@ -39,8 +43,9 @@ Logger logger = LoggerFactory.getLogger(RPCListener.class);
         RPCJob rjob = gson.fromJson(message, RPCJob.class);
 
 
-//        logger.info("+++++++++++++++++  Recive message from QUEUES.");
+        logger.info("+++++++++++++++++  Recive message from QUEUES {}.",queueName);
         ERPCJobType curJob = rjob.getJobchain().poll();
+//        logger.info("curJob");
         switch (curJob) {
 //        switch (rjob.getRJobType()) {
             case JOB_STATION_CREATE:  // Заповнюємо базу необхідною інформацією

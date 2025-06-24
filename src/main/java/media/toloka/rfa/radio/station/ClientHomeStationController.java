@@ -224,7 +224,7 @@ public class ClientHomeStationController {
         Users user = clientService.GetCurrentUser();
         Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
         if (user == null) {
-//            logger.warn("User not found. Redirect to main page");
+            logger.warn("ClientHomeStationController -> userCreateStation. User not found. Redirect to main page");
             return "redirect:/";
         }
         if (stationService.CreateCheckConfirminfo(clientdetail) == false) {
@@ -263,6 +263,7 @@ public class ClientHomeStationController {
             model.addAttribute("warning", "Не можемо створити станцію. Повідомте про це службі підтримки.");
             return "/user/stations";
         }
+        logger.info("Створили у базі станцію для користувача {} - {}. ", user.getEmail(),station.getUuid());
 //        historyService.saveHistory(History_StatiionCreate, " Нова станція: "
 //                        +station.getUuid()
 //                        +"для користувача " + clientdetail.getUser().getEmail(),
@@ -287,7 +288,10 @@ public class ClientHomeStationController {
         Gson gson = gsonService.CreateGson();
         String strgson = gson.toJson(rjob).toString();
         logger.info("Str to rabbit {}", strgson);
-        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
+//        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
+        template.convertAndSend(queueNameRabbitMQ, strgson);
+        logger.warn("ClientHomeStationController -> userCreateStation. Завдання відправлено на виконання у чергу {}.",queueNameRabbitMQ);
+
         return "redirect:/user/stations";
     }
 
