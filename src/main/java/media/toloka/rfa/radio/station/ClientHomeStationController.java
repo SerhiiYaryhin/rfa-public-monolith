@@ -280,8 +280,10 @@ public class ClientHomeStationController {
         // Додаємо станцію і передаємо на виконання на віддалений сервіс
 
         Gson gstation = gsonService.CreateGson();
+        logger.info("Create Gson");
 
         String strStation = gstation.toJson(station).toString();
+        logger.info("Gson to string");
         rjob.setRjobdata(strStation);
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
         logger.info("Rjob : {}", strStation);
