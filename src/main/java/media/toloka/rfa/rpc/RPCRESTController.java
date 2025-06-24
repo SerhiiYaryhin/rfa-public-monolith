@@ -161,6 +161,7 @@ public class RPCRESTController {
             logger.info("GetStateStationREST: Йой! не знайшли станцію id={}",id);
             return null;
         }
+        logger.info("RPCRESTController -> GetStateStationREST Get Station: {}",station.getUuid());
         // todo Перевірити. передбачити маршрутизацію на сервер, на якому виконується докер
         // application-default.properties: media.toloka.rfa.server.libretime.guiserver=localhost
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
@@ -176,6 +177,8 @@ public class RPCRESTController {
         List<String> resultStringList = new ArrayList<>();
         try {
             Process p = pb.start();
+            logger.info("RPCRESTController -> GetStateStationREST pb.start(): {}",station.getUuid());
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             // виводимо на консоль
             String line;
