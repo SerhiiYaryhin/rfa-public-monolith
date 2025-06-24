@@ -182,6 +182,7 @@ public class RPCRESTController {
                 resultStringList.add(line);
             }
             exitcode = p.waitFor();
+            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from ps= {}",exitcode);
         } catch (IOException e) {
             logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
 

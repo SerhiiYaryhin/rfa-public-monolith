@@ -99,6 +99,7 @@ public class StationService {
 //            saveStation(station);
             // TODO запис в журнал
             historyService.saveHistory(History_StationCreate, " Нова станція: "+station.getUuid(), clientdetail.getUser());
+            logger.info(" Нова станція: {}",station.getUuid());
             return station;
 
     }
