@@ -181,6 +181,7 @@ public class RPCRESTController {
             String line;
             while ((line = reader.readLine()) != null) {
                 resultStringList.add(line);
+                System.out.println("RPCRESTController -> GetStateStationREST PS: "+line);
             }
             exitcode = p.waitFor();
             logger.info("RPCRESTController -> GetStateStationREST:Exitcode from ps= {}",exitcode);
