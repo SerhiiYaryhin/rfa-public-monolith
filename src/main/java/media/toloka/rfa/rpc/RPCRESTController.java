@@ -167,8 +167,11 @@ public class RPCRESTController {
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
 
         ProcessBuilder pb = new ProcessBuilder("bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep "+station.getUuid());
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",170);
         Map<String, String> env = pb.environment();
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",172);
         serverRunnerService.SetEnvironmentForProcessBuilder(env, station);
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}",174);
         String server_workdir;
         server_workdir = env.get("HOME")+ clientdir + "/" + env.get("CLIENT_UUID") + "/" +env.get("STATION_UUID");
         logger.info("RPCRESTController -> GetStateStationREST:Exitcode from server_workdir= {}",server_workdir);
