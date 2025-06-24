@@ -144,7 +144,11 @@ public class StoreSiteController  {
                     }
                     os.flush();
                 }
-                catch (Exception e) {}
+                catch (Exception e) {
+                    // **ЛОГУЙТЕ ВИКЛЮЧЕННЯ!!!**
+                    System.err.println("Помилка під час потокової передачі файлу: " + e.getMessage());
+//                    e.printStackTrace(); // Для налагодження
+                }
             };
 
             return new ResponseEntity<StreamingResponseBody>

@@ -1,5 +1,5 @@
 package media.toloka.rfa.config;
-//
+
 //import jakarta.servlet.RequestDispatcher;
 //import jakarta.servlet.http.HttpServletRequest;
 //import org.springframework.stereotype.Controller;
@@ -36,9 +36,9 @@ package media.toloka.rfa.config;
 //
 //        // Обираємо відповідний шаблон
 //        return switch (status) {
-//            case 404 -> "error/404";
-//            case 403 -> "error/403";
-//            default -> "error/500";
+//            case 404 -> "/error/404";
+//            case 403 -> "/error/403";
+//            default -> "/error/500";
 //        };
 //    }
 //}
