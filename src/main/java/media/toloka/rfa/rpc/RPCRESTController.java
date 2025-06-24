@@ -170,6 +170,7 @@ public class RPCRESTController {
         serverRunnerService.SetEnvironmentForProcessBuilder(env, station);
         String server_workdir;
         server_workdir = env.get("HOME")+ clientdir + "/" + env.get("CLIENT_UUID") + "/" +env.get("STATION_UUID");
+        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from server_workdir= {}",server_workdir);
         pb.directory(new File(server_workdir));
         int exitcode;
         List<String> resultStringList = new ArrayList<>();
@@ -184,11 +185,10 @@ public class RPCRESTController {
             exitcode = p.waitFor();
             logger.info("RPCRESTController -> GetStateStationREST:Exitcode from ps= {}",exitcode);
         } catch (IOException e) {
-            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі");
-
+            logger.warn(" Щось пішло не так при виконанні завдання в операційній системі: {}",e.getMessage());
             e.printStackTrace();
         } catch (InterruptedException e){
-            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException");
+            logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException {}",e.getMessage());
             e.printStackTrace();
         }
 
