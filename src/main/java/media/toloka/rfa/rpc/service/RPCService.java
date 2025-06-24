@@ -73,8 +73,13 @@ public class RPCService {
         Gson gStation = gsonService.CreateGson();
         Station Radio = gStation.fromJson(sStation, Station.class);
 
-        Station newRadio = stationService.GetStationById(Radio.getId());
-        // генеруємо випадковий рядок символів для імені бази
+        Station newRadio = stationService.GetStationByUUID(gStation.fromJson(sStation, Station.class).getUuid());
+//        Station newRadio = stationService.GetStationByUUID(Radio.getUuid());
+//        Station newRadio = stationService.GetStationById(Radio.getId());
+//        if (newRadio == null) {
+//            newRadio = stationService.GetStationByUUID(Radio.getUuid());
+//        }
+//        // генеруємо випадковий рядок символів для імені бази
         SetStationDBName(newRadio);
 
 

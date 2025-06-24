@@ -29,6 +29,7 @@ public class GsonService {
                 .registerTypeAdapter(ZonedDateTime.class, new DateTimeGsonAdapters.ZonedDateTimeAdapter())
                 .registerTypeAdapter(OffsetDateTime.class, new DateTimeGsonAdapters.OffsetDateTimeAdapter())
                 .registerTypeAdapter(Instant.class, new DateTimeGsonAdapters.InstantAdapter())
+                .excludeFieldsWithoutExposeAnnotation()
                 .create();
 
     }

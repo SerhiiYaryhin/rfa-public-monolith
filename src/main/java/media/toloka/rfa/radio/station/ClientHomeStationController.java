@@ -82,7 +82,7 @@ public class ClientHomeStationController {
         private String userpasswd = "";
         private Long id;
 
-        ToRadioUser (Long id, String username){
+        ToRadioUser(Long id, String username) {
             this.id = id;
             this.username = username;
         }
@@ -136,7 +136,7 @@ public class ClientHomeStationController {
             return "redirect:/user/stations";
         }
 
-        if (toradiouser.getUsername() != null ) {
+        if (toradiouser.getUsername() != null) {
             Boolean testUser = false;
             if (nstation.getToradiouser() == null) {
                 testUser = true;
@@ -263,7 +263,7 @@ public class ClientHomeStationController {
             model.addAttribute("warning", "Не можемо створити станцію. Повідомте про це службі підтримки.");
             return "/user/stations";
         }
-        logger.info("Створили у базі станцію для користувача {} - {}. ", user.getEmail(),station.getUuid());
+        logger.info("Створили у базі станцію для користувача {} - {}. ", user.getEmail(), station.getUuid());
 //        historyService.saveHistory(History_StatiionCreate, " Нова станція: "
 //                        +station.getUuid()
 //                        +"для користувача " + clientdetail.getUser().getEmail(),
@@ -282,21 +282,30 @@ public class ClientHomeStationController {
         Gson gstation = gsonService.CreateGson();
         logger.info("Create Gson");
 
-        String strStation = gstation.toJson(station).toString();
-        logger.info("Gson to string");
-        rjob.setRjobdata(strStation);
-        // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
-        logger.info("Rjob : {}", strStation);
-        Gson gson = gsonService.CreateGson();
-        String strgson = gson.toJson(rjob).toString();
-        logger.info("Str to rabbit {}", strgson);
+        String strgson = "";
+        try {
+            String strStation = gstation.toJson(station).toString();
+            logger.info("Gson to string");
+            rjob.setRjobdata(strStation);
+            // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
+            logger.info("Rjob : {}", strStation);
+            Gson gson = gsonService.CreateGson();
+
+
+            strgson = gson.toJson(rjob).toString();
+            logger.info("Str to rabbit {}", strgson);
+        } catch (Exception e) {
+            // **ЛОГУЙТЕ ВИКЛЮЧЕННЯ!!!**
+            System.err.println("Помилка під час Перетворення на рядок: " + e.getMessage());
+            e.printStackTrace(); // Для налагодження
+        }
+
 //        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         template.convertAndSend(queueNameRabbitMQ, strgson);
-        logger.warn("ClientHomeStationController -> userCreateStation. Завдання відправлено на виконання у чергу {}.",queueNameRabbitMQ);
+        logger.warn("ClientHomeStationController -> userCreateStation. Завдання відправлено на виконання у чергу {}.", queueNameRabbitMQ);
 
         return "redirect:/user/stations";
     }
-
 
 
     @GetMapping(value = "/user/controlstation")
