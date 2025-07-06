@@ -41,21 +41,6 @@ public class Post {
     private EPostCategory category;  // категорія посту
     @Expose
     private String coverstoreuuid;  // посилання на головну ілюстрацію у сховищі.
-    @Expose
-    @ManyToOne(cascade = {CascadeType.ALL})
-    private PostCategory postcategory = null;   // ще одна категорія? todo розібратися 25.05.13
-
-    @ToString.Exclude
-//    @OneToOne(cascade = {CascadeType.ALL})
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "store_id")
-    private Store store;  // уяви не маю що це :(
-//    private Store store;
-
-    @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "clientdetail_id")
-    private Clientdetail clientdetail;
 
     @Expose
     private Boolean apruve = false;  // пост схвалено редактором для публікації
@@ -65,5 +50,24 @@ public class Post {
     private Long looked = 0L; // скільки разів подивилися
 //    @Expose
 //    private Clientdetail apruveuser;
+
+
+    @Expose
+    @ManyToOne( fetch = FetchType.EAGER)
+    private PostCategory postcategory = null;   // ще одна категорія? todo розібратися 25.05.13
+
+    @ToString.Exclude
+//    @OneToOne(cascade = {CascadeType.ALL})
+//    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "store_id")
+    private Store store;  // уяви не маю що це :(
+//    private Store store;
+
+    @ToString.Exclude
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+//    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @JoinColumn(name = "clientdetail_id")
+    private Clientdetail clientdetail;
 
 }

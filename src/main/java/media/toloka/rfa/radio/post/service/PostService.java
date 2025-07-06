@@ -1,10 +1,12 @@
 package media.toloka.rfa.radio.post.service;
 
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
+import media.toloka.rfa.radio.repository.ClientDetailRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +25,28 @@ public class PostService {
     @Autowired
     private PostCategoryRepositore postCategoryRepositore;
 
+    @Autowired
+    private ClientDetailRepository clientDetailRepository;
+
 
     public Post GetPostById(Long idPost) {
         Post post = postRepositore.getById(idPost);
         return post;
     }
 
+// Варіант, який працював.
+//    public void SavePost(Post post) {
+//        postRepositore.save(post);
+//    }
+
     public void SavePost(Post post) {
+        Clientdetail cd = post.getClientdetail();
+
+        if (cd != null && cd.getId() != null) {
+            cd = clientDetailRepository.findById(cd.getId()).orElseThrow();
+            post.setClientdetail(cd);
+        }
+
         postRepositore.save(post);
     }
 

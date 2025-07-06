@@ -41,7 +41,7 @@ public class PostController {
 //    @Autowired
 //    private PostRepositore postRepositore;
 
-//    @Autowired
+    //    @Autowired
 //    private PostCategoryRepositore postCategoryRepositore;
     @Autowired
     private PostService postService;
@@ -61,17 +61,17 @@ public class PostController {
             Model model) {
         Post post = postService.GetPostById(idPost);
 
-        if (post == null){
+        if (post == null) {
             return "redirect:/";
         }
-        post.setLooked( post.getLooked()+1L);
+        post.setLooked(post.getLooked() + 1L);
         postService.SavePost(post);
 
 //        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
-        model.addAttribute("post", post );
-        model.addAttribute("ogimage", post.getCoverstoreuuid() );
-        model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList() );
+        model.addAttribute("post", post);
+        model.addAttribute("ogimage", post.getCoverstoreuuid());
+        model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
 
         return "/post/postview";
     }
@@ -79,21 +79,21 @@ public class PostController {
     @GetMapping(value = "/creater/editpost/{idPost}")
     public String getCreaterEditPost(
             @PathVariable Long idPost,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (idPost == 0L ) {
+        if (idPost == 0L) {
             logger.info("Створюємо новий пост");
         }
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
         Post post;
 
-        if (idPost == 0L ) {
+        if (idPost == 0L) {
             post = new Post();
             post.setId(0L);
         } else {
@@ -108,20 +108,18 @@ public class PostController {
             }
         }
 
-        model.addAttribute("post", post );
-        model.addAttribute("categorys", category );
-        model.addAttribute("firstpostcategoryslist", postcategory );
+        model.addAttribute("post", post);
+        model.addAttribute("categorys", category);
+        model.addAttribute("firstpostcategoryslist", postcategory);
 
         return "/creater/editpost";
     }
 
-    @PostMapping(value="/creater/editpost/{idPost}")
+    @PostMapping(value = "/creater/editpost/{idPost}")
     public String postCreaterEditPost(
             @PathVariable Long idPost,
             @ModelAttribute Post fPost,
-            Model model )
-
-    {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -143,47 +141,48 @@ public class PostController {
         post.setPostcategory(fPost.getPostcategory());
         post.setClientdetail(cd);
 
+
         postService.SavePost(post);
 
 
         Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.stream().toList();
 
-        model.addAttribute("viewList", viewList );
-        model.addAttribute("totalPages",pageStore.getTotalPages());
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/posts/");
+        model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/posts/");
         return "/creater/home";
     }
 
-    @GetMapping(value="/creater/posts/{cPage}")
+    @GetMapping(value = "/creater/posts/{cPage}")
     public String postCreaterEditPost(
             @PathVariable String cPage,
 //            @ModelAttribute Post fPost,
-            Model model ) {
+            Model model) {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
 
         Integer curpage = Integer.parseInt(cPage);
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.stream().toList();
 
-        model.addAttribute("viewList", viewList );
-        model.addAttribute("totalPages",pageStore.getTotalPages());
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/posts/");
+        model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/posts/");
 
         return "/creater/posts";
     }
 
-    @GetMapping(value="/creater/publishpost/{idPost}")
+    @GetMapping(value = "/creater/publishpost/{idPost}")
     public String postCreaterPublishPost(
             @PathVariable Long idPost,
 //            @ModelAttribute Post fPost,
-            Model model ) {
+            Model model) {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         Post post = postService.GetPostById(idPost);
         if (post != null) {
@@ -196,23 +195,23 @@ public class PostController {
 //        model.addAttribute("posts", posts );
 
         Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.stream().toList();
 
-        model.addAttribute("viewList", viewList );
-        model.addAttribute("totalPages",pageStore.getTotalPages());
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/posts/");
+        model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/posts/");
 
 
         return "/creater/posts";
     }
 
-    @GetMapping(value="/creater/delpost/{idPost}")
+    @GetMapping(value = "/creater/delpost/{idPost}")
     public String postCreaterDelPost(
             @PathVariable Long idPost,
 //            @ModelAttribute Post fPost,
-            Model model ) {
+            Model model) {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
         Post post = postService.GetPostById(idPost);
@@ -225,24 +224,23 @@ public class PostController {
 //        model.addAttribute("posts", posts );
 
         Integer curpage = 0;
-        Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.stream().toList();
 
-        model.addAttribute("viewList", viewList );
-        model.addAttribute("totalPages",pageStore.getTotalPages());
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/posts/");
+        model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/posts/");
 
         return "/creater/posts";
     }
 
-// /post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid}
-    @GetMapping(value="/post/setpostimage/{uuidpost}/{storeitemuuid}")
+    // /post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid}
+    @GetMapping(value = "/post/setpostimage/{uuidpost}/{storeitemuuid}")
     public String SetPostMainImage(
             @PathVariable String uuidpost,
             @PathVariable String storeitemuuid,
-            Model model )
-    {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -258,13 +256,10 @@ public class PostController {
 
         List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
-        model.addAttribute("post", post );
+        model.addAttribute("post", post);
 
         return "/creater/editpost";
     }
-
-
-
 
 
 }
