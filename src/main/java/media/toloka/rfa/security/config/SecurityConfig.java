@@ -42,7 +42,8 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 👮 Доступи за ролями (від більш конкретних до загальних)
-                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
+                        .requestMatchers("/acc/**").hasAuthority("Admin")
+                        .requestMatchers("/admin/**").hasAuthority("Admin")
                         .requestMatchers("/user/**").hasAnyAuthority("User", "Moderator", "Admin")
                         .requestMatchers("/creater/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
                         .requestMatchers("/newstoradio/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
