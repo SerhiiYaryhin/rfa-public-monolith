@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
                                 "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
                                 "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**",
-                                "/user/**","/creater/**","/newstoradio/**","/admin/**"
+                                "/user/**","/creater/**","/newstoradio/**","/admin/**","/comments/**"
                         ).permitAll()
 
                         // 👮 Доступи за ролями (від більш конкретних до загальних)

@@ -1,5 +1,6 @@
 package media.toloka.rfa.config;
 
+import media.toloka.rfa.comments.config.StringToECommentSourceTypeConverter;
 import media.toloka.rfa.config.interceptor.LoggerInterceptor;
 import media.toloka.rfa.config.interceptor.NavInterceptor;
 import org.springframework.beans.BeansException;
@@ -8,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -29,7 +31,15 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Autowired
+    private StringToECommentSourceTypeConverter stringToECommentSourceTypeConverter;
+
+    @Autowired
     NavInterceptor navInterceptor;
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(stringToECommentSourceTypeConverter);
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
