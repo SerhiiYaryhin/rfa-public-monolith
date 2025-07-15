@@ -24,6 +24,8 @@ public interface CommentRepository extends JpaRepository<Comment, String>, JpaSp
     // За targetuuid (усі коментарі до певного об'єкта)
     List<Comment> findByTargetuuid(String targetuuid);
 
+    Comment getByUuid(String uuid);
+
     Page<Comment> findByCommentSourceTypeAndTargetuuid(ECommentSourceType commentSourceType, String targetuuid, Pageable pageable);
 
 }

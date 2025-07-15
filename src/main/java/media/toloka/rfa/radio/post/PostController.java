@@ -127,6 +127,24 @@ public class PostController {
         return "/creater/editpost";
     }
 
+    @PostMapping("/creater/editpostcomment")
+    public String editPostComment(
+            @RequestParam String uuid,
+            @RequestParam String content,
+            @RequestParam Integer postid,
+            @RequestParam Integer page
+
+    ) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        if (cd.getUuid().contains(commentService.GetByUUID(uuid).getUuid())) commentService.editComment(uuid, content);
+        return "redirect:/post/postview/" + postid.toString() + "?page=" + page.toString();
+//        return "redirect:/comments";
+    }
+
     @PostMapping(value = "/creater/editpost/{idPost}")
     public String postCreaterEditPost(
             @PathVariable Long idPost,

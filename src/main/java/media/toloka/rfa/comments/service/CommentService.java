@@ -30,6 +30,10 @@ public class CommentService {
         return commentRepository.findByCommentSourceTypeAndTargetuuid(type, targetUuid, pageable);
     }
 
+    public Comment GetByUUID(String uuid) {
+        return commentRepository.getByUuid(uuid);
+    }
+
     public void addComment(String sourceTypeLabel, String targetuuid, String content) {
         Comment comment = new Comment();
         comment.setCommentSourceType(ECommentSourceType.fromLabel(sourceTypeLabel));
