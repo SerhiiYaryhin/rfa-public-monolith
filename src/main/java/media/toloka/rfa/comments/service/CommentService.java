@@ -4,7 +4,10 @@ package media.toloka.rfa.comments.service;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.repository.CommentRepository;
+import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.Users;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,9 @@ import java.util.Date;
 
 @Service
 public class CommentService {
+
+    @Autowired
+    private ClientService clientService;
 
     private final CommentRepository commentRepository;
 
@@ -30,6 +36,7 @@ public class CommentService {
         comment.setTargetuuid(targetuuid);
         comment.setContent(content);
         comment.setCreatedate(new Date());
+        comment.setAutor(clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
         commentRepository.save(comment);
     }
 

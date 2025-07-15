@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
-    <title>Коментарі</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:fragment="commentstyle">
     <style>
         .avatar-initials {
             width: 40px;
@@ -26,19 +29,47 @@
             flex-grow: 1;
         }
     </style>
-</head>
-<div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-<body class="container mt-4">
-<h2>Коментарі</h2>
-<div th:insert="~{/fragments/comments :: addcomment}">  </div>
-<!--<form th:action="@{/comments/add}" method="post" class="mb-3">-->
-<!--    <input type="hidden" name="commentSourceType" th:value="${type}"/>-->
-<!--    <input type="hidden" name="targetuuid" th:value="${targetUuid}"/>-->
-<!--    <textarea class="form-control mb-2" name="content" placeholder="Напишіть коментар..."></textarea>-->
-<!--    <button class="btn btn-primary" type="submit">Надіслати</button>-->
-<!--</form>-->
+</th:block>
 
-<div th:each="comment : ${comments.content}">
+<th:block th:fragment="commentsjs">
+    <script>
+        // Ініціалізація Bootstrap тултіпів на всіх елементах з title
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+</th:block>
+
+<!-- Пагінація -->
+<th:block th:fragment="commentspage">
+<nav th:if="${comments.totalPages > 1}" aria-label="Навігація сторінками">
+    <ul class="pagination justify-content-center mt-4">
+        <li class="page-item" th:classappend="${comments.first} ? 'disabled'">
+            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number - 1}|}">Попередня</a>
+        </li>
+        <li class="page-item" th:each="i : ${#numbers.sequence(0, comments.totalPages - 1)}"
+            th:classappend="${i == comments.number} ? 'active'">
+            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${i}|}" th:text="${i + 1}"></a>
+        </li>
+        <li class="page-item" th:classappend="${comments.last} ? 'disabled'">
+            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number + 1}|}">Наступна</a>
+        </li>
+    </ul>
+</nav>
+</th:block>
+
+
+<div th:fragment="addcomment" sec:authorize="isAuthenticated()">
+    <form th:action="@{/comments/add}" method="post" class="mb-3">
+        <input type="hidden" name="commentSourceType" th:value="${type}"/>
+        <input type="hidden" name="targetuuid" th:value="${targetUuid}"/>
+        <textarea class="form-control mb-2" name="content" placeholder="Напишіть коментар..."></textarea>
+        <button class="btn btn-primary" type="submit">Надіслати</button>
+    </form>
+</div>
+
+<div th:fragment="viewcomments" th:each="comment : ${comments.content}">
     <div class="card mb-2">
         <div class="card-body comment-item">
             <!-- Аватарка з тултіпом -->
@@ -78,30 +109,5 @@
         </div>
     </div>
 </div>
-
-<!-- Пагінація -->
-<nav th:if="${comments.totalPages > 1}" aria-label="Навігація сторінками">
-    <ul class="pagination justify-content-center mt-4">
-        <li class="page-item" th:classappend="${comments.first} ? 'disabled'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number - 1}|}">Попередня</a>
-        </li>
-        <li class="page-item" th:each="i : ${#numbers.sequence(0, comments.totalPages - 1)}"
-            th:classappend="${i == comments.number} ? 'active'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${i}|}" th:text="${i + 1}"></a>
-        </li>
-        <li class="page-item" th:classappend="${comments.last} ? 'disabled'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number + 1}|}">Наступна</a>
-        </li>
-    </ul>
-</nav>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Ініціалізація Bootstrap тултіпів на всіх елементах з title
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-</script>
 </body>
 </html>

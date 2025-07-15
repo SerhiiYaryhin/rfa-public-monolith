@@ -1,5 +1,8 @@
 package media.toloka.rfa.radio.post;
 
+import media.toloka.rfa.comments.model.Comment;
+import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
+import media.toloka.rfa.comments.service.CommentService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -19,12 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +56,14 @@ public class PostController {
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private CommentService commentService;
+
+
     @GetMapping(value = "/post/postview/{idPost}") // /post/postview/52
     public String getViewPost(
             @PathVariable Long idPost,
+            @RequestParam(defaultValue = "0") int page,
             Model model) {
         Post post = postService.GetPostById(idPost);
 
@@ -72,6 +78,12 @@ public class PostController {
         model.addAttribute("post", post);
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
+
+        String type = "POST";
+        Page<Comment> comments = commentService.getComments(ECommentSourceType.fromLabel(type), post.getUuid(), PageRequest.of(page, 5));
+        model.addAttribute("comments", comments);
+        model.addAttribute("type", type);
+        model.addAttribute("targetUuid", post.getUuid());
 
         return "/post/postview";
     }

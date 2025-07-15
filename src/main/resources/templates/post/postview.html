@@ -7,6 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <div th:replace="~{/fragments/common :: ogpost}"/>
+    <div th:replace="~{/fragments/comments :: commentstyle}"/>
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
@@ -49,6 +50,25 @@
             <div class="col-lg-9 col-sm-12">
                 <h1 th:text="${post.posttitle}"></h1>
                 <div th:utext="${post.postbody}"></div>
+                <h2>Коментарі</h2>
+                <div th:insert="~{/fragments/comments :: addcomment}">  </div>
+                <div th:insert="~{/fragments/comments :: viewcomments}">  </div>
+<!--                <div th:replace="~{/fragments/comments :: commentspage}">  </div>-->
+                <nav th:if="${comments.totalPages > 1}" aria-label="Навігація сторінками">
+                    <ul class="pagination justify-content-center mt-4">
+                        <li class="page-item" th:classappend="${comments.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{|/post/postview/${post.id}?page=${comments.number - 1}|}">Попередня</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, comments.totalPages - 1)}"
+                            th:classappend="${i == comments.number} ? 'active'">
+                            <a class="page-link" th:href="@{|/post/postview/${post.id}?page=${i}|}" th:text="${i + 1}"></a>
+<!--                            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${i}|}" th:text="${i + 1}"></a>-->
+                        </li>
+                        <li class="page-item" th:classappend="${comments.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{|/post/postview/${post.id}?page=${comments.number + 1}|}">Наступна</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
             <div class="col-lg-3 col-sm-12">
                 <!--                    вставляем Медіа Хаб-->
@@ -63,5 +83,7 @@
 
 <script src="/js/bootstrap.bundle.min.js"></script>
 <!--    <script src="/js/tinymce.min.js"></script>-->
+<div th:replace="~{/fragments/comments :: commentsjs}"/>
+
 </body>
 </html>
