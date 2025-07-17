@@ -34,7 +34,7 @@ public class Comment {
 
     @Expose
     @Column(nullable = false)
-    private String contentEntityType; //Вказує на тип об'єкта. Наприклад: "POST", "COLUMN", "TRACK"
+    private ECommentSourceType contentEntityType; //Вказує на тип об'єкта. Наприклад: "POST", "COLUMN", "TRACK"
 
     @Expose
     @Column(nullable = false)
@@ -69,7 +69,7 @@ public class Comment {
         this.timestamp = new Date();
     }
 
-    public Comment(Clientdetail author, String authorId, String text, String contentEntityType, String contentEntityId) {
+    public Comment(Clientdetail author, String text, ECommentSourceType contentEntityType, String contentEntityId) {
         this();
         this.author = author;
         this.text = text;
@@ -78,7 +78,7 @@ public class Comment {
         this.depth = 0;
     }
 
-    public Comment(Clientdetail author, String authorId, String text, Comment parentComment, int depth, String contentEntityType, String contentEntityId) {
+    public Comment(Clientdetail author, String text, Comment parentComment, int depth, ECommentSourceType contentEntityType, String contentEntityId) {
         this();
         this.author = author;
         this.text = text;

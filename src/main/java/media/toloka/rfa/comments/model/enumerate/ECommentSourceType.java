@@ -1,11 +1,9 @@
 package media.toloka.rfa.comments.model.enumerate;
 
-import java.util.Arrays;
-
 public enum ECommentSourceType {
     COMMENT_POST("POST"),
     COMMENT_COLUMN("COLUMN"),
-    COMMENT_TRECK("TRACK"),
+    COMMENT_TRACK("TRACK"),
     COMMENT_PODCAST("PODCAST"),
     COMMENT_EPISODE("EPISODE"),
     COMMENT_RESERV1("RESERV1"),

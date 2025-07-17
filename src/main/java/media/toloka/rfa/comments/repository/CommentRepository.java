@@ -1,6 +1,7 @@
 package media.toloka.rfa.comments.repository;
 
 import media.toloka.rfa.comments.model.Comment;
+import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,8 +12,8 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, String> {
 
     Page<Comment> findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
-            String contentEntityType, String contentEntityId, Pageable pageable);
+            ECommentSourceType contentEntityType, String contentEntityId, Pageable pageable);
 
     List<Comment> findByParentCommentAndContentEntityTypeAndContentEntityIdOrderByTimestampAsc(
-            Comment parentComment, String contentEntityType, String contentEntityId);
+            Comment parentComment, ECommentSourceType contentEntityType, String contentEntityId);
 }

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -64,7 +65,7 @@ public class PostController {
     public String getViewPost(
             @PathVariable Long idPost,
             @RequestParam (defaultValue = "0")  Integer page,
-            @RequestParam (defaultValue = "5")  Integer pagesize,
+            @RequestParam (defaultValue = "5")  Integer size,
             Model model) {
         Post post = postService.GetPostById(idPost);
 
@@ -79,6 +80,51 @@ public class PostController {
         model.addAttribute("post", post);
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
+
+
+        // --- Завантаження коментарів ---
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Comment> commentsPage = commentService.getPaginatedCommentsHierarchy(ECommentSourceType.COMMENT_POST, post.getUuid(), pageable);
+
+        // --- Передача даних у Model для Thymeleaf ---
+        model.addAttribute("commentsPage", commentsPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", commentsPage.getTotalPages());
+        model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
+        model.addAttribute("contentAuthorId", commentService.getContentAuthorId(ECommentSourceType.COMMENT_POST, post.getUuid()));
+        model.addAttribute("contentEntityType", ECommentSourceType.COMMENT_POST);
+        model.addAttribute("contentEntityId", post.getUuid());
+        /*
+            @GetMapping("/{postId}")
+    public String viewPostDetail(@PathVariable String postId,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "5") int size,
+                                 Model model) {
+        String contentEntityType = "POST";
+        String contentEntityId = postId;
+
+        // --- Деталі посту (заглушка) ---
+        String postTitle = "Мій Супер Пост Про Котиків";
+        String postAuthorId = "admin123";
+
+        // --- Завантаження коментарів ---
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Comment> commentsPage = commentService.getPaginatedCommentsHierarchy(contentEntityType, contentEntityId, pageable);
+
+        // --- Передача даних у Model для Thymeleaf ---
+        model.addAttribute("commentsPage", commentsPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", commentsPage.getTotalPages());
+        model.addAttribute("currentUserId", commentService.getCurrentUserId());
+        model.addAttribute("contentAuthorId", commentService.getContentAuthorId(contentEntityType, contentEntityId));
+        model.addAttribute("contentEntityType", contentEntityType);
+        model.addAttribute("contentEntityId", contentEntityId);
+
+        model.addAttribute("postTitle", postTitle); // Для відображення заголовка поста на сторінці
+
+        return "post-detail";
+    }
+         */
 
 
         return "/post/postview";

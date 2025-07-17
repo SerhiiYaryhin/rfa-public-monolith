@@ -16,7 +16,7 @@
 
     <div class="mb-4 p-3 border rounded">
         <h6>Додати новий коментар:</h6>
-        <form th:action="@{|/${contentEntityType}/${contentEntityId}/comments/add|}" method="post">
+        <form th:action="@{|/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">
             <div class="mb-3">
                 <label for="newAuthor" class="form-label">Ваше ім'я (поточний ID: <span th:text="${currentUserId}"></span>):</label>
                 <input type="text" class="form-control" id="newAuthor" name="author" required />
