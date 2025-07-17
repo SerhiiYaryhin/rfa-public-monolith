@@ -90,7 +90,10 @@ public class PostController {
         model.addAttribute("commentsPage", commentsPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", commentsPage.getTotalPages());
-        model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
+        if (commentService.getCurrentUserId() != null) {
+            model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
+        } else model.addAttribute("currentUserId", null);
+//        model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
         model.addAttribute("contentAuthorId", commentService.getContentAuthorId(ECommentSourceType.COMMENT_POST, post.getUuid()));
         model.addAttribute("contentEntityType", ECommentSourceType.COMMENT_POST);
         model.addAttribute("contentEntityId", post.getUuid());

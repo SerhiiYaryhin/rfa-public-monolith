@@ -71,7 +71,7 @@ public class CommentController {
                                 @PathVariable String id,
                                 RedirectAttributes redirectAttributes) {
         Clientdetail currentUserId = commentService.getCurrentUser();
-        Clientdetail contentAuthorId = commentService.getContentAuthorId(contentEntityType, contentEntityId);
+        Clientdetail contentAuthorId = commentService.getContentAuthorId(ECommentSourceType.fromLabel(contentEntityType) , contentEntityId);
         if (commentService.deleteComment(id, currentUserId, contentAuthorId)) {
             redirectAttributes.addFlashAttribute("message", "Коментар успішно видалено!");
         } else {
