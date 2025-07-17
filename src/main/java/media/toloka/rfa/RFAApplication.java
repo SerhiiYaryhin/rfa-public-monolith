@@ -25,38 +25,38 @@ public class RFAApplication {
 	// https://www.marcobehler.com/guides/spring-security
 
 	// Вмикаємо винятки, якщо хендлер не знайдено (404)
-	@Bean
-	public DispatcherServlet dispatcherServlet() {
-		DispatcherServlet servlet = new DispatcherServlet();
-//		servlet.setThrowExceptionIfNoHandlerFound(true);
-		return servlet;
-	}
+//	@Bean
+//	public DispatcherServlet dispatcherServlet() {
+//		DispatcherServlet servlet = new DispatcherServlet();
+////		servlet.setThrowExceptionIfNoHandlerFound(true);
+//		return servlet;
+//	}
 
-	@ControllerAdvice
-	public static class GlobalExceptionHandler {
-
-		// Обробка 404
-		@ExceptionHandler(NoHandlerFoundException.class)
-		public String handle404(NoHandlerFoundException ex, HttpServletRequest request, Model model) {
-			model.addAttribute("status", 404);
-			model.addAttribute("error", "Сторінку не знайдено");
-			model.addAttribute("msg", ex.getMessage());
-			model.addAttribute("path", request.getRequestURI());
-			model.addAttribute("timestamp", new Date());
-			return "/error/404";  // Шлях до шаблону 404.html
-		}
-
-		// Обробка всіх інших помилок (500)
-		@ExceptionHandler(Exception.class)
-		public String handle500(Exception ex, HttpServletRequest request, Model model) {
-			model.addAttribute("status", 500);
-			model.addAttribute("error", "Внутрішня помилка сервера");
-			model.addAttribute("msg", ex.getMessage());
-			model.addAttribute("path", request.getRequestURI());
-			model.addAttribute("timestamp", new Date());
-			return "/error/500";  // Шлях до шаблону 500.html
-		}
-	}
+//	@ControllerAdvice
+//	public static class GlobalExceptionHandler {
+//
+//		// Обробка 404
+//		@ExceptionHandler(NoHandlerFoundException.class)
+//		public String handle404(NoHandlerFoundException ex, HttpServletRequest request, Model model) {
+//			model.addAttribute("status", 404);
+//			model.addAttribute("error", "Сторінку не знайдено");
+//			model.addAttribute("msg", ex.getMessage());
+//			model.addAttribute("path", request.getRequestURI());
+//			model.addAttribute("timestamp", new Date());
+//			return "/error/404";  // Шлях до шаблону 404.html
+//		}
+//
+//		// Обробка всіх інших помилок (500)
+//		@ExceptionHandler(Exception.class)
+//		public String handle500(Exception ex, HttpServletRequest request, Model model) {
+//			model.addAttribute("status", 500);
+//			model.addAttribute("error", "Внутрішня помилка сервера");
+//			model.addAttribute("msg", ex.getMessage());
+//			model.addAttribute("path", request.getRequestURI());
+//			model.addAttribute("timestamp", new Date());
+//			return "/error/500";  // Шлях до шаблону 500.html
+//		}
+//	}
 }
 
 

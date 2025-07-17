@@ -63,7 +63,8 @@ public class PostController {
     @GetMapping(value = "/post/postview/{idPost}") // /post/postview/52
     public String getViewPost(
             @PathVariable Long idPost,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam (defaultValue = "0")  Integer page,
+            @RequestParam (defaultValue = "5")  Integer pagesize,
             Model model) {
         Post post = postService.GetPostById(idPost);
 
@@ -79,11 +80,6 @@ public class PostController {
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
 
-        String type = "POST";
-        Page<Comment> comments = commentService.getComments(ECommentSourceType.fromLabel(type), post.getUuid(), PageRequest.of(page, 5));
-        model.addAttribute("comments", comments);
-        model.addAttribute("type", type);
-        model.addAttribute("targetUuid", post.getUuid());
 
         return "/post/postview";
     }
@@ -127,64 +123,8 @@ public class PostController {
         return "/creater/editpost";
     }
 
-    @PostMapping("/creater/editpostcomment")
-    public String editPostComment(
-            @RequestParam String uuid,
-            @RequestParam String content,
-            @RequestParam Integer postid,
-            @RequestParam Integer page
-
-    ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        if (cd.getUuid().contains(commentService.GetByUUID(uuid).getUuid())) commentService.editComment(uuid, content);
-        return "redirect:/post/postview/" + postid.toString() + "?page=" + page.toString();
-//        return "redirect:/comments";
-    }
-
-    @PostMapping(value = "/creater/editpost/{idPost}")
-    public String postCreaterEditPost(
-            @PathVariable Long idPost,
-            @ModelAttribute Post fPost,
-            Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Post post;
-        if (idPost == 0L) {
-            logger.info("Створюємо новий пост");
-            post = new Post();
-            post.setPostStatus(POSTSTATUS_REDY);
-
-        } else {
-            post = postService.GetPostById(idPost);
-        }
-        post.setPostbody(fPost.getPostbody());
-        post.setPosttitle(fPost.getPosttitle());
-        post.setCategory(fPost.getCategory());
-//        PostCategory pc = postService.getCategoryByUUID(fPost.getPostcategory().getUuid());
-        post.setPostcategory(fPost.getPostcategory());
-        post.setClientdetail(cd);
 
 
-        postService.SavePost(post);
-
-
-        Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
-        List<Post> viewList = pageStore.stream().toList();
-
-        model.addAttribute("viewList", viewList);
-        model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
-        return "/creater/home";
-    }
 
     @GetMapping(value = "/creater/posts/{cPage}")
     public String postCreaterEditPost(

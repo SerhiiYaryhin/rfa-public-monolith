@@ -3,103 +3,78 @@ package media.toloka.rfa.comments.controller;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/comments")
+@RequestMapping("/universalcomments/{contentEntityType}/{contentEntityId}/comments")
 public class CommentController {
 
     private final CommentService commentService;
 
+    @Autowired
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
     }
 
-    @GetMapping("/{type}/{targetUuid}")
-    public String getComments(
-//            @PathVariable String stype,
-            @PathVariable ECommentSourceType type,
-            @PathVariable String targetUuid,
-            @RequestParam(defaultValue = "0") int page,
-            Model model
-    ) {
-//        ECommentSourceType type;
-//        type =
-        Page<Comment> comments = commentService.getComments(type, targetUuid, PageRequest.of(page, 5));
-        model.addAttribute("comments", comments);
-        model.addAttribute("type", type.label);
-        model.addAttribute("targetUuid", targetUuid);
-        return "/comment/comments";
+    // Примітка: GET-запит на /comments (тобто відображення сторінки з коментарями)
+    // тепер обробляється контролером конкретного контенту (наприклад, PostController)
+    // Цей контролер обробляє лише POST-запити для дій над коментарями.
+
+    @PostMapping("/reply")
+    public String addReply(@PathVariable String contentEntityType,
+                           @PathVariable String contentEntityId,
+                           @RequestParam("parentId") String parentId,
+                           @RequestParam("author") String author,
+                           @RequestParam("text") String text,
+                           RedirectAttributes redirectAttributes) {
+        String currentUserId = commentService.getCurrentUserId();
+        commentService.saveReply(parentId, author, currentUserId, text);
+        redirectAttributes.addFlashAttribute("message", "Відповідь успішно додана!");
+        return "redirect:/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
 
     @PostMapping("/add")
-    public String addComment(
-            @RequestParam String commentSourceType,
-            @RequestParam String targetuuid,
-            @RequestParam String content
-    ) {
-        commentService.addComment(commentSourceType, targetuuid, content);
-        return "redirect:/comments/" + commentSourceType + "/" + targetuuid;
+    public String addRootComment(@PathVariable String contentEntityType,
+                                 @PathVariable String contentEntityId,
+                                 @RequestParam("author") String author,
+                                 @RequestParam("text") String text,
+                                 RedirectAttributes redirectAttributes) {
+        String currentUserId = commentService.getCurrentUserId();
+        commentService.addRootComment(author, currentUserId, text, contentEntityType, contentEntityId);
+        redirectAttributes.addFlashAttribute("message", "Коментар успішно доданий!");
+        return "redirect:/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
 
-    @PostMapping("/edit")
-    public String editComment(
-            @RequestParam String uuid,
-            @RequestParam String content
-    ) {
-        commentService.editComment(uuid, content);
-        return "redirect:/comments/" + "";
-//        return "redirect:/comments";
+    @PostMapping("/update")
+    public String updateComment(@PathVariable String contentEntityType,
+                                @PathVariable String contentEntityId,
+                                @RequestParam("commentId") String commentId,
+                                @RequestParam("newText") String newText,
+                                RedirectAttributes redirectAttributes) {
+        String currentUserId = commentService.getCurrentUserId();
+        if (commentService.updateComment(commentId, currentUserId, newText)) {
+            redirectAttributes.addFlashAttribute("message", "Коментар успішно оновлено!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не вдалося оновити коментар (можливо, немає прав або не знайдено).");
+        }
+        return "redirect:/" + contentEntityType + "/" + contentEntityId + "/comments";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteComment(@PathVariable String contentEntityType,
+                                @PathVariable String contentEntityId,
+                                @PathVariable String id,
+                                RedirectAttributes redirectAttributes) {
+        String currentUserId = commentService.getCurrentUserId();
+        String contentAuthorId = commentService.getContentAuthorId(contentEntityType, contentEntityId);
+        if (commentService.deleteComment(id, currentUserId, contentAuthorId)) {
+            redirectAttributes.addFlashAttribute("message", "Коментар успішно видалено!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не вдалося видалити коментар (можливо, немає прав).");
+        }
+        return "redirect:/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
 }
-
-
-//
-//import lombok.RequiredArgsConstructor;
-//import media.toloka.rfa.comments.model.Comment;
-//import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
-//import media.toloka.rfa.comments.service.CommentService;
-//import media.toloka.rfa.radio.model.Clientdetail;
-//import org.springframework.data.domain.Page;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.ui.Model;
-//import org.springframework.web.bind.annotation.*;
-//
-//@Controller
-//@RequiredArgsConstructor
-//@RequestMapping("/comments")
-//public class CommentController {
-//
-//    private final CommentService commentService;
-//
-//    @GetMapping("/{type}/{targetUuid}")
-//    public String viewComments(@PathVariable ECommentSourceType type,
-//                               @PathVariable String targetUuid,
-//                               @RequestParam(defaultValue = "0") int page,
-//                               @RequestParam(defaultValue = "5") int size,
-//                               Model model) {
-//        Page<Comment> comments = commentService.getComments(type, targetUuid, page, size);
-//        model.addAttribute("comments", comments);
-//        model.addAttribute("type", type);
-//        model.addAttribute("targetUuid", targetUuid);
-//        return "comments";
-//    }
-//
-//    @PostMapping("/add")
-//    public String addComment(@ModelAttribute Comment comment) {
-//        commentService.saveComment(comment);
-//        return "redirect:/comments/" + comment.getCommentSourceType() + "/" + comment.getTargetuuid();
-//    }
-//
-//    @PostMapping("/edit")
-//    public String editComment(@RequestParam String uuid,
-//                              @RequestParam String content,
-//                              @SessionAttribute("user") Clientdetail user) {
-//        commentService.updateCommentContent(uuid, content, user);
-//        return "redirect:/comments";
-//    }
-//}

@@ -39,7 +39,7 @@
 <!--</form>-->
 
 <div th:each="comment : ${comments.content}">
-    <div class="card mb-2">
+    <div class="card mb-2" th:style="'margin-left:' + (comment.depth * 20) + 'px'">
         <div class="card-body comment-item">
             <!-- Аватарка з тултіпом -->
             <div class="avatar-initials"
@@ -51,6 +51,22 @@
             <div class="comment-content">
                 <p th:text="${comment.content}"></p>
                 <small th:text="${#dates.format(comment.createdate, 'dd-MM-yyyy HH:mm')}"></small>
+
+                <!-- Відповісти -->
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse"
+                        th:attr="data-bs-target='#replyForm__' + ${comment.uuid}">Відповісти</button>
+
+                <!-- Форма відповіді -->
+                <div class="collapse mt-2" th:id="'replyForm__' + ${comment.uuid}">
+                    <form th:action="@{/comments/add}" method="post">
+                        <input type="hidden" name="commentSourceType" th:value="${type}"/>
+                        <input type="hidden" name="targetuuid" th:value="${targetUuid}"/>
+                        <input type="hidden" name="parentUuid" th:value="${comment.uuid}"/>
+                        <textarea class="form-control mt-2" name="content" placeholder="Ваша відповідь..."></textarea>
+                        <button class="btn btn-sm btn-success mt-1" type="submit">Надіслати</button>
+                    </form>
+                </div>
+
             </div>
             <button class="btn btn-sm btn-secondary float-end" data-bs-toggle="modal" th:attr="data-bs-target='#editModal__' + ${comment.uuid}">Редагувати</button>
         </div>

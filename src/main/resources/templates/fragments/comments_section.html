@@ -1,11 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
-
+<!-- тимчасовий файл перенесений з Gemini -->
+<!-- https://g.co/gemini/share/2892efa387e9 -->
 <div th:fragment="commentsSection (commentsPage, currentPage, totalPages, currentUserId, contentAuthorId, contentEntityType, contentEntityId)">
 
     <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -236,114 +233,5 @@
     </div>
 </th:block>
 
-
-
-
-
-
-<th:block th:fragment="commentstyle">
-    <style>
-        .avatar-initials {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-weight: bold;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            cursor: default;
-            margin-right: 10px;
-            flex-shrink: 0;
-        }
-        .comment-item {
-            display: flex;
-            align-items: flex-start;
-        }
-        .comment-content {
-            flex-grow: 1;
-        }
-    </style>
-</th:block>
-
-<th:block th:fragment="commentsjs">
-    <script>
-        // Ініціалізація Bootstrap тултіпів на всіх елементах з title
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-    </script>
-</th:block>
-
-<!-- Пагінація -->
-<th:block th:fragment="commentspage">
-<nav th:if="${comments.totalPages > 1}" aria-label="Навігація сторінками">
-    <ul class="pagination justify-content-center mt-4">
-        <li class="page-item" th:classappend="${comments.first} ? 'disabled'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number - 1}|}">Попередня</a>
-        </li>
-        <li class="page-item" th:each="i : ${#numbers.sequence(0, comments.totalPages - 1)}"
-            th:classappend="${i == comments.number} ? 'active'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${i}|}" th:text="${i + 1}"></a>
-        </li>
-        <li class="page-item" th:classappend="${comments.last} ? 'disabled'">
-            <a class="page-link" th:href="@{|/comments/${type}/${targetUuid}?page=${comments.number + 1}|}">Наступна</a>
-        </li>
-    </ul>
-</nav>
-</th:block>
-
-
-<div th:fragment="addcomment" sec:authorize="isAuthenticated()">
-    <form th:action="@{/comments/add}" method="post" class="mb-3">
-        <input type="hidden" name="commentSourceType" th:value="${type}"/>
-        <input type="hidden" name="targetuuid" th:value="${targetUuid}"/>
-        <textarea class="form-control mb-2" name="content" placeholder="Напишіть коментар..."></textarea>
-        <button class="btn btn-primary" type="submit">Надіслати</button>
-    </form>
-</div>
-
-<div th:fragment="viewcomments" th:each="comment : ${comments.content}">
-    <div class="card mb-2">
-        <div class="card-body comment-item">
-            <!-- Аватарка з тултіпом -->
-            <div class="avatar-initials"
-                 th:text="${@commentService.getInitials(comment.autor)}"
-                 th:title="${comment.autor.custname} + ' ' + ${comment.autor.custsurname}"
-                 th:style="'background-color:' + ${@commentService.generateColorFromString(comment.autor.custname)} + '; ' +
-                           'color:' + ${@commentService.getContrastColor(@commentService.generateColorFromString(comment.autor.custname))}">
-            </div>
-            <div class="comment-content">
-                <p th:text="${comment.content}"></p>
-                <small th:text="${#dates.format(comment.createdate, 'dd-MM-yyyy HH:mm')}"></small>
-            </div>
-            <button class="btn btn-sm btn-secondary float-end" data-bs-toggle="modal" th:attr="data-bs-target='#editModal__' + ${comment.uuid}">Редагувати</button>
-        </div>
-    </div>
-
-    <!-- Modal for edit -->
-    <div class="modal fade" th:id="'editModal__' + ${comment.uuid}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form th:action="@{/comments/edit}" method="post">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Редагувати коментар</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="uuid" th:value="${comment.uuid}"/>
-                        <textarea class="form-control" name="content" th:text="${comment.content}"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Зберегти</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 </body>
 </html>
