@@ -30,7 +30,8 @@ public class Comment {
     private String text;
 
     @Expose
-    private Date timestamp = new Date(); // Дата створення коментаря
+//    private Date timestamp = new Date(); // Дата створення коментаря
+    private LocalDateTime timestamp = LocalDateTime.now();  // Дата створення коментаря
 
     @Expose
     @Column(nullable = false)
@@ -43,7 +44,7 @@ public class Comment {
     @Expose
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_uuid")
-    private Comment parentComment;
+    private Comment parentComment; // коментар верхнього рівня
 
     @Expose
     private int depth;
@@ -66,7 +67,8 @@ public class Comment {
     private Clientdetail author;
 
     public Comment() {
-        this.timestamp = new Date();
+//        this.timestamp = new Date();
+        this.timestamp = LocalDateTime.now();
     }
 
     public Comment(Clientdetail author, String text, ECommentSourceType contentEntityType, String contentEntityId) {

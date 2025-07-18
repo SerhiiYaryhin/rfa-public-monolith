@@ -24,15 +24,15 @@ public class CommentController {
     // Цей контролер обробляє лише POST-запити для дій над коментарями.
 
     @PostMapping("/reply")
-    public String addReply(@PathVariable String contentEntityType,
+    public String addReply(@PathVariable ECommentSourceType contentEntityType,
                            @PathVariable String contentEntityId,
                            @RequestParam("parentId") String parentId,
                            @RequestParam("author") String sauthor,
                            @RequestParam("text") String text,
                            RedirectAttributes redirectAttributes) {
         Clientdetail currentUserId = commentService.getCurrentUser();
-        Clientdetail author = null;
-        commentService.saveReply(parentId, author, text);
+        Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId);;
+        commentService.saveReply(parentId, currentUserId, text);
         redirectAttributes.addFlashAttribute("message", "Відповідь успішно додана!");
         return "redirect:/universalcomments/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
@@ -44,14 +44,14 @@ public class CommentController {
                                  @RequestParam("text") String text,
                                  RedirectAttributes redirectAttributes) {
         Clientdetail currentUserId = commentService.getCurrentUser();
-        Clientdetail author = null; // todo достати автора посту
-        commentService.addRootComment(author, text, contentEntityType, contentEntityId);
+        Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId); // todo достати автора посту
+        commentService.addRootComment(currentUserId, text, contentEntityType, contentEntityId);
         redirectAttributes.addFlashAttribute("message", "Коментар успішно доданий!");
         return "redirect:/universalcomments/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
 
     @PostMapping("/update")
-    public String updateComment(@PathVariable String contentEntityType,
+    public String updateComment(@PathVariable ECommentSourceType contentEntityType,
                                 @PathVariable String contentEntityId,
                                 @RequestParam("commentId") String commentId,
                                 @RequestParam("newText") String newText,
@@ -65,18 +65,18 @@ public class CommentController {
         return "redirect:/universalcomments/" + contentEntityType + "/" + contentEntityId + "/comments";
     }
 
-    @PostMapping("/delete/{id}")
-    public String deleteComment(@PathVariable String contentEntityType,
+    @PostMapping("/delete/{uuid}")
+    public String deleteComment(@PathVariable ECommentSourceType contentEntityType,
                                 @PathVariable String contentEntityId,
-                                @PathVariable String id,
+                                @PathVariable String uuid,
                                 RedirectAttributes redirectAttributes) {
         Clientdetail currentUserId = commentService.getCurrentUser();
-        Clientdetail contentAuthorId = commentService.getContentAuthorId(ECommentSourceType.fromLabel(contentEntityType) , contentEntityId);
-        if (commentService.deleteComment(id, currentUserId, contentAuthorId)) {
+        Clientdetail contentAuthorId = commentService.getContentAuthorId(contentEntityType , contentEntityId);
+        if (commentService.deleteComment(uuid, currentUserId, contentAuthorId)) {
             redirectAttributes.addFlashAttribute("message", "Коментар успішно видалено!");
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Не вдалося видалити коментар (можливо, немає прав).");
         }
-        return "redirect:/universalcomments/" + contentEntityType + "/" + contentEntityId + "/comments";
+        return "redirect:/universalcomments/" + contentEntityType.label + "/" + contentEntityId + "/comments";
     }
 }

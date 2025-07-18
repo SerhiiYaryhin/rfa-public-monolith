@@ -120,10 +120,12 @@ public class CommentService {
         Optional<Comment> commentOpt = commentRepository.findById(commentId);
         if (commentOpt.isPresent()) {
             Comment comment = commentOpt.get();
-            if (comment.getAuthor().getUuid().equals(currentUser) || contentAuthor.getUuid().equals(currentUser.getUuid())) {
-                if (comment.getParentComment() != null) {
+            if (comment.getAuthor().getUuid().equals(currentUser.getUuid())
+                    || contentAuthor.getUuid().equals(currentUser.getUuid())) {
+                Comment parentComment = comment.getParentComment();
+                if (parentComment != null) {
                     comment.getParentComment().removeReply(comment);
-                    commentRepository.save(comment.getParentComment());
+                    commentRepository.save(parentComment);
                 }
                 commentRepository.delete(comment);
                 return true;
@@ -176,37 +178,4 @@ public class CommentService {
         return cd;
     }
 
-//    @Transactional
-//    private void initSampleData() {
-//        String postId = "post123";
-//        String trackId = "track456";
-//
-//        // Коментарі для поста
-//        Comment c1 = new Comment("Іван", "user1", "Чудова стаття!", "POST", postId);
-//        saveComment(c1);
-//        Comment c2 = new Comment("Марія", "user2", "Цілком згоден з Іваном!", c1, 1, "POST", postId);
-//        saveComment(c2);
-//        Comment c3 = new Comment("Петро", "user3", "А мені здається, є нюанси.", "POST", postId);
-//        saveComment(c3);
-//        Comment c4 = new Comment("Ольга", "user1", "Які саме нюанси, Петро?", c3, 1, "POST", postId);
-//        saveComment(c4);
-//        Comment c5 = new Comment("Андрій", "user2", "Дякую, Ольга, за запитання. Розкрию пізніше.", c4, 2, "POST", postId);
-//        saveComment(c5);
-//        Comment c6 = new Comment("Галина", "user3", "Це дійсно важлива тема для обговорення.", c1, 1, "POST", postId);
-//        saveComment(c6);
-//        Comment c7 = new Comment("Сергій", "user1", "Дуже цікаво!", c5, 3, "POST", postId);
-//        saveComment(c7);
-//        Comment c8 = new Comment("Наталя", "user2", "Яка глибина!", c7, 4, "POST", postId);
-//        saveComment(c8);
-//        Comment c9 = new Comment("Олена", "user3", "І це крайня глибина.", c8, 5, "POST", postId);
-//        saveComment(c9);
-//        Comment c10 = new Comment("Системний", "admin123", "Цей коментар може видалити лише адмін.", "POST", postId);
-//        saveComment(c10);
-//
-//        // Коментарі для треку
-//        Comment t1 = new Comment("Меломан", "user1", "Класний трек!", "TRACK", trackId);
-//        saveComment(t1);
-//        Comment t2 = new Comment("Діджей", "artist789", "Дякую, радий що сподобалось!", t1, 1, "TRACK", trackId);
-//        saveComment(t2);
-//    }
 }

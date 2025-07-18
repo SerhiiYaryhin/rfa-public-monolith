@@ -3,8 +3,10 @@ package media.toloka.rfa.security.config;
 //https://stackoverflow.com/questions/74753700/cannot-resolve-method-antmatchers-in-authorizationmanagerrequestmatcherregis
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 //
 @EnableWebSecurity
@@ -30,6 +33,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+//                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // 🌐 Доступ для всіх без авторизації (всі публічні шляхи в одному місці)
                         .requestMatchers(
@@ -38,7 +42,7 @@ public class SecurityConfig {
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
                                 "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
                                 "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**",
-                                "/user/**","/creater/**","/newstoradio/**","/admin/**","/comments/**"
+                                "/user/**","/creater/**","/newstoradio/**","/admin/**","/comments/**","/universalcomments/**"
                         ).permitAll()
 
                         // 👮 Доступи за ролями (від більш конкретних до загальних)
@@ -154,6 +158,16 @@ public class SecurityConfig {
 //                .passwordEncoder(encoder)
 //                .and()
 //                .build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<HiddenHttpMethodFilter> hiddenHttpMethodFilter() {
+        FilterRegistrationBean<HiddenHttpMethodFilter> filterRegistrationBean = new FilterRegistrationBean<>(new HiddenHttpMethodFilter());
+        // Встановлюємо порядок фільтра, щоб він виконувався дуже рано,
+        // перед більшістю фільтрів Spring Security.
+        // Ordered.HIGHEST_PRECEDENCE забезпечує виконання фільтра на максимально ранньому етапі.
+        filterRegistrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return filterRegistrationBean;
     }
 
 }

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="commentsSection (commentsPage, currentPage, totalPages, currentUserId, contentAuthorId, contentEntityType, contentEntityId)">
+
+    <div id="alertPlaceholder"></div>
+
+    <div sec:authorize="isAuthenticated()" class="mb-4 p-3 border rounded">
+        <h6>Додати новий коментар:</h6>
+        <form id="addRootCommentForm" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">
+            <div class="mb-3">
+                <label for="newAuthor" class="form-label">Ваше ім'я (поточний ID: <span th:text="${currentUserId}"></span>):</label>
+                <input type="text" class="form-control" id="newAuthor" name="author" th:value="${currentUserId}" required />
+            </div>
+            <div class="mb-3">
+                <label for="newCommentText" class="form-label">Коментар:</label>
+                <textarea class="form-control" id="newCommentText" name="text" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Відправити коментар</button>
+        </form>
+    </div>
+    <div sec:authorize="!isAuthenticated()" class="mb-4 p-3 border rounded">
+        <h6>Щоб додати новий коментар - увійдіть до системи.</h6>
+    </div>
+
+    <div id="commentsListContainer" class="comments-list">
+        <div th:each="comment : ${commentsPage.content}">
+            <div th:replace="~{:: commentFragment(comment=${comment}, currentUserId=${currentUserId}, contentAuthorId=${contentAuthorId}, contentEntityType=${contentEntityType}, contentEntityId=${contentEntityId})}"></div>
+        </div>
+    </div>
+
+    <nav aria-label="Comment page navigation" th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=0)|}" aria-label="First">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${currentPage - 1})|}" aria-label="Previous">
+                    <span aria-hidden="true">&lsaquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage ? 'active' : ''}">
+                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${i})|}" th:text="${i + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${currentPage + 1})|}" aria-label="Next">
+                    <span aria-hidden="true">&rsaquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${totalPages - 1})|}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <style>
+        .comment-card {
+            border: 1px solid #e0e0e0;
+            border-radius: .25rem;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .comment-reply {
+            border-left: 3px solid #007bff;
+            padding-left: 15px;
+            margin-left: 20px;
+        }
+        .depth-0 { margin-left: 0px; }
+        .depth-1 { margin-left: 10px; }
+        .depth-2 { margin-left: 20px; }
+        .depth-3 { margin-left: 30px; }
+        .depth-4 { margin-left: 40px; }
+        .depth-5 { margin-left: 50px; }
+        .comment-meta {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        .reply-form, .edit-form {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: .25rem;
+            background-color: #f8f9fa;
+        }
+        .actions-group {
+            margin-top: 5px;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // Функція для відображення повідомлень (успіх/помилка)
+        function showMessage(type, text) {
+            const alertPlaceholder = document.getElementById('alertPlaceholder');
+            if (alertPlaceholder) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        <span>${text}</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                alertPlaceholder.innerHTML = alertHtml;
+                // Автоматично приховати повідомлення через 5 секунд
+                setTimeout(() => {
+                    const alertElement = alertPlaceholder.querySelector('.alert');
+                    if (alertElement) {
+                        alertElement.classList.remove('show');
+                        alertElement.classList.add('fade');
+                        setTimeout(() => alertElement.remove(), 150); // Дати час для анімації
+                    }
+                }, 5000);
+            }
+        }
+
+        // ##################################################################################
+        // Загальна функція для перемикання форм (без змін)
+        function toggleForm() {
+            const commentId = this.dataset.commentId;
+            const formType = this.classList.contains('toggle-reply-form') ? 'replyForm-' : 'editForm-';
+            const form = document.getElementById(formType + commentId);
+            if (form) {
+                form.style.display = form.style.display === 'block' ? 'none' : 'block';
+                // Скидаємо текст, якщо форма приховується
+                if (form.style.display === 'none') {
+                    const textarea = form.querySelector('textarea[name="text"], textarea[name="newText"]');
+                    if (textarea) textarea.value = '';
+                }
+            }
+        }
+
+        // Загальна функція для перемикання іконки розгортання (без змін)
+        function toggleCollapseIcon(event) {
+            const button = event.currentTarget;
+            const targetId = button.dataset.bsTarget;
+            const collapseElement = document.querySelector(targetId);
+            const iconSpan = button.querySelector('.collapse-icon');
+
+            setTimeout(() => {
+                if (collapseElement.classList.contains('show')) {
+                    if (iconSpan) iconSpan.textContent = '-';
+                } else {
+                    if (iconSpan) iconSpan.textContent = '+';
+                }
+            }, 10);
+        }
+
+        // ##################################################################################
+        // Обробники відправки форм
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Зупиняємо стандартну відправку форми
+
+            const form = event.target;
+            const formData = new FormData(form);
+            let url = form.action;
+            let method = form.method.toUpperCase();
+
+            // Для PATCH/DELETE форм, якщо використовуємо POST з _method
+            if (formData.has('_method')) {
+                method = formData.get('_method').toUpperCase();
+                // Якщо метод DELETE, а action форми містить commentId, потрібно переконатися, що url коректний
+                if (method === 'DELETE' && url.endsWith('/comments/')) {
+                    // Якщо URL закінчується на /comments/, а id в URL не вказано, додаємо його з formData
+                    // Цей блок може бути потрібний, якщо ви використовуєте загальний URL без UUID в action форми DELETE
+                    const commentIdToDelete = url.split('/').pop(); // Отримуємо UUID з URL, якщо він там є
+                    // Якщо UUID був в action форми, то url вже має бути правильним
+                    // Якщо ні, і ви хочете динамічно додавати ID для DELETE, то потрібно це врахувати.
+                    // З поточною Thymealead конфігурацією, UUID вже є в url форми видалення
+                }
+                formData.delete('_method'); // Видаляємо, щоб не відправляти на сервер
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                      'Content-Type': 'application/json; charset=UTF-8'
+                    },
+                    body: formData // Відправка FormData для @RequestParam
+                });
+
+                const result = await response.json(); // Очікуємо JSON відповідь від REST контролера
+                window.location.reload();
+
+                if (response.ok) { // Перевіряємо статус відповіді
+                    showMessage('success', result.message || 'Операція успішна!');
+                    form.reset(); // Очищаємо форму після успішної відправки
+                    // Якщо це форма відповіді/редагування, приховати її
+                    if (form.closest('.reply-form') || form.closest('.edit-form')) {
+                        form.parentElement.style.display = 'none';
+                    }
+                    // Перезавантажуємо всю сторінку
+                    window.location.reload();
+                } else {
+                    showMessage('danger', result.errorMessage || `Помилка: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Помилка відправки форми:', error);
+                showMessage('danger', `Помилка мережі або сервера: ${error.message}`);
+            }
+        }
+
+        // ##################################################################################
+        // Ініціалізація всіх обробників
+        function initializeAllCommentHandlers() {
+            // Ініціалізація кнопок "Відповісти" / "Редагувати" / "Згорнути"
+            // Ці функції потрібно ініціалізувати при кожному завантаженні фрагмента
+            document.querySelectorAll('.toggle-reply-form').forEach(button => {
+                button.removeEventListener('click', toggleForm); // Уникаємо дублювання обробників
+                button.addEventListener('click', toggleForm);
+            });
+
+            document.querySelectorAll('.toggle-edit-form').forEach(button => {
+                button.removeEventListener('click', toggleForm); // Уникаємо дублювання обробників
+                button.addEventListener('click', toggleForm);
+            });
+
+            document.querySelectorAll('.btn[data-bs-toggle="collapse"]').forEach(button => {
+                button.removeEventListener('click', toggleCollapseIcon); // Уникаємо дублювання обробників
+                button.addEventListener('click', toggleCollapseIcon);
+                // Встановити початкову іконку, якщо елемент розгорнутий за замовчуванням
+                const targetId = button.dataset.bsTarget;
+                const collapseElement = document.querySelector(targetId);
+                const iconSpan = button.querySelector('.collapse-icon');
+                if (collapseElement && collapseElement.classList.contains('show')) {
+                    if (iconSpan) iconSpan.textContent = '-';
+                }
+            });
+
+
+            // Прив'язка обробників відправки для всіх форм коментарів
+            document.querySelectorAll('form[th\\:action*="/comments/add"], form[th\\:action*="/comments/reply"], form[th\\:action*="/comments/update"], form[th\\:action*="/comments/delete"]').forEach(form => {
+                form.removeEventListener('submit', handleFormSubmit); // Уникаємо дублювання
+                form.addEventListener('submit', handleFormSubmit);
+            });
+        }
+
+        // Викликаємо функцію після завантаження DOM
+        document.addEventListener('DOMContentLoaded', initializeAllCommentHandlers);
+
+        // Якщо фрагмент завантажується AJAX-ом, потрібно викликати initializeAllCommentHandlers після кожного успішного завантаження
+        /*]]>*/
+    </script>
+</div>
+
+<th:block th:fragment="commentFragment(comment, currentUserId, contentAuthorId, contentEntityType, contentEntityId)">
+    <div th:class="|comment-card depth-${comment.depth}|">
+        <div class="comment-meta">
+            <strong><span th:text="${comment.author.custname} + ' ' + ${comment.author.custsurname}">Автор</span></strong>
+            <span th:text="| - ${#temporals.format(comment.timestamp, 'dd-MM-yyyy HH:mm')}|">Дата</span>
+            <span th:if="${comment.author.uuid == currentUserId}" class="badge bg-primary ms-2">Ви</span>
+            <span th:if="${comment.author.uuid == contentAuthorId}" class="badge bg-danger ms-2">Автор контенту</span>
+        </div>
+        <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}"></p>
+
+        <div class="actions-group">
+            <button th:if="${comment.depth lt 5}" class="btn btn-sm btn-outline-primary toggle-reply-form"
+                    th:data-comment-id="${comment.uuid}">Відповісти</button>
+
+            <button th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
+                    th:data-comment-id="${comment.uuid}">Редагувати</button>
+
+            <form th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
+                  th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/${comment.uuid}|}" method="post" class="d-inline ms-2">
+                <input type="hidden" name="_method" value="DELETE" />
+                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
+            </form>
+
+            <button th:if="${not #lists.isEmpty(comment.replies)}"
+                    class="btn btn-sm btn-outline-secondary ms-2"
+                    th:data-bs-toggle="collapse"
+                    th:data-bs-target="${'#repliesCollapse-' + comment.id}"
+                    aria-expanded="false"
+                    th:aria-controls="${'repliesCollapse-' + comment.id}">
+                <span th:text="${'Відповідей: ' + #lists.size(comment.replies)}"></span>
+                <span class="collapse-icon">+</span>
+            </button>
+        </div>
+
+        <div th:id="${'replyForm-' + comment.uuid}" class="reply-form">
+            <h6>Відповідь на коментар від <span th:text="${comment.author.custname} + ' ' + ${comment.author.custsurname}"></span>:</h6>
+            <form th:id="${'replyFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/reply|}" method="post">
+                <input type="hidden" name="parentId" th:value="${comment.uuid}" />
+                <div class="mb-3">
+                    <input type="hidden" class="form-control form-control-sm" name="author" th:value="${currentUserId}" required />
+                </div>
+                <div class="mb-3">
+                    <label for="replyText" class="form-label">Ваш коментар:</label>
+                    <textarea class="form-control form-control-sm" th:id="${'replyText-' + comment.uuid}" name="text" rows="2" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Відправити відповідь</button>
+            </form>
+        </div>
+
+        <div th:id="${'editForm-' + comment.uuid}" class="edit-form">
+            <h6>Редагувати коментар:</h6>
+            <form th:id="${'editFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/update|}" method="post">
+                <input type="hidden" name="_method" value="PUT" /> <input type="hidden" name="commentId" th:value="${comment.uuid}" />
+                <div class="mb-3">
+                    <label for="editText" class="form-label">Новий текст:</label>
+                    <textarea class="form-control form-control-sm" th:id="${'editText-' + comment.uuid}" name="newText" rows="2" th:text="${comment.text}" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-sm btn-success">Зберегти зміни</button>
+                <button type="button" class="btn btn-sm btn-secondary toggle-edit-form"
+                        th:data-comment-id="${comment.uuid}">Скасувати</button>
+            </form>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(comment.replies)}"
+             th:id="${'repliesCollapse-' + comment.id}" class="collapse show comment-reply">
+            <div th:each="reply : ${comment.replies}">
+                <div th:replace="~{ :: commentFragment(comment=${reply}, currentUserId=${currentUserId}, contentAuthorId=${contentAuthorId}, contentEntityType=${contentEntityType}, contentEntityId=${contentEntityId})}"></div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>

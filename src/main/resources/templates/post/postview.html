@@ -52,7 +52,7 @@
                 <h1 th:text="${post.posttitle}"></h1>
                 <div th:utext="${post.postbody}"></div>
                 <h3>Коментарі</h3>
-                <div th:include="/fragments/comments_section :: commentsSection (
+                <div th:include="/fragments/comments_section_rest :: commentsSection (
                         commentsPage=${commentsPage},
                         currentPage=${currentPage},
                         totalPages=${totalPages},

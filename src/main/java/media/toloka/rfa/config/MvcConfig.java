@@ -1,8 +1,8 @@
 package media.toloka.rfa.config;
 
 import media.toloka.rfa.comments.config.StringToECommentSourceTypeConverter;
-import media.toloka.rfa.config.interceptor.LoggerInterceptor;
-import media.toloka.rfa.config.interceptor.NavInterceptor;
+//import media.toloka.rfa.config.interceptor.LoggerInterceptor;
+//import media.toloka.rfa.config.interceptor.NavInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -33,8 +33,8 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
     @Autowired
     private StringToECommentSourceTypeConverter stringToECommentSourceTypeConverter;
 
-    @Autowired
-    NavInterceptor navInterceptor;
+//    @Autowired
+//    NavInterceptor navInterceptor;
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
@@ -44,8 +44,8 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(navInterceptor);
-        registry.addInterceptor(new LoggerInterceptor());
+//        registry.addInterceptor(navInterceptor);
+//        registry.addInterceptor(new LoggerInterceptor());
 
     }
 
