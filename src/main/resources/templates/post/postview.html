@@ -74,5 +74,181 @@
 <!--    <script src="/js/tinymce.min.js"></script>-->
 <!--<div th:replace="~{/fragments/comments :: commentsjs}"/>-->
 
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    // Функція для відображення повідомлень (успіх/помилка)
+    function showMessage(type, text) {
+        const alertPlaceholder = document.getElementById('alertPlaceholder');
+        if (alertPlaceholder) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <span>${text}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            alertPlaceholder.innerHTML = alertHtml;
+            // Автоматично приховати повідомлення через 5 секунд
+            setTimeout(() => {
+                const alertElement = alertPlaceholder.querySelector('.alert');
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    alertElement.classList.add('fade');
+                    setTimeout(() => alertElement.remove(), 150); // Дати час для анімації
+                }
+            }, 5000);
+        }
+    }
+
+    // ##################################################################################
+    // Загальна функція для перемикання форм (без змін)
+    function toggleForm() {
+        const commentId = this.dataset.commentId;
+        const formType = this.classList.contains('toggle-reply-form') ? 'replyForm-' : 'editForm-';
+        const form = document.getElementById(formType + commentId);
+        if (form) {
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+            // Скидаємо текст, якщо форма приховується
+            if (form.style.display === 'none') {
+                const textarea = form.querySelector('textarea[name="text"], textarea[name="newText"]');
+                if (textarea) textarea.value = '';
+            }
+        }
+    }
+
+    // Загальна функція для перемикання іконки розгортання (без змін)
+    function toggleCollapseIcon(event) {
+        const button = event.currentTarget;
+        const targetId = button.dataset.bsTarget;
+        const collapseElement = document.querySelector(targetId);
+        const iconSpan = button.querySelector('.collapse-icon');
+
+        setTimeout(() => {
+            if (collapseElement.classList.contains('show')) {
+                if (iconSpan) iconSpan.textContent = '-';
+            } else {
+                if (iconSpan) iconSpan.textContent = '+';
+            }
+        }, 10);
+    }
+
+    // ##################################################################################
+    // Обробники відправки форм
+    async function handleFormSubmit(event) {
+        event.preventDefault(); // Зупиняємо стандартну відправку форми
+
+        const form = event.target;
+        const formData = new FormData(form);
+        let url = form.action;
+        let method = form.method.toUpperCase();
+
+        // Для PATCH/DELETE форм, якщо використовуємо POST з _method
+        if (formData.has('_method')) {
+            method = formData.get('_method').toUpperCase();
+            // Якщо метод DELETE, а action форми містить commentId, потрібно переконатися, що url коректний
+            if (method === 'DELETE' && url.endsWith('/comments/')) {
+                // Якщо URL закінчується на /comments/, а id в URL не вказано, додаємо його з formData
+                // Цей блок може бути потрібний, якщо ви використовуєте загальний URL без UUID в action форми DELETE
+                const commentIdToDelete = url.split('/').pop(); // Отримуємо UUID з URL, якщо він там є
+                // Якщо UUID був в action форми, то url вже має бути правильним
+                // Якщо ні, і ви хочете динамічно додавати ID для DELETE, то потрібно це врахувати.
+                // З поточною Thymealead конфігурацією, UUID вже є в url форми видалення
+            }
+            formData.delete('_method'); // Видаляємо, щоб не відправляти на сервер
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+
+                body: formData // Відправка FormData для @RequestParam
+            });
+
+            const result = await response.json(); // Очікуємо JSON відповідь від REST контролера
+            // window.location.reload();
+
+            if (response.ok) { // Перевіряємо статус відповіді
+                showMessage('success', result.message || 'Операція успішна!');
+                form.reset(); // Очищаємо форму після успішної відправки
+                // Якщо це форма відповіді/редагування, приховати її
+                if (form.closest('.reply-form') || form.closest('.edit-form')) {
+                    form.parentElement.style.display = 'none';
+                }
+                // Перезавантажуємо всю сторінку
+                window.location.reload();
+            } else {
+                showMessage('danger', result.errorMessage || `Помилка: ${response.status} ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Помилка відправки форми:', error);
+            showMessage('danger', `Помилка мережі або сервера: ${error.message}`);
+        }
+        // window.location.href = savedUrl;
+    }
+
+    // ##################################################################################
+    // Ініціалізація всіх обробників
+    function initializeAllCommentHandlers() {
+        console.log('initializeAllCommentHandlers called.'); // Для налагодження
+        // Ініціалізація кнопок "Відповісти" / "Редагувати" / "Згорнути"
+        // Ці функції потрібно ініціалізувати при кожному завантаженні фрагмента
+        document.querySelectorAll('.toggle-reply-form').forEach(button => {
+            button.removeEventListener('click', toggleForm); // Уникаємо дублювання обробників
+            button.addEventListener('click', toggleForm);
+            console.log('Attached toggleForm to reply button:', button); // Для налагодження
+        });
+
+        document.querySelectorAll('.toggle-edit-form').forEach(button => {
+            button.removeEventListener('click', toggleForm); // Уникаємо дублювання обробників
+            button.addEventListener('click', toggleForm);
+            console.log('Attached toggleForm to edit button:', button); // Для налагодження
+        });
+
+        document.querySelectorAll('.btn[data-bs-toggle="collapse"]').forEach(button => {
+            button.removeEventListener('click', toggleCollapseIcon); // Уникаємо дублювання обробників
+            button.addEventListener('click', toggleCollapseIcon);
+            // Встановити початкову іконку, якщо елемент розгорнутий за замовчуванням
+            const targetId = button.dataset.bsTarget;
+            const collapseElement = document.querySelector(targetId);
+            const iconSpan = button.querySelector('.collapse-icon');
+            if (collapseElement && collapseElement.classList.contains('show')) {
+                if (iconSpan) iconSpan.textContent = '-';
+            }
+            console.log('Attached toggleCollapseIcon to collapse button:', button); // Для налагодження
+        });
+
+
+        // Прив'язка обробників відправки для всіх форм коментарів
+        //document.querySelectorAll('form[action*="/comments/add"], form[action*="/comments/reply"], form[action*="/comments/update"], form[action*="/comments/delete"]').forEach(form => {
+        //    form.removeEventListener('submit', handleFormSubmit); // Уникаємо дублювання
+        //    form.addEventListener('submit', handleFormSubmit);
+        //});
+
+        // ПРИВ'ЯЗКА ОБРОБНИКІВ SUBMIT: Використовуємо 'action*' замість 'th\\:action*'
+        const formsToAttach = document.querySelectorAll('form[action*="/comments/add"], form[action*="/comments/reply"], form[action*="/comments/update"], form[action*="/comments/delete"]');
+        console.log('Found forms for submit handler:', formsToAttach.length, formsToAttach); // Для налагодження: перевірте, скільки форм знайдено
+
+        formsToAttach.forEach(form => {
+            form.removeEventListener('submit', handleFormSubmit); // Уникаємо дублювання
+            form.addEventListener('submit', handleFormSubmit);
+            console.log('Attached handleFormSubmit to form:', form.id || form.action); // Для налагодження
+        });
+
+    }
+    // Отримати повну адресу сторінки
+    const currentUrl = window.location.href;
+
+    console.log("Поточний URL:", currentUrl);
+    // Приклад виводу: "https://example.com/path/page.html?param1=value1#section"
+
+    // Зберегти URL у змінну (наприклад, для подальшого використання)
+    let savedUrl = currentUrl;
+    // Викликаємо функцію після завантаження DOM
+    document.addEventListener('DOMContentLoaded', initializeAllCommentHandlers);
+
+    // Якщо фрагмент завантажується AJAX-ом, потрібно викликати initializeAllCommentHandlers після кожного успішного завантаження
+    /*]]>*/
+</script>
 </body>
 </html>
