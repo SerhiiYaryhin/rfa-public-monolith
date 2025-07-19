@@ -56,7 +56,7 @@ import java.util.HashMap;
         @PostMapping("/add")
         public ResponseEntity<Map<String, String>> addRootComment(@PathVariable ECommentSourceType contentEntityType,
                                                                   @PathVariable String contentEntityId,
-                                                                  @RequestParam("author") String authoruuid, // Передається, але, можливо, не використовується
+//                                                                  @RequestParam("author") String authoruuid, // Передається, але, можливо, не використовується
                                                                   @RequestParam("text") String text) {
             try {
                 Clientdetail currentUserId = commentService.getCurrentUser();
@@ -97,7 +97,7 @@ import java.util.HashMap;
             }
         }
 
-        @DeleteMapping("/{uuid}") // Змінено на DELETE
+        @DeleteMapping("/delete/{uuid}") // Змінено на DELETE
         public ResponseEntity<Map<String, String>> deleteComment(@PathVariable ECommentSourceType contentEntityType,
                                                                  @PathVariable String contentEntityId,
                                                                  @PathVariable String uuid) {
