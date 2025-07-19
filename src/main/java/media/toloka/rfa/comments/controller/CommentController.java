@@ -3,6 +3,8 @@ package media.toloka.rfa.comments.controller;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/universalcomments/{contentEntityType}/{contentEntityId}/comments")
 public class CommentController {
+
+    private static final Logger log = LoggerFactory.getLogger(CommentController.class); // <-- Додайте цей рядок
+
 
     private final CommentService commentService;
 
@@ -30,6 +35,10 @@ public class CommentController {
                            @RequestParam("author") String sauthor,
                            @RequestParam("text") String text,
                            RedirectAttributes redirectAttributes) {
+        // --- Додайте це логування ---
+        log.info("Отримано запит на відповідь. parentId: {}, author: {}, text: '{}'", parentId, sauthor, text);
+        log.info("Content Entity Type: {}, Content Entity ID: {}", contentEntityType, contentEntityId);
+        // ----------------------------
         Clientdetail currentUserId = commentService.getCurrentUser();
         Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId);;
         commentService.saveReply(parentId, currentUserId, text);
@@ -56,6 +65,8 @@ public class CommentController {
                                 @RequestParam("commentId") String commentId,
                                 @RequestParam("newText") String newText,
                                 RedirectAttributes redirectAttributes) {
+
+
         Clientdetail currentUserId = commentService.getCurrentUser();
         if (commentService.updateComment(commentId, currentUserId, newText)) {
             redirectAttributes.addFlashAttribute("message", "Коментар успішно оновлено!");

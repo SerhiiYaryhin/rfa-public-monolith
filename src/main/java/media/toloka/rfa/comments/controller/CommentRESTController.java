@@ -3,6 +3,8 @@ package media.toloka.rfa.comments.controller;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,9 @@ import java.util.HashMap;
     @RestController // Змінено на RestController
     @RequestMapping("/api/2.0/universalcomments/{contentEntityType}/{contentEntityId}/comments") // Додано /api/ для розмежування REST API
     public class CommentRESTController {
+
+        private static final Logger log = LoggerFactory.getLogger(CommentRESTController.class); // <-- Додайте цей рядок
+
 
         private final CommentService commentService;
 
@@ -40,6 +45,10 @@ import java.util.HashMap;
                                                             @RequestParam("author") String sauthor, // Передається, але, можливо, не використовується
                                                             @RequestParam("text") String text) {
             try {
+                // --- Додайте це логування ---
+                log.info("Отримано запит на відповідь. parentId: {}, author: {}, text: '{}'", parentId, sauthor, text);
+                log.info("Content Entity Type: {}, Content Entity ID: {}", contentEntityType, contentEntityId);
+                // ----------------------------
                 Clientdetail currentUserId = commentService.getCurrentUser();
                 // Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId); // Цей рядок може бути зайвим тут
                 commentService.saveReply(parentId, currentUserId, text);
@@ -59,6 +68,9 @@ import java.util.HashMap;
 //                                                                  @RequestParam("author") String authoruuid, // Передається, але, можливо, не використовується
                                                                   @RequestParam("text") String text) {
             try {
+                log.info("JVM Default File Encoding: {}", System.getProperty("file.encoding"));
+                log.info("JVM Default Charset: {}", java.nio.charset.Charset.defaultCharset().name());
+
                 Clientdetail currentUserId = commentService.getCurrentUser();
                 // Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId); // todo: логіка для отримання автора контенту повинна бути в сервісі або контролері, якщо вона потрібна для валідації/авторизації
                 commentService.addRootComment(currentUserId, text, contentEntityType, contentEntityId);
@@ -79,6 +91,10 @@ import java.util.HashMap;
                                                                  @RequestParam("commentId") String commentId,
                                                                  @RequestParam("newText") String newText) {
             try {
+                // --- Додайте це логування ---
+                log.info("Отримано запит на оновлення коментаря. commentId: {}, newText: '{}'", commentId, newText);
+                log.info("Content Entity Type: {}, Content Entity ID: {}", contentEntityId);
+                // ----------------------------
                 Clientdetail currentUserId = commentService.getCurrentUser();
                 if (commentService.updateComment(commentId, currentUserId, newText)) {
                     Map<String, String> response = new HashMap<>();
