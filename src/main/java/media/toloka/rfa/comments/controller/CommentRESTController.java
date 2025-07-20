@@ -26,17 +26,27 @@ import java.util.HashMap;
             this.commentService = commentService;
         }
 
-        // Примітка: GET-запити для отримання коментарів (наприклад, пагінований список)
-        // тепер зазвичай обробляються окремим методом GET.
-        // Наприклад: @GetMapping
-        // public ResponseEntity<Page<Comment>> getComments(@PathVariable ECommentSourceType contentEntityType,
-        //                                                 @PathVariable String contentEntityId,
-        //                                                 @RequestParam(defaultValue = "0") int page,
-        //                                                 @RequestParam(defaultValue = "10") int size) {
-        //     // Логіка для отримання коментарів та повернення їх у вигляді ResponseEntity
-        //     return ResponseEntity.ok(commentService.getComments(contentEntityType, contentEntityId, page, size));
-        // }
-
+        @PostMapping("/add")
+        public ResponseEntity<Map<String, String>> addRootComment(@PathVariable ECommentSourceType contentEntityType,
+                                                                  @PathVariable String contentEntityId,
+//                                                                  @RequestParam("author") String authoruuid, // Передається, але, можливо, не використовується
+                                                                  @RequestParam("text") String text) {
+//                log.info("JVM Default File Encoding: {}", System.getProperty("file.encoding"));
+//                log.info("JVM Default Charset: {}", java.nio.charset.Charset.defaultCharset().name());
+            log.info("ADD: Get TEXT: {}", text);
+            try {
+                Clientdetail currentUserId = commentService.getCurrentUser();
+                // Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId); // todo: логіка для отримання автора контенту повинна бути в сервісі або контролері, якщо вона потрібна для валідації/авторизації
+                commentService.addRootComment(currentUserId, text, contentEntityType, contentEntityId);
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Коментар успішно доданий!");
+                return new ResponseEntity<>(response, HttpStatus.CREATED); // 201 Created
+            } catch (Exception e) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("errorMessage", "Помилка при додаванні коментаря: " + e.getMessage());
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+        }
 
         @PostMapping("/reply")
         public ResponseEntity<Map<String, String>> addReply(@PathVariable ECommentSourceType contentEntityType,
@@ -62,29 +72,9 @@ import java.util.HashMap;
             }
         }
 
-        @PostMapping("/add")
-        public ResponseEntity<Map<String, String>> addRootComment(@PathVariable ECommentSourceType contentEntityType,
-                                                                  @PathVariable String contentEntityId,
-//                                                                  @RequestParam("author") String authoruuid, // Передається, але, можливо, не використовується
-                                                                  @RequestParam("text") String text) {
-            try {
-                log.info("JVM Default File Encoding: {}", System.getProperty("file.encoding"));
-                log.info("JVM Default Charset: {}", java.nio.charset.Charset.defaultCharset().name());
 
-                Clientdetail currentUserId = commentService.getCurrentUser();
-                // Clientdetail author = commentService.getContentAuthorId(contentEntityType, contentEntityId); // todo: логіка для отримання автора контенту повинна бути в сервісі або контролері, якщо вона потрібна для валідації/авторизації
-                commentService.addRootComment(currentUserId, text, contentEntityType, contentEntityId);
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "Коментар успішно доданий!");
-                return new ResponseEntity<>(response, HttpStatus.CREATED); // 201 Created
-            } catch (Exception e) {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("errorMessage", "Помилка при додаванні коментаря: " + e.getMessage());
-                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-            }
-        }
 
-        @PutMapping // Змінено на PUT для оновлення ресурсу
+        @PutMapping("/update") // Змінено на PUT для оновлення ресурсу
         @RequestMapping("/update") // Залишаємо /update, якщо PUT /commentId неможливий
         public ResponseEntity<Map<String, String>> updateComment(@PathVariable ECommentSourceType contentEntityType,
                                                                  @PathVariable String contentEntityId,
@@ -93,7 +83,7 @@ import java.util.HashMap;
             try {
                 // --- Додайте це логування ---
                 log.info("Отримано запит на оновлення коментаря. commentId: {}, newText: '{}'", commentId, newText);
-                log.info("Content Entity Type: {}, Content Entity ID: {}", contentEntityId);
+                log.info("Content Entity Type: {}, Content Entity ID: {}", contentEntityType, contentEntityId);
                 // ----------------------------
                 Clientdetail currentUserId = commentService.getCurrentUser();
                 if (commentService.updateComment(commentId, currentUserId, newText)) {

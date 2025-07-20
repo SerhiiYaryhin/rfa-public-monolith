@@ -11,6 +11,8 @@
     <div sec:authorize="isAuthenticated()" class="mb-4 p-3 border rounded">
         <h6>Додати новий коментар:</h6>
         <form id="addRootCommentForm" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">
+            <input type="hidden" name="_method" value="POST" />
+<!--        <form id="addRootCommentForm" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">-->
 <!--            <div class="mb-3">-->
 <!--                <label for="newAuthor" class="form-label">Ваше ім'я (поточний ID: <span th:text="${currentUserId}"></span>):</label>-->
 <!--                <input type="text" class="form-control" id="newAuthor" name="author" th:value="${currentUserId}" required />-->
@@ -139,6 +141,7 @@
             <form th:id="${'replyFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/reply|}" method="post">
                 <input type="hidden" name="parentId" th:value="${comment.uuid}" />
                 <div class="mb-3">
+                    <input type="hidden" name="_method" value="POST" />
                     <input type="hidden" class="form-control form-control-sm" name="author" th:value="${currentUserId}" required />
                 </div>
                 <div class="mb-3">
@@ -152,7 +155,8 @@
         <div th:id="${'editForm-' + comment.uuid}" class="edit-form">
             <h6>Редагувати коментар:</h6>
             <form th:id="${'editFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/update|}" method="post">
-                <input type="hidden" name="_method" value="PUT" /> <input type="hidden" name="commentId" th:value="${comment.uuid}" />
+                <input type="hidden" name="_method" value="PUT" />
+                <input type="hidden" name="commentId" th:value="${comment.uuid}" />
                 <div class="mb-3">
                     <label for="editText" class="form-label">Новий текст:</label>
                     <textarea class="form-control form-control-sm" th:id="${'editText-' + comment.uuid}" name="newText" rows="2" th:text="${comment.text}" required></textarea>

@@ -79,7 +79,7 @@ public class ScheduledTasks {
             try {
                 json = IOUtils.toString(url, Charset.forName("UTF-8"));
             } catch (IOException e) {
-                logger.info("Перекидаємо отриману строку в JSON GetStationOnlineList: IOException IOUtils.toString ");
+//                logger.info("Перекидаємо отриману строку в JSON GetStationOnlineList: IOException IOUtils.toString ");
                 continue;
 //                throw new RuntimeException(e);
             }
