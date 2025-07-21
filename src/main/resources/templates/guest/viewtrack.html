@@ -71,7 +71,7 @@
         </div>
         <div class="row" style="padding-top: 20px">
             <h3>Коментарі</h3>
-            <div th:include="~{/fragments/comments_section_rest :: commentsSection (
+            <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
                         commentsPage=${commentsPage},
                         currentPage=${currentPage},
                         totalPages=${totalPages},
