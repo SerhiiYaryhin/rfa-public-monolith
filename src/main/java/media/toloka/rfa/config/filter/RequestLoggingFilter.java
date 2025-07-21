@@ -35,7 +35,7 @@ public class RequestLoggingFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         // Ініціалізація фільтра (можна залишити порожнім, якщо немає спеціальної логіки)
-        log.info("RequestLoggingFilter initialized");
+        log.info("RFA RequestLoggingFilter initialized");
     }
 
     @Override
@@ -56,7 +56,12 @@ public class RequestLoggingFilter implements Filter {
                 String queryString = request.getQueryString();
                 String fullRequestUri = requestURL + (queryString != null ? "?" + queryString : "");
 
-                log.info("Incoming Request: IP={}, URL={}", ipAddress, fullRequestUri);
+                // Отримуємо заголовок Referer
+                String referer = request.getHeader("Referer");
+
+                // Додаємо Referer до логування
+                log.info("Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
+
             }
         }
         filterChain.doFilter(servletRequest, servletResponse);
@@ -65,7 +70,7 @@ public class RequestLoggingFilter implements Filter {
     @Override
     public void destroy() {
         // Логіка очищення (викликається при завершенні роботи фільтра)
-        log.info("RequestLoggingFilter destroyed");
+        log.info("RFA RequestLoggingFilter destroyed");
     }
 
     // Допоміжна функція для отримання IP-адреси (як у попередній відповіді)
