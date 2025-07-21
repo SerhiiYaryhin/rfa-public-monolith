@@ -12,11 +12,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component; // Важливо для автоматичного виявлення Spring
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component // Робить цей фільтр Spring-біном, щоб він був автоматично зареєстрований
 public class RequestLoggingFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
+
+    // Список фрагментів шляхів, які потрібно виключити з логування
+    // Зверніть увагу: вони тепер без початкового '/', оскільки ми шукаємо їх деінде
+    private static final List<String> EXCLUDED_PATH_FRAGMENTS = Arrays.asList(
+            "/assets/", // Якщо це має бути саме директорія
+            "/css/",
+            "/js/"
+            // Можливо, просто "assets", "css", "js" якщо ви хочете ловити їх без слешів
+            // Це залежить від точного патерну, який ви хочете ігнорувати.
+            // Наприклад, "/assets/" знайде "/assets/image.png" але не "/static-assets/image.png"
+            // "assets" знайде обидва.
+    );
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -30,19 +44,21 @@ public class RequestLoggingFilter implements Filter {
 
         if (servletRequest instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
+            String requestURI = request.getRequestURI();
 
-            // Отримання IP-адреси
-            String ipAddress = getClientIpAddress(request);
+            // Перевіряємо, чи URI містить один із виключених фрагментів
+            boolean isExcluded = EXCLUDED_PATH_FRAGMENTS.stream()
+                    .anyMatch(requestURI::contains);
 
-            // Отримання повного URL запиту
-            String requestURL = request.getRequestURL().toString();
-            String queryString = request.getQueryString();
-            String fullRequestUri = requestURL + (queryString != null ? "?" + queryString : "");
+            if (!isExcluded) {
+                String ipAddress = getClientIpAddress(request);
+                String requestURL = request.getRequestURL().toString();
+                String queryString = request.getQueryString();
+                String fullRequestUri = requestURL + (queryString != null ? "?" + queryString : "");
 
-            log.info("Incoming Request: IP={}, URL={}", ipAddress, fullRequestUri);
+                log.info("Incoming Request: IP={}, URL={}", ipAddress, fullRequestUri);
+            }
         }
-
-        // Продовжуємо ланцюжок фільтрів, щоб запит дійшов до контролера
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
