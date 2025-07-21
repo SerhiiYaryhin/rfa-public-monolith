@@ -62,6 +62,9 @@
         .actions-group {
             margin-top: 5px;
         }
+        .comment-text-display {
+            white-space: pre-wrap;
+        }
     </style>
 
     <script th:inline="javascript">
@@ -298,7 +301,7 @@
             <span th:if="${comment.author.uuid == currentUserId}" class="badge bg-primary ms-2">Ви</span>
             <span th:if="${comment.author.uuid == contentAuthorId}" class="badge bg-danger ms-2">Автор контенту</span>
         </div>
-        <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}"></p>
+        <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}" class="comment-text-display"></p>
 
         <div  class="actions-group">
             <button sec:authorize="isAuthenticated()" th:if="${comment.depth lt 5}" class="badge rounded-pill btn btn-primary toggle-reply-form"
