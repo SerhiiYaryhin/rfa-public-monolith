@@ -11,17 +11,12 @@
     <div sec:authorize="isAuthenticated()" class="mb-4 p-3 border rounded">
         <h6>Додати новий коментар:</h6>
         <form id="addRootCommentForm" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">
-            <input type="hidden" name="_method" value="POST" />
-<!--        <form id="addRootCommentForm" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/add|}" method="post">-->
-<!--            <div class="mb-3">-->
-<!--                <label for="newAuthor" class="form-label">Ваше ім'я (поточний ID: <span th:text="${currentUserId}"></span>):</label>-->
-<!--                <input type="text" class="form-control" id="newAuthor" name="author" th:value="${currentUserId}" required />-->
-<!--            </div>-->
+            <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input"/>
             <div class="mb-3">
-                <label for="newCommentText" class="form-label">Коментар:</label>
-                <textarea class="form-control" id="newCommentText" name="text" rows="3" required></textarea>
+                <textarea class="form-control" id="addRootCommentText" name="text" rows="3" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Відправити коментар</button>
+            <button type="submit" class="btn btn-primary" data-action-type="addRoot">Відправити коментар</button>
         </form>
     </div>
     <div sec:authorize="!isAuthenticated()" class="mb-4 p-3 border rounded">
@@ -33,36 +28,6 @@
             <div th:replace="~{:: commentFragment(comment=${comment}, currentUserId=${currentUserId}, contentAuthorId=${contentAuthorId}, contentEntityType=${contentEntityType}, contentEntityId=${contentEntityId})}"></div>
         </div>
     </div>
-
-    <nav aria-label="Comment page navigation" th:if="${totalPages > 1}">
-        <ul class="pagination justify-content-center">
-            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=0)|}" aria-label="First">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${currentPage - 1})|}" aria-label="Previous">
-                    <span aria-hidden="true">&lsaquo;</span>
-                </a>
-            </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                th:classappend="${i == currentPage ? 'active' : ''}">
-                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${i})|}" th:text="${i + 1}">1</a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${currentPage + 1})|}" aria-label="Next">
-                    <span aria-hidden="true">&rsaquo;</span>
-                </a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{|/${contentEntityType}/${contentEntityId}/comments(page=${totalPages - 1})|}" aria-label="Last">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
     <style>
         .comment-card {
             border: 1px solid #e0e0e0;
@@ -99,6 +64,229 @@
         }
     </style>
 
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // Отримуємо глобальні змінні з Thymeleaf
+        const currentUserId = /*[[${currentUserId}]]*/ 'defaultUserId'; // Приклад: 'uuid-користувача'
+        const contentEntityType = /*[[${contentEntityType.label}]]*/ 'defaultType'; // Приклад: 'post'
+        const contentEntityId = /*[[${contentEntityId}]]*/ 'defaultEntityId'; // Приклад: 'uuid-контенту'
+
+        // Отримуємо CSRF-токен та його ім'я з прихованого поля
+        const csrfTokenInput = document.querySelector('input.js-csrf-token-input'); // Використовуємо новий клас
+        let csrfToken = null;
+        let csrfParameterName = null;
+
+        if (csrfTokenInput) {
+            csrfToken = csrfTokenInput.value;
+            csrfParameterName = csrfTokenInput.name;
+        } else {
+            console.warn("CSRF токен не знайдено на сторінці. Запити можуть бути відхилені Spring Security.");
+        }
+
+        // Функція для відображення повідомлень (успіх/помилка)
+        function showMessage(type, text) {
+            const alertPlaceholder = document.getElementById('alertPlaceholder');
+            if (alertPlaceholder) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        <span>${text}</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                alertPlaceholder.innerHTML = alertHtml;
+                // Автоматично приховати повідомлення через 5 секунд
+                setTimeout(() => {
+                    const alertElement = alertPlaceholder.querySelector('.alert');
+                    if (alertElement) {
+                        alertElement.classList.remove('show');
+                        alertElement.classList.add('fade');
+                        setTimeout(() => alertElement.remove(), 150); // Дати час для анімації
+                    }
+                }, 5000);
+            }
+        }
+
+        // ##################################################################################
+        // Загальна функція для перемикання форм (без змін)
+        function toggleForm() {
+            const commentId = this.dataset.commentId;
+            const formType = this.classList.contains('toggle-reply-form') ? 'replyForm-' : 'editForm-';
+            const form = document.getElementById(formType + commentId);
+            if (form) {
+                form.style.display = form.style.display === 'block' ? 'none' : 'block';
+                // Скидаємо текст, якщо форма приховується
+                if (form.style.display === 'none') {
+                    const textarea = form.querySelector('textarea[name="text"], textarea[name="newText"]');
+                    if (textarea) textarea.value = '';
+                }
+            }
+        }
+
+        // Загальна функція для перемикання іконки розгортання (без змін)
+        function toggleCollapseIcon(event) {
+            const button = event.currentTarget;
+            const targetId = button.dataset.bsTarget;
+            const collapseElement = document.querySelector(targetId);
+            const iconSpan = button.querySelector('.collapse-icon');
+
+            setTimeout(() => {
+                if (collapseElement.classList.contains('show')) {
+                    if (iconSpan) iconSpan.textContent = '-';
+                } else {
+                    if (iconSpan) iconSpan.textContent = '+';
+                }
+            }, 10);
+        }
+
+        // ##################################################################################
+        // ОНОВЛЕНА ФУНКЦІЯ для ОБРОБКИ ВІДПРАВКИ ФОРМ
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Зупиняємо стандартну відправку форми
+
+            const form = event.target;
+            let url = form.action;
+            let method = form.method.toUpperCase();
+
+            // Отримуємо фактичний HTTP-метод з прихованого поля _method (PUT, DELETE)
+            const methodOverrideInput = form.querySelector('.js-form-method-override');
+            if (methodOverrideInput) {
+                method = methodOverrideInput.value.toUpperCase();
+            }
+
+            const params = new URLSearchParams();
+
+            // Додаємо CSRF-токен до параметрів
+            if (csrfParameterName && csrfToken) {
+                params.append(csrfParameterName, csrfToken);
+            }
+
+            // ЗБІР ДАНИХ ФОРМИ В ЗАЛЕЖНОСТІ ВІД ЇЇ ТИПУ
+            const actionType = event.submitter ? event.submitter.dataset.actionType : null; // Визначаємо тип дії за кнопкою submit
+
+            if (actionType === 'addRoot') {
+                // Для форми додавання кореневого коментаря
+                const text = document.getElementById('addRootCommentText').value;
+                params.append('text', text);
+                // author (currentUserId) та contentEntityType, contentEntityId вже є глобальними
+                params.append('author', currentUserId); // Додаємо author
+            } else if (actionType === 'reply') {
+                // Для форми відповіді
+                const commentId = form.querySelector('input[name="parentId"]').value; // Отримуємо parentId
+                const replyText = form.querySelector(`textarea[id="replyText-${commentId}"]`).value;
+                params.append('parentId', commentId);
+                params.append('author', currentUserId); // Додаємо author
+                params.append('text', replyText);
+            } else if (actionType === 'update') {
+                // Для форми редагування
+                const commentId = form.querySelector('input[name="commentId"]').value;
+                const newText = form.querySelector(`textarea[id="editText-${commentId}"]`).value;
+                params.append('commentId', commentId);
+                params.append('newText', newText);
+            } else if (actionType === 'delete') {
+                // Для форми видалення
+                // У цьому випадку всі необхідні дані (uuid) вже є в URL action форми
+                // або можуть бути додані вручну, якщо потрібно, але зазвичай DELETE GET не має тіла
+                // Якщо ви надсилаєте DELETE як POST з _method, і токен потрібен в тілі, він вже доданий вище.
+            }
+
+
+            try {
+                const response = await fetch(url, {
+                    method: method, // Використовуємо фактичний HTTP-метод (POST, PUT, DELETE)
+                    headers: {
+                        // !!! ЦЕ ГОЛОВНА ЗМІНА: Вказуємо Content-Type з UTF-8 !!!
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    },
+                    body: params // URLSearchParams автоматично серіалізується для body
+                });
+
+                const result = await response.json(); // Очікуємо JSON відповідь від REST контролера
+
+                if (response.ok) {
+                    showMessage('success', result.message || 'Операція успішна!');
+                    form.reset(); // Очищаємо форму після успішної відправки
+                    if (form.closest('.reply-form') || form.closest('.edit-form')) {
+                        form.parentElement.style.display = 'none';
+                    }
+                    // ОНОВЛЕННЯ: Для оновлення коментаря, оновлюємо текст на сторінці без перезавантаження
+                    window.location.reload();
+/*
+                    if (actionType === 'update') {
+                        const commentId = form.querySelector('input[name="commentId"]').value;
+                        const commentTextElement = document.getElementById('commentText-' + commentId);
+                        if (commentTextElement) {
+                            commentTextElement.textContent = params.get('newText'); // Оновлюємо текст з параметрів
+                        }
+                    } else {
+                        // Для додавання/відповіді/видалення краще перезавантажити або оновити список
+                        window.location.reload(); // Перезавантажуємо всю сторінку
+                    }
+*/
+                } else {
+                    showMessage('danger', result.errorMessage || `Помилка: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Помилка відправки форми:', error);
+                showMessage('danger', `Помилка мережі або сервера: ${error.message}`);
+            }
+        }
+
+        // ##################################################################################
+        // Ініціалізація всіх обробників
+        function initializeAllCommentHandlers() {
+            // ... (без змін: ініціалізація кнопок "Відповісти", "Редагувати", "Згорнути") ...
+            document.querySelectorAll('.toggle-reply-form').forEach(button => {
+                button.removeEventListener('click', toggleForm);
+                button.addEventListener('click', toggleForm);
+            });
+
+            document.querySelectorAll('.toggle-edit-form').forEach(button => {
+                button.removeEventListener('click', toggleForm);
+                button.addEventListener('click', toggleForm);
+            });
+
+            document.querySelectorAll('.btn[data-bs-toggle="collapse"]').forEach(button => {
+                button.removeEventListener('click', toggleCollapseIcon);
+                button.addEventListener('click', toggleCollapseIcon);
+                const targetId = button.dataset.bsTarget;
+                const collapseElement = document.querySelector(targetId);
+                const iconSpan = button.querySelector('.collapse-icon');
+                if (collapseElement && collapseElement.classList.contains('show')) {
+                    if (iconSpan) iconSpan.textContent = '-';
+                }
+            });
+
+            // Прив'язка обробників відправки для всіх форм коментарів
+            const formsToAttach = document.querySelectorAll(
+                'form#addRootCommentForm, ' + // Додана форма кореневого коментаря
+                'form[id^="replyFormActual-"], ' + // Форми відповідей
+                'form[id^="editFormActual-"], ' + // Форми редагування
+                'form[action*="/comments/delete"]' // Форми видалення
+            );
+
+            formsToAttach.forEach(form => {
+                form.removeEventListener('submit', handleFormSubmit); // Уникаємо дублювання
+                form.addEventListener('submit', handleFormSubmit);
+            });
+        }
+
+        // Отримати повну адресу сторінки
+        const currentUrl = window.location.href;
+
+        console.log("Поточний URL:", currentUrl);
+        // Приклад виводу: "https://example.com/path/page.html?param1=value1#section"
+
+        // Зберегти URL у змінну (наприклад, для подальшого використання)
+        let savedUrl = currentUrl;
+        // Викликаємо функцію після завантаження DOM
+        document.addEventListener('DOMContentLoaded', initializeAllCommentHandlers);
+
+        // Якщо фрагмент завантажується AJAX-ом, потрібно викликати initializeAllCommentHandlers після кожного успішного завантаження
+        /*]]>*/
+    </script>
+
+
 
 </div>
 
@@ -121,9 +309,11 @@
 
             <form th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
                   th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/delete/${comment.uuid}|}" method="post" class="d-inline ms-2">
-                <input type="hidden" name="_method" value="DELETE" />
-                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
+                <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input" />
+                <button type="submit" class="btn btn-sm btn-outline-danger" data-action-type="delete" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
             </form>
+
             <button th:if="${not #lists.isEmpty(comment.replies)}"
                     class="btn btn-sm btn-outline-secondary ms-2"
                     th:data-bs-toggle="collapse"
@@ -140,27 +330,28 @@
             <form th:id="${'replyFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/reply|}" method="post">
                 <input type="hidden" name="parentId" th:value="${comment.uuid}" />
                 <div class="mb-3">
-                    <input type="hidden" name="_method" value="POST" />
-                    <input type="hidden" class="form-control form-control-sm" name="author" th:value="${currentUserId}" required />
+                    <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input" />
                 </div>
                 <div class="mb-3">
                     <label for="replyText" class="form-label">Ваш коментар:</label>
                     <textarea class="form-control form-control-sm" th:id="${'replyText-' + comment.uuid}" name="text" rows="2" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-sm btn-primary">Відправити відповідь</button>
+                <button type="submit" class="btn btn-sm btn-primary" data-action-type="reply">Відправити відповідь</button>
             </form>
         </div>
 
         <div th:id="${'editForm-' + comment.uuid}" class="edit-form">
             <h6>Редагувати коментар:</h6>
             <form th:id="${'editFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/update|}" method="post">
-                <input type="hidden" name="_method" value="PUT" />
+                <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input" />
                 <input type="hidden" name="commentId" th:value="${comment.uuid}" />
                 <div class="mb-3">
                     <label for="editText" class="form-label">Новий текст:</label>
                     <textarea class="form-control form-control-sm" th:id="${'editText-' + comment.uuid}" name="newText" rows="2" th:text="${comment.text}" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-sm btn-success">Зберегти зміни</button>
+                <button type="submit" class="btn btn-sm btn-success" data-action-type="update">Зберегти зміни</button>
                 <button type="button" class="btn btn-sm btn-secondary toggle-edit-form"
                         th:data-comment-id="${comment.uuid}">Скасувати</button>
             </form>
@@ -173,10 +364,6 @@
             </div>
         </div>
     </div>
-    <!--    <script src="/js/tinymce.min.js"></script>-->
-    <!--<div th:replace="~{/fragments/comments :: commentsjs}"/>-->
-
-
 </th:block>
 
 </body>

@@ -74,8 +74,8 @@ import java.util.HashMap;
 
 
 
-        @PutMapping("/update") // Змінено на PUT для оновлення ресурсу
-        @RequestMapping("/update") // Залишаємо /update, якщо PUT /commentId неможливий
+        @PostMapping("/update") // Змінено на PUT для оновлення ресурсу
+//        @RequestMapping("/update") // Залишаємо /update, якщо PUT /commentId неможливий
         public ResponseEntity<Map<String, String>> updateComment(@PathVariable ECommentSourceType contentEntityType,
                                                                  @PathVariable String contentEntityId,
                                                                  @RequestParam("commentId") String commentId,
@@ -103,7 +103,7 @@ import java.util.HashMap;
             }
         }
 
-        @DeleteMapping("/delete/{uuid}") // Змінено на DELETE
+        @PostMapping("/delete/{uuid}") // Змінено на DELETE
         public ResponseEntity<Map<String, String>> deleteComment(@PathVariable ECommentSourceType contentEntityType,
                                                                  @PathVariable String contentEntityId,
                                                                  @PathVariable String uuid) {
