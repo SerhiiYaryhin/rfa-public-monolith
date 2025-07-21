@@ -69,17 +69,18 @@
                 </a>
             </div>
         </div>
-        <h3>Коментарі</h3>
-        <div th:include="/fragments/comments_section_rest :: commentsSection (
+        <div class="row" style="padding-top: 20px">
+            <h3>Коментарі</h3>
+            <div th:include="~{/fragments/comments_section_rest :: commentsSection (
                         commentsPage=${commentsPage},
                         currentPage=${currentPage},
                         totalPages=${totalPages},
                         currentUserId=${currentUserId},
                         contentAuthorId=${contentAuthorId},
                         contentEntityType=${contentEntityType},
-                        contentEntityId=${contentEntityId})">
+                        contentEntityId=${contentEntityId})}">
+            </div>
         </div>
-
     </div>
 </div>
 
