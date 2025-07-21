@@ -16,7 +16,7 @@
             <div class="mb-3">
                 <textarea class="form-control" id="addRootCommentText" name="text" rows="3" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" data-action-type="addRoot">Відправити коментар</button>
+            <button type="submit" class="badge rounded-pill btn btn-primary" data-action-type="addRoot">Відправити коментар</button>
         </form>
     </div>
     <div sec:authorize="!isAuthenticated()" class="mb-4 p-3 border rounded">
@@ -204,7 +204,7 @@
                 const result = await response.json(); // Очікуємо JSON відповідь від REST контролера
 
                 if (response.ok) {
-                    showMessage('success', result.message || 'Операція успішна!');
+                    //showMessage('success', result.message || 'Операція успішна!');
                     form.reset(); // Очищаємо форму після успішної відправки
                     if (form.closest('.reply-form') || form.closest('.edit-form')) {
                         form.parentElement.style.display = 'none';
@@ -301,17 +301,17 @@
         <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}"></p>
 
         <div  class="actions-group">
-            <button sec:authorize="isAuthenticated()" th:if="${comment.depth lt 5}" class="btn btn-sm btn-outline-primary toggle-reply-form"
+            <button sec:authorize="isAuthenticated()" th:if="${comment.depth lt 5}" class="badge rounded-pill btn btn-primary toggle-reply-form"
                     th:data-comment-id="${comment.uuid}">Відповісти</button>
 
-            <button sec:authorize="isAuthenticated()"  th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
+            <button sec:authorize="isAuthenticated()"  th:if="${comment.author.uuid == currentUserId}" class="badge rounded-pill btn btn-info toggle-edit-form ms-2"
                     th:data-comment-id="${comment.uuid}">Редагувати</button>
 
             <form sec:authorize="isAuthenticated()" th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
                   th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/delete/${comment.uuid}|}" method="post" class="d-inline ms-2">
                 <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input" />
-                <button type="submit" class="btn btn-sm btn-outline-danger" data-action-type="delete" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
+                <button type="submit" class="badge rounded-pill btn btn-danger" data-action-type="delete" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
             </form>
 
             <button th:if="${not #lists.isEmpty(comment.replies)}"
