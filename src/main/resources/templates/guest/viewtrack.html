@@ -69,6 +69,17 @@
                 </a>
             </div>
         </div>
+        <h3>Коментарі</h3>
+        <div th:include="/fragments/comments_section_rest :: commentsSection (
+                        commentsPage=${commentsPage},
+                        currentPage=${currentPage},
+                        totalPages=${totalPages},
+                        currentUserId=${currentUserId},
+                        contentAuthorId=${contentAuthorId},
+                        contentEntityType=${contentEntityType},
+                        contentEntityId=${contentEntityId})">
+        </div>
+
     </div>
 </div>
 

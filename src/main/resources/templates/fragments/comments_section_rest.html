@@ -300,11 +300,11 @@
         </div>
         <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}"></p>
 
-        <div class="actions-group">
+        <div  class="actions-group">
             <button sec:authorize="isAuthenticated()" th:if="${comment.depth lt 5}" class="btn btn-sm btn-outline-primary toggle-reply-form"
                     th:data-comment-id="${comment.uuid}">Відповісти</button>
 
-            <button sec:authorize="isAuthenticated()" th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
+            <button sec:authorize="isAuthenticated()"  th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
                     th:data-comment-id="${comment.uuid}">Редагувати</button>
 
             <form sec:authorize="isAuthenticated()" th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
@@ -325,7 +325,7 @@
             </button>
         </div>
 
-        <div th:id="${'replyForm-' + comment.uuid}" class="reply-form">
+        <div sec:authorize="isAuthenticated()" th:id="${'replyForm-' + comment.uuid}" class="reply-form">
             <h6>Відповідь на коментар від <span th:text="${comment.author.custname} + ' ' + ${comment.author.custsurname}"></span>:</h6>
             <form th:id="${'replyFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/reply|}" method="post">
                 <input type="hidden" name="parentId" th:value="${comment.uuid}" />
@@ -341,7 +341,7 @@
             </form>
         </div>
 
-        <div th:id="${'editForm-' + comment.uuid}" class="edit-form">
+        <div sec:authorize="isAuthenticated()" th:id="${'editForm-' + comment.uuid}" class="edit-form">
             <h6>Редагувати коментар:</h6>
             <form th:id="${'editFormActual-' + comment.uuid}" th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/update|}" method="post">
                 <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
