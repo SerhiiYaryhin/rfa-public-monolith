@@ -60,7 +60,7 @@ public class RequestLoggingFilter implements Filter {
                 String referer = request.getHeader("Referer");
 
                 // Додаємо Referer до логування
-                log.info("Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
+                log.info("RFA. Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
 
             }
         }
