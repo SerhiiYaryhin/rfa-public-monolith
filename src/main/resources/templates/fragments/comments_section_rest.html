@@ -301,13 +301,13 @@
         <p th:id="${'commentText-' + comment.uuid}" th:text="${comment.text}"></p>
 
         <div class="actions-group">
-            <button th:if="${comment.depth lt 5}" class="btn btn-sm btn-outline-primary toggle-reply-form"
+            <button sec:authorize="isAuthenticated()" th:if="${comment.depth lt 5}" class="btn btn-sm btn-outline-primary toggle-reply-form"
                     th:data-comment-id="${comment.uuid}">Відповісти</button>
 
-            <button th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
+            <button sec:authorize="isAuthenticated()" th:if="${comment.author.uuid == currentUserId}" class="btn btn-sm btn-outline-info toggle-edit-form ms-2"
                     th:data-comment-id="${comment.uuid}">Редагувати</button>
 
-            <form th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
+            <form sec:authorize="isAuthenticated()" th:if="${comment.author.uuid == currentUserId || contentAuthorId == currentUserId}"
                   th:action="@{|/api/2.0/universalcomments/${contentEntityType.label}/${contentEntityId}/comments/delete/${comment.uuid}|}" method="post" class="d-inline ms-2">
                 <input type="hidden" name="_method" value="POST" class="js-form-method-override" />
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" class="js-csrf-token-input" />
