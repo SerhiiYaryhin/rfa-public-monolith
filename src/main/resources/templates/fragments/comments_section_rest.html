@@ -124,7 +124,6 @@
                 <input type="hidden" name="_method" value="DELETE" />
                 <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ви впевнені, що хочете видалити цей коментар?');">Видалити</button>
             </form>
-
             <button th:if="${not #lists.isEmpty(comment.replies)}"
                     class="btn btn-sm btn-outline-secondary ms-2"
                     th:data-bs-toggle="collapse"
