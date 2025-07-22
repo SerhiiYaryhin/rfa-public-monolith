@@ -48,6 +48,18 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
+    public List<Comment> getListCommentsHierarchy(ECommentSourceType contentEntityType, String contentEntityId) {
+        List<Comment> rootCommentsList = commentRepository.findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
+                contentEntityType, contentEntityId);
+
+        for (Comment root : rootCommentsList) {
+            loadRepliesRecursively(root, 1, contentEntityType, contentEntityId);
+        }
+        return rootCommentsList;
+    }
+
+
+    @Transactional(readOnly = true)
     public Page<Comment> getPaginatedCommentsHierarchy(ECommentSourceType contentEntityType, String contentEntityId, Pageable pageable) {
         Page<Comment> rootCommentsPage = commentRepository.findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
                 contentEntityType, contentEntityId, pageable);

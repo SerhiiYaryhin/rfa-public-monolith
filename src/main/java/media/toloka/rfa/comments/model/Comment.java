@@ -31,7 +31,8 @@ public class Comment {
 
     @Expose
 //    private Date timestamp = new Date(); // Дата створення коментаря
-    private LocalDateTime timestamp = LocalDateTime.now();  // Дата створення коментаря
+    private Date timestamp = new Date();  // Дата створення коментаря
+//    private LocalDateTime timestamp = LocalDateTime.now();  // Дата створення коментаря
 
     @Expose
     @Column(nullable = false)
@@ -41,10 +42,12 @@ public class Comment {
     @Column(nullable = false)
     private String contentEntityId;   // ID конкретного поста, колонки, треку тощо
 
+    // при перетворенні у gson виникає цикл :(
     @Expose
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_uuid")
     private Comment parentComment; // коментар верхнього рівня
+//    private String parentComment; // коментар верхнього рівня
 
     @Expose
     private int depth;
@@ -68,7 +71,8 @@ public class Comment {
 
     public Comment() {
 //        this.timestamp = new Date();
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = new Date();
+//        this.timestamp = LocalDateTime.now();
     }
 
     public Comment(Clientdetail author, String text, ECommentSourceType contentEntityType, String contentEntityId) {

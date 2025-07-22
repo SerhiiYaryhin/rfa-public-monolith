@@ -85,6 +85,7 @@ public class PostController {
         // --- Завантаження коментарів ---
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> commentsPage = commentService.getPaginatedCommentsHierarchy(ECommentSourceType.COMMENT_POST, post.getUuid(), pageable);
+//        List<Comment> commentsList = commentService.getListCommentsHierarchy(ECommentSourceType.COMMENT_POST, post.getUuid());
 
         // --- Передача даних у Model для Thymeleaf ---
         model.addAttribute("commentsPage", commentsPage);

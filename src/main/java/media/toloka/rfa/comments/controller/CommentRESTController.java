@@ -1,5 +1,9 @@
 package media.toloka.rfa.comments.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import media.toloka.rfa.comments.config.CommentExclusionStrategy;
+import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -9,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -125,4 +131,26 @@ import java.util.HashMap;
                 return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
+
+
+        @GetMapping("/list") // Змінено на DELETE
+//        public List<Comment> getListComment(@PathVariable ECommentSourceType contentEntityType,
+        public String getListComment(@PathVariable ECommentSourceType contentEntityType,
+                                            @PathVariable String contentEntityId) {
+            List<Comment> commentsList = commentService.getListCommentsHierarchy(contentEntityType, contentEntityId);
+
+//            Gson gson = new GsonBuilder().create();
+            // --- ЗМІНІТЬ ЦЕЙ БЛОК ---
+            Gson gson = new GsonBuilder()
+                    .setExclusionStrategies(new CommentExclusionStrategy()) // <--- Застосовуємо нашу стратегію
+                    .excludeFieldsWithoutExposeAnnotation() // Все ще корисно для інших полів
+                    .setPrettyPrinting() // Необов'язково: для красивого форматування JSON
+                    .create();
+            // -------------------------
+            String json = gson.toJson(commentsList);
+
+            return  json;
+
+        }
+
     }

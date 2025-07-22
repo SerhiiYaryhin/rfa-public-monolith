@@ -14,6 +14,9 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
     Page<Comment> findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
             ECommentSourceType contentEntityType, String contentEntityId, Pageable pageable);
 
+    List<Comment> findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
+            ECommentSourceType contentEntityType, String contentEntityId);
+
     List<Comment> findByParentCommentAndContentEntityTypeAndContentEntityIdOrderByTimestampAsc(
             Comment parentComment, ECommentSourceType contentEntityType, String contentEntityId);
 }
