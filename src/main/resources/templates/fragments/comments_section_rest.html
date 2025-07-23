@@ -101,7 +101,13 @@
             params.append('contentEntityId', contentEntityId);
             let url = window.location.protocol+'//'+window.location.hostname + ':' + window.location.port + '/api/2.0/universalcomments/'+contentEntityType+'/'+contentEntityId+'/comments/list';
             console.log(url);
-            fetch(url)
+            fetch(url, {
+                                headers: {
+                        // !!! ЦЕ ГОЛОВНА ЗМІНА: Вказуємо Content-Type з UTF-8 !!!
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    }
+                }
+            )
                 .then(response => {
                     if (!response.ok) {
                         // Якщо HTTP статус не 2xx

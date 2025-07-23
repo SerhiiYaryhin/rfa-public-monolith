@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -135,7 +137,8 @@ import java.util.HashMap;
 
         // --- ЗМІНИ ТУТ: ВИКЛИКАЄМО НОВИЙ МЕТОД СЕРВІСУ ТА СЕРІАЛІЗУЄМО DTO ---
         @GetMapping("/list")
-        public String getListComment(@PathVariable ECommentSourceType contentEntityType,
+//        public String getListComment(@PathVariable ECommentSourceType contentEntityType,
+        public ResponseEntity<String> getListComment(@PathVariable ECommentSourceType contentEntityType,
                                      @PathVariable String contentEntityId) {
             // Викликаємо метод сервісу, який повертає List<CommentDTO>
             List<CommentDTO> commentsListDTO = commentService.getListCommentsHierarchyDTO(contentEntityType, contentEntityId);
@@ -149,7 +152,11 @@ import java.util.HashMap;
 
             String json = gson.toJson(commentsListDTO);
 
-            return json;
+//            return json;
+            MediaType jsonMediaType = new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8);
+            return ResponseEntity.ok()
+                    .contentType(jsonMediaType)
+                    .body(json);
         }
 
 
