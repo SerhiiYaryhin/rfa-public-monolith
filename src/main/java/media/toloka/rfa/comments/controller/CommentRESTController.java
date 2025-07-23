@@ -3,6 +3,7 @@ package media.toloka.rfa.comments.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import media.toloka.rfa.comments.config.CommentExclusionStrategy;
+import media.toloka.rfa.comments.dto.CommentDTO;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
@@ -132,7 +133,29 @@ import java.util.HashMap;
             }
         }
 
+        // --- ЗМІНИ ТУТ: ВИКЛИКАЄМО НОВИЙ МЕТОД СЕРВІСУ ТА СЕРІАЛІЗУЄМО DTO ---
+        @GetMapping("/list")
+        public String getListComment(@PathVariable ECommentSourceType contentEntityType,
+                                     @PathVariable String contentEntityId) {
+            // Викликаємо метод сервісу, який повертає List<CommentDTO>
+            List<CommentDTO> commentsListDTO = commentService.getListCommentsHierarchyDTO(contentEntityType, contentEntityId);
 
+            // Налаштовуємо Gson для серіалізації DTO
+            // Тепер CommentExclusionStrategy не потрібна, бо DTO вже розірвали цикли
+            Gson gson = new GsonBuilder()
+                    .excludeFieldsWithoutExposeAnnotation() // Важливо: серіалізує лише поля з @Expose у DTO
+                    .setPrettyPrinting() // Для красивого форматування JSON
+                    .create();
+
+            String json = gson.toJson(commentsListDTO);
+
+            return json;
+        }
+
+
+
+// закоментарили старий метод
+/*
         @GetMapping("/list") // Змінено на DELETE
 //        public List<Comment> getListComment(@PathVariable ECommentSourceType contentEntityType,
         public String getListComment(@PathVariable ECommentSourceType contentEntityType,
@@ -152,5 +175,5 @@ import java.util.HashMap;
             return  json;
 
         }
-
+*/
     }

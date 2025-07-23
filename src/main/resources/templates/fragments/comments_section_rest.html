@@ -114,37 +114,12 @@
                     // які відповідають вашій моделі Comment
                     console.log('Список коментарів:', comments);
 
-                    // Приклад: вивести текст кожного коментаря
-                    comments.forEach(comment => {
-                        console.log(`- ID: ${comment.uuid}, Text: ${comment.text}`);
-                        // Зверніть увагу, що поля об'єкта Comment будуть доступні
-                        // як властивості JSON-об'єкта (наприклад, comment.uuid, comment.text, comment.author)
-                    });
                 })
                 .catch(error => {
                     console.error('Помилка при отриманні коментарів:', error);
                 });
 
 
-/*
-            try {
-                let url = window.location.protocol+'//'+window.location.hostname + ':' + window.location.port + '/api/2.0/universalcomments/'+contentEntityType+'/'+contentEntityId+'/comments/list';
-                console.log(url);
-                const response = await fetch(url, {
-                    method: 'GET' // Використовуємо фактичний HTTP-метод (POST, PUT, DELETE)
-                });
-                const result = await response.json(); // Очікуємо JSON відповідь від REST контролера
-                console.log(result);
-                if (response.ok) {
-                    console.log(result);
-                } else {
-                    showMessage('danger', 'Помилка Результат != 0.');
-                }
-            } catch (error) {
-                console.error('Помилка відправки форми:', error);
-                showMessage('danger', `Помилка мережі або сервера: ${error.message}`);
-            }
-*/
         }
 
         // Функція для відображення повідомлень (успіх/помилка)

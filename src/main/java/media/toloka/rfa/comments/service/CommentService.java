@@ -1,5 +1,7 @@
 package media.toloka.rfa.comments.service;
 
+import media.toloka.rfa.comments.dto.AuthorDTO;
+import media.toloka.rfa.comments.dto.CommentDTO;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.repository.CommentRepository;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -41,6 +44,96 @@ public class CommentService {
 //            initSampleData();
 //        }
     }
+
+    // --- ЗМІНИ ТУТ: ПОВЕРТАЄМО LIST<COMMENTDTO> ---
+    @Transactional(readOnly = true)
+    public List<CommentDTO> getListCommentsHierarchyDTO(ECommentSourceType contentEntityType, String contentEntityId) {
+        List<Comment> rootCommentsList = commentRepository.findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
+                contentEntityType, contentEntityId);
+
+        // Завантажуємо відповіді рекурсивно на рівні Entity (як було)
+        for (Comment root : rootCommentsList) {
+            loadRepliesRecursively(root, 1, contentEntityType, contentEntityId);
+        }
+
+        // Мапуємо Entity на DTO
+        return rootCommentsList.stream()
+                .map(this::mapToCommentDTO) // Викликаємо метод мапінгу
+                .collect(Collectors.toList());
+    }
+
+    // --- ЗМІНИ ТУТ: ПОВЕРТАЄМО PAGE<COMMENTDTO> ---
+    @Transactional(readOnly = true)
+    public Page<CommentDTO> getPaginatedCommentsHierarchyDTO(ECommentSourceType contentEntityType, String contentEntityId, Pageable pageable) {
+        Page<Comment> rootCommentsPage = commentRepository.findByContentEntityTypeAndContentEntityIdAndParentCommentIsNullOrderByTimestampAsc(
+                contentEntityType, contentEntityId, pageable);
+
+        for (Comment root : rootCommentsPage.getContent()) {
+            loadRepliesRecursively(root, 1, contentEntityType, contentEntityId);
+        }
+
+        // Мапуємо Entity на DTO всередині Page
+        return rootCommentsPage.map(this::mapToCommentDTO);
+    }
+
+    // --- НОВІ МЕТОДИ МАПІНГУ ENTITY НА DTO ---
+
+    private CommentDTO mapToCommentDTO(Comment comment) {
+        if (comment == null) {
+            return null;
+        }
+
+        CommentDTO dto = new CommentDTO();
+        dto.setUuid(comment.getUuid());
+        dto.setId(comment.getId());
+        dto.setText(comment.getText());
+        dto.setTimestamp(comment.getTimestamp());
+        dto.setContentEntityType(comment.getContentEntityType().name()); // Перетворюємо Enum на String
+        dto.setContentEntityId(comment.getContentEntityId());
+
+        // Встановлюємо UUID батьківського коментаря, якщо він є
+        if (comment.getParentComment() != null) {
+            dto.setParentCommentUuid(comment.getParentComment().getUuid());
+        }
+
+        dto.setDepth(comment.getDepth());
+
+        // Рекурсивно мапуємо список відповідей
+        if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
+            dto.setReplies(comment.getReplies().stream()
+                    .map(this::mapToCommentDTO) // Рекурсивний виклик для дочірніх коментарів
+                    .collect(Collectors.toList()));
+        }
+
+        dto.setApruve(comment.getApruve());
+        dto.setApruvedate(comment.getApruvedate());
+
+        // Мапуємо автора на AuthorDTO
+        if (comment.getAuthor() != null) {
+            dto.setAuthor(mapToAuthorDTO(comment.getAuthor()));
+        }
+
+        return dto;
+    }
+
+    private AuthorDTO mapToAuthorDTO(Clientdetail clientdetail) {
+        if (clientdetail == null) {
+            return null;
+        }
+        AuthorDTO authorDTO = new AuthorDTO();
+        authorDTO.setUuid(clientdetail.getUuid());
+        // Припустимо, у Clientdetail є поле username
+        // if (clientdetail.getUsername() != null) {
+        //     authorDTO.setUsername(clientdetail.getUsername());
+        // } else {
+        authorDTO.setUsername(
+                clientdetail.getCustname()+" "+clientdetail.getCustsurname()
+        ); // Заглушка, якщо username немає
+        // }
+        // Додайте інші поля, які ви хочете передавати про автора
+        return authorDTO;
+    }
+
 
     @Transactional
     public void saveComment(Comment comment) {
