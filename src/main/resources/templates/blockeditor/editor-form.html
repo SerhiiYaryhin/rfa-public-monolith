@@ -7,8 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
 <!--    // плагіни -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/simple-image"></script>
 <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"/>-->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.8.1/dist/image.min.js"></script>-->
 <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>-->
 <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>-->
 <!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>-->
@@ -35,6 +36,8 @@
 </form>
 
 <script>
+
+
     const savedData = JSON.parse(document.getElementById("postContent").innerText);
     const editor = new EditorJS({
         autofocus: true,
@@ -43,13 +46,20 @@
         tools: {
             header: {
               class: Header,
-              inlineToolbar : true
-            }
+              inlineToolbar: ['marker', 'link'],
+              config: {
+                placeholder: 'Header'
+              },
+              shortcut: 'CMD+SHIFT+H'
+              //inlineToolbar : true
+            },
+            image: SimpleImage,
         },
         onChange: async () => {
             const output = await editor.save();
             document.getElementById('editorContent').value = JSON.stringify(output);
-        }
+        },
+
     });
 </script>
 
