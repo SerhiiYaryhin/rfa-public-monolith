@@ -40,9 +40,8 @@
 
     const savedData = JSON.parse(document.getElementById("postContent").innerText);
     const editor = new EditorJS({
-        autofocus: true,
         holder: 'editorjs',
-        data: JSON.parse(savedData),
+        autofocus: true,
         tools: {
             header: {
               class: Header,
