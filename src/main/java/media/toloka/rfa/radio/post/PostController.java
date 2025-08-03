@@ -174,6 +174,46 @@ public class PostController {
         return "/creater/editpost";
     }
 
+    @PostMapping(value = "/creater/editpost/{idPost}")
+    public String postCreaterEditPost(
+            @PathVariable Long idPost,
+            @ModelAttribute Post fPost,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Post post;
+        if (idPost == 0L) {
+            logger.info("Створюємо новий пост");
+            post = new Post();
+            post.setPostStatus(POSTSTATUS_REDY);
+
+        } else {
+            post = postService.GetPostById(idPost);
+        }
+        post.setPostbody(fPost.getPostbody());
+        post.setPosttitle(fPost.getPosttitle());
+        post.setCategory(fPost.getCategory());
+//        PostCategory pc = postService.getCategoryByUUID(fPost.getPostcategory().getUuid());
+        post.setPostcategory(fPost.getPostcategory());
+        post.setClientdetail(cd);
+
+
+        postService.SavePost(post);
+
+
+        Integer curpage = 0;
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
+        List<Post> viewList = pageStore.stream().toList();
+
+        model.addAttribute("viewList", viewList);
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/posts/");
+        return "/creater/home";
+    }
 
 
 
