@@ -1,11 +1,23 @@
+
+
 plugins {
 	id 'java'
 	id 'war'
 //	id 'org.springframework.boot' version '3.2.1'
 //	id 'io.spring.dependency-management' version '1.1.4'
 
-	id 'org.springframework.boot' version '3.5.0'
+	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+ext {
+	set('springAiVersion', "1.0.0")
+	set('springBootVersion', '3.5.4')
+	thymeleafExtrasSpringsecurityVersion = '3.1.2.RELEASE'
+	commonsIoVersion = '2.15.1'
+	telegrambotsVersion = '7.10.0'
+	stallaVersion = '1.1.0'
+	romeVersion = '2.1.0'
 }
 
 group = 'media.toloka'
@@ -32,14 +44,16 @@ repositories {
 //	maven { url 'https://repo.spring.io/snapshot' }
 }
 
-ext {
-	set('springAiVersion', "1.0.0")
-}
+
 
 dependencies {
-	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
-	implementation 'org.telegram:telegrambots-client:7.10.0'
-	implementation 'org.telegram:telegrambots-abilities:7.10.0'
+	implementation "org.telegram:telegrambots-springboot-longpolling-starter:${telegrambotsVersion}"
+	implementation "org.telegram:telegrambots-client:${telegrambotsVersion}"
+	implementation "org.telegram:telegrambots-abilities:${telegrambotsVersion}"
+//	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
+//	implementation 'org.telegram:telegrambots-client:7.10.0'
+//	implementation 'org.telegram:telegrambots-abilities:7.10.0'
+
 	implementation 'javax.mail:javax.mail-api:1.6.2'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
@@ -49,10 +63,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.2.RELEASE'
+
+	implementation "org.thymeleaf.extras:thymeleaf-extras-springsecurity6:${thymeleafExtrasSpringsecurityVersion}"
+	implementation "commons-io:commons-io:${commonsIoVersion}"
+//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.2.RELEASE'
+
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
 	// https://mvnrepository.com/artifact/commons-io/commons-io
-	implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
+//	implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
 	// https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib
 	implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
 	// https://mvnrepository.com/artifact/org.json/json
@@ -76,10 +94,14 @@ dependencies {
 	implementation("org.springframework:spring-messaging")
 
 // для RSS
-	implementation group: 'dev.stalla', name: 'stalla', version: '1.1.0'
+	// https://mvnrepository.com/artifact/dev.stalla/stalla    //stallaVersion
+	implementation("dev.stalla:stalla:${stallaVersion}")
+//	implementation group: 'dev.stalla', name: 'stalla', version: '1.1.0'
 
 // https://mvnrepository.com/artifact/com.rometools/rome
-	implementation group: 'com.rometools', name: 'rome', version: '2.1.0'
+//	implementation group: 'com.rometools', name: 'rome', version: ${romeVersion}
+// https://mvnrepository.com/artifact/com.rometools/rome
+	implementation("com.rometools:rome:${romeVersion}")
 
 
 //	compile 'org.springframework.boot:spring-context-support:6.1.3'
