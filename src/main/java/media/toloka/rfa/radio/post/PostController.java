@@ -1,5 +1,6 @@
 package media.toloka.rfa.radio.post;
 
+import jakarta.servlet.http.HttpServletRequest;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
@@ -178,7 +179,16 @@ public class PostController {
     public String postCreaterEditPost(
             @PathVariable Long idPost,
             @ModelAttribute Post fPost,
+            HttpServletRequest request,
             Model model) {
+
+        // Виводимо дані, отримані до об'єкта `fPost`
+        String originalPosttitle = request.getParameter("posttitle");
+        System.out.println("posttitle from model attribute: " + fPost.getPosttitle());
+        System.out.println("Original posttitle from request: " + originalPosttitle);
+
+
+
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";

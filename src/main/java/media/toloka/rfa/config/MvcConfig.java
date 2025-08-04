@@ -117,7 +117,10 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
         templateResolver.setTemplateMode(TemplateMode.HTML);
 //        // Template cache is true by default. Set to false if you want
 //        // templates to be automatically updated when modified.
+
         templateResolver.setCacheable(true);
+        // --- Додайте цей рядок ---
+//        templateResolver.setCharacterEncoding("UTF-8");
         return templateResolver;
     }
 

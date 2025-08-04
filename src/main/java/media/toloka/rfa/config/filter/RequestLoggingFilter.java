@@ -1,5 +1,9 @@
 package media.toloka.rfa.config.filter;
 
+/// Дивимося хто зайшов.
+/// це відбувається до початку обробки Spring
+/// поки використовуємо для логування входів на сайт
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -61,6 +65,7 @@ public class RequestLoggingFilter implements Filter {
 
                 // Додаємо Referer до логування
                 log.info("RFA. Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
+                // todo передбачити надсилання через RabbitMQ для накопичення і обробки статистики.
 
             }
         }

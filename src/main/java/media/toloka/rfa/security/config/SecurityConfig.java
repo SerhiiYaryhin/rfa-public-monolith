@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 //
@@ -168,6 +169,19 @@ public class SecurityConfig {
         // Ordered.HIGHEST_PRECEDENCE забезпечує виконання фільтра на максимально ранньому етапі.
         filterRegistrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return filterRegistrationBean;
+    }
+
+    // --- Додайте цей Bean для CharacterEncodingFilter ---
+    @Bean
+    public FilterRegistrationBean<CharacterEncodingFilter> characterEncodingFilterRegistrationBean() {
+        CharacterEncodingFilter filter = new CharacterEncodingFilter();
+        filter.setEncoding("UTF-8");
+        filter.setForceEncoding(true); // Завжди примусово встановлювати UTF-8
+
+        FilterRegistrationBean<CharacterEncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        registrationBean.addUrlPatterns("/*"); // Застосовувати до всіх URL
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1); // Встановлюємо порядок
+        return registrationBean;
     }
 
 }
