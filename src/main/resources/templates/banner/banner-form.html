@@ -70,13 +70,13 @@
                 </div>
 
                 <!-- Тип банера (Enum) -->
-<!--                <div class="mb-3">-->
-<!--                    <label for="bannertype" class="form-label">Тип банера</label>-->
-<!--                    <select th:field="*{bannertype}" id="bannertype" class="form-select">-->
-<!--                        <option th:each="type : ${T(media.toloka.rfa.banner.model.enumerate.EBannerType).values()}"-->
-<!--                                th:value="${type}" th:text="${type}"></option>-->
-<!--                    </select>-->
-<!--                </div>-->
+                <div class="mb-3">
+                    <label for="bannertype" class="form-label">Тип банера</label>
+                    <select th:field="*{bannertype}" id="bannertype" class="form-select">
+                        <option th:each="type : ${T(media.toloka.rfa.banner.model.enumerate.EBannerType).values()}"
+                                th:value="${type}" th:text="${type}"></option>
+                    </select>
+                </div>
 
                 <!-- Клієнт (зв’язок ManyToOne) -->
 <!--                <div class="mb-3">-->

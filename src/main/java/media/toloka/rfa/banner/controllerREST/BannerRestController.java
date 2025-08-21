@@ -121,6 +121,7 @@ public class BannerRestController {
             );
         }
 
+        resultBanners.forEach(banner -> banner.setClientdetail(null));
         return resultBanners;
     }
 

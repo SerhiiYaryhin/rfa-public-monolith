@@ -43,10 +43,10 @@
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         }
-
                         return response.json();
                     })
                     .then(banners => {
+                        console.log("Отримано банери:", banners);
                         // --- 3. Вставляємо банери у відповідні контейнери
                         const loadedBanners = {};
                         banners.forEach(banner => {
@@ -66,7 +66,8 @@
                                     container.innerHTML = createBannerHtml(banner);
                                     incrementBannerView(banner.uuid);
                                 } else {
-                                    container.innerHTML = `<p class="text-muted text-center">Немає ${type} банерів.</p>`;
+                                    // container.innerHTML = `<p class="text-muted text-center">Немає ${type} банерів.</p>`;
+                                    container.innerHTML = ``;
                                 }
                             });
                         }
