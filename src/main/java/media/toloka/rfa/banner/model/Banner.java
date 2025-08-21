@@ -49,18 +49,16 @@ public class Banner {
     private Date lastview = null; // останній раз показувався
     @Expose
     private EBannerType bannertype = null; // тип банера
+    @Expose
+    private String uuidmedia = null;
 
     @ToString.Exclude
-//    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientdetail_id", nullable = true)
-    private Clientdetail clientdetail;  // посилання на запис аутентифікації автора банеру.
+    private Clientdetail clientdetail;  // посилання на власника банеру.
 
     @PrePersist
     public void generateUUID() {
-//        if (uuid == null) {
-//            uuid = UUID.randomUUID().toString();
-//        }
         if (this.id == null) {
             this.id = System.currentTimeMillis(); // Метод для генерації унікального ID
         }

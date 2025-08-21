@@ -94,10 +94,12 @@ public class BannersController {
         }
 
         if (banner.getClientdetail() == null) banner.setClientdetail(cd);
-        if (bindingResult.hasErrors()) {
-            prepareForm(model, banner);
-            return "/banner/banner-form";
-        }
+
+        // перевіряємо валідацію
+//        if (bindingResult.hasErrors()) {
+//            prepareForm(model, banner);
+//            return "/banner/banner-form";
+//        }
 
         if (banner.getApprove() == false) {
             banner.setAprovedate(null);
