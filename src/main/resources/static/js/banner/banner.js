@@ -93,9 +93,9 @@
                                                 <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
                                                     <p class="card-text small mb-3">${banner.description}</p>
-                                                    <a href="${banner.link}" target="_blank"
+                                                    <a href="${banner.link}"
                                                        class="btn btn-success btn-sm mt-auto track-transition"
-                                                       data-uuid="${banner.uuid}">
+                                                       data-uuid="${banner.uuid}" target="_blank">
                                                         Перейти
                                                     </a>
                                                 </div>
@@ -214,7 +214,9 @@
                 incrementBannerTransition(bannerUuid);
 
                 // Після того, як запит відправлено, перенаправляємо користувача
-                window.location.href = target.href;
+                // window.location.href = target.href;
+                // відкриваємо у новій вкладці
+                window.open(target.href, '_blank');
             }
         });
 
