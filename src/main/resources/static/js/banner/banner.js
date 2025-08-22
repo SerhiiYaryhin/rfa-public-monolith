@@ -86,7 +86,23 @@
             function createBannerHtml(banner) {
                 // Використовуємо різні шаблони в залежності від типу банера
                 switch (banner.bannertype) {
-                    case 'TEXT':
+                                    case 'TEXT':
+                                        return `
+                                        <div class="col">
+                                            <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                    <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
+                                                    <p class="card-text small mb-3">${banner.description}</p>
+                                                    <a href="${banner.link}" target="_blank"
+                                                       class="btn btn-success btn-sm mt-auto track-transition"
+                                                       data-uuid="${banner.uuid}">
+                                                        Перейти
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        `;
+                    case 'TEXT1':
                         return `
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
