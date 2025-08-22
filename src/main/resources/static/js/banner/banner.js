@@ -134,8 +134,11 @@
 
                     // Нова функція для збільшення лічильника переглядів
                     function incrementBannerView(bannerId) {
-                        fetch(`/api/banners/${bannerId}/view`, {
-                            method: 'POST'
+                        fetch(`/api/2.0/banners/${bannerId}/view`, {
+                            method: 'POST',
+                            headers: {
+                                [header]: token
+                            },
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -149,8 +152,11 @@
 
                 // функція збільшення лічильника переходів
                 function incrementBannerTransition(bannerUuid) {
-                    fetch(`/api/banners/${bannerUuid}/transition`, {
-                        method: 'POST'
+                    fetch(`/api/2.0/banners/${bannerUuid}/transition`, {
+                        method: 'POST',
+                        headers: {
+                            [header]: token
+                        },
                     })
                     .then(response => {
                         if (!response.ok) {
