@@ -8,6 +8,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="Вас почує весь світ!" />
         <meta name="author" content="Студія Толока" />
+        <meta name="_csrf" th:content="${_csrf.token}" />
+        <meta name="_csrf_header" th:content="${_csrf.headerName}" />
         <div th:replace="~{/fragments/common :: og}"/>
         <title>Толока - радіо для всіх!</title>
         <!-- Favicon-->
@@ -85,6 +87,7 @@
         <script src="/js/bootstrap.bundle.min.js"></script>
     <!-- audioplayer красивий -->
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
+    <script src="/js/banner/banner.js"></script>
     <script>
         function onClickTrack(event,name,autor) {
             document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
