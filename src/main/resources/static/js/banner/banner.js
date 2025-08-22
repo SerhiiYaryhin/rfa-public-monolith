@@ -93,9 +93,9 @@
                                                 <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
                                                     <p class="card-text small mb-3">${banner.description}</p>
-                                                    <a href="${banner.link}" target="_blank"
+                                                    <a href="${banner.link}"
                                                        class="btn btn-success btn-sm mt-auto track-transition"
-                                                       data-uuid="${banner.uuid}">
+                                                       data-uuid="${banner.uuid}" target="_blank">
                                                         Перейти
                                                     </a>
                                                 </div>
@@ -134,8 +134,11 @@
 
                     // Нова функція для збільшення лічильника переглядів
                     function incrementBannerView(bannerId) {
-                        fetch(`/api/banners/${bannerId}/view`, {
-                            method: 'POST'
+                        fetch(`/api/2.0/banners/${bannerId}/view`, {
+                            method: 'POST',
+                            headers: {
+                                [header]: token
+                            },
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -149,8 +152,11 @@
 
                 // функція збільшення лічильника переходів
                 function incrementBannerTransition(bannerUuid) {
-                    fetch(`/api/banners/${bannerUuid}/transition`, {
-                        method: 'POST'
+                    fetch(`/api/2.0/banners/${bannerUuid}/transition`, {
+                        method: 'POST',
+                        headers: {
+                            [header]: token
+                        },
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -214,7 +220,9 @@
                 incrementBannerTransition(bannerUuid);
 
                 // Після того, як запит відправлено, перенаправляємо користувача
-                window.location.href = target.href;
+                // window.location.href = target.href;
+                // відкриваємо у новій вкладці
+                window.open(target.href, '_blank');
             }
         });
 
