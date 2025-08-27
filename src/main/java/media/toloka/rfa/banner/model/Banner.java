@@ -26,13 +26,13 @@ public class Banner {
     @Expose
     private Boolean approve = false;  // схвалення для публікації
     @Expose
-    @DateTimeFormat(pattern = "dd-MM-yy")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date aprovedate = null; // дата схвалення для публікації
     @Expose
-    @DateTimeFormat(pattern = "dd-MM-yy")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startdate = null; // дата старту показу
     @Expose
-    @DateTimeFormat(pattern = "dd-MM-yy")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date enddate = null; // дата закінчення показу.
     @Expose
     private String title= null; // Заголовок текстового банеру

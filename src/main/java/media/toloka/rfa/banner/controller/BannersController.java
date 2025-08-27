@@ -44,7 +44,8 @@ public class BannersController {
         Page<Banner> bannersPage = bannerService.BannerGetPage(page, size);
 
         model.addAttribute("bannersPage", bannersPage);
-        model.addAttribute("banners", bannerService.BannerGetAll());
+        model.addAttribute("banners", bannerService.BannerGetPage(page,size));
+//        model.addAttribute("banners", bannerService.BannerGetAll());
         model.addAttribute("currentSize", size);
         return "/banner/banner-list"; // окремий шаблон для списку
     }
@@ -102,10 +103,10 @@ public class BannersController {
 
         // перевіряємо валідацію
         // тимчасово вимкну до того часу, поки не розберуся з датою.
-//        if (bindingResult.hasErrors()) {
-//            prepareForm(model, banner);
-//            return "/banner/banner-form";
-//        }
+        if (bindingResult.hasErrors()) {
+            prepareForm(model, banner);
+            return "/banner/banner-form";
+        }
 
         if (banner.getApprove() == false) {
             banner.setAprovedate(null);
