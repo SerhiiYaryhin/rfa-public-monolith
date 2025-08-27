@@ -97,8 +97,9 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
     Dropzone.autoDiscover = false;
 
     $("#demo-upload").dropzone({
+
         success : function(file, response) {
-            toastr.success('File ' + file.name + ' uploaded successfully');
+            toastr.success('Файл ' + file.name + ' успішно завантажено');
         }
     });
 </script>

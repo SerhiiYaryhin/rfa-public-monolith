@@ -4,8 +4,10 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import media.toloka.rfa.banner.model.enumerate.EBannerStyle;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
@@ -18,6 +20,7 @@ public class Banner {
     @Id
     @Expose
     private String uuid = UUID.randomUUID().toString();
+
     @Expose
     private Long id;
     @Expose
@@ -49,8 +52,16 @@ public class Banner {
     private Date lastview = null; // останній раз показувався
     @Expose
     private EBannerType bannertype = null; // тип банера
+    // Стиль банеру
+    // https://bannerboo.com/ua/blog/yaki-standartni-rozmiry-reklamnykh-baneriv
+    // https://spideraf.com/articles/the-digital-advertisers-handbook-a-comprehensive-guide-to-ad-sizes-2023
     @Expose
-    private String uuidmedia = null;
+    private EBannerStyle bannerstyle = null;
+    @Expose
+    private String uuidmedia = null; // uuid медіа у сховищі
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Store store = null; // посилання на медіа у сховищі
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
