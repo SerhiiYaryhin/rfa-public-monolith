@@ -3,10 +3,12 @@ package media.toloka.rfa.banner.controller;
 import lombok.RequiredArgsConstructor;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.repositore.BannerRepository;
+import media.toloka.rfa.banner.service.BannerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
 import media.toloka.rfa.security.model.Users;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,10 +25,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BannersController {
 
-    private final BannerRepository bannerRepository;
-    private final ClientDetailRepository clientdetailRepository;
-    //    @Autowired
-    private final ClientService clientService;
+    @Autowired
+    private BannerService bannerService;
+//    private final ClientDetailRepository clientdetailRepository;
+    @Autowired
+    private ClientService clientService;
 
     /**
      * Список всіх банерів
@@ -37,9 +40,11 @@ public class BannersController {
             @RequestParam(defaultValue = "10") int size,
             Model model) {
 
-        Page<Banner> bannersPage = bannerRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+//        Page<Banner> bannersPage = bannerRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<Banner> bannersPage = bannerService.BannerGetPage(page, size);
+
         model.addAttribute("bannersPage", bannersPage);
-        model.addAttribute("banners", bannerRepository.findAll());
+        model.addAttribute("banners", bannerService.BannerGetAll());
         model.addAttribute("currentSize", size);
         return "/banner/banner-list"; // окремий шаблон для списку
     }
@@ -69,11 +74,11 @@ public class BannersController {
      */
     @GetMapping("/{uuid}/edit")
     public String editForm(@PathVariable String uuid, Model model) {
-        Optional<Banner> bannerOpt = bannerRepository.findById(uuid);
-        if (bannerOpt.isEmpty()) {
+        Banner banner = bannerService.BannerGetByUUID(uuid);
+        if (banner == null) {
             return "redirect:/banners";
         }
-        prepareForm(model, bannerOpt.get());
+        prepareForm(model, banner);
         return "/banner/banner-form";
     }
 
@@ -96,6 +101,7 @@ public class BannersController {
         if (banner.getClientdetail() == null) banner.setClientdetail(cd);
 
         // перевіряємо валідацію
+        // тимчасово вимкну до того часу, поки не розберуся з датою.
 //        if (bindingResult.hasErrors()) {
 //            prepareForm(model, banner);
 //            return "/banner/banner-form";
@@ -107,36 +113,32 @@ public class BannersController {
             if (banner.getAprovedate() == null) banner.setAprovedate(new Date());
         }
 
-        bannerRepository.save(banner);
+        bannerService.BannerSave (banner);
         return "redirect:/banners";
     }
 
+    /// Видаляємо баннер
     @PostMapping("/{uuid}/delete")
     public String delete(@PathVariable String uuid) {
-//        Optional<Banner> bannerOpt = bannerRepository.findById(uuid);
-//        if (bannerOpt.isEmpty()) {
-//            return "redirect:/banners";
-//        }
-//        Banner banner = bannerOpt.get();
-//        banner.setClientdetail(null);
-//        bannerRepository.save(banner);
-        bannerRepository.deleteById(uuid);
+        Banner banner = bannerService.BannerGetByUUID(uuid);
+        if (banner != null) bannerService.BannerDelete(uuid);
         return "redirect:/banners";
     }
-
+    /// Змінюємо статус і дату погодження
     @PostMapping("/{uuid}/toggle-approve")
     public String toggleApprove(@PathVariable String uuid) {
-        Banner banner = bannerRepository.findById(uuid).orElse(null);
+        Banner banner = bannerService.BannerGetByUUID(uuid);
         if (banner != null) {
+            // Змінюємо дату схвалення банеру
+            if (banner.getAprovedate() == null) { banner.setAprovedate(new Date()); }
+                    else banner.setAprovedate(null);
             banner.setApprove(!Boolean.TRUE.equals(banner.getApprove()));
-            bannerRepository.save(banner);
+            bannerService.BannerSave(banner);
         }
         return "redirect:/banners";
     }
 
-    /**
-     * Хелпер для додавання об'єкта банера і списку клієнтів у модель
-     */
+    /// Хелпер для додавання об'єкта банера і списку клієнтів у модель
     private void prepareForm(Model model, Banner banner) {
 //        List<Clientdetail> clients = clientdetailRepository.findAll();
         model.addAttribute("banner", banner);
