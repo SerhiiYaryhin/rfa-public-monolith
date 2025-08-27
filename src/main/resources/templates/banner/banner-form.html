@@ -11,7 +11,8 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"/>
 </header>
 <div style="padding-top: 60px"/>
-<div class="container py-5">
+<!--<div class="container-fluid py-5">-->
+<div class="container-fluid">
 
     <div class="card shadow rounded-4">
         <div class="card-header bg-primary text-white">
@@ -19,6 +20,7 @@
                 th:text="${#strings.isEmpty(banner.uuid) ? 'Створення банера' : 'Редагування банера'}"></h4>
         </div>
         <div class="card-body">
+
             <!-- Завантаження медіа файлів -->
             <div th:if="${banner.id} != null" class="row">
                 <div id="dropzone">
@@ -82,10 +84,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="aprovedate" class="form-label">Дата схвалення</label>
-                        <!--                               th:value="${#dates.format(banner.aprovedate, 'yyyy-MM-dd')}"-->
-                        <input type="date" th:field="*{aprovedate}"
-                               th:value="${#dates.format(banner.aprovedate, 'dd/MM/yyyy')}"
-                               id="aprovedate" class="form-control">
+                        <input type="date" th:field="*{aprovedate}" id="aprovedate" class="form-control">
                     </div>
                 </div>
 
@@ -186,18 +185,18 @@
 </script>
 <script th:src="@{/js/dropzone.min.js}"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
-<script>
-    Dropzone.autoDiscover = false;
+<!--<script>-->
+<!--    Dropzone.autoDiscover = false;-->
 
-    $("#demo-upload").dropzone({
-        // maxFiles: 1,
-        init: function() {
-            this.hiddenFileInput.removeAttribute('multiple');
-        }
-        success : function(file, response) {
-            toastr.success('Файл ' + file.name + ' успішно завантажено');
-        }
-    });
-</script>
+<!--    $("#demo-upload").dropzone({-->
+<!--        // maxFiles: 1,-->
+<!--        init: function() {-->
+<!--            this.hiddenFileInput.removeAttribute('multiple');-->
+<!--        }-->
+<!--        success : function(file, response) {-->
+<!--            toastr.success('Файл ' + file.name + ' успішно завантажено');-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
 </body>
 </html>
