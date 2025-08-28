@@ -88,7 +88,7 @@
                 switch (banner.bannertype) {
                                     case 'TEXT':
                                         return `
-                                        <div class="col">
+                                        <div class="col mb-4">
                                             <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
                                                 <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
@@ -120,12 +120,17 @@
                         `;
                     case 'IMAGE':
                         return `
-                            <div class="banner-image mb-4">
-                                <a href="${banner.link}" target="_blank"
-                                data-uuid="${banner.uuid}">
-                                    <img src="${banner.image_url}" class="img-fluid rounded shadow" alt="${banner.title}">
-                                </a>
-                            </div>
+                                        <div class="col mb-4">
+                                            <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                  <a href="${banner.link}" target="_blank" data-uuid="${banner.uuid}">
+                                                        <img src="/store/content/${banner.uuidmedia}" class="img-fluid rounded shadow" alt="${banner.title}"><br>
+                                                        <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
+                                                        <p class="card-text small mb-3">${banner.description}</p>
+                                                  </a>
+                                                </div>
+                                            </div>
+                                        </div>
                         `;
                     default:
                         return ''; // Повертаємо порожній рядок для невідомих типів
@@ -228,8 +233,8 @@
 
 
         // Завантажуємо 3 випадкових текстових банери
-        var banner_text = document.getElementsByClassName("rfa-banner-text"); // взяли список елементів текстових банерів
-        console.log(banner_text); //HTMLCollection[1]
+        // var banner_text = document.getElementsByClassName("rfa-banner-text"); // взяли список елементів текстових банерів
+        // console.log(banner_text); //HTMLCollection[1]
         // loadAndDisplayBanners('text-banners-container', banner_text.length, 'TEXT');
 
             // Завантажуємо 1 випадковий банер-зображення

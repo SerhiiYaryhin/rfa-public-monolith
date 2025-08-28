@@ -102,7 +102,6 @@ public class BannersController {
         if (banner.getClientdetail() == null) banner.setClientdetail(cd);
 
         // перевіряємо валідацію
-        // тимчасово вимкну до того часу, поки не розберуся з датою.
         if (bindingResult.hasErrors()) {
             prepareForm(model, banner);
             return "/banner/banner-form";
@@ -121,6 +120,15 @@ public class BannersController {
     /// Видаляємо баннер
     @PostMapping("/{uuid}/delete")
     public String delete(@PathVariable String uuid) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return "redirect:/";
+        }
+
         Banner banner = bannerService.BannerGetByUUID(uuid);
         if (banner != null) bannerService.BannerDelete(uuid);
         return "redirect:/banners";
@@ -128,6 +136,15 @@ public class BannersController {
     /// Змінюємо статус і дату погодження
     @PostMapping("/{uuid}/toggle-approve")
     public String toggleApprove(@PathVariable String uuid) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return "redirect:/";
+        }
+
         Banner banner = bannerService.BannerGetByUUID(uuid);
         if (banner != null) {
             // Змінюємо дату схвалення банеру

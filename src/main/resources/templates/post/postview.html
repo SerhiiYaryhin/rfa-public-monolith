@@ -6,6 +6,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <div th:replace="~{/fragments/common :: ogpost}"/>
     <div th:replace="~{/fragments/comments :: commentstyle}"/>
     <title>Толока - радіо для всіх!</title>
@@ -63,6 +65,9 @@
                 </div>
             </div>
             <div class="col-lg-3 col-sm-12">
+                <div class="rfa-banner rfa-banner-text"></div>
+                <div class="rfa-banner rfa-banner-image"></div>
+                <div class="rfa-banner rfa-banner-text"></div>
                 <!--                    вставляем Медіа Хаб-->
                 <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
             </div>
@@ -71,7 +76,10 @@
 </div>
 <!--Футер -->
 <div th:insert="~{/fragments/common :: footer}"></div>
+
 <script src="/js/bootstrap.bundle.min.js"></script>
+<!--Відображення Баннерів на сторінці-->
+<script src="/js/banner/banner.js"></script>
 <!--    <script src="/js/tinymce.min.js"></script>-->
 <!--<div th:replace="~{/fragments/comments :: commentsjs}"/>-->
 
