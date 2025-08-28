@@ -1,0 +1,14 @@
+Додавання банерів на сторінку:
+1. Додаємо
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+2. Додаємо в кінець
+    <!--Відображення баннерів на сторінці-->
+    <script src="/js/banner/banner.js"></script>
+
+3. Додаємо на сторінку місце під відповідні банери
+        <div class="rfa-banner rfa-banner-text"></div>
+        <div class="rfa-banner rfa-banner-image"></div>
+        <div class="rfa-banner rfa-banner-video"></div>
+        <div class="rfa-banner rfa-banner-audio"></div>

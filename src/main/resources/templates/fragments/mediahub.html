@@ -368,8 +368,7 @@
     </div>
 </template>
 
-<!-- Текстовий баннер -->
-<div class="rfa-banner rfa-banner-text"></div>
+
 
 <!--Останні завантажені треки-->
 <div th:fragment="lasttrecks">
@@ -381,8 +380,10 @@
             <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeuuid}"/>
         </div>
     </div>
+    <!-- баннер з ілюстрацією -->
+    <div class="rfa-banner rfa-banner-image"></div>
     <!-- Додав текстовий банер -->
-    <div class="rfa-banner rfa-banner-text"></div>
+<!--    <div class="rfa-banner rfa-banner-text"></div>-->
     <div class="card">
         <!--        <div class="card-header">-->
         <!--            <h3>Нові треки</h3>-->

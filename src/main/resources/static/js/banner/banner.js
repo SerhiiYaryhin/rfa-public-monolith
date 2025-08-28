@@ -124,7 +124,7 @@
                                             <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
                                                 <div class="card-body d-flex flex-column justify-content-center">
                                                   <a href="${banner.link}" target="_blank" data-uuid="${banner.uuid}">
-                                                        <img src="/store/content/${banner.uuidmedia}" class="img-fluid rounded shadow" alt="${banner.title}"><br>
+                                                        <img src="/store/content/${banner.uuidmedia}" class="img-fluid rounded shadow mb-2" alt="${banner.title}"><br>
                                                         <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
                                                         <p class="card-text small mb-3">${banner.description}</p>
                                                   </a>
