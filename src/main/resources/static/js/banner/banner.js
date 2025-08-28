@@ -123,7 +123,10 @@
                             <div class="banner-image mb-4">
                                 <a href="${banner.link}" target="_blank"
                                 data-uuid="${banner.uuid}">
-                                    <img src="${banner.image_url}" class="img-fluid rounded shadow" alt="${banner.title}">
+                                    <img src="/store/content/${banner.uuidmedia}" class="img-fluid rounded shadow" alt="${banner.title}"><br>
+                                    <h5 class="card-title fw-bold mb-2 text-center">${banner.title}</h5>
+                                    <p class="card-text small mb-3 text-center">${banner.description}</p>
+
                                 </a>
                             </div>
                         `;
@@ -228,8 +231,8 @@
 
 
         // Завантажуємо 3 випадкових текстових банери
-        var banner_text = document.getElementsByClassName("rfa-banner-text"); // взяли список елементів текстових банерів
-        console.log(banner_text); //HTMLCollection[1]
+        // var banner_text = document.getElementsByClassName("rfa-banner-text"); // взяли список елементів текстових банерів
+        // console.log(banner_text); //HTMLCollection[1]
         // loadAndDisplayBanners('text-banners-container', banner_text.length, 'TEXT');
 
             // Завантажуємо 1 випадковий банер-зображення

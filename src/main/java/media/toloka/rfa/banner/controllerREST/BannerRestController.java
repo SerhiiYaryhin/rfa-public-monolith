@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.repositore.BannerRepository;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
+import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -122,6 +123,12 @@ public class BannerRestController {
         }
 
         resultBanners.forEach(banner -> banner.setClientdetail(null));
+        resultBanners.forEach(banner -> banner.setStore(null));
+//        for (Banner ban : resultBanners) {
+//            ban.setUuidmedia(ban.getStore().getUuid());
+//        }
+//        resultBanners.forEach(banner -> banner.setStore(banner.getStore().getUuid()));
+
         return resultBanners;
     }
 

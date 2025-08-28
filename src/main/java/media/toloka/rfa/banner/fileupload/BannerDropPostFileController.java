@@ -80,6 +80,9 @@ public class BannerDropPostFileController {
             try {
                 store.setStorefiletype  ( EStoreFileType.valueOf("STORE_BANNER" + mediatype));
                 storeService.SaveStore(store);
+                banner.setStore(store);
+                banner.setUuidmedia(store.getUuid());
+                bannerService.BannerSave(banner);
             } catch (IllegalArgumentException eae) {
                 logger.info("Промахнулися з типом медіа у сховищі");
             }
