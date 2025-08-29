@@ -34,10 +34,7 @@
                                        th:value="${_csrf.token}"/>
                                 <div class="dz-message needsclick">
                                     <button type="button" class="dz-button">Перенесіть медіафайл сюди або натисніть для
-                                        вибору
-                                        медіафайлу.<br>Можна завантажити лише один медіа файл.<br>Якщо не завантажувати
-                                        медіафайл,
-                                        то банер буде текстовим.
+                                        вибору медіафайлу.<br>Якщо не завантажувати медіафайл, то банер буде текстовим.
                                     </button>
                                     <br/>
                                 </div>
@@ -45,7 +42,18 @@
                         </div>
                     </div>
                     <div class="col sm-6">
-                        Місце для медіа
+                        <div th:if="${banner.store} != null">
+                            <div th:switch="${banner.bannertype.name}">
+                                <img th:case="'IMAGE'" th:src="@{/store/content/{uuid}(uuid=${banner.store.uuid})}"
+                                     alt="Зображення"
+                                     class="img-fluid rounded"
+                                     style="max-width: 300px; max-height: 250px;">
+                                <span th:case="'AUDIO'">Аудіо файл</span>
+                                <span th:case="'VIDEO'">Відео файл</span>
+                                <span th:case="*">Невідомий формат<span
+                                        th:text="' ' + ${banner.storefiletype.label}"></span></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row mt-4">
@@ -58,12 +66,14 @@
                         </a>
                     </div>
                     <div class="col sm-3">
-                        <a th:href="@{/banners/make-text(bannerUuid=${banner.uuid})}"
-                           th:if="${banner.uuid != null}">
-                            <button type="button" class="btn btn-success">
-                                Видалити медіа з банеру і зробити його текстовим
-                            </button>
-                        </a>
+                        <div th:if="${banner.store} != null">
+                            <a th:href="@{'/banners/clearmedia/' + ${banner.uuid}}">
+                                <button type="button" class="btn btn-success select-delete-media-btn">
+                                    <!-- <a th:href="@{/banners/${banner.uuid}/clearmedia(bannerUuid=${banner.uuid})}">-->
+                                    Видалити медіа з банера і зробити його текстовим
+                                </button>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,7 +167,8 @@
             <!-- Кнопки -->
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Зберегти</button>
-                <a href="/banners" class="btn btn-outline-secondary">Назад</a>
+                <a href="/banners" class="btn btn-secondary">Повернутися</a>
+<!--                <a href="/banners" class="btn btn-outline-secondary">Повернутися</a>-->
             </div>
 
         </form>

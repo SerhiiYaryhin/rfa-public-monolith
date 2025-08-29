@@ -1,7 +1,9 @@
 package media.toloka.rfa.banner.controller;
 
 import lombok.RequiredArgsConstructor;
+import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.banner.model.Banner;
+import media.toloka.rfa.banner.model.enumerate.EBannerType;
 import media.toloka.rfa.banner.repositore.BannerRepository;
 import media.toloka.rfa.banner.service.BannerService;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -11,10 +13,13 @@ import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,6 +43,9 @@ public class BannersController {
 
     @Autowired
     private StoreService storeService;
+
+    final Logger logger = LoggerFactory.getLogger(BannerDropPostFileController.class);
+
 
     /**
      * Список всіх банерів
@@ -208,5 +216,37 @@ public class BannersController {
         model.addAttribute("banner", banner);
 //        model.addAttribute("clients", clients);
     }
+
+    /**
+     * Чистимо uuid медіафайлу для існуючого банера і робимо його текстовим.
+     */
+    @GetMapping("/clearmedia/{bannerUuid}")
+//    public ResponseEntity<Void> clearBannerMedia(
+    public String clearBannerMedia(
+            @PathVariable String bannerUuid,
+            Model model
+            )
+    {
+
+        if (clientService.GetClientDetailByUser(clientService.GetCurrentUser()) == null)
+            return "redirect:/";
+
+        Banner banner =  bannerService.BannerGetByUUID(bannerUuid);
+        if (banner != null) {
+            try {
+                banner.setBannertype(EBannerType.valueOf("TEXT"));
+                banner.setUuidmedia(null);
+                banner.setStore(null);
+                bannerService.BannerSave(banner);
+            } catch (IllegalArgumentException eae) {
+                logger.info("Промахнулися з типом банера");
+            }
+            prepareForm(model, banner);
+            return "/banner/banner-form";
+        }
+        prepareForm(model, banner);
+        return "/banner/banner-form";
+    }
+
 
 }

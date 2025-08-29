@@ -96,19 +96,6 @@
                                 <i class="bi bi-trash"></i>
                             </button>
                         </td>
-<!--                        <td class="text-end">-->
-<!--                            <a th:href="@{'/banners/' + ${banner.uuid} + '/edit'}"-->
-<!--                               class="btn btn-sm btn-outline-primary me-1">-->
-<!--                                Редагувати-->
-<!--                            </a>-->
-<!--                            <button type="button"-->
-<!--                                    class="btn btn-sm btn-outline-danger"-->
-<!--                                    data-bs-toggle="modal"-->
-<!--                                    data-bs-target="#deleteModal"-->
-<!--                                    th:attr="data-uuid=${banner.uuid}, data-title=${banner.title}">-->
-<!--                                Видалити-->
-<!--                            </button>-->
-<!--                        </td>-->
                     </tr>
                     <tr th:if="${#lists.isEmpty(banners)}">
                         <td colspan="9" class="text-center text-muted py-4">

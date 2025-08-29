@@ -67,7 +67,6 @@ public class BannerDropPostFileController {
             return;
         }
         Banner banner = bannerService.BannerGetByUUID(buuid);
-        log.info("Current banner {} {}",buuid, banner.getUuid());
         try {
             String storeUUID = storeService.PutFileToStore(
                     file.getInputStream(),
