@@ -58,9 +58,9 @@
                         </a>
                     </div>
                     <div class="col sm-3">
-                        <a th:href="@{/banners/make-text(bannerUuid=${banner.uuid})}"
-                           th:if="${banner.uuid != null}">
-                            <button type="button" class="btn btn-success">
+                        <a th:href="@{'/banners/clearmedia/' + ${banner.uuid}}">
+                            <button type="button" class="btn btn-success select-delete-media-btn">
+                                <!-- <a th:href="@{/banners/${banner.uuid}/clearmedia(bannerUuid=${banner.uuid})}">-->
                                 Видалити медіа з банеру і зробити його текстовим
                             </button>
                         </a>

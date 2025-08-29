@@ -2,11 +2,17 @@ package media.toloka.rfa.banner.controllerREST;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.repositore.BannerRepository;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.store.model.Store;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +29,10 @@ public class BannerRestController {
     private final Random random = new Random();
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private ClientService clientService;
+    final Logger logger = LoggerFactory.getLogger(BannerDropPostFileController.class);
+
 
     // Допоміжний клас для десеріалізації запиту
     @Data
@@ -128,10 +138,6 @@ public class BannerRestController {
 
         resultBanners.forEach(banner -> banner.setClientdetail(null));
         resultBanners.forEach(banner -> banner.setStore(null));
-//        for (Banner ban : resultBanners) {
-//            ban.setUuidmedia(ban.getStore().getUuid());
-//        }
-//        resultBanners.forEach(banner -> banner.setStore(banner.getStore().getUuid()));
 
         return resultBanners;
     }
@@ -144,15 +150,26 @@ public class BannerRestController {
             @PathVariable String bannerUuid,
             @PathVariable String mediaUuid) {
 
+        if (clientService.GetClientDetailByUser(clientService.GetCurrentUser()) == null) return ResponseEntity.notFound().build();
+
         Optional<Banner> bannerOpt = bannerRepository.findById(bannerUuid);
         if (bannerOpt.isPresent()) {
             Banner banner = bannerOpt.get();
             banner.setUuidmedia(mediaUuid);
             Store store = storeService.GetStoreByUUID(mediaUuid);
+            try {
+            String mediatype = store.getContentMimeType().substring(0, store.getContentMimeType().indexOf('/')).toUpperCase();
+            banner.setBannertype(EBannerType.valueOf(mediatype));
             banner.setStore(store);
             bannerRepository.save(banner);
+            } catch (IllegalArgumentException eae) {
+                logger.info("Промахнулися з типом банера");
+            }
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }
+
+
+
 }
