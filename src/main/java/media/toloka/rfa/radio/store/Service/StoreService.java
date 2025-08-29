@@ -5,6 +5,7 @@ import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
 import media.toloka.rfa.radio.store.implementation.StoreFileImplementation;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.store.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,5 +68,11 @@ public class StoreService extends StoreFileImplementation {
 
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
         return storeRepositore.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
+    }
+
+
+    public Page<Store> GetPagingStoreFilesByType(int page, int size, EStoreFileType fileType) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return storeRepositore.findByStorefiletype(pageable, fileType);
     }
 }

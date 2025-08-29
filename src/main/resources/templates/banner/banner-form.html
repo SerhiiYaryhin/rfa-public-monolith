@@ -8,163 +8,192 @@
 <body class="bg-light">
 <header>
     <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"/>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 <div style="padding-top: 60px"/>
 <!--<div class="container-fluid py-5">-->
 <div class="container-fluid">
-
-    <div class="card shadow rounded-4">
+    <div class="mt-4"></div>
+    <div class="card shadow rounded-4 mt-4">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"
+            <h4 class="mb-0 "
                 th:text="${#strings.isEmpty(banner.uuid) ? 'Створення банера' : 'Редагування банера'}"></h4>
         </div>
         <div class="card-body">
 
             <!-- Завантаження медіа файлів -->
             <div th:if="${banner.id} != null" class="row">
-                <div id="dropzone">
-                    <form th:action="'/banners/mediaupload/'+${banner.uuid}" class="dropzone needsclick"
-                          id="demo-upload"
-                          method="post">
-                        <input type="hidden"
-                               th:name="${_csrf.parameterName}"
-                               th:value="${_csrf.token}"/>
-                        <div class="dz-message needsclick">
-                            <button type="button" class="dz-button">Перенесіть медіафайл сюди або натисніть для вибору
-                                медіафайлу.<br>Можна завантажити лише один медіа файл.<br>Якщо не завантажувати
-                                медіафайл,
-                                то банер буде текстовим.
-                            </button>
-                            <br/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <form th:action="@{/banners/save}" th:object="${banner}" method="post" class="needs-validation" novalidate>
-
-                <!-- Приховані поля -->
-                <input type="hidden" th:field="*{uuid}">
-                <input type="hidden" th:field="*{id}">
-                <input type="hidden" th:field="*{uuidmedia}">
-                <input type="hidden" th:field="*{store}">
-
-                <!-- Заголовок -->
-                <div style="padding-top: 20px"/>
-                <div class="mb-3">
-                    <label for="title" class="form-label">Заголовок</label>
-                    <input type="text" th:field="*{title}" id="title" class="form-control"
-                           placeholder="Введіть заголовок" required>
-                    <div class="invalid-feedback">Вкажіть заголовок</div>
-                </div>
-
-                <!-- Опис -->
-                <div class="mb-3">
-                    <label for="description" class="form-label">Текст банера</label>
-                    <textarea th:field="*{description}" id="description" rows="3" class="form-control"
-                              placeholder="Введіть текст"></textarea>
-                </div>
-
-                <!-- Посилання -->
-                <div class="mb-3">
-                    <label for="link" class="form-label">Посилання</label>
-                    <input type="url" th:field="*{link}" id="link" class="form-control"
-                           placeholder="https://example.com">
-                </div>
-
-                <!-- Дати -->
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="startdate" class="form-label">Дата старту</label>
-                        <input type="date" th:field="*{startdate}" id="startdate" class="form-control">
+                    <div class="col sm-6">
+                        <div id="dropzone">
+                            <form th:action="'/banners/mediaupload/'+${banner.uuid}" class="dropzone needsclick"
+                                  id="demo-upload"
+                                  method="post">
+                                <input type="hidden"
+                                       th:name="${_csrf.parameterName}"
+                                       th:value="${_csrf.token}"/>
+                                <div class="dz-message needsclick">
+                                    <button type="button" class="dz-button">Перенесіть медіафайл сюди або натисніть для
+                                        вибору
+                                        медіафайлу.<br>Можна завантажити лише один медіа файл.<br>Якщо не завантажувати
+                                        медіафайл,
+                                        то банер буде текстовим.
+                                    </button>
+                                    <br/>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="enddate" class="form-label">Дата завершення</label>
-                        <input type="date" th:field="*{enddate}" id="enddate" class="form-control">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="aprovedate" class="form-label">Дата схвалення</label>
-                        <input type="date" th:field="*{aprovedate}" id="aprovedate" class="form-control">
+                    <div class="col sm-6">
+                        Місце для медіа
                     </div>
                 </div>
-
-                <!-- Пріоритет -->
-<!--                <div class="mb-3">-->
-<!--                    <label for="priority" class="form-label">Пріоритет</label>-->
-<!--                    <input type="number" th:field="*{priority}" id="priority" class="form-control" min="0">-->
-<!--                </div>-->
-
-                <!-- Тип банера (Enum) -->
-                <div hidden class="mb-3">
-                    <label for="bannertype" class="form-label">Тип банера</label>
-                    <select th:field="*{bannertype}" id="bannertype" class="form-select">
-                        <option th:each="type : ${T(media.toloka.rfa.banner.model.enumerate.EBannerType).values()}"
-                                th:value="${type}" th:text="${type}"></option>
-                    </select>
+                <div class="row mt-4">
+                    <div class="col sm-3">
+                        <a th:href="@{/banners/select-media(bannerUuid=${banner.uuid})}"
+                           th:if="${banner.uuid != null}">
+                            <button type="button" class="btn btn-success">
+                                Додати медіа для банеру
+                            </button>
+                        </a>
+                    </div>
+                    <div class="col sm-3">
+                        <a th:href="@{/banners/make-text(bannerUuid=${banner.uuid})}"
+                           th:if="${banner.uuid != null}">
+                            <button type="button" class="btn btn-success">
+                                Видалити медіа з банеру і зробити його текстовим
+                            </button>
+                        </a>
+                    </div>
                 </div>
-                <!-- Стиль банера (Enum) -->
-                <div class="mb-3">
-                    <label for="bannerstyle" class="form-label">Стиль банера</label>
-                    <select th:field="*{bannerstyle}" id="bannerstyle" class="form-select">
-                        <option th:each="style : ${T(media.toloka.rfa.banner.model.enumerate.EBannerStyle).values()}"
-                                th:value="${style}" th:text="${style != null ? style.label +' '+style.h+'x'+style.v: '-'}"></option>
-                    </select>
-                </div>
-                <!-- Схвалення -->
-                <div class="form-check mb-3">
-                    <input type="checkbox" th:field="*{approve}" id="approve" class="form-check-input">
-                    <label for="approve" class="form-check-label">Схвалено для публікації</label>
-                </div>
-
-                <!-- Клієнт (зв’язок ManyToOne) -->
-                <!--                <div class="mb-3">-->
-                <!--                    <label for="clientdetail" class="form-label">Клієнт</label>-->
-                <!--                    <select th:field="*{clientdetail}" id="clientdetail" class="form-select">-->
-                <!--                        <option th:each="c : ${clients}" th:value="${c}" th:text="${c.name}"></option>-->
-                <!--                    </select>-->
-                <!--                </div>-->
-
-                <!-- Кнопки -->
-                <div class="d-flex justify-content-between">
-                    <button type="submit" class="btn btn-success">Зберегти</button>
-                    <a href="/banners" class="btn btn-outline-secondary">Назад</a>
-                </div>
-
-            </form>
-        </div>
-        <hr>
-        <!-- Приклади вигляду банера -->
-        <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
-             style="width:100%; max-width:600px;">
-            <div class="card-body d-flex flex-column justify-content-center">
-                <h5 class="card-title fw-bold mb-2" th:text="${banner.title}">Назва банера</h5>
-                <p class="card-text small mb-3" th:text="${banner.description}">Опис банера</p>
-                <a th:href="${banner.link}" target="_blank" class="btn btn-success btn-sm mt-auto">
-                    Перейти
-                </a>
             </div>
         </div>
-        <hr>
-        <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
-             th:style="'max-width:300px; min-height:250px;'">
-            <div class="card-body d-flex flex-column justify-content-center">
-                <!-- Заголовок банера -->
-                <h5 class="card-title fw-bold mb-2" th:text="${banner.title}">Назва банера</h5>
 
-                <!-- Текст/опис -->
-                <p class="card-text small mb-3" th:text="${banner.description}">
-                    Короткий текст банера, що підлаштовується під контейнер.
-                </p>
+        <form th:action="@{/banners/save}" th:object="${banner}" method="post" class="needs-validation" novalidate>
 
-                <!-- Кнопка переходу -->
-                <a th:href="${banner.link}" target="_blank" rel="noopener"
-                   class="btn btn-primary btn-sm w-100 mt-auto">
-                    Дізнатись більше
-                </a>
+            <!-- Приховані поля -->
+            <input type="hidden" th:field="*{uuid}">
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{uuidmedia}">
+            <input type="hidden" th:field="*{store}">
+
+            <!-- Заголовок -->
+            <hr>
+            <div style="padding-top: 20px"/>
+            <div class="mb-3">
+                <label for="title" class="form-label">Заголовок</label>
+                <input type="text" th:field="*{title}" id="title" class="form-control"
+                       placeholder="Введіть заголовок" required>
+                <div class="invalid-feedback">Вкажіть заголовок</div>
             </div>
+
+            <!-- Опис -->
+            <div class="mb-3">
+                <label for="description" class="form-label">Текст банера</label>
+                <textarea th:field="*{description}" id="description" rows="3" class="form-control"
+                          placeholder="Введіть текст"></textarea>
+            </div>
+
+            <!-- Посилання -->
+            <div class="mb-3">
+                <label for="link" class="form-label">Посилання</label>
+                <input type="url" th:field="*{link}" id="link" class="form-control"
+                       placeholder="https://example.com">
+            </div>
+
+            <!-- Дати -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="startdate" class="form-label">Дата старту</label>
+                    <input type="date" th:field="*{startdate}" id="startdate" class="form-control">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="enddate" class="form-label">Дата завершення</label>
+                    <input type="date" th:field="*{enddate}" id="enddate" class="form-control">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="aprovedate" class="form-label">Дата схвалення</label>
+                    <input type="date" th:field="*{aprovedate}" id="aprovedate" class="form-control">
+                </div>
+            </div>
+
+            <!-- Пріоритет -->
+            <!--                <div class="mb-3">-->
+            <!--                    <label for="priority" class="form-label">Пріоритет</label>-->
+            <!--                    <input type="number" th:field="*{priority}" id="priority" class="form-control" min="0">-->
+            <!--                </div>-->
+
+            <!-- Тип банера (Enum) -->
+            <div hidden class="mb-3">
+                <label for="bannertype" class="form-label">Тип банера</label>
+                <select th:field="*{bannertype}" id="bannertype" class="form-select">
+                    <option th:each="type : ${T(media.toloka.rfa.banner.model.enumerate.EBannerType).values()}"
+                            th:value="${type}" th:text="${type}"></option>
+                </select>
+            </div>
+            <!-- Стиль банера (Enum) -->
+            <div class="mb-3">
+                <label for="bannerstyle" class="form-label">Стиль банера</label>
+                <select th:field="*{bannerstyle}" id="bannerstyle" class="form-select">
+                    <option th:each="style : ${T(media.toloka.rfa.banner.model.enumerate.EBannerStyle).values()}"
+                            th:value="${style}"
+                            th:text="${style != null ? style.label +' '+style.h+'x'+style.v: '-'}"></option>
+                </select>
+            </div>
+            <!-- Схвалення -->
+            <div class="form-check mb-3">
+                <input type="checkbox" th:field="*{approve}" id="approve" class="form-check-input">
+                <label for="approve" class="form-check-label">Схвалено для публікації</label>
+            </div>
+
+            <!-- Клієнт (зв’язок ManyToOne) -->
+            <!--                <div class="mb-3">-->
+            <!--                    <label for="clientdetail" class="form-label">Клієнт</label>-->
+            <!--                    <select th:field="*{clientdetail}" id="clientdetail" class="form-select">-->
+            <!--                        <option th:each="c : ${clients}" th:value="${c}" th:text="${c.name}"></option>-->
+            <!--                    </select>-->
+            <!--                </div>-->
+
+            <!-- Кнопки -->
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">Зберегти</button>
+                <a href="/banners" class="btn btn-outline-secondary">Назад</a>
+            </div>
+
+        </form>
+    </div>
+    <hr>
+    <!-- Приклади вигляду банера -->
+    <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
+         style="width:100%; max-width:600px;">
+        <div class="card-body d-flex flex-column justify-content-center">
+            <h5 class="card-title fw-bold mb-2" th:text="${banner.title}">Назва банера</h5>
+            <p class="card-text small mb-3" th:text="${banner.description}">Опис банера</p>
+            <a th:href="${banner.link}" target="_blank" class="btn btn-success btn-sm mt-auto">
+                Перейти
+            </a>
         </div>
     </div>
+    <hr>
+    <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
+         th:style="'max-width:300px; min-height:250px;'">
+        <div class="card-body d-flex flex-column justify-content-center">
+            <!-- Заголовок банера -->
+            <h5 class="card-title fw-bold mb-2" th:text="${banner.title}">Назва банера</h5>
+
+            <!-- Текст/опис -->
+            <p class="card-text small mb-3" th:text="${banner.description}">
+                Короткий текст банера, що підлаштовується під контейнер.
+            </p>
+
+            <!-- Кнопка переходу -->
+            <a th:href="${banner.link}" target="_blank" rel="noopener"
+               class="btn btn-primary btn-sm w-100 mt-auto">
+                Дізнатись більше
+            </a>
+        </div>
+    </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -7,6 +7,9 @@ import media.toloka.rfa.banner.service.BannerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
+import media.toloka.rfa.radio.store.Service.StoreService;
+import media.toloka.rfa.radio.store.model.EStoreFileType;
+import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,7 +20,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -30,6 +35,9 @@ public class BannersController {
 //    private final ClientDetailRepository clientdetailRepository;
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private StoreService storeService;
 
     /**
      * Список всіх банерів
@@ -154,6 +162,44 @@ public class BannersController {
             bannerService.BannerSave(banner);
         }
         return "redirect:/banners";
+    }
+
+    /**
+     * форма для вибору медіафайлу з пагінацією.
+     */
+    @GetMapping("/select-media")
+    public String selectMediaForm(
+            @RequestParam("bannerUuid") String bannerUuid,
+            @RequestParam(defaultValue = "STORE_BANNERIMAGE") String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        // Додаємо список типів для елемента <select>
+        List<EStoreFileType> allBannerTypes = Arrays.asList(
+                EStoreFileType.STORE_BANNERIMAGE,
+                EStoreFileType.STORE_BANNERAUDIO,
+                EStoreFileType.STORE_BANNERVIDEO
+        );
+        model.addAttribute("bannerTypes", allBannerTypes);
+        model.addAttribute("selectedType", type); // Передаємо поточний обраний тип банеру
+        model.addAttribute("bannerUuid", bannerUuid);
+        model.addAttribute("banner", bannerService.BannerGetByUUID(bannerUuid)) ;
+
+        try {
+            EStoreFileType fileType = EStoreFileType.valueOf(type);
+            Page<Store> mediaFilesPage = storeService.GetPagingStoreFilesByType(page, size, fileType);
+
+            model.addAttribute("mediaFilesPage", mediaFilesPage);
+            model.addAttribute("fileType", fileType.name());
+            model.addAttribute("currentPage", mediaFilesPage.getNumber());
+            model.addAttribute("totalPages", mediaFilesPage.getTotalPages());
+
+
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("mediaFilesPage", Page.empty());
+            model.addAttribute("fileType", type);        }
+        return "/banner/select-media-form";
     }
 
     /// Хелпер для додавання об'єкта банера і списку клієнтів у модель
