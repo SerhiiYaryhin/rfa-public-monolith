@@ -42,4 +42,6 @@ public class BannerService {
         bannerRepository.deleteById(uuid);
     }
 
+
+
 }

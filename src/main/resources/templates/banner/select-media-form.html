@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Вибір медіафайлу</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table img {
+            max-height: 100px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Вибір медіафайлу для баннера</h2>
+            <a th:href="@{/banners/{uuid}/edit(uuid=${bannerUuid})}" class="btn btn-secondary mb-3">
+                Повернутися до редагування банера
+            </a>
+
+            <form th:action="@{/banners/select-media}" method="get" class="mb-4">
+                <input type="hidden" name="bannerUuid" th:value="${bannerUuid}">
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="size" th:value="${mediaFilesPage.size}">
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <label for="fileTypeSelect" class="col-form-label">Тип файлу:</label>
+                    </div>
+                    <div class="col-auto">
+                        <select id="fileTypeSelect" name="type" class="form-select">
+                            <option th:each="type : ${bannerTypes}"
+                                    th:value="${type}"
+                                    th:text="${type.label}"
+                                    th:selected="${type.name() == selectedType}">
+                                Тип
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Показати</button>
+                    </div>
+                </div>
+            </form>
+
+            <div th:if="${!mediaFilesPage.isEmpty()}">
+                <nav aria-label="Пагінація">
+                    <ul class="pagination justify-content-center">
+                        <li th:class="${mediaFilesPage.first} ? 'page-item disabled' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${currentPage-1}, size=${mediaFilesPage.size})}">Попередня</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, mediaFilesPage.totalPages-1)}"
+                            th:class="${currentPage == i} ? 'page-item active' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${i}, size=${mediaFilesPage.size})}"
+                               th:text="${i+1}"></a>
+                        </li>
+                        <li th:class="${mediaFilesPage.last} ? 'page-item disabled' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${currentPage+1}, size=${mediaFilesPage.size})}">Наступна</a>
+                        </li>
+                    </ul>
+                </nav>
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">Назва файлу</th>
+                        <th scope="col">Попередній перегляд</th>
+                        <th scope="col">Дія</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="file : ${mediaFilesPage.content}">
+                        <td th:text="${file.filename}"></td>
+                        <td>
+                            <div th:switch="${file.storefiletype.name}">
+                                <img th:case="'STORE_BANNERIMAGE'" th:src="@{/store/content/{uuid}(uuid=${file.uuid})}"
+                                     alt="Зображення" class="img-fluid rounded">
+                                <span th:case="'STORE_BANNERAUDIO'">Аудіо файл</span>
+                                <span th:case="'STORE_BANNERVIDEO'">Відео файл</span>
+                                <span th:case="*">Невідомий формат<span
+                                        th:text="' ' + ${file.storefiletype.label}"></span></span>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-success select-media-btn"
+                                    th:data-media-uuid="${file.uuid}"
+                                    th:data-banner-uuid="${bannerUuid}">
+                                Вибрати
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <nav aria-label="Пагінація">
+                    <ul class="pagination justify-content-center">
+                        <li th:class="${mediaFilesPage.first} ? 'page-item disabled' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${currentPage-1}, size=${mediaFilesPage.size})}">Попередня</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, mediaFilesPage.totalPages-1)}"
+                            th:class="${currentPage == i} ? 'page-item active' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${i}, size=${mediaFilesPage.size})}"
+                               th:text="${i+1}"></a>
+                        </li>
+                        <li th:class="${mediaFilesPage.last} ? 'page-item disabled' : 'page-item'">
+                            <a class="page-link"
+                               th:href="@{/banners/select-media(bannerUuid=${bannerUuid}, type=${fileType}, page=${currentPage+1}, size=${mediaFilesPage.size})}">Наступна</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div th:unless="${!mediaFilesPage.isEmpty()}" class="text-center p-4">
+                <p>Немає доступних файлів.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--<script src="/js/bootstrap.bundle.min.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        const selectButtons = document.querySelectorAll('.select-media-btn');
+        selectButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const bannerUuid = this.getAttribute('data-banner-uuid');
+                const mediaUuid = this.getAttribute('data-media-uuid');
+
+                // Відправка PUT-запиту на REST API
+                fetch(`/api/2.0/banners/${bannerUuid}/media/${mediaUuid}`, {
+                    method: 'PUT',
+                    headers: {
+                       'Content-Type': 'application/json',
+                       [header]: token
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Успішне оновлення, перенаправляємо користувача
+                        alert('Медіафайл успішно вибрано!');
+                        window.location.href = `/banners/${bannerUuid}/edit`;
+                    } else {
+                        // Обробка помилки
+                        alert('Помилка при збереженні медіафайлу.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Помилка:', error);
+                    alert('Виникла непередбачена помилка.');
+                });
+            });
+        });
+    });
+</script>
+</body>
+</html>

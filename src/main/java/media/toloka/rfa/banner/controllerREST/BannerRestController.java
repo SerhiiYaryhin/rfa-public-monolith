@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.repositore.BannerRepository;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,8 @@ public class BannerRestController {
 
     private final BannerRepository bannerRepository;
     private final Random random = new Random();
+    @Autowired
+    private StoreService storeService;
 
     // Допоміжний клас для десеріалізації запиту
     @Data
@@ -132,5 +136,23 @@ public class BannerRestController {
         return resultBanners;
     }
 
+    /**
+     * Оновлює uuid медіафайлу для існуючого банера.
+     */
+    @PutMapping("/{bannerUuid}/media/{mediaUuid}")
+    public ResponseEntity<Void> updateBannerMedia(
+            @PathVariable String bannerUuid,
+            @PathVariable String mediaUuid) {
 
+        Optional<Banner> bannerOpt = bannerRepository.findById(bannerUuid);
+        if (bannerOpt.isPresent()) {
+            Banner banner = bannerOpt.get();
+            banner.setUuidmedia(mediaUuid);
+            Store store = storeService.GetStoreByUUID(mediaUuid);
+            banner.setStore(store);
+            bannerRepository.save(banner);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
