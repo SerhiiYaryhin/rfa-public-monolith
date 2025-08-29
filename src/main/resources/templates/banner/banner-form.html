@@ -48,10 +48,12 @@
                                      alt="Зображення"
                                      class="img-fluid rounded"
                                      style="max-width: 300px; max-height: 250px;">
-                                <span th:case="'AUDIO'">Аудіо файл</span>
+                                <audio th:case="'AUDIO'" controls class="w-100">
+                                    <source th:src="@{/store/audio/{uuid}(uuid=${banner.store.uuid})}" th:type="${banner.store.contentMimeType}">
+                                    Ваш браузер не підтримує аудіо-елемент.
+                                </audio>
                                 <span th:case="'VIDEO'">Відео файл</span>
-                                <span th:case="*">Невідомий формат<span
-                                        th:text="' ' + ${banner.storefiletype.label}"></span></span>
+                                <span th:case="*">Невідомий формат</span>
                             </div>
                         </div>
                     </div>

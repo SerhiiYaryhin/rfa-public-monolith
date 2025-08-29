@@ -104,7 +104,7 @@
                                         `;
                     case 'TEXT1':
                         return `
-                        <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="col-md-6 col-lg-4 mb-2">
                             <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
                                 <div class="card-body d-flex flex-column justify-content-center">
                                     <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
@@ -127,6 +127,23 @@
                                                         <img src="/store/content/${banner.uuidmedia}" class="img-fluid rounded shadow mb-2" alt="${banner.title}"><br>
                                                         <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
                                                         <p class="card-text small mb-3">${banner.description}</p>
+                                                  </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                        `;
+                    case 'AUDIO':
+                        return `
+                                        <div class="col mb-4">
+                                            <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                  <a href="${banner.link}" target="_blank" data-uuid="${banner.uuid}">
+                                                        <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
+                                                        <p class="card-text small mb-3">${banner.description}</p>
+                                                        <audio controls class="w-100">
+                                                            <source src="/store/audio/${banner.uuidmedia}" >
+                                                            Ваш браузер не підтримує аудіо-елемент.
+                                                        </audio>
                                                   </a>
                                                 </div>
                                             </div>

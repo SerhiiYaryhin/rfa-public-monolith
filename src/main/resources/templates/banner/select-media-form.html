@@ -83,8 +83,18 @@
                             <div th:switch="${file.storefiletype.name}">
                                 <img th:case="'STORE_BANNERIMAGE'" th:src="@{/store/content/{uuid}(uuid=${file.uuid})}"
                                      alt="Зображення" class="img-fluid rounded">
-                                <span th:case="'STORE_BANNERAUDIO'">Аудіо файл</span>
-                                <span th:case="'STORE_BANNERVIDEO'">Відео файл</span>
+<!--                                <span th:case="'STORE_BANNERAUDIO'">Аудіо файл</span>-->
+<!--                                <span th:case="'STORE_BANNERVIDEO'">Відео файл</span>-->
+                                <audio th:case="'STORE_BANNERAUDIO'" controls class="w-100">
+                                    <source th:src="@{/store/audio/{uuid}(uuid=${file.uuid})}" th:type="${file.contentMimeType}">
+                                    Ваш браузер не підтримує аудіо-елемент.
+                                </audio>
+
+                                <video th:case="'STORE_BANNERVIDEO'" controls class="w-100 rounded"
+                                       th:style="'max-width: ' + ${file.bannerstyle.h} + 'px; max-height: ' + ${file.bannerstyle.v} + 'px;'">
+                                    <source th:src="@{/store/video/{uuid}(uuid=${file.uuid})}" type="video/mp4">
+                                    Ваш браузер не підтримує відео-елемент.
+                                </video>
                                 <span th:case="*">Невідомий формат<span
                                         th:text="' ' + ${file.storefiletype.label}"></span></span>
                             </div>
