@@ -8,6 +8,7 @@
 <!-- карусель зі станціями -->
 <div th:fragment="radiocarusel">
     <div class="row">
+
         <div class="col-md-2 align-middle p-4 ">
             <h3>В етері:</h3>
         </div>
@@ -374,6 +375,9 @@
 <div th:fragment="lasttrecks">
     <!--<div class="container" th:fragment="lasttrecks">-->
     <div class="card">
+        <div class="align-middle p-4 ">
+            <div class="rfa-banner rfa-banner-audio"></div>
+        </div>
         <div th:if="${trackList.size() > 0}" class="text-center card-header"
              style="padding-left: 0px; padding-right: 0px; padding-bottom: 35px;">
             <h3 style="padding-bottom: 15px;">Нові треки</h3>
