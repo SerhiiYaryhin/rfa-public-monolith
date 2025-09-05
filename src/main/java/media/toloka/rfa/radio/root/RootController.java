@@ -144,11 +144,13 @@ public class RootController {
         return "redirect:/#contact";
     }
 // todo Перевірити і прибрати. Виправив в Mvc
-    @RequestMapping(value={"/robots1.txt", "/robot.txt"})
-    @ResponseBody
-    public String getRobotsTxt() {
-        return "User-agent: *\n" +
-                "Disallow: /admin\n";
-    }
+//    @RequestMapping(value={"/robots1.txt", "/robots.txt"})
+//    @ResponseBody
+//    public String getRobotsTxt() {
+//        return "User-agent: Googlebot \nAllow: / \n"
+//                + "User-agent: * \n"
+//                + "Disallow: /admin \n"
+//                ;
+//    }
 
 }
