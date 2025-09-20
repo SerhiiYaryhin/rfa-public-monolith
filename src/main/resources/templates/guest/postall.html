@@ -37,13 +37,13 @@
                             <!--                                    <div th:each="post : ${postList}">-->
                             <div th:each="post : ${postList}" class="col">
                                 <div class="card d-flex flex-column h-100">
-                                    <div th:if="${post.store} == null">
+                                    <div th:if="${post.coverstoreuuid} == null">
                                         <!--              post.coverstoreuuid == null-->
                                         <img class="card-img-top img-fluid"
                                              th:src="'https://picsum.photos/400/300?random='+${post.id}"
                                              alt="Card image cap">
                                     </div>
-                                    <div th:if="${post.store} != null">
+                                    <div th:if="${post.coverstoreuuid} != null">
                                         <!--              post.coverstoreuuid != null-->
                                         <img class="card-img-top img-fluid"
                                              th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}"

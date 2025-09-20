@@ -40,7 +40,7 @@ public class Post {
     @Expose
     private EPostCategory category;  // категорія посту
     @Expose
-    private String coverstoreuuid;  // посилання на головну ілюстрацію у сховищі.
+    private String coverstoreuuid;  // UUID - посилання на головну ілюстрацію у сховищі.
 
     @Expose
     private Boolean apruve = false;  // пост схвалено редактором для публікації
@@ -56,12 +56,12 @@ public class Post {
     @ManyToOne( fetch = FetchType.EAGER)
     private PostCategory postcategory = null;   // ще одна категорія? todo розібратися 25.05.13
 
-    @ToString.Exclude
+//    @ToString.Exclude
 //    @OneToOne(cascade = {CascadeType.ALL})
 //    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "store_id")
-    private Store store;  // уяви не маю що це :(
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "store_id")
+//    private Store store;  // Посилання на головну ілюстрацію
 //    private Store store;
 
     @ToString.Exclude
