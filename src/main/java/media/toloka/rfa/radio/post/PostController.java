@@ -322,7 +322,6 @@ public class PostController {
         Post post = postService.GetByUiid(uuidpost);
         post.setCoverstoreuuid(store.getUuid());
         post.setStore (store);
-//        post.setStore(store);
 
         postService.SavePost(post);
 
