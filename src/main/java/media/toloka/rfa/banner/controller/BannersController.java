@@ -114,8 +114,15 @@ public class BannersController {
         if (cd == null) {
             return "redirect:/";
         }
+        Banner cur_banner;
+        Banner banner_db = bannerService.BannerGetByUUID(banner.getUuid());
+        if (banner_db != null) {
+            cur_banner = banner_db;
+        } else {
+            cur_banner = banner;
+        }
 
-        if (banner.getClientdetail() == null) banner.setClientdetail(cd);
+        if (cur_banner.getClientdetail() == null) cur_banner.setClientdetail(cd);
 
         // перевіряємо валідацію
         if (bindingResult.hasErrors()) {
@@ -123,13 +130,13 @@ public class BannersController {
             return "/banner/banner-form";
         }
 
-        if (banner.getApprove() == false) {
-            banner.setAprovedate(null);
+        if (cur_banner.getApprove() == false) {
+            cur_banner.setAprovedate(null);
         } else {
-            if (banner.getAprovedate() == null) banner.setAprovedate(new Date());
+            if (cur_banner.getAprovedate() == null) cur_banner.setAprovedate(new Date());
         }
 
-        bannerService.BannerSave (banner);
+        bannerService.BannerSave (cur_banner);
         return "redirect:/banners";
     }
 
