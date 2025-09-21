@@ -90,7 +90,7 @@
                 <!--                    вставляем Медіа Хаб-->
 <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
                 <a class="btn btn-primary" th:href="@{'/creater/setpostmainpicture/'+${post.uuid}+'/0' }">Встановити Головну ілюстрацію</a>
-                <div th:if="${post.store} != null">
+                <div th:if="${post.coverstoreuuid} != null">
                     <img class="card-img-top img-fluid"  th:src="'/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">
 <!--                    <img class="card-img-top img-fluid"  th:src="'https://rfa.toloka.mediahttps://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">-->
                 </div>
