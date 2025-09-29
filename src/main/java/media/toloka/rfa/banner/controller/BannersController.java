@@ -118,6 +118,17 @@ public class BannersController {
         Banner banner_db = bannerService.BannerGetByUUID(banner.getUuid());
         if (banner_db != null) {
             cur_banner = banner_db;
+            cur_banner.setTitle(banner.getTitle());
+            cur_banner.setDescription(banner.getDescription());
+            cur_banner.setLink(banner.getLink());
+            cur_banner.setTransition(banner.getTransition());
+            cur_banner.setClientdetail(banner.getClientdetail());
+            cur_banner.setUuidmedia(banner.getUuidmedia());
+            cur_banner.setBannertype(banner.getBannertype());
+            cur_banner.setApprove(banner.getApprove());
+            cur_banner.setAprovedate(banner.getAprovedate());
+            cur_banner.setEnddate(banner.getEnddate());
+            cur_banner.setStartdate(banner.getStartdate());
         } else {
             cur_banner = banner;
         }

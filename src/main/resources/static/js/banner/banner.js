@@ -149,6 +149,23 @@
                                             </div>
                                         </div>
                         `;
+                    case 'VIDEO':
+                        return `
+                                        <div class="col mb-4">
+                                            <div class="banner card shadow-sm rounded-4 text-center p-3 h-100 d-flex flex-column">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                  <a href="${banner.link}" target="_blank" data-uuid="${banner.uuid}">
+                                                        <h5 class="card-title fw-bold mb-2">${banner.title}</h5>
+                                                        <p class="card-text small mb-3">${banner.description}</p>
+                                                        <video controls class="w-100">
+                                                            <source src="/store/audio/${banner.uuidmedia}" >
+                                                            Ваш браузер не підтримує відео-елемент.
+                                                        </video>
+                                                  </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                        `;
                     default:
                         return ''; // Повертаємо порожній рядок для невідомих типів
                 }
