@@ -203,6 +203,8 @@ public class RPCRESTController {
             logger.warn(" Щось пішло не так при виконанні завдання (p.waitFor) InterruptedException {}", e.getMessage());
             e.printStackTrace();
         }
+        // Виводимо отриманий результат
+        logger.info("RPCRESTController -> GetStateStationREST: Сирий перелік процесів from ps= {}", resultStringList );
 
         // обробляємо строки зі статусом сервісу
         final List<String> serviseName = List.of("nginx", "liquidsoap", "legacy", "playout", "api", "analyzer", "worker");
