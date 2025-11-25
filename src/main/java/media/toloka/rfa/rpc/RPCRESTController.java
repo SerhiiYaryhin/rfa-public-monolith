@@ -222,6 +222,7 @@ public class RPCRESTController {
                     String value = resultString.substring(0, resultString.indexOf(" "));
                     if (value.indexOf("running") != -1) {
                         count = count + 1;
+                        logger.info("RPCRESTController -> GetStateStationREST: Процес працює: {}", key);
                     }
                     result.put(key, value);
                 }
