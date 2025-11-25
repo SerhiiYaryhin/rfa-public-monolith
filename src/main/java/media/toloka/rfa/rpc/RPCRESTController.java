@@ -205,7 +205,7 @@ public class RPCRESTController {
         }
 
         // обробляємо строки зі статусом сервісу
-        final List<String> serviseName = List.of("nginx", "liquidsoap", "legacy", "playout", "api", "analyzer");
+        final List<String> serviseName = List.of("nginx", "liquidsoap", "legacy", "playout", "api", "analyzer", "worker");
         Map<String, String> result = new HashMap<String, String>();
         int count = 0;
         for (String key : serviseName) {
@@ -216,7 +216,7 @@ public class RPCRESTController {
                     // Знайшли строку сервісу
                     // витягуемо status контейнера
                     String value = resultString.substring(0, resultString.indexOf(" "));
-                    if (value.indexOf("runn") != -1) {
+                    if (value.indexOf("running") != -1) {
                         count = count + 1;
                     }
                     result.put(key, value);

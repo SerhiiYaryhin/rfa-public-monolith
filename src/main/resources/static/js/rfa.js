@@ -44,7 +44,8 @@ async function getStatus() {
     myspan = document.getElementById('spanstationstate');
 
     switch (stationstate) {
-        case '6':
+//        case '6':
+        case '7':
             myspan.textContent = 'Всі сервіси працюють нормально.';
             myspan.setAttribute("style", "color:green;");
             toloka.blink.style.display = toloka.blinkdisplay;
