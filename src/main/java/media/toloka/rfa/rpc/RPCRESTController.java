@@ -204,9 +204,9 @@ public class RPCRESTController {
             e.printStackTrace();
         }
         // Виводимо отриманий результат
-        for (String resultString : resultStringList) {
-            logger.info("RPCRESTController -> GetStateStationREST: Сирий перелік процесів from ps= {} \n", resultString);
-        }
+//        for (String resultString : resultStringList) {
+//            logger.info("RPCRESTController -> GetStateStationREST: Сирий перелік процесів from ps= {} \n", resultString);
+//        }
 
         // обробляємо строки зі статусом сервісу
         final List<String> serviseName = List.of("nginx", "liquidsoap", "legacy", "playout", "api", "analyzer", "worker");
