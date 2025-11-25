@@ -152,7 +152,7 @@ public class RPCRESTController {
     // todo 240510 перейти на uuid замість id
     @GetMapping("/api/1.0/ps/{id}")
     Map<String, String> GetStateStationREST(@PathVariable Long id) {
-        // для сайту - запит та асінхронна обробка. https://www.cat-in-web.ru/fetch-async-await/
+        // для сайту - запит та асінхронну обробку. https://www.cat-in-web.ru/fetch-async-await/
 
         Station station = stationService.GetStationById(id);
         if (station == null) {
@@ -165,7 +165,7 @@ public class RPCRESTController {
         // application-default.properties: media.toloka.rfa.server.libretime.guiserver=localhost
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
 
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep " + station.getUuid());
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep " + station.getUuid());
         logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 170);
         Map<String, String> env = pb.environment();
         logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 172);
