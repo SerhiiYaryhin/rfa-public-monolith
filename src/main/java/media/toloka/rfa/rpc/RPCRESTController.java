@@ -166,15 +166,15 @@ public class RPCRESTController {
         // сервер при завантаженні створює відповідну чергу в яку для нього надсилаються повідомлення
 
         ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "docker ps --format \"{{.State}} {{.CreatedAt}} {{.Names}}\"|grep " + station.getUuid());
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 170);
+//        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 170);
         Map<String, String> env = pb.environment();
-        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 172);
+//        logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 172);
         try {
             serverRunnerService.SetEnvironmentForProcessBuilder(env, station);
-            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 174);
+//            logger.info("RPCRESTController -> GetStateStationREST:Exitcode from line= {}", 174);
         } catch (Exception e) {
             // **ЛОГУЙТЕ ВИКЛЮЧЕННЯ!!!**
-            System.err.println("Помилка під час потокової передачі файлу: " + e.getMessage());
+            System.err.println("Помилка під час встановлення оточення для виконання завдання на сервері: " + e.getMessage());
             e.printStackTrace(); // Для налагодження
         }
         String server_workdir;
