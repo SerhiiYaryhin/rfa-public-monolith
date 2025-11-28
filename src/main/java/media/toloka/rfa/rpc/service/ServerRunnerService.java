@@ -253,15 +253,6 @@ public class ServerRunnerService {
             e.printStackTrace();
         }
 //        }
-        //================================================================
-        // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
-        // Наступний крок: Міграція моделі перед першим запуском LibreTime
-//        rpcJob.setRJobType(JOB_STATION_STOP); // set job type
-//        String strgson = gson.toJson(rpcJob).toString();
-//        template.convertAndSend(queueName,gson.toJson(rpcJob).toString());
-//        // TODO Занести в історию запись про проведення міграції з кодом завершення.
-
-
 
         return rc;
     }
