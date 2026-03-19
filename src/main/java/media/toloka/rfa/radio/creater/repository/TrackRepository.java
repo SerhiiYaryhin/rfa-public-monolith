@@ -19,6 +19,7 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 
     List<Track> findAllByOrderByUploaddateAsc();
     List<Track> findAllTop10ByOrderByUploaddateAsc();
+    List<Track> findTop10ByApruveTrueOrderByUploaddateAsc();
 
     Track getById(Long id);
     Track getByStoreuuid(String storeUuid);

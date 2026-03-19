@@ -156,7 +156,9 @@ public class CreaterService {
     }
 
     public List<Track> GetLastUploadTracks() {
-        return trackRepository.findAllTop10ByOrderByUploaddateAsc();
+
+        return trackRepository.findTop10ByApruveTrueOrderByUploaddateAsc();
+        //return trackRepository.findAllTop10ByOrderByUploaddateAsc();
     }
 
     public Page<Store> GetTrackPage(int pageNumber, int pageCount) {

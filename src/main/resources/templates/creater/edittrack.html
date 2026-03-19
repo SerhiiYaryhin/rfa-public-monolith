@@ -4,20 +4,21 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
+            referrerpolicy="origin"></script>
 
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
     <!--    TinyMCE-->
@@ -27,7 +28,7 @@
 <body>
 
 <header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
 <!--// User page container-->
@@ -36,7 +37,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12 col-sm-12">
-                <div th:insert="~{/fragments/creater :: service}"> </div>
+                <div th:insert="~{/fragments/creater :: service}"></div>
             </div>
         </div>
     </div>
@@ -44,7 +45,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12 col-sm-12">
-                <form th:action="@{/creater/edittrack}"  method="post" th:object="${track}"class="form-horizontal">
+                <form th:action="@{/creater/edittrack}" method="post" th:object="${track}" class="form-horizontal">
                     <fieldset>
                         <legend>Інформація про трек</legend>
                         <input type="hidden" th:field="${track.id}"/>
@@ -74,7 +75,8 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="style">Стиль</label>
                             <div class="col-md-5">
-                                <input th:field="*{style}" type="text" placeholder="Стиль треку" class="form-control input-md">
+                                <input th:field="*{style}" type="text" placeholder="Стиль треку"
+                                       class="form-control input-md">
                             </div>
                         </div>
 
@@ -84,24 +86,24 @@
                             <div class="col-md-4">
                                 <script>
                                     tinymce.init({
-                                      selector: 'textarea',
-                          plugins: [
-                          "advlist", "anchor", "autolink", "charmap", "code",
-                          "help", "image", "insertdatetime", "link", "lists", "media",
-                          "preview", "searchreplace", "table", "visualblocks",
-                            ],
-                                      tinycomments_mode: 'embedded',
-                                      tinycomments_author: 'Author name',
-                                      mergetags_list: [
-                                        { value: 'First.Name', title: 'First Name' },
-                                        { value: 'Email', title: 'Email' },
-                                      ],
-                                      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                                        selector: 'textarea',
+                                        plugins: [
+                                            "advlist", "anchor", "autolink", "charmap", "code",
+                                            "help", "image", "insertdatetime", "link", "lists", "media",
+                                            "preview", "searchreplace", "table", "visualblocks",
+                                        ],
+                                        tinycomments_mode: 'embedded',
+                                        tinycomments_author: 'Author name',
+                                        mergetags_list: [
+                                            {value: 'First.Name', title: 'First Name'},
+                                            {value: 'Email', title: 'Email'},
+                                        ],
+                                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
                                     });
                                 </script>
                                 <textarea th:field="*{description}"/>
 
-<!--                                <textarea th:field="*{description}" class="form-control">Введіть опис треку</textarea>-->
+                                <!--                                <textarea th:field="*{description}" class="form-control">Введіть опис треку</textarea>-->
                             </div>
                         </div>
 
@@ -111,28 +113,30 @@
                             <div class="col-md-5">
                                 <select th:field="*{album}">
                                     <option value="0" text="Single"/>
-                                    <option th:each="al : ${albumList}" th:value="${al.id}" th:text="${al.name}"></option>
+                                    <option th:each="al : ${albumList}" th:value="${al.id}"
+                                            th:text="${al.name}"></option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group">
-<!--                            <label class="col-md-4 control-label" for="checkboxes">Присутня ненормативна лексика</label>-->
+                            <!--                            <label class="col-md-4 control-label" for="checkboxes">Присутня ненормативна лексика</label>-->
                             <div class="col-md-4">
                                 <div class="checkbox">
                                     <label for="notnormalvocabulary">
-                                        <input th:field="*{notnormalvocabulary}" type="checkbox" >
+                                        <input th:field="*{notnormalvocabulary}" type="checkbox">
                                         Присутня ненормативна лексика
                                     </label>
                                 </div>
                                 <div th:unless="*{tochat}">
-<!--                                <div >-->
+                                    <!--                                <div >-->
                                     <div class="checkbox">
                                         <label for="tochat">
-                                            <input th:field="*{tochat}" type="checkbox" >
+                                            <input th:field="*{tochat}" type="checkbox">
                                             Опублікувати в чаті
                                         </label>
                                         <p>
-                                            Ви можете повідомити в чаті, що у Вас вийшов новий трек. Це можна зробити лише один раз. Тож, будь ласка, заповніть максимально інформацію про трек.
+                                            Ви можете повідомити в чаті, що у Вас вийшов новий трек. Це можна зробити
+                                            лише один раз. Тож, будь ласка, заповніть максимально інформацію про трек.
                                         </p>
                                     </div>
                                 </div>
@@ -141,23 +145,40 @@
                         </div>
                         <!-- Button (Double) -->
                         <div class="form-group">
-<!--                            <label class="col-md-4 control-label" for="button1id"></label>-->
+                            <!--                            <label class="col-md-4 control-label" for="button1id"></label>-->
                             <div class="col-md-8">
-                                <button type="submit"  class="btn btn-primary">Зберегти</button>
-<!--                                <button id="button2id" name="button2id" class="btn btn-primary">Повернутися</button>-->
+                                <button type="submit" class="btn btn-primary">Зберегти</button>
+                                <!--                                <button id="button2id" name="button2id" class="btn btn-primary">Повернутися</button>-->
+                            </div>
+                            <p>
+                                Після збереження Ваш трек буде відправлено редакторам. Будь ласка, перевірте
+                                правильність заповнення всіх необхідних полів (автор, назва, стиль тощо). Без наявності
+                                цієї інформації трек не може бути опублікованим.
+                            </p>
+                        </div>
+                    </fieldset>
+                </form>
+                <hr>
+                <form th:action="@{/creater/publishtrack}" method="post" th:object="${track}" class="form-horizontal">
+                    <fieldset>
+                        <div class="form-group">
+                            <div th:switch="*{apruve}">
+                                <p th:case="true" class="text-success"><i class="fa fa-check-circle"></i>Публікацію треку підтверджено.</p>
+                                <p th:case="false" class="text-danger"><i class="fa fa-times-circle"></i>Публікацію треку відхилено. Звʼяжіться з нами на пошту info@toloka.kiev.ua для уточнення. Попередньо перевірте чи всі поля заповнені. У листі вкажіть свій e-mail та назву треку.</p>
+                                <p th:case="*" class="text-warning"><i class="fa fa-clock"></i>Очікує на розгляд.</p>
+                            </div>
                             </div>
                         </div>
                     </fieldset>
                 </form>
+                <hr>
             </div>
         </div>
     </div>
 </div>
 
 
-
-
-
-<script src="/js/bootstrap.bundle.min.js"></script></body>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
 </body>
 </html>

@@ -88,6 +88,7 @@ public class CreaterTrackController {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
         Track track = createrService.GetTrackByUuid(uuidTrack);
+        logger.info("========= track.getUUID = {} track.getApruve = {} ",track.getUuid(),track.getApruve());
 
         Store store = storeService.GetStoreByUUID(track.getStoreitem().getUuid());
 
@@ -96,6 +97,7 @@ public class CreaterTrackController {
         model.addAttribute("albumList", albumList );
         model.addAttribute("track", track );
         model.addAttribute("store", store );
+
         return "/creater/edittrack";
     }
 
@@ -158,6 +160,69 @@ public class CreaterTrackController {
 
         return "redirect:/creater/tracks/"+curpage.toString();
     }
+// публікуємо трек
+    @PostMapping(value = "/creater/publishtrack")
+    public String getCreaterPublishTracks(
+            @ModelAttribute Track ftrack,
+            Model model ) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Track track = createrService.GetTrackById(ftrack.getId());
+        if (track == null) {
+            logger.info("З якогось дива не знайшли трек {}", ftrack.getId());
+            return "/creater/home";
+        }
+        track.setName(ftrack.getName());
+        track.setDescription(ftrack.getDescription());
+        track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
+        track.setStyle(ftrack.getStyle());
+        track.setAutor(ftrack.getAutor());
+        if (track.getApruve() != true) {
+        track.setApruve (true); //опублікували трек у переліку треків
+        } else {
+            track.setApruve (false);
+        }
+        if (track.getTochat() != ftrack.getTochat()) {
+            track.setTochat(ftrack.getTochat());
 
+            createrService.PublicTrackToChat(track, cd );
+        }
+        if (ftrack.getAlbum() != null) {
+            track.setAlbum(ftrack.getAlbum());
+        } else {
+            track.setAlbum(null);
+        }
+
+        createrService.SaveTrack(track);
+
+        List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
+
+
+        List<Track> trackList = createrService.GetAllTracksByCreater(cd);
+//        model.addAttribute("trackList", trackList );
+        model.addAttribute("storetrackList", storetrackList );
+
+        // Пейджинг для сторінки
+//        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
+        //todo Зробити повернення на ту сторінку, з якої перейшли в редагування
+        Integer curpage = 0;
+
+        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
+        List<Store> treckList = pageStore.stream().toList();
+
+        model.addAttribute("totalPages", pageStore.getTotalPages() );
+        model.addAttribute("currentPage",curpage);
+        model.addAttribute("linkPage","/creater/tracks/");
+
+        // Пейджинг для сторінки
+
+//        model.addAttribute("albums", albums );
+        model.addAttribute("viewList", treckList );
+
+        return "redirect:/creater/tracks/"+curpage.toString();
+    }
 
 }
