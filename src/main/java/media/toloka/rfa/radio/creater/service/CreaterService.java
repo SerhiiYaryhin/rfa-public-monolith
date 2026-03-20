@@ -157,7 +157,8 @@ public class CreaterService {
 
     public List<Track> GetLastUploadTracks() {
 
-        return trackRepository.findTop10ByApruveTrueOrderByUploaddateAsc();
+        //return trackRepository.findTop10ByApruveTrueOrderByUploaddateAsc(true);
+        return trackRepository.findTop10Approved();
         //return trackRepository.findAllTop10ByOrderByUploaddateAsc();
     }
 
