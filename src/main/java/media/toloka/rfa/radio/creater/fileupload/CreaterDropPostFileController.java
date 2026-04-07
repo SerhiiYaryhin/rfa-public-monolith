@@ -17,8 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ import static media.toloka.rfa.radio.store.model.EStoreFileType.*;
 
 @Profile("Front")
 @Slf4j
-@Controller
+@RestController
 //@RequestMapping("/uploadfile")
 public class CreaterDropPostFileController {
 
@@ -53,30 +52,27 @@ public class CreaterDropPostFileController {
 
     final Logger logger = LoggerFactory.getLogger(CreaterDropPostFileController.class);
 
-    @PostMapping(path = "/creater/trackupload")
-    public String uploadTrack(@RequestParam("file") MultipartFile file,
-                              RedirectAttributes redirectAttributes) {
+    @PostMapping(path = "/creater/trackupload" )
+    public void uploadTrack(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("uploadError", "Файл порожній. Оберіть файл для завантаження.");
-            return "redirect:/creater/tracks/0";
+            logger.info("Завантаження файлу: Файл порожній");
+            return;
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
-            redirectAttributes.addFlashAttribute("uploadError", "У вас немає прав для завантаження файлів.");
-            return "redirect:/creater/tracks/0";
+            logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
+            return;
         }
         try {
-            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, STORE_TRACK);
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_TRACK);
             Track track = createrService.SaveTrackUploadInfo(storeUUID, cd);
             logger.info("uploaded file {} -> track uuid: {}", file.getOriginalFilename(), track.getUuid());
-            redirectAttributes.addFlashAttribute("uploadSuccess", "Файл \"" + file.getOriginalFilename() + "\" успішно завантажено!");
-            return "redirect:/creater/edittrack/" + track.getUuid();
         } catch (IOException e) {
-            logger.error("Завантаження файлу: Проблема збереження", e);
-            redirectAttributes.addFlashAttribute("uploadError", "Помилка збереження файлу. Спробуйте ще раз.");
-            return "redirect:/creater/tracks/0";
+            logger.info("Завантаження файлу: Проблема збереження");
+            e.printStackTrace();
         }
+        log.info("uploaded file " + file.getOriginalFilename());
     }
 
     @PostMapping(path = "/creater/albumcoverupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE

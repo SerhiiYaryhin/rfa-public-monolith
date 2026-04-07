@@ -13,6 +13,8 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="/css/styles.css" rel="stylesheet" />
+    <link href="/css/dropzone.min.css" rel="stylesheet"/>
+    <link href="/css/toastr.min.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -33,25 +35,11 @@
         <div class="row">
             <div class="col-lg-12 col-sm-12">
 
-                <!-- Валідація -->
+                <!-- Повідомлення про помилку валідації -->
                 <div th:if="${validationError}" class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Помилка валідації!</strong><br>
                     <span th:utext="${validationError}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <!-- Успішне завантаження файлу -->
-                <div th:if="${uploadSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <span th:text="${uploadSuccess}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <!-- Помилка завантаження -->
-                <div th:if="${uploadError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <span th:text="${uploadError}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 
@@ -63,20 +51,14 @@
                             <strong>Крок 1: Завантажте аудіофайл треку</strong>
                         </div>
                         <div class="card-body">
-                            <p class="mb-3">Оберіть MP3/WAV/OGG/FLAC файл для завантаження.</p>
-                            <form th:action="@{/creater/trackupload}" method="post" enctype="multipart/form-data">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <div class="mb-3">
-                                    <label for="trackFile" class="form-label">Аудіофайл:</label>
-                                    <input type="file" class="form-control form-control-lg" id="trackFile"
-                                           name="file" accept="audio/*,.mp3,.wav,.ogg,.flac" required>
+                            <p class="mb-3">Перетягніть MP3/WAV файл сюди або натисніть для вибору.</p>
+                            <div id="track-dropzone" class="dropzone">
+                                <div class="dz-message needsclick">
+                                    <button type="button" class="dz-button">
+                                        Перенесіть файл сюди або натисніть для вибору.<br>
+                                        <small>Після завантаження сторінку буде оновлено автоматично.</small>
+                                    </button>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-upload me-2"></i>Завантажити файл
-                                </button>
-                            </form>
-                            <div class="mt-3 text-muted">
-                                <small>Після завантаження ви перейдете до форми редагування інформації про трек.</small>
                             </div>
                         </div>
                     </div>
@@ -172,15 +154,37 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/dropzone.min.js"></script>
+<script src="/js/toastr.min.js"></script>
 <script src="/js/tinymce/tinymce.min.js"></script>
 <script src="/js/wysiwyg-init.js"></script>
 <script>
-    // Ініціалізуємо TinyMCE тільки якщо є textarea
+    Dropzone.autoDiscover = false;
+
+    // TinyMCE для опису
     var descEl = document.getElementById('track-description');
     if (descEl) {
         initTinyMCESimple('#track-description', {
             min_height: 200,
             max_height: 350
+        });
+    }
+
+    // Dropzone для завантаження треку
+    var dz = document.getElementById('track-dropzone');
+    if (dz) {
+        $("#track-dropzone").dropzone({
+            url: "/creater/trackupload",
+            success: function(file, response) {
+                toastr.success('Файл "' + file.name + '" успішно завантажено. Оновлення...');
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            },
+            error: function(file, msg) {
+                toastr.error('Помилка завантаження: ' + msg);
+            }
         });
     }
 </script>

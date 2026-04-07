@@ -186,17 +186,20 @@
         <tbody>
         <tr th:each="track : ${viewList}">
             <td>
-                <audio th:id="'voice'+${track.uuid}" controls>
+                <audio th:id="'voice'+${track.uuid}" controls
+                       th:if="${track.storeitem != null}">
                     <source th:src="'/store/audio/'+${track.storeitem.uuid}">
                 </audio>
+                <span th:if="${track.storeitem == null}" class="text-muted">Файл відсутній</span>
             </td>
             <td>
                 <span th:text="${track.name}"></span>
             </td>
             <td>
-                <span th:text="${track.storeitem.filename}"></span>
+                <span th:if="${track.storeitem != null}" th:text="${track.storeitem.filename}"></span>
+                <span th:if="${track.storeitem == null}" class="text-muted">—</span>
                 <br>
-                <span th:text="'Завантажено: '+${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                <span th:if="${track.uploaddate != null}" th:text="'Завантажено: '+${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm:ss')}"></span>
             </td>
             <td>
                 <span th:if="${track.album} != null" th:text="${track.album.name}"></span>
