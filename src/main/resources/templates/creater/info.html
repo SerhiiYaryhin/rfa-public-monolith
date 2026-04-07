@@ -90,24 +90,7 @@
 
                         </div>
                         <div class="col-8">
-                            <script>
-                                tinymce.init({
-                                  selector: 'textarea',
-                                                        plugins: [
-                                                        "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
-                                                         "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
-                                                          "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
-                                                          ],
-                                  tinycomments_mode: 'embedded',
-                                  tinycomments_author: 'Author name',
-                                  mergetags_list: [
-                                    { value: 'First.Name', title: 'First Name' },
-                                    { value: 'Email', title: 'Email' },
-                                  ],
-                                  ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                });
-                            </script>
-                            <textarea th:field="*{comments}"/>
+                            <textarea th:field="*{comments}" id="client-comments"/>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -137,6 +120,11 @@
 <!-- TinyMCE 7 (self-hosted) -->
 <script src="/js/tinymce/tinymce.min.js"></script>
 <script src="/js/wysiwyg-init.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCEFull('#client-comments');
+    });
+</script>
 <!-- Дропзона -->
 </body>
 </html>
