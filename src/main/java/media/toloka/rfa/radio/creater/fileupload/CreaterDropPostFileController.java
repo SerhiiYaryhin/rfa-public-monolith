@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
@@ -52,27 +53,35 @@ public class CreaterDropPostFileController {
 
     final Logger logger = LoggerFactory.getLogger(CreaterDropPostFileController.class);
 
-    @PostMapping(path = "/creater/trackupload" )
-    public void uploadTrack(@RequestParam("file") MultipartFile file) {
+    @PostMapping(path = "/creater/trackupload")
+    public void uploadTrack(@RequestParam("file") MultipartFile file,
+                            jakarta.servlet.http.HttpServletResponse response) throws IOException {
 
         if (file.isEmpty()) {
             logger.info("Завантаження файлу: Файл порожній");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Файл порожній");
             return;
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Немає прав");
             return;
         }
         try {
-            String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_TRACK);
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, STORE_TRACK);
             Track track = createrService.SaveTrackUploadInfo(storeUUID, cd);
             logger.info("uploaded file {} -> track uuid: {}", file.getOriginalFilename(), track.getUuid());
+            // Повертаємо UUID треку у відповідь
+            response.setContentType("text/plain");
+            response.getWriter().write(track.getUuid());
         } catch (IOException e) {
-            logger.info("Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
+            logger.error("Завантаження файлу: Проблема збереження", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Помилка збереження");
         }
-        log.info("uploaded file " + file.getOriginalFilename());
     }
 
     @PostMapping(path = "/creater/albumcoverupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE

@@ -176,7 +176,6 @@
     // Dropzone для завантаження треку
     var dz = document.getElementById('track-dropzone');
     if (dz) {
-        // Отримуємо CSRF токен з мета-тегів
         var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
@@ -185,11 +184,17 @@
             headers: {
                 [csrfHeader]: csrfToken
             },
-            success: function(file, response) {
-                toastr.success('Файл "' + file.name + '" успішно завантажено. Оновлення...');
-                setTimeout(function() {
-                    window.location.reload();
-                }, 1500);
+            success: function(file, responseText) {
+                // responseText містить UUID треку
+                var trackUuid = responseText.trim();
+                if (trackUuid && trackUuid.length > 0) {
+                    toastr.success('Файл "' + file.name + '" завантажено!');
+                    setTimeout(function() {
+                        window.location.href = '/creater/edittrack/' + trackUuid;
+                    }, 1000);
+                } else {
+                    toastr.error('Файл завантажено, але не вдалось отримати UUID треку.');
+                }
             },
             error: function(file, msg) {
                 toastr.error('Помилка завантаження: ' + msg);
