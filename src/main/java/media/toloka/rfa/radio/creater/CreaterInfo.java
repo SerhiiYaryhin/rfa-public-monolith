@@ -4,6 +4,7 @@ package media.toloka.rfa.radio.creater;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.login.service.TokenService;
+import media.toloka.rfa.config.service.HtmlSanitizerService;
 import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
@@ -40,6 +41,9 @@ public class CreaterInfo {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private HtmlSanitizerService htmlSanitizer;
 
     final Logger logger = LoggerFactory.getLogger(CreaterInfo.class);
 
@@ -125,6 +129,7 @@ public class CreaterInfo {
         model.addAttribute("postList", rpt );
 
         model.addAttribute("clientdetail", cd );
+        model.addAttribute("safeComments", htmlSanitizer.sanitize(cd.getComments()));
 
 
 

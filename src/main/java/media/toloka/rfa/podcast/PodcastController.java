@@ -6,6 +6,7 @@ import jakarta.persistence.PersistenceContext;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.RSSXMLService;
 import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.config.service.HtmlSanitizerService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.podcast.model.PodcastChannel;
@@ -56,6 +57,8 @@ public class PodcastController {
     private ClientService clientService;
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private HtmlSanitizerService htmlSanitizer;
 
 //    // клас для форми urla
 //    @Getter
@@ -134,6 +137,9 @@ public class PodcastController {
             podcastService.SavePodcast(podcastChannel);
         }
         model.addAttribute("podcast", podcastChannel);
+        if (podcastChannel != null) {
+            model.addAttribute("safePodcastDescription", htmlSanitizer.sanitize(podcastChannel.getDescription()));
+        }
         return "/podcast/view";
     }
 

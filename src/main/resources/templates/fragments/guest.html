@@ -64,7 +64,7 @@
                                     </div>
 
                                     <!-- Біографія -->
-                                    <div th:utext="${clientdetail.comments}"></div>
+                                    <div th:utext="${safeComments}"></div>
 
                                     <!-- Telegram посилання -->
                                     <div th:if="${clientdetail.telegramuser} != null" class="mt-2">
@@ -183,11 +183,11 @@
             <div class="col-xl-4">
 
                 <!-- Про нас (біо) -->
-                <div class="card" th:if="${clientdetail.comments} != null AND ${#strings.length(clientdetail.comments) > 20}">
+                <div class="card" th:if="${safeComments} != null AND ${#strings.length(safeComments) > 20}">
                     <div class="card-body">
                         <div class="pb-2">
                             <h4 class="card-title mb-3">📋 Про нас</h4>
-                            <div th:utext="${#strings.abbreviate(clientdetail.comments, 200)}"></div>
+                            <div th:utext="${#strings.abbreviate(safeComments, 200)}"></div>
                         </div>
                     </div>
                 </div>

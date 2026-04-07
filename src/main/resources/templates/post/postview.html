@@ -48,7 +48,7 @@
             <!-- Колонка посту -->
             <div class="col-lg-9 col-sm-12">
                 <h1 th:text="${post.posttitle}"></h1>
-                <div th:utext="${post.postbody}"></div>
+                <div th:utext="${safePostBody}"></div>
                 <h3>Коментарі</h3>
                 <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
                         commentsPage=${commentsPage},

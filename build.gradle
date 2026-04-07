@@ -82,6 +82,10 @@ dependencies {
 // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
 
+// OWASP Java HTML Sanitizer - for sanitizing user-supplied HTML (TinyMCE content)
+	// https://mvnrepository.com/artifact/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
+	implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
+
 	// пробуємо Spring AI
 //	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation group: 'org.springframework.ai', name: 'spring-ai-starter-model-ollama', version: '1.0.0'

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import media.toloka.rfa.comments.model.Comment;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import media.toloka.rfa.comments.service.CommentService;
+import media.toloka.rfa.config.service.HtmlSanitizerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -61,6 +62,9 @@ public class PostController {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private HtmlSanitizerService htmlSanitizer;
+
 
     @GetMapping(value = "/post/postview/{idPost}") // /post/postview/52
     public String getViewPost(
@@ -79,6 +83,7 @@ public class PostController {
 //        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
         model.addAttribute("post", post);
+        model.addAttribute("safePostBody", htmlSanitizer.sanitize(post.getPostbody()));
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
 

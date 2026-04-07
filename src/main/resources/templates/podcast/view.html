@@ -81,7 +81,7 @@
 <!--                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 30px"></h1>-->
                         <!-- назва подкасту -->
                         <!-- зміст подкасту -->
-                        <div th:utext="${podcast.description}" class="mb-0 fs-6 pt-section-xl"></div>
+                        <div th:utext="${safePodcastDescription}" class="mb-0 fs-6 pt-section-xl"></div>
                         <!-- зміст подкасту -->
                     </div>
                 </div>
