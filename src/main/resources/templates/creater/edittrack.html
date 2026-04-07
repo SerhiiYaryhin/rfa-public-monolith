@@ -6,6 +6,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Толока - радіо для всіх!</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
@@ -174,8 +176,15 @@
     // Dropzone для завантаження треку
     var dz = document.getElementById('track-dropzone');
     if (dz) {
+        // Отримуємо CSRF токен з мета-тегів
+        var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
         $("#track-dropzone").dropzone({
             url: "/creater/trackupload",
+            headers: {
+                [csrfHeader]: csrfToken
+            },
             success: function(file, response) {
                 toastr.success('Файл "' + file.name + '" успішно завантажено. Оновлення...');
                 setTimeout(function() {
