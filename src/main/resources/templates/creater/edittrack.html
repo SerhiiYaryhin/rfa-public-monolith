@@ -181,23 +181,38 @@
 
         $("#track-dropzone").dropzone({
             url: "/creater/trackupload",
+            paramName: "file",           // відповідає @RequestParam("file")
+            maxFilesize: 100,            // MB — аудіофайли можуть бути великими
+            acceptedFiles: "audio/*,.mp3,.wav,.ogg,.flac,.aac,.wma",
             headers: {
                 [csrfHeader]: csrfToken
             },
+            dictDefaultMessage: "Перетягніть аудіофайл сюди або натисніть для вибору",
+            dictInvalidFileType: "Непідтримуваний тип файлу. Дозволені: MP3, WAV, OGG, FLAC",
+            dictFileTooBig: "Файл занадто великий. Максимальний розмір: {{maxFilesize}} MB",
+            dictResponseError: "Помилка сервера при завантаженні",
+
             success: function(file, responseText) {
-                // responseText містить UUID треку
-                var trackUuid = responseText.trim();
-                if (trackUuid && trackUuid.length > 0) {
-                    toastr.success('Файл "' + file.name + '" завантажено!');
+                // responseText — це рядок з UUID треку (повертається контролером)
+                var trackUuid = (typeof responseText === 'string') ? responseText.trim() : '';
+                if (trackUuid && trackUuid.length > 0 && trackUuid !== 'Файл порожній' && trackUuid !== 'Немає прав' && trackUuid !== 'Помилка збереження') {
+                    toastr.success('Файл "' + file.name + '" успішно завантажено!');
                     setTimeout(function() {
                         window.location.href = '/creater/edittrack/' + trackUuid;
                     }, 1000);
                 } else {
-                    toastr.error('Файл завантажено, але не вдалось отримати UUID треку.');
+                    toastr.error('Помилка: ' + (responseText || 'Невідома помилка'));
                 }
             },
-            error: function(file, msg) {
-                toastr.error('Помилка завантаження: ' + msg);
+            error: function(file, errorMessage) {
+                var msg = typeof errorMessage === 'string' ? errorMessage : 'Помилка завантаження';
+                toastr.error(msg);
+            },
+            addedfile: function(file) {
+                console.log('Файл додано до черги:', file.name, (file.size / 1024 / 1024).toFixed(2), 'MB');
+            },
+            complete: function(file) {
+                console.log('Завантаження завершено:', file.name, file.status);
             }
         });
     }
