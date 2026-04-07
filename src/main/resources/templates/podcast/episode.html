@@ -32,7 +32,7 @@
 <!-- Header для главной сторінки подкастов -->
 <section class="pt-4">
     <div class="container px-lg-5">
-        <div class="row " style="padding-top: 80px">
+        <div class="row pt-navbar-sm">
             <div class="col align-center">
                 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
@@ -43,23 +43,23 @@
                 <audio-player th:if="${podcastItem.enclosurestore} != null" id="rfaepisodeplayerr"
                               th:data-src="'/podcast/audio/'+ ${podcastItem.enclosurestore.uuid} +'/'+ ${podcastItem.enclosurestore.filename}"></audio-player>
             </div>
-            <div class="row" style="padding-top: 50px">
+            <div class="row pt-section-lg">
 
                 <div class="card bg-light border-0 h-100">
                     <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
                             <div class="col">
-                                <img class="img-fluid align-center" style="padding-top: 20px"
+                                <img class="img-fluid align-center pt-subsection"
                                      th:if="${podcastItem.imagestoreitem != null}"
                                      th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
                                      th:id="${podcastItem.imagestoreitem.uuid}"/>
                             </div>
                         </div>
                         <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}"
-                            style="padding-top: 10px"></h1> <!-- назва подкасту -->
+                            class="pt-subsection-sm"></h1> <!-- назва подкасту -->
                         <!-- зміст подкасту -->
-                        <div th:utext="${podcastItem.description}" class="mb-0 fs-6" style="padding-top: 10px"></div>
+                        <div th:utext="${podcastItem.description}" class="mb-0 fs-6 pt-subsection-sm"></div>
                         <!-- зміст подкасту -->
                     </div>
                 </div>

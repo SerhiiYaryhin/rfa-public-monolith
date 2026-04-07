@@ -24,10 +24,10 @@
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
-<div style="padding-top: 1px">
-    <!--<div style="padding-top: 10px">-->
+<div class="pt-minimal">
+    <!--<div class="pt-minimal">-->
     <div class="container-fluid">
-        <div class="row text-center" style="padding-top: 60px">
+        <div class="row text-center pt-navbar-xs">
             <div class="col align-center">
                 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
@@ -35,11 +35,11 @@
         <!--        <div class="row">-->
         <!--            <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>-->
         <!--        </div>-->
-        <div class="row" style="padding-top: 0px">
+        <div class="row pt-zero">
             <!-- Колонка -->
             <div class="col-lg-6 col-sm-12">
                 <audio-player id="TrackPlayer" th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}"></audio-player>
-                <h1 th:text="${curtrack.name}" style="padding-top: 20px"></h1>
+                <h1 th:text="${curtrack.name}" class="pt-subsection"></h1>
                 <h2><span>Автор:</span><span th:text="${curtrack.autor}"/></h2>
                 <h5 th:if="${curtrack.style != null} "><span th:if=" ${#strings.length(curtrack.style) > 0}">Стиль:<span
                         th:text="' '+${curtrack.style}"/></span></h5>
@@ -53,11 +53,11 @@
             </div>
         </div>
         <hr>
-        <div class="row" style="padding-top: 0px">
+        <div class="row pt-zero">
             <div class="col-lg-12 col-sm-12" th:utext="${curtrack.description}"></div>
         </div>
         <!--Завантажити -->
-        <div class="row text-center" style="padding-top: 20px">
+        <div class="row text-center pt-subsection">
             <div class="col ">
                 <hr>
                 <a class="mx-auto"
@@ -67,7 +67,7 @@
                 </a>
             </div>
         </div>
-        <div class="row" style="padding-top: 20px">
+        <div class="row pt-subsection">
             <h3>Коментарі</h3>
             <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
                         commentsPage=${commentsPage},

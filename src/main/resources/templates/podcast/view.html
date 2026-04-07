@@ -28,7 +28,7 @@
 
 
 <!-- MessageBox -->
-<div style="padding-top: 80px" th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+<div class="pt-navbar-sm" th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
 <!-- Header для главной сторінки подкастов -->
 <div th:if="${podcast != null}">
     <section class="pt-4">
@@ -38,7 +38,7 @@
 <!--                              th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>-->
 <!--            </div>-->
 
-            <div class="row" style="padding-top: 50px">
+            <div class="row pt-section-lg">
                 <!-- початок виводу подкастe -->
                 <div class="card bg-light border-0 h-100">
                     <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
@@ -51,14 +51,14 @@
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
                             <div class="col-9 ">
-                                <img class="img-fluid align-center" style="padding-top: 20px"
+                                <img class="img-fluid align-center pt-subsection"
                                      th:if="${podcast.imagechanelstore != null}"
                                      th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
                                      th:id="${podcast.imagechanelstore.uuid}"/>
                             </div>
                             <div class="col-3 text-center">
                                 <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
-                                    <img class="img-fluid align-center" style="padding-top: 20px"
+                                    <img class="img-fluid align-center pt-subsection"
                                          src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
                                     <br>
                                 </a>
@@ -80,7 +80,7 @@
 <!--                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 30px"></h1>-->
                         <!-- назва подкасту -->
                         <!-- зміст подкасту -->
-                        <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 30px"></div>
+                        <div th:utext="${podcast.description}" class="mb-0 fs-6 pt-section-xl"></div>
                         <!-- зміст подкасту -->
                     </div>
                 </div>
@@ -138,7 +138,7 @@
                                      th:src="'/store/thrumbal/w/400/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
                                      th:id="${item.imagestoreitem.uuid}"/>
                                 <div th:if="${item.title != null}">
-                                    <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
+                                    <h2 class="fs-4 fw-bold pt-subsection-sm" th:text="${item.title}"></h2>
                                 </div>
 <!--                                <div th:if="${item.description != null}">-->
 <!--                                    <p th:if="${item.description.length()>150}" style="padding-top: 10px"-->

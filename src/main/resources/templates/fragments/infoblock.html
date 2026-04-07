@@ -13,7 +13,7 @@
             <div th:each=" post : ${postList} " class="col" >
                 <div class="card d-flex flex-column h-100">
                     <div th:if="${post.coverstoreuuid} == null">
-                        <img class="card-img-top img-fluid" th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                        <img loading="lazy" class="card-img-top img-fluid" th:src="'/assets/img/default-post-cover.svg'"
                              alt="Card image cap">
                     </div>
                     <div th:if="${post.coverstoreuuid} != null">

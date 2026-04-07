@@ -28,7 +28,7 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<section style="padding-top: 100px">
+<section class="main-content">
     <div class="container-fluid">
         <div class="row">
             <!-- Колонка керування радіо-->
@@ -38,7 +38,7 @@
         </div>
     </div>
 </section>
-<section style="padding-top: 100px">
+<section class="main-content">
     <div class="container-fluid">
         <form action="#" th:action="@{/usermessage}" method="post" th:object="${messages}">
             <div class="col-lg-9 col-sm-12">

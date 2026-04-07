@@ -11,7 +11,7 @@
 <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 <!-- Header для главной сторінки подкастов -->
 <header>
-<div class="container mt-5" style="padding-top: 60px">
+<div class="container mt-5 pt-navbar-xs">
     <h2 class="mb-4">Форма клієнту</h2>
 
     <form th:action="@{/acc/reference/clients/save}" th:object="${client}" method="post">

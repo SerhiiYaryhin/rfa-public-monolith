@@ -24,7 +24,7 @@
 </header>
 
 <!--// User page container-->
-<div style="padding-top: 100px">
+<div class="main-content">
 <!--    <div class="container-fluid">-->
 <!--        <div class="row">-->
 <!--            <div class="col-lg-12 col-sm-12">-->
@@ -33,7 +33,7 @@
 <!--        </div>-->
 <!--    </div>-->
     <div class="container-fluid">
-        <div class="row" style="padding-top: 40px">
+        <div class="row pt-section">
             <div class="col-lg-12 col-sm-12">
                 <form th:action="@{'/store/edititem/'+${store.uuid} }" th:object="${store}" method="post">
                     <input type="hidden" th:field="*{id}"/>

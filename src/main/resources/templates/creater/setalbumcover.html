@@ -29,7 +29,7 @@
 </header>
 
 <!--// User page container-->
-<div style="padding-top: 80px">
+<div class="main-content-sm">
     <!-- Services   -->
     <div class="container-fluid" >
         <script>
@@ -46,7 +46,7 @@
 
         </div>
         <hr>
-        <div class="row" style="padding-top: 40px">
+        <div class="row pt-section">
             <div class="col" th:each="coverl : ${coverlist}">
                 <!--  -->
                 <img  th:if="${coverl.storeitem} != null" th:data-p1="${coverl.storeuuid}" th:data-p2="${album.id}" th:data-p3="${cd.id}" th:onclick="setcover(this, this.getAttribute('data-p1'), this.getAttribute('data-p2'), this.getAttribute('data-p3'))"

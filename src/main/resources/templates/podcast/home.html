@@ -33,7 +33,7 @@
     <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
     <!-- Header для главной сторінки подкастов -->
     <header  class="py-5">
-        <div class="container-fluid px-lg-5" style="padding-top: 30px">
+        <div class="container-fluid px-lg-5 pt-section">
             <div class="bg-light rounded-3 text-center">
                 <h1 class="display-5 fw-bold">Ваші подкасти</h1>
                 <div class="m-4 m-lg-5">
@@ -54,7 +54,7 @@
     <!-- Page Content-->
     <section class="pt-4">
         <div class="container px-lg-5">
-            <div class="row text-center" style="padding-top: 20px">
+            <div class="row text-center pt-subsection">
                 <div class="col align-center">
                     <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
                 </div>
@@ -75,7 +75,7 @@
                             </a>
                         </div>
                         <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <img class="img-fluid" th:if="${podcast.imagechanelstore != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                            <img loading="lazy" class="img-fluid" th:if="${podcast.imagechanelstore != null}" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
                                  th:id="${podcast.imagechanelstore.uuid}"/>
 <!--                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"><i class="bi bi-collection"></i></div>-->
                             <h3 class="fs-4 fw-bold" th:text="${podcast.title}"></h3> <!-- назва подкасту -->

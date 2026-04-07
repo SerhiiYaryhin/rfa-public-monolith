@@ -28,12 +28,12 @@
 </header>
 <h1>Редагуємо новину</h1>
 <div class="container-fluid">
-    <div class="row text-center" style="padding-top: 20px">
+    <div class="row text-center pt-subsection">
         <div class="col align-center">
             <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
         </div>
     </div>
-    <div class="row" style="padding-top: 20px">
+    <div class="row pt-subsection">
         <div class="col-lg-9 col-sm-12" th:object="${curstt}">
             <form th:action="@{'/stt/editstt/'+${currentPage}}"  method="post" th:object="${curstt}">
                 <input type="hidden" th:field="${curstt.uuid}"/>

@@ -23,7 +23,7 @@
 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
 <!-- Navigation-->
 <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-<div style="padding-top: 100px">
+<div class="main-content">
 <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
 <section class="page-section" id="news">
     <div class="container-fluid">
@@ -40,7 +40,7 @@
                                     <div th:if="${post.coverstoreuuid} == null">
                                         <!--              post.coverstoreuuid == null-->
                                         <img class="card-img-top img-fluid"
-                                             th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                                             th:src="'/assets/img/default-post-cover.svg'"
                                              alt="Card image cap">
                                     </div>
                                     <div th:if="${post.coverstoreuuid} != null">

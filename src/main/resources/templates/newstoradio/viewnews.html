@@ -31,8 +31,8 @@
 <!-- MessageBox -->
 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 
-<div class="row" style="padding-top: 40px">
-  <div class="col-lg-9 col-sm-12" th:object="${curnews}" style="padding-top: 40px">
+<div class="row pt-section">
+  <div class="col-lg-9 col-sm-12" th:object="${curnews}" class="pt-section">
     <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
     <form th:action="@{/newstoradio/editnews/${currentPage}}"  method="post" th:object="${curnews}">
       <input type="hidden" th:field="${curnews.uuid}"/>

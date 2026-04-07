@@ -25,12 +25,12 @@
 </header>
 <h1>Редагуємо новину</h1>
 <div class="container-fluid">
-    <div class="row text-center" style="padding-top: 20px">
+    <div class="row text-center pt-subsection">
         <div class="col align-center">
             <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
         </div>
     </div>
-    <div class="row" style="padding-top: 20px">
+    <div class="row pt-subsection">
         <div class="col-lg-9 col-sm-12" th:object="${curnews}">
 <!--            <form th:action="@{/newstoradio/editnews/{myuuid}(myuuid=${ curnews.uuid == null ? '/newstoradio/editnews/0' : '/newstoradio/editnews')}}"-->
             <form th:action="@{'/newstoradio/editnews/'+${currentPage}}"  method="post" th:object="${curnews}">

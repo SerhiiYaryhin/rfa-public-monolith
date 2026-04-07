@@ -27,7 +27,7 @@
 </header>
 
 <!--// User page container-->
-<div style="padding-top: 100px">
+<div class="main-content">
     <!--    <div class="container-fluid">-->
     <!--        <div class="row">-->
     <!--            <div class="col-lg-12 col-sm-12">-->
@@ -36,7 +36,7 @@
     <!--        </div>-->
     <!--    </div>-->
     <div class="container-fluid">
-        <div class="row" style="padding-top: 40px">
+        <div class="row pt-section">
             <div id="dropzone">
                 <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post">
                     <input type="hidden"
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <div class="row" style="padding-top: 40px">
+        <div class="row pt-section">
             <div class="col-lg-12 col-sm-12">
 
                 <div th:insert="~{/fragments/common :: pagingline}"/>

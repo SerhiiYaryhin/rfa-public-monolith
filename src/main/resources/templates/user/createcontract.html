@@ -28,7 +28,7 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<div style="padding-top: 100px">
+<div class="main-content">
     <div class="container-fluid">
         <div class="row">
 
@@ -53,7 +53,7 @@
 <!--            </div>-->
 <!--        </div>-->
 
-        <div class="row" style="padding-top: 40px">
+        <div class="row pt-section">
             <div th:if="${message}">
                 <h2 th:text="${message}"/>
             </div>

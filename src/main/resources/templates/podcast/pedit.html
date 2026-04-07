@@ -33,7 +33,7 @@
 </header>
 
 <!-- Header для главной сторінки подкастов class="py-5" -->
-<header style="padding-top: 80px">
+<header class="pt-navbar-sm">
     <div class="container-fluid">
         <div class="bg-light rounded-3 text-center">
             <!--            <div class="p-4 p-lg-5 bg-light rounded-3 text-center">-->
@@ -55,7 +55,7 @@
 </header>
 
 <!-- MessageBox -->
-<div class="row text-center" style="padding-top: 20px">
+<div class="row text-center pt-subsection">
     <div class="col align-center">
         <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
     </div>
@@ -63,10 +63,10 @@
 
 <!-- Обкладинка альбому -->
 <div th:if="${podcast.imagechanelstore != null}" class="container px-lg-5 form-control-sm">
-    <div class="row" style="padding-top: 40px">
+    <div class="row pt-section">
         <div class="col">
             <!-- Обкладинка альбому -->
-            <img th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+            <img loading="lazy" th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
                  th:id="${podcast.imagechanelstore.uuid}"/>
             <br><span th:text="${podcast.imagechanelstore.filename}"/>
             <br><a th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">

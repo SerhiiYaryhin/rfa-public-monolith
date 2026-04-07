@@ -81,7 +81,7 @@
                         <td th:text="${file.filename} + ${file.uuid}"></td>
                         <td>
                             <div th:switch="${file.storefiletype.name}">
-                                <img th:case="'STORE_BANNERIMAGE'" th:src="@{/store/content/{uuid}(uuid=${file.uuid})}"
+                                <img loading="lazy" th:case="'STORE_BANNERIMAGE'" th:src="@{/store/content/{uuid}(uuid=${file.uuid})}"
                                      alt="Зображення" class="img-fluid rounded">
                                 <audio th:case="'STORE_BANNERAUDIO'" controls class="w-100">
                                     <source th:src="@{/store/audio/{uuid}(uuid=${file.uuid})}" th:type="${file.contentMimeType}">

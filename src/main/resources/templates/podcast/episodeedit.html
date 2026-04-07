@@ -33,7 +33,7 @@
 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 <!-- Header для главной сторінки подкастов -->
 <header  class="py-5">
-    <div class="container-fluid px-lg-5" style="padding-top: 30px">
+    <div class="container-fluid px-lg-5 pt-section-xl">
         <div class="bg-light rounded-3 text-center">
             <div class="m-4 m-lg-5">
                 <h1 class="display-5 fw-bold">Ваш епізод подкасту</h1>
@@ -54,7 +54,7 @@
         <div th:if="${episode.imagestoreitem  != null}">
             <span><b>Обкладинка</b></span><br>
             <!-- Обкладинка епізоду -->
-            <img class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.imagestoreitem.uuid} + '/' + ${episode.imagestoreitem.filename}"
+            <img loading="lazy" class="img-fluid" th:src="'/store/thrumbal/w/300/' + ${episode.imagestoreitem.uuid} + '/' + ${episode.imagestoreitem.filename}"
                  th:id="${episode.imagestoreitem.uuid}"/>
             <br>
             <span th:text="${episode.imagestoreitem.filename}"></span><br>

@@ -20,7 +20,7 @@
 <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 <!-- Header для главной сторінки подкастов -->
 <!--<header>-->
-<div class="container-fluid" style="padding-top: 80px">
+<div class="container-fluid pt-navbar-sm">
     <form th:action="@{'/acc/editbox/'+${currentPage}+'/'+${curacc.uuid}}" method="post" th:object="${curacc}">
         <div class="row g-3 p-2">
             <div class="col-2">

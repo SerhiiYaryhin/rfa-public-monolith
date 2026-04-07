@@ -70,7 +70,7 @@ function initTinyMCE(selector, customOptions) {
         // Таблиці
         table_default_styles: {
             width: '100%',
-            border-collapse: 'collapse'
+            'border-collapse': 'collapse'
         },
         
         // Швидкі вставки

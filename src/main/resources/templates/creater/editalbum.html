@@ -29,7 +29,7 @@
 </header>
 
 <!--// User page container-->
-<div style="padding-top: 100px">
+<div class="main-content">
     <!-- Services   -->
     <div class="container-fluid">
         <div class="row">
@@ -46,8 +46,8 @@
                 <form th:action="@{/creater/editalbum}"  method="post" th:object="${album}">
                     <fieldset>
                         <legend>Ваш альбом</legend>
-<!--                        <img th:src="${cover} ?  '/store/thrumbal/' + ${album.clientdetail.uuid} + '/' + ${cover} : 'https://picsum.photos/400/300'"> -->
-                        <img th:src="${cover} ?  '/store/thrumbal/' + ${album.storeuuidalbumcover}+ '/' + ${cover} : 'https://picsum.photos/400/300'">
+<!--                        <img loading="lazy" th:src="${cover} ?  '/store/thrumbal/' + ${album.clientdetail.uuid} + '/' + ${cover} : 'https://picsum.photos/400/300'"> -->
+                        <img loading="lazy" th:src="${cover} ?  '/store/thrumbal/' + ${album.storeuuidalbumcover}+ '/' + ${cover} : '/assets/img/default-post-cover.svg'">
 
                         <input type="hidden" th:field="*{id}"/>
                         <div class="form-group">

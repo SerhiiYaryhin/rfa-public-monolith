@@ -24,19 +24,19 @@
     <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
-<div style="padding-top: 100px">
+<div class="main-content">
     <div class="container-fluid">
 <!--        <div class="row">-->
 <!--            <div class="col-lg-12 col-sm-12">-->
 <!--                <div th:insert="~{/fragments/user :: user_service}"> </div>-->
 <!--            </div>-->
 <!--        </div>-->
-        <div class="row text-center" style="padding-top: 20px">
+        <div class="row text-center pt-subsection">
             <div class="col align-center">
                 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
             </div>
         </div>
-        <div class="row" style="padding-top: 20px">
+        <div class="row pt-subsection">
             <!-- Колонка редагування посту -->
             <div class="col-lg-9 col-sm-12">
                 <form th:action="@{'/creater/editpost/'+${post.id}}"  method="post" th:object="${post}">
@@ -70,8 +70,8 @@
 <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
                 <a class="btn btn-primary" th:href="@{'/creater/setpostmainpicture/'+${post.uuid}+'/0' }">Встановити Головну ілюстрацію</a>
                 <div th:if="${post.coverstoreuuid} != null">
-                    <img class="card-img-top img-fluid"  th:src="'/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">
-<!--                    <img class="card-img-top img-fluid"  th:src="'https://rfa.toloka.mediahttps://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">-->
+                    <img loading="lazy" class="card-img-top img-fluid"  th:src="'/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">
+<!--                    <img loading="lazy" class="card-img-top img-fluid"  th:src="'https://rfa.toloka.mediahttps://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">-->
                 </div>
 
             </div>

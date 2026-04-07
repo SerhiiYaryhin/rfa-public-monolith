@@ -23,22 +23,22 @@
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
-<div style="padding-top: 100px">
+<div class="main-content">
     <div class="container-fluid">
-        <div class="row text-center" style="padding-top: 20px">
+        <div class="row text-center pt-subsection">
             <div class="col align-center">
                 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
             </div>
         </div>
-        <div class="row" style="padding-top: 20px">
+        <div class="row pt-subsection">
             <!-- Колонка -->
             <div class="col-lg-9 col-sm-12">
                 <div th:each="podcast : ${podcastList}">
                     <div th:if="${podcast.publishing == true}" class="row">
                         <div class="col-lg-2 col-sm-12"> <!-- колонка із зображенням подкасту -->
-                            <img th:src="'/store/thrumbal/w/150/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
+                            <img loading="lazy" th:src="'/store/thrumbal/w/150/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
                                  th:id="${podcast.imagechanelstore.uuid}"/>
-                            <!--              <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">-->
+                            <!--              <img loading="lazy" src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">-->
                         </div>
                         <div class="col-lg-9 col-sm-12"> <!-- колонка з описом подкасту -->
                             <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
