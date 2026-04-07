@@ -18,7 +18,19 @@ function initTinyMCE(selector, customOptions) {
         selector = 'textarea';
     }
 
+    // Визначаємо ID редактора
+    var editorId = selector.replace('#', '').replace('.', '');
+
+    // Видаляємо попередній екземпляр якщо існує
+    if (typeof tinymce !== 'undefined') {
+        var existing = tinymce.get(editorId);
+        if (existing) {
+            existing.remove();
+        }
+    }
+
     var defaultOptions = {
+        selector: selector,
         base_url: '/js/tinymce',
         language: 'uk_UA',
         icons: 'default',
@@ -42,30 +54,17 @@ function initTinyMCE(selector, customOptions) {
 
     var finalOptions = Object.assign({}, defaultOptions, customOptions || {});
 
-    console.log('[TinyMCE] Ініціалізація:', selector, finalOptions);
-    console.log('[TinyMCE] tinymce:', typeof tinymce !== 'undefined' ? 'OK' : 'НЕМАЄ');
-
     if (typeof tinymce === 'undefined') {
         console.error('[TinyMCE] Бібліотеку tinymce не завантажено!');
         return;
     }
 
-    // Видаляємо попередній екземпляр якщо є
-    var existing = tinymce.get(selector.replace('#', ''));
-    if (existing) {
-        console.log('[TinyMCE] Видаляємо попередній екземпляр');
-        existing.remove();
-    }
-
-    tinymce.init(finalOptions).then(function(editors) {
-        console.log('[TinyMCE] Успішно ініціалізовано:', editors.length, 'редакторів');
-    }).catch(function(err) {
-        console.error('[TinyMCE] ПОМИЛКА ініціалізації:', err);
-    });
+    tinymce.init(finalOptions);
 }
 
 /**
  * Швидка ініціалізація з мінімальним набором плагінів
+ * Використовується для простих форм (подкасти, банери тощо)
  */
 function initTinyMCESimple(selector, customOptions) {
     if (typeof selector === 'object' && selector !== null) {
@@ -77,7 +76,17 @@ function initTinyMCESimple(selector, customOptions) {
         selector = 'textarea';
     }
 
-    initTinyMCE(selector, Object.assign({}, {
+    var editorId = selector.replace('#', '').replace('.', '');
+    if (typeof tinymce !== 'undefined') {
+        var existing = tinymce.get(editorId);
+        if (existing) existing.remove();
+    }
+
+    tinymce.init(Object.assign({}, {
+        selector: selector,
+        base_url: '/js/tinymce',
+        language: 'uk_UA',
+        icons: 'default',
         plugins: [
             'autolink', 'lists', 'link', 'image', 'charmap', 'code',
             'insertdatetime', 'media', 'table', 'wordcount', 'help'
@@ -87,7 +96,8 @@ function initTinyMCESimple(selector, customOptions) {
             'bullist numlist | link image media table | removeformat code help',
         menubar: false,
         height: 250,
-        min_height: 200
+        min_height: 200,
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.6; }'
     }, customOptions || {}));
 }
 
@@ -104,7 +114,17 @@ function initTinyMCEFull(selector, customOptions) {
         selector = 'textarea';
     }
 
-    initTinyMCE(selector, Object.assign({}, {
+    var editorId = selector.replace('#', '').replace('.', '');
+    if (typeof tinymce !== 'undefined') {
+        var existing = tinymce.get(editorId);
+        if (existing) existing.remove();
+    }
+
+    tinymce.init(Object.assign({}, {
+        selector: selector,
+        base_url: '/js/tinymce',
+        language: 'uk_UA',
+        icons: 'default',
         plugins: [
             'preview', 'searchreplace', 'autolink', 'autosave', 'save',
             'directionality', 'code', 'visualblocks', 'visualchars', 'fullscreen',
@@ -122,12 +142,18 @@ function initTinyMCEFull(selector, customOptions) {
         menubar: 'file edit view insert format tools table help',
         height: 450,
         min_height: 350,
-        max_height: 700
+        max_height: 700,
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.6; }',
+        image_caption: true,
+        link_target_list: [
+            { title: 'В тому ж вікні', value: '' },
+            { title: 'В новому вікні', value: '_blank' }
+        ]
     }, customOptions || {}));
 }
 
 /**
- * Ініціалізація з автоматичним збереженням
+ * Ініціалізація з автоматичним збереженням чернетки
  */
 function initTinyMCEAutoSave(selector, saveCallback) {
     var callback = saveCallback || function () {};
@@ -152,10 +178,8 @@ function initTinyMCEAutoSave(selector, saveCallback) {
  * Знищити всі екземпляри TinyMCE
  */
 function destroyTinyMCE() {
-    if (typeof tinymce !== 'undefined' && tinymce.editors) {
-        tinymce.editors.forEach(function(editor) {
-            editor.remove();
-        });
+    if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
+        tinymce.activeEditor.remove();
     }
 }
 
