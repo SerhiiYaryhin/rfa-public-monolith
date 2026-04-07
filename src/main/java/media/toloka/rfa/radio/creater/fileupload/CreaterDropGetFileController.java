@@ -38,7 +38,8 @@ public class CreaterDropGetFileController {
         if (user == null) {
             return "redirect:/";
         }
-        return "/creater/trackupload";
+        // Редирект на загальну сторінку треків — звідти можна завантажити
+        return "redirect:/creater/tracks/0";
     }
 
     @GetMapping("/creator/picupload")

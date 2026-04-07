@@ -17,6 +17,8 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="/css/styles.css" rel="stylesheet" />
+    <link href="/css/dropzone.min.css" rel="stylesheet"/>
+    <link href="/css/toastr.min.css" rel="stylesheet" />
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 
 </head>
@@ -54,7 +56,31 @@
                         <legend>Інформація про трек</legend>
                         <input type="hidden" th:field="${track.id}"/>
 
-                        <div class="form-group">
+                        <!-- Завантаження треку (якщо файлу ще немає) -->
+                        <div th:if="${store} == null OR ${store.filename} == null" class="mb-4">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-music me-2"></i>
+                                <strong>Аудіофайл треку відсутній.</strong><br>
+                                Завантажте аудіофайл, перш ніж заповнювати інформацію про трек.
+                            </div>
+                            <div id="dropzone">
+                                <form action="/creater/trackupload" class="dropzone needsclick" id="track-dropzone" method="post">
+                                    <input type="hidden"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}" />
+                                    <div class="dz-message needsclick">
+                                        <button type="button" class="dz-button">
+                                            Перенесіть файл сюди або натисніть для вибору файла.<br>
+                                            <small>Після завантаження сторінку буде оновлено автоматично.</small>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <hr>
+                        </div>
+
+                        <!-- Наявний файл -->
+                        <div th:if="${store} != null AND ${store.filename} != null" class="form-group">
                             <label class="col-md-4 control-label" for="filename">Файл</label>
                             <div class="col-md-5">
                                 <input th:field="${store.filename}" type="text" class="form-control input-md" disabled>
@@ -166,6 +192,9 @@
 
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/dropzone.min.js"></script>
+<script src="/js/toastr.min.js"></script>
 
 <!-- TinyMCE 7 (self-hosted) -->
 <script src="/js/tinymce/tinymce.min.js"></script>
@@ -176,6 +205,20 @@
             min_height: 200,
             max_height: 350
         });
+    });
+
+    // Dropzone для завантаження треку
+    Dropzone.autoDiscover = false;
+    var trackDropzone = new Dropzone("#track-dropzone", {
+        success: function(file, response) {
+            toastr.success('Файл "' + file.name + '" успішно завантажено. Оновлення сторінки...');
+            setTimeout(function() {
+                window.location.reload();
+            }, 1500);
+        },
+        error: function(file, errorMessage) {
+            toastr.error('Помилка завантаження: ' + errorMessage);
+        }
     });
 </script>
 </body>

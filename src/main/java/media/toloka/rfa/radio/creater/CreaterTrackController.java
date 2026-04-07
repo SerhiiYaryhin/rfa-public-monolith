@@ -94,16 +94,32 @@ public class CreaterTrackController {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 
-        Track track = createrService.GetTrackByUuid(uuidTrack);
-        logger.info("========= track.getUUID = {} track.getApruve = {} ",track.getUuid(),track.getApruve());
-
-        Store store = storeService.GetStoreByUUID(track.getStoreitem().getUuid());
-
+        Track track;
+        Store store = null;
         List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
 
-        model.addAttribute("albumList", albumList );
-        model.addAttribute("track", track );
-        model.addAttribute("store", store );
+        // Якщо uuidTrack = "0" — створюємо новий трек (режим завантаження)
+        if ("0".equals(uuidTrack)) {
+            track = new Track();
+            track.setClientdetail(cd);
+            track.setTochat(true);
+            track.setNotnormalvocabulary(false);
+        } else {
+            track = createrService.GetTrackByUuid(uuidTrack);
+            if (track == null) {
+                logger.info("Трек з UUID {} не знайдено", uuidTrack);
+                return "redirect:/creater/tracks/0";
+            }
+            if (track.getStoreitem() != null) {
+                store = storeService.GetStoreByUUID(track.getStoreitem().getUuid());
+            }
+        }
+
+        logger.info("========= track.getUUID = {} track.getApruve = {} ",track.getUuid(),track.getApruve());
+
+        model.addAttribute("albumList", albumList);
+        model.addAttribute("track", track);
+        model.addAttribute("store", store);
 
         return "/creater/edittrack";
     }
