@@ -1,11 +1,101 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="uk" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Помилка сервера</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>500 — Помилка сервера | Толока</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2d1b1b 0%, #3d1f1f 50%, #4a1a1a 100%);
+            color: #fff;
+            padding-top: 80px;
+        }
+        .error-page .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #ff6b6b, #ff8000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .error-page .error-message { font-size: 1.5rem; margin: 1rem 0; }
+        .error-page .error-details {
+            color: #adb5bd; font-size: 0.9rem; max-width: 500px; margin: 0 auto;
+        }
+        .error-page .quick-links { margin-top: 2rem; }
+        .error-page .quick-links a {
+            color: #ff8000; text-decoration: none; margin: 0 0.5rem;
+            transition: color 0.2s ease;
+        }
+        .error-page .quick-links a:hover { color: #ffc800; }
+        .error-page .error-icon {
+            width: 120px; height: 120px; margin: 0 auto 1rem;
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
 </head>
 <body>
-<h1>500 - Внутрішня помилка сервера</h1>
-<p th:text="${msg}">Сталася помилка</p>
-<p th:text="${path}">Шлях</p>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <div class="error-page">
+        <div class="container text-center">
+
+            <!-- Іконка сервера (SVG) -->
+            <div class="error-icon">
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Сервер -->
+                    <rect x="30" y="25" width="60" height="20" rx="4" fill="#ff6b6b" opacity="0.8"/>
+                    <rect x="30" y="50" width="60" height="20" rx="4" fill="#ff6b6b" opacity="0.6"/>
+                    <rect x="30" y="75" width="60" height="20" rx="4" fill="#ff6b6b" opacity="0.4"/>
+                    <!-- Індикатори -->
+                    <circle cx="42" cy="35" r="3" fill="#ff8000">
+                        <animate attributeName="fill" values="#ff8000;#ff6b6b;#ff8000" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="42" cy="60" r="3" fill="#ff6b6b"/>
+                    <circle cx="42" cy="85" r="3" fill="#ff6b6b" opacity="0.5"/>
+                    <!-- Знак оклику -->
+                    <text x="60" y="115" text-anchor="middle" fill="#ff6b6b" font-size="14"
+                          font-weight="bold" font-family="system-ui">500</text>
+                </svg>
+            </div>
+
+            <div class="error-code">500</div>
+            <h1 class="error-message">Внутрішня помилка сервера</h1>
+
+            <p class="error-details">
+                На жаль, на сервері сталася непередбачувана помилка.
+                Наші техніки вже працюють над її усуненням.
+            </p>
+
+            <p class="error-details" th:if="${path != null}" style="color: #ff6b6b;">
+                <code th:text="${path}">/шлях</code>
+            </p>
+
+            <div class="quick-links">
+                <a href="/">🏠 Головна</a> ·
+                <a href="mailto:info@toloka.kiev.ua">📧 Написати нам</a>
+            </div>
+
+            <div class="mt-4" th:if="${msg != null}">
+                <small class="text-muted" th:text="${msg}"></small>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,50 +1,157 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="uk" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Толока - радіо для всіх!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 — Сторінку не знайдено | Толока</title>
+    <meta name="robots" content="noindex, nofollow" />
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
     <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            padding-top: 80px;
+        }
+        .error-page .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #ffc800, #ff8000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .error-page .error-message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        .error-page .error-details {
+            color: #adb5bd;
+            font-size: 0.9rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .error-page .search-box {
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+        .error-page .quick-links {
+            margin-top: 2rem;
+        }
+        .error-page .quick-links a {
+            color: #ffc800;
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.2s ease;
+        }
+        .error-page .quick-links a:hover {
+            color: #ff8000;
+        }
+        .error-page .radio-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
 </head>
 <body>
-<!-- Navigation-->
-<div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-<div class="section section-signup" style="background-image: url('/pictures/error.webp'); background-size: cover; background-position: top center; min-height: 700px;">
-    <section class="vh-100" >
-        <div class="container py-5 h-100">
-            <div class="row d-flex justify-content-center align-items-center h-100">
-                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                    <div class="card shadow-2-strong " style="border-radius: 1rem;">
-                        <div class="card-body p-5 text-center">
-                            <h3 class="mb-5">Щось пішло не так :(</h3>
-                            <div th:if="${msg}">
-                                <br><span th:text="${msg}"></span><br>
-                            </div>
-                            <div th:if="${detail}" >
-                                <br><span th:text="${detail}" style="color: red;"></span><br>
-                            </div>
-                            <div>
-                                <a href="/" >Перейдіть на головну сторінку.</a><br>
-                            </div>
+    <!-- Navigation-->
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 
-                        </div>
-                    </div>
+    <div class="error-page">
+        <div class="container text-center">
+
+            <!-- Анімована іконка радіо (SVG) -->
+            <div class="radio-icon">
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Хвилі радіо -->
+                    <path d="M60 30 C60 30 30 10 30 50" fill="none" stroke="#ffc800" stroke-width="3" opacity="0.3">
+                        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M60 20 C60 20 20 0 20 50" fill="none" stroke="#ffc800" stroke-width="3" opacity="0.2">
+                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.5s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M60 30 C60 30 90 10 90 50" fill="none" stroke="#ffc800" stroke-width="3" opacity="0.3">
+                        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M60 20 C60 20 100 0 100 50" fill="none" stroke="#ffc800" stroke-width="3" opacity="0.2">
+                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.5s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Радіо приймач -->
+                    <rect x="35" y="50" width="50" height="35" rx="8" fill="#ffc800" opacity="0.9"/>
+                    <circle cx="60" cy="67" r="8" fill="#1a1a2e"/>
+                    <circle cx="60" cy="67" r="4" fill="#ffc800"/>
+                    <line x1="42" y1="62" x2="50" y2="62" stroke="#1a1a2e" stroke-width="2"/>
+                    <line x1="42" y1="67" x2="48" y2="67" stroke="#1a1a2e" stroke-width="2"/>
+                    <line x1="42" y1="72" x2="46" y2="72" stroke="#1a1a2e" stroke-width="2"/>
+                    <!-- Антена -->
+                    <line x1="60" y1="50" x2="60" y2="35" stroke="#ffc800" stroke-width="2"/>
+                    <circle cx="60" cy="33" r="2" fill="#ffc800"/>
+                    <!-- 404 -->
+                    <text x="60" y="105" text-anchor="middle" fill="#ffc800" font-size="14" font-weight="bold"
+                          font-family="system-ui, sans-serif">404</text>
+                </svg>
+            </div>
+
+            <!-- Код помилки -->
+            <div class="error-code">404</div>
+
+            <!-- Повідомлення -->
+            <h1 class="error-message">Сторінку не знайдено</h1>
+
+            <!-- Деталі -->
+            <p class="error-details">
+                На жаль, сторінку, яку ви шукаєте, не вдалося знайти.
+                Можливо, вона була видалена, перейменована або тимчасово недоступна.
+            </p>
+
+            <!-- Шлях (якщо є) -->
+            <p class="error-details" th:if="${path != null}" style="color: #ff6b6b;">
+                <code th:text="${path}">/шлях-до-сторінки</code>
+            </p>
+
+            <!-- Пошук -->
+            <form class="search-box" action="/guest/postall/0" method="get">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="🔍 Пошук на сайті..."
+                           aria-label="Пошук">
+                    <button class="btn btn-warning" type="submit">Знайти</button>
                 </div>
+            </form>
+
+            <!-- Швидкі посилання -->
+            <div class="quick-links">
+                <a href="/">🏠 Головна</a> ·
+                <a href="/guest/postall/0">📰 Новини</a> ·
+                <a href="/guest/podcastall">🎙️ Подкасти</a> ·
+                <a href="/guest/tracksall">🎵 Треки</a>
+            </div>
+
+            <!-- Повідомлення про помилку -->
+            <div class="mt-4" th:if="${msg != null}">
+                <small class="text-muted" th:text="${msg}"></small>
             </div>
         </div>
-    </section>
-</div>
+    </div>
 
-<script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

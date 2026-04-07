@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${status != null ? status + ' — Помилка' : 'Помилка'} + ' | Толока'">Помилка | Толока</title>
+    <title>403 — Доступ заборонено | Толока</title>
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
@@ -14,7 +14,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 50%, #3d1f4a 100%);
             color: #fff;
             padding-top: 80px;
         }
@@ -22,7 +22,7 @@
             font-size: 8rem;
             font-weight: 900;
             line-height: 1;
-            background: linear-gradient(135deg, #ffc800, #ff8000);
+            background: linear-gradient(135deg, #c084fc, #ff8000);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -33,10 +33,13 @@
         }
         .error-page .quick-links { margin-top: 2rem; }
         .error-page .quick-links a {
-            color: #ffc800; text-decoration: none; margin: 0 0.5rem;
+            color: #c084fc; text-decoration: none; margin: 0 0.5rem;
             transition: color 0.2s ease;
         }
         .error-page .quick-links a:hover { color: #ff8000; }
+        .error-page .error-icon {
+            width: 120px; height: 120px; margin: 0 auto 1rem;
+        }
     </style>
 </head>
 <body>
@@ -45,30 +48,33 @@
     <div class="error-page">
         <div class="container text-center">
 
-            <div class="error-code" th:text="${status != null ? status : '???' }">500</div>
-            <h1 class="error-message" th:text="${error != null ? error : 'Сталася помилка'}">Помилка</h1>
+            <!-- Іконка замка (SVG) -->
+            <div class="error-icon">
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Замок -->
+                    <rect x="35" y="55" width="50" height="35" rx="6" fill="#c084fc" opacity="0.8"/>
+                    <path d="M45 55 L45 40 C45 30 75 30 75 40 L75 55" fill="none" stroke="#c084fc" stroke-width="4" opacity="0.6"/>
+                    <!-- Ключова дірка -->
+                    <circle cx="60" cy="70" r="5" fill="#1a1a2e"/>
+                    <rect x="58" y="72" width="4" height="8" rx="2" fill="#1a1a2e"/>
+                    <!-- 403 -->
+                    <text x="60" y="110" text-anchor="middle" fill="#c084fc" font-size="14"
+                          font-weight="bold" font-family="system-ui">403</text>
+                </svg>
+            </div>
 
-            <p class="error-details" th:if="${message != null}" th:text="${message}">
-                Опис помилки
-            </p>
-            <p class="error-details" th:unless="${message != null}">
-                На жаль, сталася непередбачувана помилка.
-            </p>
+            <div class="error-code">403</div>
+            <h1 class="error-message">Доступ заборонено</h1>
 
-            <p class="error-details" th:if="${path != null}" style="color: #ff6b6b;">
-                <code th:text="${path}">/шлях</code>
+            <p class="error-details">
+                У вас немає прав для доступу до цієї сторінки.
+                Якщо ви вважаєте, що це помилка — зв'яжіться з адміністратором.
             </p>
 
             <div class="quick-links">
                 <a href="/">🏠 Головна</a> ·
-                <a href="/guest/postall/0">📰 Новини</a> ·
+                <a href="/creater/info">👤 Мій профайл</a> ·
                 <a href="mailto:info@toloka.kiev.ua">📧 Написати</a>
-            </div>
-
-            <div class="mt-4" th:if="${timestamp != null}">
-                <small class="text-muted">
-                    <span th:text="${#dates.format(timestamp, 'dd.MM.yyyy HH:mm:ss')}"></span>
-                </small>
             </div>
         </div>
     </div>
