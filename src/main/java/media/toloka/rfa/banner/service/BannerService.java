@@ -7,11 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 public class BannerService {
 
 //    private final BannerRepository bannerRepository;
@@ -34,10 +36,18 @@ public class BannerService {
         return bannerOpt.get();
     }
 
+    @Transactional
+    public void Save(Banner banner) {
+        bannerRepository.save(banner);
+    }
+
+    // Alias for backward compatibility
+    @Transactional
     public void BannerSave(Banner banner) {
         bannerRepository.save(banner);
     }
 
+    @Transactional
     public void BannerDelete(String uuid ) {
         bannerRepository.deleteById(uuid);
     }

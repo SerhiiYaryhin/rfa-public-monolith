@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
@@ -54,6 +55,7 @@ import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_PODCASTCOV
 import static media.toloka.rfa.service.FileDownloader.downloadFile;
 
 @Service
+@Transactional(readOnly = true)
 public class PodcastService {
 
     final Logger logger = LoggerFactory.getLogger(PodcastService.class);
@@ -115,6 +117,7 @@ public class PodcastService {
         return chanelRepository.getByUuid(puuid);
     }
 
+    @Transactional
     public void SavePodcast(PodcastChannel podcast) {
         chanelRepository.save(podcast);
     }
@@ -202,11 +205,13 @@ public class PodcastService {
         return "unknown";
     }
 
+    @Transactional
     public void SaveEpisode(PodcastItem episode) {
         // todo Записати час файлу для RSS XML
         episodeRepository.save(episode);
     }
 
+    @Transactional
     public void SaveCoverPodcastUploadfile(String storeUUID, PodcastChannel podcast, Clientdetail cd) {
         // змінив під нову структуру подкастів в базі. 250202
 //        PodcastImage podcastImage = new PodcastImage();
@@ -296,6 +301,7 @@ public class PodcastService {
         }.getType());
     }
 
+    @Transactional
     public void SaveItunesCategory(PodcastItunesCategory itCategory) {
         itunesCategoryRepository.save(itCategory);
     }
@@ -452,6 +458,7 @@ public class PodcastService {
      * @param model
      * @param gstrUrl в цьому класі міститься String з адресою RSS та різні прапорці.
      */
+    @Transactional
     public void PutPodcastFromRSS(Model model, strUrl gstrUrl) {
 
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());

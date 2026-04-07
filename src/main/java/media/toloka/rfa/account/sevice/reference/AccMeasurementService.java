@@ -4,12 +4,14 @@ package media.toloka.rfa.account.sevice.reference;
 import media.toloka.rfa.account.model.referens.AccMeasurementReference;
 import media.toloka.rfa.account.repositore.referens.AccMeasurementReferenceRepositore;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional(readOnly = true)
 public class AccMeasurementService {
 
     private final AccMeasurementReferenceRepositore repository;

@@ -11,10 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class PostService {
 
     final Logger logger = LoggerFactory.getLogger(PostService.class);
@@ -39,6 +41,7 @@ public class PostService {
 //        postRepositore.save(post);
 //    }
 
+    @Transactional
     public void SavePost(Post post) {
         Clientdetail cd = post.getClientdetail();
 

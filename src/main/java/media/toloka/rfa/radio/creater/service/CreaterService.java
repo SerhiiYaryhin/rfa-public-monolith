@@ -26,10 +26,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class CreaterService {
 
     final Logger logger = LoggerFactory.getLogger(ClientDocumentEditController.class);
@@ -116,6 +118,7 @@ public class CreaterService {
         return postList;
     }
 
+    @Transactional
     public Track SaveTrackUploadInfo(String storeitemUUID, Clientdetail cd) {
         Track track = new Track();
         track.setStatus(EDocumentStatus.STATUS_LOADED);
@@ -135,6 +138,7 @@ public class CreaterService {
         return trackRepository.getByUuid(storeUuid);
     }
 
+    @Transactional
     public Track SaveTrack(Track track) {
         return trackRepository.save(track);
     }
@@ -144,10 +148,12 @@ public class CreaterService {
         return album;
     }
 
+    @Transactional
     public void SaveAlbum(Album album) {
         albumRepository.save(album);
     }
 
+    @Transactional
     public void SaveAlbumCoverUploadInfo(String storeUUID, Clientdetail cd ) {
         Albumсover albumсover = new Albumсover();
         albumсover.setClientdetail(cd);
@@ -182,6 +188,7 @@ public class CreaterService {
         return albumCoverRepository.getById(alcoid);
     }
 
+    @Transactional
     public void PublicTrackToChat(Track track, Clientdetail cd) {
         ChatMessage cm = new ChatMessage();
         cm.setFromname(cd.getCustname()+" "+cd.getCustsurname());

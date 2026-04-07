@@ -5,12 +5,14 @@ import media.toloka.rfa.account.model.referens.AccClientsReference;
 import media.toloka.rfa.account.model.referens.AccGoodsReference;
 import media.toloka.rfa.account.repositore.referens.AccClientsReferenceRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional(readOnly = true)
 public class AccClientsService {
 
     private final AccClientsReferenceRepository repository;

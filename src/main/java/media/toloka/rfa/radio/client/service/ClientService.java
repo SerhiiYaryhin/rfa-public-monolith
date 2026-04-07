@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.*;
 import static media.toloka.rfa.security.model.ERole.ROLE_TELEGRAM;
 
 @Service
+@Transactional(readOnly = true)
 public class ClientService {
 
     @Autowired
@@ -101,6 +103,7 @@ public class ClientService {
         return false;
     }
 
+    @Transactional
     public void SaveUser(Users user) {
 
         userRepository.save(user);
@@ -133,6 +136,7 @@ public class ClientService {
         return cd;
     }
 
+    @Transactional
     public void CreateClientsDetail(Users user, String name, String surname) {
 //        Clientdetail clientdetail = new Clientdetail();
         Clientdetail clientdetail = user.getClientdetail();
@@ -143,6 +147,7 @@ public class ClientService {
 //        clientDetailRepository.save(clientdetail);
     }
 
+    @Transactional
     public void SaveClientDetail(Clientdetail curuserdetail) {
         clientDetailRepository.save(curuserdetail);
     }
@@ -151,6 +156,7 @@ public class ClientService {
         return clientAddressRepository.getById(id);
     }
 
+    @Transactional
     public void SaveAddress(Clientaddress fclientaddress) {
         clientAddressRepository.save(fclientaddress);
     }
@@ -258,6 +264,7 @@ public class ClientService {
 
     // Записуємо ідентифікатор людини з Телеграму
     // rfaTelegramUuid - повторюємо процедуру при поштовій реєстрації.
+    @Transactional
     public boolean setTelegramLink(String rfaTelegramUuid, UserRequest userRequest) {
         Token myToken = tokenService.findByToken(rfaTelegramUuid);
         if (myToken != null) { // Знайшли токен для реєстрації

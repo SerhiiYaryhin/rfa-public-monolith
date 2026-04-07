@@ -8,12 +8,14 @@ import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import media.toloka.rfa.radio.model.Documents;
 
 import java.nio.file.Path;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class DocumentService {
 
     @Autowired
