@@ -74,7 +74,8 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib
 	implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
 	// https://mvnrepository.com/artifact/org.json/json
-	implementation group: 'org.json', name: 'json', version: '20090211'
+	// Оновлено з 20090211 (відомі CVE) → 20240303
+	implementation group: 'org.json', name: 'json', version: '20240303'
 	// https://mvnrepository.com/artifact/org/jaudiotagger
 //	implementation group: 'org', name: 'jaudiotagger', version: '2.0.3'
 	implementation group: 'net.jthink', name: 'jaudiotagger', version: '3.0.1'

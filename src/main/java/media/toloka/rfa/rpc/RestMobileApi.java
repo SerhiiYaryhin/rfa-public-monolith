@@ -19,7 +19,11 @@ import java.util.*;
 
 @RestController
 @Profile("mapi")
-@CrossOrigin
+@CrossOrigin(
+    origins = {"https://rfa.toloka.media", "http://localhost:3080"},
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS},
+    maxAge = 3600
+)
 //@RequestMapping(path="/mapi",produces="application/json")
 public class RestMobileApi {
 

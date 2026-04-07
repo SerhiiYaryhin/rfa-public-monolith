@@ -77,9 +77,29 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // 🛡️ Дозволити iframe (наприклад, для H2 console)
+                // 🛡️ Security Headers
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
+                        .contentTypeOptions(contentType -> {})  // X-Content-Type-Options: nosniff
+                        .xssProtection(xss -> xss.headerValue(
+                                org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK
+                        ))
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .maxAgeInSeconds(31536000)  // 1 рік
+                                .includeSubDomains(true)
+                                .preload(true)
+                        )
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; " +
+                                "script-src 'self' 'unsafe-inline' https://use.fontawesome.com https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
+                                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
+                                "img-src 'self' data: https:; " +
+                                "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " +
+                                "connect-src 'self'; " +
+                                "frame-ancestors 'self'; " +
+                                "base-uri 'self'; " +
+                                "form-action 'self'"
+                        ))
                 );
 
         return http.build();

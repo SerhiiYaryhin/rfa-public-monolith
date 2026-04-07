@@ -21,7 +21,11 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 @Profile("Front")
-@CrossOrigin
+@CrossOrigin(
+    origins = {"https://rfa.toloka.media", "http://localhost:3080"},
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+    maxAge = 3600
+)
 @Controller
 public class StoreItemController {
 

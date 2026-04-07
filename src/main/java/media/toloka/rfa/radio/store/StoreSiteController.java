@@ -40,7 +40,11 @@ import javax.imageio.ImageIO;
 
 import static org.springframework.http.HttpHeaders.ACCEPT_RANGES;
 
-@CrossOrigin
+@CrossOrigin(
+    origins = {"https://rfa.toloka.media", "http://localhost:3080"},
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS},
+    maxAge = 3600
+)
 @Profile("Front")
 @Controller
 public class StoreSiteController  {
