@@ -87,7 +87,7 @@ public class Station {
     private Contract contract;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "station", fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "station", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<Poolport> ports = new ArrayList<>();
 
     @ToString.Exclude

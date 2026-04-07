@@ -19,7 +19,7 @@ import java.util.List;
 public class AccInvoiceTable extends AccBaseDoc {
 
     @Expose
-    @OneToMany  // (mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany  // (mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccGoodsReference> accGoodReferences;
 
     @Expose

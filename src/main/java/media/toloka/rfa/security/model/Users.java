@@ -26,7 +26,7 @@ public class Users {
     @Column
     @ElementCollection
 //    @OneToMany(mappedBy="user", FetchType.EAGER, cascade = CascadeType.ALL)
-    @OneToMany(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<Roles> roles = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = {CascadeType.ALL})

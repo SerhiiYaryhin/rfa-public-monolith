@@ -30,7 +30,7 @@ public class AccPosting extends AccBaseTransaction {
     @Column(precision = 12, scale = 3)
     private BigDecimal quantity;
 
-    @OneToMany(mappedBy = "accPosting", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "accPosting", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccPostingAtomic> accPostingAtomicList;
 
     @Expose

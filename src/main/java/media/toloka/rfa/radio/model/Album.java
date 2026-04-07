@@ -64,7 +64,7 @@ public class Album {
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "album", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "album", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Track> track;
 
 

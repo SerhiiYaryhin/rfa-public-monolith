@@ -18,7 +18,7 @@ public class AccInvoiceDocument  extends AccBaseDoc {
 
     @Expose
     @ToString.Exclude
-    @OneToMany(mappedBy = "invoice", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccInvoiceTable> invoiceTableList;
 
     // типова транзакція

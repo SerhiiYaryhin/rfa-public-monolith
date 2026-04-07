@@ -19,7 +19,7 @@ import java.util.List;
 public class AccInBankStatementDocument extends AccBaseDoc implements PolymorphicTarget { //implements PolymorphicTarget {
 
     @Expose
-    @OneToMany(mappedBy = "statementdocument", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "statementdocument", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccInBankStatementTable> statementTableList;
     // типова транзакція
     @Expose

@@ -46,7 +46,7 @@ public class Contract {
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "contract", fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "contract", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<Station> stationList = new ArrayList<>();
 
 

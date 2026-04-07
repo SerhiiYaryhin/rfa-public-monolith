@@ -22,7 +22,7 @@ public class AccTemplateTransaction extends AccBaseTransaction {
     @Expose
     private String comment;
     @Expose
-    @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccTemplatePosting> entry;
 
 //    @Expose

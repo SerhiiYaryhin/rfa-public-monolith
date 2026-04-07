@@ -39,7 +39,7 @@ public class AccTransaction extends AccBaseTransaction {
     @Expose
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "transaction", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 //    @OneToMany( fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     private List<AccPosting> operationList = new ArrayList<>();
 

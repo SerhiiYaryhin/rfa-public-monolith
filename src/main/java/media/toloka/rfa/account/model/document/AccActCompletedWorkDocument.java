@@ -21,7 +21,7 @@ public class AccActCompletedWorkDocument extends AccBaseDoc implements Polymorph
 
     @Expose
     @ToString.Exclude
-    @OneToMany(mappedBy = "act", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "act", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccActCompletedWorkTable> completedWorkList;
 // типова транзакція
     @Expose

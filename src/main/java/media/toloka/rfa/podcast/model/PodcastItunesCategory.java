@@ -26,7 +26,7 @@ public class PodcastItunesCategory {
 
 //    @ElementCollection
 //    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.ALL})
-    @ManyToOne(fetch=FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "podcast_channel_uuid")
     private PodcastChannel chanel;
 
