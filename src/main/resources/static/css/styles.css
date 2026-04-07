@@ -11316,7 +11316,16 @@ section#contact form#contactForm :-ms-input-placeholder {
 }/* ============================================
    RFA — Утиліти відступів (spacing utilities)
    Заміна inline style="padding-top/margin-top: Xpx"
+
+   Використовує CSS custom property --navbar-height
+   Який може бути встановлений через JS для точної висоти navbar
    ============================================ */
+
+:root {
+    --navbar-height: 100px;
+    --navbar-height-tablet: 80px;
+    --navbar-height-mobile: 70px;
+}
 
 /* ===== Padding Top Utilities ===== */
 .pt-1  { padding-top: 0.25rem !important; }   /* 4px */
@@ -11326,9 +11335,9 @@ section#contact form#contactForm :-ms-input-placeholder {
 .pt-5  { padding-top: 3rem !important; }      /* 48px */
 
 /* Специфічні відступи для RFA */
-.pt-navbar     { padding-top: 100px !important; }  /* основний контент після navbar */
-.pt-navbar-sm  { padding-top: 100px !important; }  /* зменшений відступ (тепер = navbar) */
-.pt-navbar-xs  { padding-top: 100px !important; }  /* мінімальний відступ (тепер = navbar) */
+.pt-navbar     { padding-top: var(--navbar-height) !important; }
+.pt-navbar-sm  { padding-top: var(--navbar-height) !important; }
+.pt-navbar-xs  { padding-top: var(--navbar-height) !important; }
 .pt-section    { padding-top: 40px !important; }    /* секція */
 .pt-section-lg { padding-top: 50px !important; }    /* велика секція */
 .pt-section-xl { padding-top: 60px !important; }    /* дуже велика секція */
@@ -11364,35 +11373,32 @@ section#contact form#contactForm :-ms-input-placeholder {
 
 /* ===== Responsive adjustments ===== */
 @media (max-width: 767.98px) {
-    .pt-navbar {
-        padding-top: 70px !important;
+    :root {
+        --navbar-height: var(--navbar-height-mobile);
     }
-    .pt-navbar-sm {
-        padding-top: 70px !important;
-    }
+    .pt-navbar,
+    .pt-navbar-sm,
     .pt-navbar-xs {
-        padding-top: 70px !important;
+        padding-top: var(--navbar-height-mobile) !important;
     }
-    .main-content {
-        padding-top: 70px;
-    }
+    .main-content,
     .main-content-sm {
-        padding-top: 70px;
+        padding-top: var(--navbar-height-mobile);
     }
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .pt-navbar {
-        padding-top: 80px !important;
+    :root {
+        --navbar-height: var(--navbar-height-tablet);
     }
-    .pt-navbar-sm {
-        padding-top: 80px !important;
-    }
+    .pt-navbar,
+    .pt-navbar-sm,
     .pt-navbar-xs {
-        padding-top: 80px !important;
+        padding-top: var(--navbar-height-tablet) !important;
     }
-    .main-content {
-        padding-top: 80px;
+    .main-content,
+    .main-content-sm {
+        padding-top: var(--navbar-height-tablet);
     }
 }
 
