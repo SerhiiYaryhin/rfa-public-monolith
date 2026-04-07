@@ -249,17 +249,14 @@
                 </div>
 
                 <!-- Жанри/стилі (з треків) -->
-                <div class="card" th:if="${#lists.size(trackList) > 0}">
+                <div class="card" th:if="${trackList != null and #lists.size(trackList) > 0}">
                     <div class="card-body">
                         <h4 class="card-title mb-4">🎵 Жанри</h4>
                         <div class="d-flex flex-wrap gap-2">
                             <span class="badge badge-soft-secondary p-2"
-                                  th:each="style : ${#lists.toSet(trackList.![style])}"
-                                  th:if="${style} != null AND ${#strings.length(style) > 0}"
-                                  th:text="${style}">
-                            </span>
-                            <span class="text-muted" th:if="${#lists.isEmpty(#lists.toSet(trackList.![style].?[#this != null and #strings.length(#this) > 0]))}">
-                                Не вказано
+                                  th:each="track : ${trackList}"
+                                  th:if="${track.style} != null and ${#strings.length(track.style) > 0}"
+                                  th:text="${track.style}">
                             </span>
                         </div>
                     </div>
