@@ -32,6 +32,7 @@ function initTinyMCE(selector, customOptions) {
     var defaultOptions = {
         selector: selector,
         base_url: '/js/tinymce',
+        license_key: 'gpl',
         language: 'uk_UA',
         icons: 'default',
         plugins: [
@@ -85,6 +86,7 @@ function initTinyMCESimple(selector, customOptions) {
     tinymce.init(Object.assign({}, {
         selector: selector,
         base_url: '/js/tinymce',
+        license_key: 'gpl',
         language: 'uk_UA',
         icons: 'default',
         plugins: [
@@ -123,6 +125,7 @@ function initTinyMCEFull(selector, customOptions) {
     tinymce.init(Object.assign({}, {
         selector: selector,
         base_url: '/js/tinymce',
+        license_key: 'gpl',
         language: 'uk_UA',
         icons: 'default',
         plugins: [
