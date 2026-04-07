@@ -11327,8 +11327,8 @@ section#contact form#contactForm :-ms-input-placeholder {
 
 /* Специфічні відступи для RFA */
 .pt-navbar     { padding-top: 100px !important; }  /* основний контент після navbar */
-.pt-navbar-sm  { padding-top: 80px !important; }   /* зменшений відступ */
-.pt-navbar-xs  { padding-top: 60px !important; }   /* мінімальний відступ */
+.pt-navbar-sm  { padding-top: 100px !important; }  /* зменшений відступ (тепер = navbar) */
+.pt-navbar-xs  { padding-top: 100px !important; }  /* мінімальний відступ (тепер = navbar) */
 .pt-section    { padding-top: 40px !important; }    /* секція */
 .pt-section-lg { padding-top: 50px !important; }    /* велика секція */
 .pt-section-xl { padding-top: 60px !important; }    /* дуже велика секція */
@@ -11365,13 +11365,16 @@ section#contact form#contactForm :-ms-input-placeholder {
 /* ===== Responsive adjustments ===== */
 @media (max-width: 767.98px) {
     .pt-navbar {
-        padding-top: 80px !important;
+        padding-top: 70px !important;
     }
     .pt-navbar-sm {
         padding-top: 70px !important;
     }
+    .pt-navbar-xs {
+        padding-top: 70px !important;
+    }
     .main-content {
-        padding-top: 80px;
+        padding-top: 70px;
     }
     .main-content-sm {
         padding-top: 70px;
@@ -11380,10 +11383,16 @@ section#contact form#contactForm :-ms-input-placeholder {
 
 @media (min-width: 768px) and (max-width: 991.98px) {
     .pt-navbar {
-        padding-top: 90px !important;
+        padding-top: 80px !important;
+    }
+    .pt-navbar-sm {
+        padding-top: 80px !important;
+    }
+    .pt-navbar-xs {
+        padding-top: 80px !important;
     }
     .main-content {
-        padding-top: 90px;
+        padding-top: 80px;
     }
 }
 
