@@ -87,7 +87,7 @@
                         <div class="accordion" id="accordionExample">
 
                             <!-- Альбоми -->
-                            <div class="accordion-item" th:if="${#lists.size(albumList) > 0}">
+                            <div class="accordion-item" th:if="${albumList != null and #lists.size(albumList) > 0}">
                                 <h2 class="accordion-header" id="headingOne">
                                     <button class="accordion-button collapsed" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#collapseOne"
@@ -112,7 +112,7 @@
                             </div>
 
                             <!-- Треки -->
-                            <div class="accordion-item" th:if="${#lists.size(trackList) > 0}">
+                            <div class="accordion-item" th:if="${trackList != null and #lists.size(trackList) > 0}">
                                 <h2 class="accordion-header" id="headingTwo">
                                     <button class="accordion-button collapsed" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#collapseTwo"
@@ -140,7 +140,7 @@
                             </div>
 
                             <!-- Пости -->
-                            <div class="accordion-item" th:if="${#lists.size(postList) > 0}">
+                            <div class="accordion-item" th:if="${postList != null and #lists.size(postList) > 0}">
                                 <h2 class="accordion-header" id="headingThree">
                                     <button class="accordion-button collapsed" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#collapseThree"
@@ -169,7 +169,9 @@
 
                             <!-- Порожній стан -->
                             <div class="text-center text-muted py-4"
-                                 th:if="${#lists.size(albumList) == 0 AND #lists.size(trackList) == 0 AND #lists.size(postList) == 0}">
+                                 th:if="${(albumList == null or #lists.isEmpty(albumList)) and 
+                                          (trackList == null or #lists.isEmpty(trackList)) and 
+                                          (postList == null or #lists.isEmpty(postList))}">
                                 <p class="mb-0">Контент поки відсутній.</p>
                             </div>
                         </div>
