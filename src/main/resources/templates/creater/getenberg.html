@@ -3,8 +3,9 @@
 <head>
     <title>Gutenberg у Thymeleaf</title>
 
-    <!-- Place the first <script> tag in your HTML's <head> -->
-    <script src="https://cdn.tiny.cloud/1/bydlvjchxc28j7126dholodtr51btk81fgtjclbeklh2p8r6/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- TinyMCE 7 (self-hosted) -->
+    <script src="/js/tinymce/tinymce.min.js"></script>
+    <script src="/js/wysiwyg-init.js"></script>
 
     <style>
         #editor-container { max-width: 800px; margin: auto; padding: 20px; }
@@ -19,13 +20,12 @@
 
 <script>
     // Ініціалізація TinyMCE
-    tinymce.init({
-        selector: '#editor',  // Вибір textarea для редактора
-        height: 300,          // Висота редактора
-  //plugins: 'visualblocks',
-  //toolbar: 'visualblocks'
-        plugins: 'lists link image table visualblocks',  // Плагіни для форматування
-        toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | visualblocks'
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCESimple('#editor', {
+            height: 300,
+            plugins: 'lists link image table visualblocks',
+            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | visualblocks'
+        });
     });
 </script>
 </body>

@@ -17,9 +17,6 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
-<!--    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"-->
-<!--            referrerpolicy="origin"></script>-->
 
 </head>
 <body>
@@ -65,7 +62,7 @@
                 <!--                <label class="form-label" for="newstitle">Заголовок новини</label>-->
                 <span>Новина</span>
                 <div>
-                    <textarea th:field="*{newsbody}" class="form-control" rows="10"/>
+                    <textarea th:field="*{newsbody}" id="news-body" class="form-control" rows="10"/>
                 </div>
                 <hr>
                 <audio th:if="*{storespeach} != null" th:id="'news'+*{storespeach.uuid}" controls>
@@ -83,5 +80,17 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+
+<!-- TinyMCE 7 (self-hosted) -->
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/wysiwyg-init.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCEFull('#news-body', {
+            min_height: 350,
+            max_height: 600
+        });
+    });
+</script>
 </body>
 </html>

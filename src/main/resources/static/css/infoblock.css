@@ -1,24 +1,38 @@
-body {
-  background: #232321;
+/* ============================================
+   RFA — Інформаційні блоки (темна тема)
+   Чистий CSS (переписано з SCSS)
+   ============================================ */
+
+body.infoblock-page {
+    background: #232321;
 }
-h1 {
-  color: #fff;
-  padding: 10px 0;
+
+.infoblock-page h1 {
+    color: #fff;
+    padding: 10px 0;
 }
-.card {
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  transition: 0.3s;
-  border: none;
-  &:hover {
+
+/* Картки */
+.infoblock-card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+    border: none;
+}
+
+.infoblock-card:hover {
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.4);
-  }
-  a {
+}
+
+/* Посилання в картках */
+.infoblock-card a {
     color: initial;
-    &:hover {
-      text-decoration: initial;
-    }
-  }
-  .text-muted i {
+}
+
+.infoblock-card a:hover {
+    text-decoration: initial;
+}
+
+/* Іконки в text-muted */
+.infoblock-card .text-muted i {
     margin: 0 10px;
-  }
 }

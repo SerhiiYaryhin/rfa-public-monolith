@@ -17,8 +17,6 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 </head>
 <body>
@@ -59,26 +57,7 @@
                                 th:value="${item.id}"
                                 th:text="${item.label}" />
                     </select>
-                    <script>
-                    tinymce.init({
-                      selector: 'textarea',
-<!--                      plugins: 'ai tinycomments mentions anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed permanentpen footnotes advtemplate advtable advcode editimage tableofcontents mergetags powerpaste tinymcespellchecker autocorrect a11ychecker typography inlinecss',-->
-<!--                      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | align lineheight | tinycomments | checklist numlist bullist indent outdent | emoticons charmap | removeformat',-->
-                                          plugins: [
-                                          "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
-                                           "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
-                                            "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
-                                            ],
-                      tinycomments_mode: 'embedded',
-                      tinycomments_author: 'Author name',
-                      mergetags_list: [
-                        { value: 'First.Name', title: 'First Name' },
-                        { value: 'Email', title: 'Email' },
-                      ],
-                      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                    });
-                </script>
-                    <textarea th:field="*{postbody}">
+                    <textarea th:field="*{postbody}" id="postbody">
                     </textarea>
                     <hr>
                     <button type="submit" class="btn btn-primary btn-lg btn-block" >
@@ -104,6 +83,17 @@
 
 
     <script src="/js/bootstrap.bundle.min.js"></script>
-<!--    <script src="/js/tinymce.min.js"></script>-->
+
+<!-- TinyMCE 7 (self-hosted) -->
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/wysiwyg-init.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCEFull('#postbody', {
+            min_height: 400,
+            max_height: 700
+        });
+    });
+</script>
 </body>
 </html>

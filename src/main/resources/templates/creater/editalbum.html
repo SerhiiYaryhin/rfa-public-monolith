@@ -20,8 +20,6 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 </head>
 <body>
@@ -84,24 +82,7 @@
                             <label class="col-md-4 control-label" for="description">Опис альбому</label>
                             <div class="col">
                                 <!--                            <div class="col-md-6">-->
-                                <script>
-                                    tinymce.init({
-                                      selector: 'textarea',
-                                          plugins: [
-                                          "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
-                                           "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
-                                            "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
-                                            ],
-                                      tinycomments_mode: 'embedded',
-                                      tinycomments_author: 'Author name',
-                                      mergetags_list: [
-                                        { value: 'First.Name', title: 'First Name' },
-                                        { value: 'Email', title: 'Email' },
-                                      ],
-                                      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                    });
-                                </script>
-                                <textarea th:field="*{description}"/>
+                                <textarea th:field="*{description}" id="album-description"/>
                             </div>
                         </div>
 
@@ -129,15 +110,22 @@
 
 
 
-<script th:src="@{/js/jquery.min.js}"></script>
-<script th:src="@{/js/popper.js}"></script>
-<!--<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>-->
 <script src="/js/bootstrap.bundle.min.js"></script>
 
 <script th:src="@{/js/dropzone.min.js}"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
 
+<!-- TinyMCE 7 (self-hosted) -->
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/wysiwyg-init.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCEFull('#album-description', {
+            min_height: 300,
+            max_height: 500
+        });
+    });
+
     Dropzone.autoDiscover = false;
 
     $("#demo-upload").dropzone({

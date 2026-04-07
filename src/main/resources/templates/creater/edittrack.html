@@ -16,13 +16,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
-            referrerpolicy="origin"></script>
-
     <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
-    <!--    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>-->
 
 </head>
 <body>
@@ -84,24 +78,7 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="description">Опис треку</label>
                             <div class="col-md-4">
-                                <script>
-                                    tinymce.init({
-                                        selector: 'textarea',
-                                        plugins: [
-                                            "advlist", "anchor", "autolink", "charmap", "code",
-                                            "help", "image", "insertdatetime", "link", "lists", "media",
-                                            "preview", "searchreplace", "table", "visualblocks",
-                                        ],
-                                        tinycomments_mode: 'embedded',
-                                        tinycomments_author: 'Author name',
-                                        mergetags_list: [
-                                            {value: 'First.Name', title: 'First Name'},
-                                            {value: 'Email', title: 'Email'},
-                                        ],
-                                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                    });
-                                </script>
-                                <textarea th:field="*{description}"/>
+                                <textarea th:field="*{description}" id="track-description"/>
 
                                 <!--                                <textarea th:field="*{description}" class="form-control">Введіть опис треку</textarea>-->
                             </div>
@@ -179,6 +156,17 @@
 
 
 <script src="/js/bootstrap.bundle.min.js"></script>
-</body>
+
+<!-- TinyMCE 7 (self-hosted) -->
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/wysiwyg-init.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCESimple('#track-description', {
+            min_height: 200,
+            max_height: 350
+        });
+    });
+</script>
 </body>
 </html>

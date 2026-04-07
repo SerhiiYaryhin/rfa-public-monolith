@@ -73,7 +73,7 @@
             </div>
             <div class="form-outline mb-4">
                 <label for="description" class="form-label">Опис епізоду</label>
-                <textarea th:field="*{description}" class="form-control" rows="6"></textarea>
+                <textarea th:field="*{description}" id="episode-description" class="form-control" rows="6"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Зберегти</button>
             <a class="btn btn-primary" th:href="'/podcast/pedit/'+${podcast.uuid}">Повернутися</a>
@@ -94,5 +94,25 @@
 
 <!-- різні скріпти -->
 <script src="/js/bootstrap.bundle.min.js"></script>
+
+<!-- TinyMCE 7 (self-hosted) -->
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/wysiwyg-init.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCESimple('#episode-description', {
+            min_height: 250,
+            max_height: 400,
+            menubar: false,
+            plugins: [
+                'autolink', 'lists', 'link', 'image', 'charmap', 'code',
+                'insertdatetime', 'media', 'wordcount', 'help'
+            ],
+            toolbar: 'undo redo | blocks | bold italic | ' +
+                'alignleft aligncenter alignright alignjustify | ' +
+                'bullist numlist | link image media | removeformat code help'
+        });
+    });
+</script>
 </body>
 </html>

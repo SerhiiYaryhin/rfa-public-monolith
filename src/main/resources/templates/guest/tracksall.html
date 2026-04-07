@@ -16,43 +16,38 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-</head>
-<head>
-
-    <!-- Navigation-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-    <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
-    <div style="padding-top: 60px">
-        <div class="container-fluid">
-            <div class="row text-center" style="padding-top: 20px">
-                <div class="col align-center">
-                    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
-                </div>
-            </div>
-
-            <div class="row" style="padding-top: 20px">
-                    <!--                    Вставляємо останні завантажені треки-->
-                    <div th:insert="~{/fragments/mediahub :: lasttrecksall}">  </div>
-                    <!--                    вставляем Медіа Хаб-->
-                    <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module" src="/js/audioplayer/audioplayer.js"></script>
-    <script>
-        function onClickTrack(event,name,autor) {
-            //document.getElementById('audio-player').setAudioSrc("/store/audio/"+event.id);
-            //console.log("======== name: "+name+"======= autor: "+autor);
-            document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
-        }
-    </script>
-
-    <script src="/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
 
+<!-- Navigation-->
+<div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+<div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
+
+<!-- Main Content-->
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="row text-center">
+            <div class="col align-center">
+                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Останні завантажені треки -->
+            <div th:insert="~{/fragments/mediahub :: lasttrecksall}"></div>
+            <!-- Медіа Хаб -->
+            <div th:insert="~{/fragments/mediahub :: usermediahub}"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="/js/audioplayer/audioplayer.js"></script>
+<script>
+    function onClickTrack(event, name, autor) {
+        document.getElementById('audio-player').myChangeTrack(event.id, name, autor);
+    }
+</script>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
