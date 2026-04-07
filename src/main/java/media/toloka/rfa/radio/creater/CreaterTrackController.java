@@ -18,10 +18,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -41,6 +43,11 @@ public class CreaterTrackController {
 
     @Autowired
     private StoreService storeService;
+
+    /**
+     * Мінімальна довжина опису треку (символів).
+     */
+    private static final int MIN_DESCRIPTION_LENGTH = 60;
 
     @GetMapping(value = "/creater/tracks/{cPage}")
     public String getCreaterTracks(
@@ -102,10 +109,10 @@ public class CreaterTrackController {
     }
 
     @PostMapping(value = "/creater/edittrack")
-    public String getCreaterEditTracks(
-//            @PathVariable Long idTrack,
+    public String postCreaterEditTracks(
             @ModelAttribute Track ftrack,
-            Model model ) {
+            Model model,
+            RedirectAttributes redirectAttributes ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -116,15 +123,50 @@ public class CreaterTrackController {
             logger.info("З якогось дива не знайшли трек {}", ftrack.getId());
             return "/creater/home";
         }
-        track.setName(ftrack.getName());
-        track.setDescription(ftrack.getDescription());
+
+        // ===== ВАЛІДАЦІЯ =====
+        String autor = StringUtils.hasText(ftrack.getAutor()) ? ftrack.getAutor().trim() : "";
+        String name = StringUtils.hasText(ftrack.getName()) ? ftrack.getName().trim() : "";
+        String description = StringUtils.hasText(ftrack.getDescription()) ? ftrack.getDescription().trim() : "";
+
+        boolean hasErrors = false;
+        StringBuilder errorMsg = new StringBuilder();
+
+        if (autor.isEmpty()) {
+            errorMsg.append("❌ Поле \"Виконавець\" є обов'язковим. ");
+            hasErrors = true;
+        }
+        if (name.isEmpty()) {
+            errorMsg.append("❌ Поле \"Назва треку\" є обов'язковим. ");
+            hasErrors = true;
+        }
+        if (description.isEmpty()) {
+            errorMsg.append("❌ Поле \"Опис треку\" є обов'язковим. ");
+            hasErrors = true;
+        } else if (description.length() < MIN_DESCRIPTION_LENGTH) {
+            errorMsg.append("❌ Опис треку занадто короткий. Мінімальна довжина: ")
+                    .append(MIN_DESCRIPTION_LENGTH)
+                    .append(" символів (зараз: ")
+                    .append(description.length())
+                    .append("). ");
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            redirectAttributes.addFlashAttribute("validationError", errorMsg.toString());
+            redirectAttributes.addFlashAttribute("track", track);
+            return "redirect:/creater/edittrack/" + track.getUuid();
+        }
+
+        // ===== ЗБЕРЕЖЕННЯ =====
+        track.setName(name);
+        track.setDescription(description);
         track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
         track.setStyle(ftrack.getStyle());
-        track.setAutor(ftrack.getAutor());
+        track.setAutor(autor);
         if (track.getTochat() != ftrack.getTochat()) {
             track.setTochat(ftrack.getTochat());
-
-            createrService.PublicTrackToChat(track, cd );
+            createrService.PublicTrackToChat(track, cd);
         }
         if (ftrack.getAlbum() != null) {
             track.setAlbum(ftrack.getAlbum());
@@ -134,31 +176,10 @@ public class CreaterTrackController {
 
         createrService.SaveTrack(track);
 
-        List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
+        logger.info("✅ Трек '{}' успішно збережено", track.getName());
 
-
-        List<Track> trackList = createrService.GetAllTracksByCreater(cd);
-//        model.addAttribute("trackList", trackList );
-        model.addAttribute("storetrackList", storetrackList );
-
-        // Пейджинг для сторінки
-//        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
-        //todo Зробити повернення на ту сторінку, з якої перейшли в редагування
         Integer curpage = 0;
-
-        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
-        List<Store> treckList = pageStore.stream().toList();
-
-        model.addAttribute("totalPages", pageStore.getTotalPages() );
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks/");
-
-        // Пейджинг для сторінки
-
-//        model.addAttribute("albums", albums );
-        model.addAttribute("viewList", treckList );
-
-        return "redirect:/creater/tracks/"+curpage.toString();
+        return "redirect:/creater/tracks/" + curpage;
     }
 // публікуємо трек
     @PostMapping(value = "/creater/publishtrack")
