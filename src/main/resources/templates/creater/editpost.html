@@ -43,26 +43,39 @@
             <div class="col-lg-9 col-sm-12">
                 <form th:action="@{'/creater/editpost/'+${post.id}}"  method="post" th:object="${post}">
                     <input type="hidden" th:field="*{id}"/>
-                    <input th:field="*{posttitle}" type="text"  class="form-control"  />
-                    <label class="form-label" for="posttitle">Заголовок посту</label>
-                    <br>
-                    <span>Розділ:</span>
-                    <select th:field="*{category}" >
-<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
-                        <option th:each="item: ${categorys}"
-                                th:value="${item.name}"
-                                th:text="${item.label}" />
-                    </select>
-                    <select th:field="*{postcategory}" >
-<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
-                        <option th:each="item: ${firstpostcategoryslist}"
-                                th:value="${item.id}"
-                                th:text="${item.label}" />
-                    </select>
-                    <textarea th:field="*{postbody}" id="postbody">
-                    </textarea>
+
+                    <!-- Заголовок -->
+                    <div class="mb-3">
+                        <label class="form-label" for="posttitle">Заголовок посту</label>
+                        <input th:field="*{posttitle}" type="text" class="form-control" />
+                    </div>
+
+                    <!-- Тіло посту (TinyMCE редактор) -->
+                    <div class="mb-3">
+                        <label class="form-label" for="postbody">Тіло посту</label>
+                        <textarea th:field="*{postbody}" id="postbody" class="form-control"></textarea>
+                    </div>
+
+                    <!-- Розділ та категорія -->
+                    <div class="mb-3">
+                        <label class="form-label" for="category">Розділ:</label>
+                        <select th:field="*{category}" class="form-select" id="category">
+                            <option th:each="item: ${categorys}"
+                                    th:value="${item.name}"
+                                    th:text="${item.label}" />
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="postcategory">Категорія:</label>
+                        <select th:field="*{postcategory}" class="form-select" id="postcategory">
+                            <option th:each="item: ${firstpostcategoryslist}"
+                                    th:value="${item.id}"
+                                    th:text="${item.label}" />
+                        </select>
+                    </div>
+
                     <hr>
-                    <button type="submit" class="btn btn-primary btn-lg btn-block" >
+                    <button type="submit" class="btn btn-primary btn-lg" >
                         Зберегти
                     </button>
                 </form>

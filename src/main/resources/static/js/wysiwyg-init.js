@@ -22,10 +22,13 @@ function initTinyMCE(selector, customOptions) {
     var defaultOptions = {
         // Шлях до self-hosted TinyMCE
         base_url: '/js/tinymce',
-        
-        // Мова інтерфейсу
-        language: 'uk',
-        
+
+        // Мова інтерфейсу (українська)
+        language: 'uk_UA',
+
+        // Іконки
+        icons: 'default',
+
         // Плагіни
         plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
