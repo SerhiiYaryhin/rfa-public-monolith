@@ -10,7 +10,6 @@
  */
 function initTinyMCE(selector, customOptions) {
     if (typeof selector === 'object' && selector !== null) {
-        // Якщо перший аргумент — об'єкт опцій, використаємо селектор за замовчуванням
         customOptions = selector;
         selector = 'textarea';
     }
@@ -20,135 +19,53 @@ function initTinyMCE(selector, customOptions) {
     }
 
     var defaultOptions = {
-        // Шлях до self-hosted TinyMCE
         base_url: '/js/tinymce',
-
-        // Мова інтерфейсу (українська)
         language: 'uk_UA',
-
-        // Іконки
         icons: 'default',
-
-        // Плагіни
         plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
             'insertdatetime', 'media', 'table', 'wordcount', 'emoticons', 'help'
         ],
-        
-        // Панель інструментів
-        toolbar: 'undo redo | blocks fontfamily fontsize | ' +
-            'bold italic underline strikethrough forecolor backcolor | ' +
+        toolbar: 'undo redo | blocks | bold italic forecolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +
-            'bullist numlist outdent indent | link image media table emoticons | ' +
-            'removeformat code fullscreen help',
-        
-        // Меню
-        menubar: 'file edit view insert format tools table',
-        
-        // Висота редактора
+            'bullist numlist | link image | removeformat code help',
+        height: 400,
         min_height: 300,
-        max_height: 600,
-        
-        // Автоматичне змінення висоти
-        autoresize_on_init: true,
-        
-        // Форматування
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.6; }',
-        
-        // Валідація
-        valid_elements: '*[*]',
-        extended_valid_elements: 'iframe[src|width|height|frameborder|allow|allowfullscreen|class]',
-        
-        // Зображення
-        image_advtab: true,
         image_caption: true,
-        
-        // Посилання
         link_target_list: [
             { title: 'В тому ж вікні', value: '' },
             { title: 'В новому вікні', value: '_blank' }
-        ],
-        
-        // Таблиці
-        table_default_styles: {
-            width: '100%',
-            'border-collapse': 'collapse'
-        },
-        
-        // Швидкі вставки
-        quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
-        quickbars_insert_toolbar: 'quickimage media table',
-        
-        // Code sample
-        codesample_languages: [
-            { text: 'HTML/XML', value: 'markup' },
-            { text: 'JavaScript', value: 'javascript' },
-            { text: 'CSS', value: 'css' },
-            { text: 'Java', value: 'java' },
-            { text: 'Python', value: 'python' },
-            { text: 'SQL', value: 'sql' },
-            { text: 'Bash', value: 'bash' }
-        ],
-        
-        // Без AI/коментарів (відключено)
-        ai_request: false,
-        tinycomments_mode: 'embedded',
-        
-        // Збереження при втраті фокусу
-        save_enablewhendirty: true,
-        
-        // Стилі блоків
-        style_formats: [
-            { title: 'Заголовки', items: [
-                { title: 'Заголовок 1', format: 'h1' },
-                { title: 'Заголовок 2', format: 'h2' },
-                { title: 'Заголовок 3', format: 'h3' },
-                { title: 'Заголовок 4', format: 'h4' }
-            ]},
-            { title: 'Інлайн', items: [
-                { title: 'Жирний', icon: 'bold', format: 'bold' },
-                { title: 'Курсив', icon: 'italic', format: 'italic' },
-                { title: 'Підкреслений', icon: 'underline', format: 'underline' },
-                { title: 'Закреслений', icon: 'strikethrough', format: 'strikethrough' },
-                { title: 'Верхній індекс', icon: 'superscript', format: 'superscript' },
-                { title: 'Нижній індекс', icon: 'subscript', format: 'subscript' }
-            ]},
-            { title: 'Блоки', items: [
-                { title: 'Параграф', format: 'p' },
-                { title: 'Цитата', format: 'blockquote' },
-                { title: 'Код', format: 'code' },
-                { title: 'Преформатований', format: 'pre' }
-            ]}
-        ],
-        
-        // Template (заготовки) — вимкнено, плагін template відсутній
-        /*
-        templates: [
-            { title: 'Базова стаття', description: 'Стаття з заголовком та абзацами', content: '<h2>Заголовок розділу</h2><p>Текст абзацу...</p>' },
-            { title: 'Таблиця', description: 'Таблиця 3x3', content: '<table><tbody><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></tbody></table>' }
         ]
-        */
     };
 
-    // Об'єднуємо опції
     var finalOptions = Object.assign({}, defaultOptions, customOptions || {});
 
-    // Діагностика
     console.log('[TinyMCE] Ініціалізація:', selector, finalOptions);
-    console.log('[TinyMCE] tinymce обʼєкт:', typeof tinymce !== 'undefined' ? 'доступний' : 'НЕ доступний');
+    console.log('[TinyMCE] tinymce:', typeof tinymce !== 'undefined' ? 'OK' : 'НЕМАЄ');
 
-    // Ініціалізуємо TinyMCE
-    if (typeof tinymce !== 'undefined') {
-        tinymce.init(finalOptions);
-    } else {
+    if (typeof tinymce === 'undefined') {
         console.error('[TinyMCE] Бібліотеку tinymce не завантажено!');
+        return;
     }
+
+    // Видаляємо попередній екземпляр якщо є
+    var existing = tinymce.get(selector.replace('#', ''));
+    if (existing) {
+        console.log('[TinyMCE] Видаляємо попередній екземпляр');
+        existing.remove();
+    }
+
+    tinymce.init(finalOptions).then(function(editors) {
+        console.log('[TinyMCE] Успішно ініціалізовано:', editors.length, 'редакторів');
+    }).catch(function(err) {
+        console.error('[TinyMCE] ПОМИЛКА ініціалізації:', err);
+    });
 }
 
 /**
  * Швидка ініціалізація з мінімальним набором плагінів
- * Використовується для простих форм (подкасти, банери тощо)
  */
 function initTinyMCESimple(selector, customOptions) {
     if (typeof selector === 'object' && selector !== null) {
@@ -169,8 +86,8 @@ function initTinyMCESimple(selector, customOptions) {
             'alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist | link image media table | removeformat code help',
         menubar: false,
-        min_height: 200,
-        max_height: 400
+        height: 250,
+        min_height: 200
     }, customOptions || {}));
 }
 
@@ -189,37 +106,37 @@ function initTinyMCEFull(selector, customOptions) {
 
     initTinyMCE(selector, Object.assign({}, {
         plugins: [
-            'preview', 'importcss', 'searchreplace', 'autolink', 'autosave', 'save',
+            'preview', 'searchreplace', 'autolink', 'autosave', 'save',
             'directionality', 'code', 'visualblocks', 'visualchars', 'fullscreen',
-            'image', 'link', 'media', 'codesample', 'table', 'charmap',
+            'image', 'link', 'media', 'table', 'charmap',
             'pagebreak', 'nonbreaking', 'anchor', 'insertdatetime', 'advlist',
-            'lists', 'wordcount', 'help', 'charmap', 'quickbars', 'emoticons',
-            'accordion', 'autoresize'
+            'lists', 'wordcount', 'help', 'emoticons',
+            'accordion', 'codesample'
         ],
-        toolbar: 'undo redo | blocks fontfamily fontsize | ' +
+        toolbar: 'undo redo | blocks | ' +
             'bold italic underline strikethrough forecolor backcolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist outdent indent | ' +
             'link image media codesample table | ' +
             'charmap emoticons pagebreak | removeformat code fullscreen help',
         menubar: 'file edit view insert format tools table help',
-        min_height: 400,
+        height: 450,
+        min_height: 350,
         max_height: 700
     }, customOptions || {}));
 }
 
 /**
  * Ініціалізація з автоматичним збереженням
- * Використовується для довгих форм
  */
 function initTinyMCEAutoSave(selector, saveCallback) {
     var callback = saveCallback || function () {};
-    
+
     initTinyMCE(selector, {
         autosave_interval: '30s',
         autosave_prefix: 'tinymce-autosave-{path}{query}-{id}-',
         autosave_restorewhenempty: true,
-        autosave_retention: '1440m', // 24 години
+        autosave_retention: '1440m',
         setup: function (editor) {
             editor.on('StoreDraft', function () {
                 console.log('Чернетку збережено автоматично');
@@ -235,8 +152,10 @@ function initTinyMCEAutoSave(selector, saveCallback) {
  * Знищити всі екземпляри TinyMCE
  */
 function destroyTinyMCE() {
-    if (tinymce && tinymce.activeEditor) {
-        tinymce.remove();
+    if (typeof tinymce !== 'undefined' && tinymce.editors) {
+        tinymce.editors.forEach(function(editor) {
+            editor.remove();
+        });
     }
 }
 
@@ -244,7 +163,8 @@ function destroyTinyMCE() {
  * Отримати вміст редактора
  */
 function getTinyMCEContent(editorId) {
-    var editor = tinymce.get(editorId);
+    if (typeof tinymce === 'undefined') return null;
+    var editor = tinymce.get(editorId.replace('#', ''));
     return editor ? editor.getContent() : null;
 }
 
@@ -252,7 +172,8 @@ function getTinyMCEContent(editorId) {
  * Встановити вміст редактора
  */
 function setTinyMCEContent(editorId, content) {
-    var editor = tinymce.get(editorId);
+    if (typeof tinymce === 'undefined') return;
+    var editor = tinymce.get(editorId.replace('#', ''));
     if (editor) {
         editor.setContent(content);
     }
