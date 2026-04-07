@@ -2,9 +2,6 @@ package media.toloka.rfa.config;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,15 +10,13 @@ import java.util.Date;
 
 /**
  * Кастомний контролер помилок.
- * Перехоплює всі запити на /error і повертає відповідний шаблон
- * залежно від HTTP статус-коду.
+ * Перехоплює запити на /error і повертає відповідний шаблон.
  *
- * Order(1) гарантує що цей контролер обробляється ПЕРЕД дефолтним
- * BasicErrorController від Spring Boot.
+ * Працює разом з server.error.whitelabel.enabled=false
+ * у application.properties
  */
 @Controller
-@Order(1)
-public class MyErrorController implements ErrorController {
+public class MyErrorController {
 
     @RequestMapping("/error")
     public String handleError(HttpServletRequest request, Model model) {
