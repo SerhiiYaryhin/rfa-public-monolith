@@ -34,29 +34,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-//                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 🌐 Доступ для всіх без авторизації (всі публічні шляхи в одному місці)
+                        // 🌐 ПУБЛІЧНІ шляхи — доступ БЕЗ авторизації
+                        // ТІЛЬКО те, що дійсно має бути доступне всім (гості, анонімні користувачі)
                         .requestMatchers(
-                                "/*","/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-                                "/post/**", "/rss/**", "/error/**", "/robots.txt","/api/**",
+                                "/", "/home",
+                                "/register", "/saveUser", "/registerRadioUser",
+                                "/guest/**",
+                                "/post/**",
+                                "/rss/**",
+                                "/podcast/**",
+                                "/store/**",
+                                "/comments/**", "/universalcomments/**",
+                                "/error/**", "/robots.txt",
+                                "/api/**",
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
-                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-                                "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**",
-                                "/user/**","/creater/**","/newstoradio/**","/admin/**","/comments/**","/universalcomments/**"
+                                "/login/**", "/login/route",
+                                "/logout",
+                                "/restorePsw", "/setUserPassword",
+                                "/sendmail", "/savequestion",
+                                "/process/**", "/seveform/**",
+                                "/chat", "/rfachat"
                         ).permitAll()
 
-                        // 👮 Доступи за ролями (від більш конкретних до загальних)
+                        // 🔐 ЗАХИЩЕНІ шляхи — доступ ТІЛЬКИ для авторизованих з відповідними ролями
                         .requestMatchers("/acc/**").hasAuthority("Admin")
                         .requestMatchers("/admin/**").hasAuthority("Admin")
-                        .requestMatchers("/user/**").hasAnyAuthority("User", "Moderator", "Admin")
+                        .requestMatchers("/moderator/**").hasAuthority("Moderator")
+                        .requestMatchers("/editor/**").hasAuthority("Editor")
                         .requestMatchers("/creater/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
                         .requestMatchers("/newstoradio/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
-                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
+                        .requestMatchers("/user/**").hasAnyAuthority("User", "Creator", "Moderator", "Admin")
                         .requestMatchers("/upload/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
 
-                        // 🔒 Все інше — тільки для авторизованих (МАЄ БУТИ ОСТАННІМ!)
+                        // 🔒 Все інше — тільки для авторизованих
                         .anyRequest().authenticated()
                 )
 
@@ -105,80 +116,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // старий
-
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//
-//        http
-//                .authorizeHttpRequests(auth -> auth
-//                        // 🌐 Доступ для всіх без авторизації
-////                                .anyRequest().permitAll()
-//
-//                        .requestMatchers(
-//                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-//                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
-//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
-//                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-//                                "/podcast/**", // 🔐 Публічні ендпоїнти
-//                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**", // 🔐 Публічні ендпоїнти
-////                        ).permitAll()
-////
-////                         🔐 Публічні ендпоїнти
-////                        .requestMatchers(
-//                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-//                                "/sendmail", "/setUserPassword", "/savequestion"
-//                        ).permitAll()
-//
-//                        // 👮 Доступи за ролями
-//                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
-//                        .requestMatchers("/user/**").hasAnyAuthority("User", "Admin")
-//                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "Admin")
-//                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-//                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-//                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-//
-//                        // 🔒 Все інше — тільки для авторизованих
-//                        .anyRequest().authenticated()
-//                                .anyRequest().permitAll()
-//                )
-//
-//                // 🔐 Форма логіну
-//                .formLogin(fL -> fL
-//                        .loginPage("/login")
-//                        .loginProcessingUrl("/login")
-//                        .defaultSuccessUrl("/login/route",true)
-//                        .permitAll()
-//                )
-//
-//                // 🚪 Логаут
-//                .logout(logout -> logout
-//                        .invalidateHttpSession(true)
-//                        .clearAuthentication(true)
-//                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-//                        .logoutSuccessUrl("/")
-//                        .permitAll()
-//                )
-//
-//                // 🛡️ Дозволити iframe (наприклад, для H2 console)
-//                .headers(headers -> headers
-//                        .frameOptions(frame -> frame.sameOrigin())
-//                );
-//
-//        return http.build();
-//    }
-
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder.userDetailsService(uds).passwordEncoder(encoder);
         return authBuilder.build();
-        //        return http.getSharedObject(AuthenticationManagerBuilder.class)
-//                .userDetailsService(uds)
-//                .passwordEncoder(encoder)
-//                .and()
-//                .build();
     }
 
     @Bean
