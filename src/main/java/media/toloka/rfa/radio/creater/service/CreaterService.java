@@ -135,8 +135,8 @@ public class CreaterService {
         return trackRepository.getByUuid(storeUuid);
     }
 
-    public void SaveTrack(Track track) {
-        trackRepository.save(track);
+    public Track SaveTrack(Track track) {
+        return trackRepository.save(track);
     }
 
     public Album GetAlbumById(Long id) {

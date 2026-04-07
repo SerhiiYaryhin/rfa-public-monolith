@@ -7,20 +7,14 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="/css/styles.css" rel="stylesheet" />
     <link href="/css/dropzone.min.css" rel="stylesheet"/>
     <link href="/css/toastr.min.css" rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-
 </head>
 <body>
 
@@ -28,9 +22,7 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
-<!--// User page container-->
 <div class="main-content">
-    <!-- Services   -->
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12 col-sm-12">
@@ -43,7 +35,7 @@
         <div class="row">
             <div class="col-lg-12 col-sm-12">
 
-                <!-- Повідомлення про помилку валідації -->
+                <!-- Валідація -->
                 <div th:if="${validationError}" class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Помилка валідації!</strong><br>
@@ -51,175 +43,154 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 
-                <form th:action="@{/creater/edittrack}" method="post" th:object="${track}" class="form-horizontal">
-                    <fieldset>
-                        <legend>Інформація про трек</legend>
-                        <input type="hidden" th:field="${track.id}"/>
-
-                        <!-- Завантаження треку (якщо файлу ще немає) -->
-                        <div th:if="${store} == null OR ${store.filename} == null" class="mb-4">
-                            <div class="alert alert-warning">
-                                <i class="fas fa-music me-2"></i>
-                                <strong>Аудіофайл треку відсутній.</strong><br>
-                                Завантажте аудіофайл, перш ніж заповнювати інформацію про трек.
-                            </div>
-                            <div id="dropzone">
-                                <form action="/creater/trackupload" class="dropzone needsclick" id="track-dropzone" method="post">
-                                    <input type="hidden"
-                                           th:name="${_csrf.parameterName}"
-                                           th:value="${_csrf.token}" />
-                                    <div class="dz-message needsclick">
-                                        <button type="button" class="dz-button">
-                                            Перенесіть файл сюди або натисніть для вибору файла.<br>
-                                            <small>Після завантаження сторінку буде оновлено автоматично.</small>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                            <hr>
+                <!-- ===== РЕЖИМ 1: Файл відсутній — тільки dropzone ===== -->
+                <div th:if="${track.storeitem == null}">
+                    <div class="card border-warning mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <i class="fas fa-music me-2"></i>
+                            <strong>Крок 1: Завантажте аудіофайл треку</strong>
                         </div>
-
-                        <!-- Наявний файл -->
-                        <div th:if="${store} != null AND ${store.filename} != null" class="form-group">
-                            <label class="col-md-4 control-label" for="filename">Файл</label>
-                            <div class="col-md-5">
-                                <input th:field="${store.filename}" type="text" class="form-control input-md" disabled>
+                        <div class="card-body">
+                            <p>Перетягніть MP3/WAV файл сюди або натисніть для вибору.</p>
+                            <div id="track-dropzone" class="dropzone">
+                                <div class="dz-message needsclick">
+                                    <button type="button" class="dz-button">
+                                        Перенесіть файл сюди або натисніть для вибору.<br>
+                                        <small>Після завантаження сторінку буде оновлено автоматично.</small>
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="autor">Виконавець</label>
-                            <div class="col-md-5">
-                                <input th:field="*{autor}" type="text" class="form-control input-md">
+                <!-- ===== РЕЖИМ 2: Файл завантажено — форма редагування ===== -->
+                <div th:if="${track.storeitem != null}">
+                    <form th:action="@{/creater/edittrack}" method="post" th:object="${track}">
+                        <input type="hidden" th:field="*{id}"/>
+
+                        <fieldset>
+                            <legend>Інформація про трек</legend>
+
+                            <!-- Наявний файл -->
+                            <div class="mb-3 alert alert-success">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Аудіофайл:</strong> <span th:text="${track.storeitem.filename}">filename.mp3</span>
+                                <a th:href="'/store/audio/'+${track.storeitem.uuid}" class="btn btn-sm btn-outline-success ms-2">
+                                    <i class="fas fa-play"></i> Прослухати
+                                </a>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Назва треку</label>
-                            <div class="col-md-5">
-                                <input th:field="*{name}" type="text" class="form-control input-md">
+                            <div class="mb-3">
+                                <label class="form-label" for="autor">Виконавець *</label>
+                                <input th:field="*{autor}" type="text" class="form-control" placeholder="Введіть ім'я виконавця">
                             </div>
-                        </div>
 
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="style">Стиль</label>
-                            <div class="col-md-5">
-                                <input th:field="*{style}" type="text" placeholder="Стиль треку"
-                                       class="form-control input-md">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">Назва треку *</label>
+                                <input th:field="*{name}" type="text" class="form-control" placeholder="Введіть назву треку">
                             </div>
-                        </div>
 
-                        <!-- Textarea -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="description">Опис треку</label>
-                            <div class="col-md-4">
-                                <textarea th:field="*{description}" id="track-description"/>
-
-                                <!--                                <textarea th:field="*{description}" class="form-control">Введіть опис треку</textarea>-->
+                            <div class="mb-3">
+                                <label class="form-label" for="style">Стиль</label>
+                                <input th:field="*{style}" type="text" class="form-control" placeholder="Наприклад: Rock, Pop, Jazz">
                             </div>
-                        </div>
 
-                        <!-- Select Basic -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="album">Альбом</label>
-                            <div class="col-md-5">
-                                <select th:field="*{album}">
-                                    <option value="0" text="Single"/>
-                                    <option th:each="al : ${albumList}" th:value="${al.id}"
-                                            th:text="${al.name}"></option>
+                            <div class="mb-3">
+                                <label class="form-label" for="track-description">Опис треку *</label>
+                                <textarea th:field="*{description}" id="track-description" class="form-control"></textarea>
+                                <small class="text-muted">Мінімум 60 символів. Використовуйте редактор для форматування.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="album">Альбом</label>
+                                <select th:field="*{album}" class="form-select">
+                                    <option value="0">Single (без альбому)</option>
+                                    <option th:each="al : ${albumList}" th:value="${al.id}" th:text="${al.name}"></option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <!--                            <label class="col-md-4 control-label" for="checkboxes">Присутня ненормативна лексика</label>-->
-                            <div class="col-md-4">
-                                <div class="checkbox">
-                                    <label for="notnormalvocabulary">
-                                        <input th:field="*{notnormalvocabulary}" type="checkbox">
-                                        Присутня ненормативна лексика
-                                    </label>
-                                </div>
-                                <div th:unless="*{tochat}">
-                                    <!--                                <div >-->
-                                    <div class="checkbox">
-                                        <label for="tochat">
-                                            <input th:field="*{tochat}" type="checkbox">
-                                            Опублікувати в чаті
-                                        </label>
-                                        <p>
-                                            Ви можете повідомити в чаті, що у Вас вийшов новий трек. Це можна зробити
-                                            лише один раз. Тож, будь ласка, заповніть максимально інформацію про трек.
-                                        </p>
-                                    </div>
-                                </div>
 
+                            <div class="mb-3 form-check">
+                                <input th:field="*{notnormalvocabulary}" type="checkbox" class="form-check-input" id="notnormalvocabulary">
+                                <label class="form-check-label" for="notnormalvocabulary">Присутня ненормативна лексика</label>
                             </div>
-                        </div>
-                        <!-- Button (Double) -->
-                        <div class="form-group">
-                            <!--                            <label class="col-md-4 control-label" for="button1id"></label>-->
-                            <div class="col-md-8">
-                                <button type="submit" class="btn btn-primary">Зберегти</button>
-                                <!--                                <button id="button2id" name="button2id" class="btn btn-primary">Повернутися</button>-->
+
+                            <div class="mb-3" th:if="!*{tochat}">
+                                <div class="form-check">
+                                    <input th:field="*{tochat}" type="checkbox" class="form-check-input" id="tochat">
+                                    <label class="form-check-label" for="tochat">Опублікувати в чаті</label>
+                                </div>
+                                <small class="text-muted">Ви можете повідомити в чаті про новий трек лише один раз.</small>
                             </div>
-                            <p>
-                                Після збереження Ваш трек буде відправлено редакторам. Будь ласка, перевірте
-                                правильність заповнення всіх необхідних полів (автор, назва, стиль тощо). Без наявності
-                                цієї інформації трек не може бути опублікованим.
+
+                            <hr>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Зберегти
+                            </button>
+                            <a th:href="@{/creater/tracks/0}" class="btn btn-secondary btn-lg ms-2">
+                                <i class="fas fa-arrow-left me-2"></i>Назад до списку
+                            </a>
+                            <p class="mt-3 text-muted">
+                                Після збереження Ваш трек буде відправлено редакторам. Перевірте правильність заповнення всіх полів.
                             </p>
+                        </fieldset>
+                    </form>
+
+                    <!-- Публікація -->
+                    <hr>
+                    <form th:action="@{/creater/publishtrack}" method="post" th:object="${track}">
+                        <input type="hidden" th:field="*{id}"/>
+                        <div th:switch="*{apruve}">
+                            <p th:case="true" class="text-success"><i class="fa fa-check-circle"></i> Публікацію треку підтверджено.</p>
+                            <p th:case="false" class="text-danger"><i class="fa fa-times-circle"></i> Публікацію відхилено. info@toloka.kiev.ua</p>
+                            <p th:case="*" class="text-warning"><i class="fa fa-clock"></i> Очікує на розгляд.</p>
                         </div>
-                    </fieldset>
-                </form>
-                <hr>
-                <form th:action="@{/creater/publishtrack}" method="post" th:object="${track}" class="form-horizontal">
-                    <fieldset>
-                        <div class="form-group">
-                            <div th:switch="*{apruve}">
-                                <p th:case="true" class="text-success"><i class="fa fa-check-circle"></i>Публікацію треку підтверджено.</p>
-                                <p th:case="false" class="text-danger"><i class="fa fa-times-circle"></i>Публікацію треку відхилено. Звʼяжіться з нами на пошту info@toloka.kiev.ua для уточнення. Попередньо перевірте чи всі поля заповнені. У листі вкажіть свій e-mail та назву треку.</p>
-                                <p th:case="*" class="text-warning"><i class="fa fa-clock"></i>Очікує на розгляд.</p>
-                            </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </form>
-                <hr>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
-
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/dropzone.min.js"></script>
 <script src="/js/toastr.min.js"></script>
-
-<!-- TinyMCE 7 (self-hosted) -->
 <script src="/js/tinymce/tinymce.min.js"></script>
 <script src="/js/wysiwyg-init.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    Dropzone.autoDiscover = false;
+
+    // Ініціалізуємо TinyMCE тільки якщо є textarea
+    var descEl = document.getElementById('track-description');
+    if (descEl) {
         initTinyMCESimple('#track-description', {
             min_height: 200,
             max_height: 350
         });
-    });
+    }
 
     // Dropzone для завантаження треку
-    Dropzone.autoDiscover = false;
-    var trackDropzone = new Dropzone("#track-dropzone", {
-        success: function(file, response) {
-            toastr.success('Файл "' + file.name + '" успішно завантажено. Оновлення сторінки...');
-            setTimeout(function() {
-                window.location.reload();
-            }, 1500);
-        },
-        error: function(file, errorMessage) {
-            toastr.error('Помилка завантаження: ' + errorMessage);
-        }
-    });
+    var dz = document.getElementById('track-dropzone');
+    if (dz) {
+        new Dropzone("#track-dropzone", {
+            url: "/creater/trackupload",
+            paramName: "file",
+            maxFilesize: 50, // MB
+            acceptedFiles: "audio/*,.mp3,.wav,.ogg,.flac",
+            headers: {
+                [[${_csrf.headerName}]]: [[${_csrf.token}]]
+            },
+            success: function(file, response) {
+                toastr.success('Файл "' + file.name + '" завантажено!');
+                setTimeout(function() { window.location.reload(); }, 1500);
+            },
+            error: function(file, msg) {
+                toastr.error('Помилка: ' + msg);
+            }
+        });
+    }
 </script>
 </body>
 </html>
