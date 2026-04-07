@@ -306,15 +306,54 @@ a.animated-link:hover::after { width: 100%; }
 
 | Метрика | Значення |
 |---------|----------|
-| Файлів змінено | **75+** |
-| Рядків CSS додано | **~280** |
-| Рядків TinyMCE додано | **~105,000** |
+| Файлів змінено | **310** |
+| Рядків додано | **107,840** |
+| Рядків видалено | **557** |
+| Комітів | **9** |
+| Сторінок з TinyMCE | **8** (було 3) |
+| CSS utility класів | **30+** |
 | Inline styles замінено | **~140** |
 | Зображень з lazy loading | **27** |
 | Зовнішніх URL замінено | **6 → 0** |
 | API ключів видалено | **2** |
-| Нових CSS класів | **30+** |
-| Шаблонов з TinyMCE | **13** |
+
+---
+
+## 🐛 Додаткові виправлення (після основної документації)
+
+### Проблема: TinyMCE не ініціалізувався на `editpost.html`
+
+**Корінь:** Відсутні плагіни `footnotes` та `template` в TinyMCE 7 Community. 
+Надмірно складні опції (`ai_request`, `valid_elements: '*[*]'`, `style_formats`, 
+`quickbars_*`) викликали тихий збій.
+
+**Вирішення:** Переписано `wysiwyg-init.js` з мінімальною робочою конфігурацією. 
+Використано `selector` явно в `tinymce.init()`.
+
+### Проблема: `tinymce.editors: undefined`
+
+**Корінь:** Promise API в TinyMCE 7 працює інакше — `tinymce.init()` не повертає 
+масив редакторів через `.then()`.
+
+**Вирішення:** Класичний підхід без Promise, перевірка через `setTimeout`.
+
+### Проблема: 404 для `help/js/i18n/keynav/uk_UA.js`
+
+**Вирішення:** Скопійовано `uk.js` → `uk_UA.js` (TinyMCE шукає `uk_UA`, є тільки `uk`).
+
+### Проблема: Попередження "evaluation mode"
+
+**Вирішення:** Додано `license_key: 'gpl'` в усі 3 функції ініціалізації.
+
+### Аудит всіх сторінок з TinyMCE
+
+| Сторінка | Проблема | Вирішення |
+|----------|----------|-----------|
+| `creater/info.html` | Конфлікт inline `tinymce.init()` + немає `id` у textarea | Прибрано inline, додано `id="client-comments"` |
+| `creater/getenberg.html` | Відсутній `styles.css` | Додано |
+| `creater/setalbumcover.html` | Зайвий TinyMCE без textarea | Видалено |
+| `post/postview.html` | Зайвий TinyMCE без textarea | Видалено |
+| `guest/viewtrack.html` | Зайвий TinyMCE без textarea | Видалено |
 
 ---
 
