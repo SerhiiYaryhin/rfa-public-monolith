@@ -103,7 +103,14 @@
 <script src="/js/tinymce/tinymce.min.js"></script>
 <script src="/js/wysiwyg-init.js"></script>
 <script>
+    console.log('[editpost] Скрипт завантажено');
+    console.log('[editpost] tinymce:', typeof tinymce !== 'undefined' ? tinymce.baseURI : 'НЕ завантажено');
+
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('[editpost] DOMContentLoaded спрацював');
+        const textarea = document.getElementById('postbody');
+        console.log('[editpost] textarea #postbody:', textarea ? 'знайдено' : 'НЕ знайдено');
+
         initTinyMCEFull('#postbody', {
             min_height: 400,
             max_height: 700

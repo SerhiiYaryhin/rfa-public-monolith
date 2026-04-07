@@ -122,18 +122,28 @@ function initTinyMCE(selector, customOptions) {
             ]}
         ],
         
-        // Template (заготовки)
+        // Template (заготовки) — вимкнено, плагін template відсутній
+        /*
         templates: [
             { title: 'Базова стаття', description: 'Стаття з заголовком та абзацами', content: '<h2>Заголовок розділу</h2><p>Текст абзацу...</p>' },
             { title: 'Таблиця', description: 'Таблиця 3x3', content: '<table><tbody><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></tbody></table>' }
         ]
+        */
     };
 
     // Об'єднуємо опції
     var finalOptions = Object.assign({}, defaultOptions, customOptions || {});
-    
+
+    // Діагностика
+    console.log('[TinyMCE] Ініціалізація:', selector, finalOptions);
+    console.log('[TinyMCE] tinymce обʼєкт:', typeof tinymce !== 'undefined' ? 'доступний' : 'НЕ доступний');
+
     // Ініціалізуємо TinyMCE
-    tinymce.init(finalOptions);
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init(finalOptions);
+    } else {
+        console.error('[TinyMCE] Бібліотеку tinymce не завантажено!');
+    }
 }
 
 /**
@@ -181,16 +191,16 @@ function initTinyMCEFull(selector, customOptions) {
         plugins: [
             'preview', 'importcss', 'searchreplace', 'autolink', 'autosave', 'save',
             'directionality', 'code', 'visualblocks', 'visualchars', 'fullscreen',
-            'image', 'link', 'media', 'template', 'codesample', 'table', 'charmap',
+            'image', 'link', 'media', 'codesample', 'table', 'charmap',
             'pagebreak', 'nonbreaking', 'anchor', 'insertdatetime', 'advlist',
             'lists', 'wordcount', 'help', 'charmap', 'quickbars', 'emoticons',
-            'accordion', 'footnotes'
+            'accordion', 'autoresize'
         ],
         toolbar: 'undo redo | blocks fontfamily fontsize | ' +
             'bold italic underline strikethrough forecolor backcolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist outdent indent | ' +
-            'link image media template codesample table | ' +
+            'link image media codesample table | ' +
             'charmap emoticons pagebreak | removeformat code fullscreen help',
         menubar: 'file edit view insert format tools table help',
         min_height: 400,
