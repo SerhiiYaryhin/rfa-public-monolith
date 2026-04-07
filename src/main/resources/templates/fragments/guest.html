@@ -1,104 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Профайл користувача</title>
 </head>
 <body>
 
 <div th:fragment="profile">
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.2.96/css/materialdesignicons.min.css" integrity="sha512-LX0YV/MWBEn2dwXCYgQHrpa9HJkwB+S+bnBpifSOTO1No27TqNMKYoAn6ff2FBh03THAzAiiCwQ+aPX+/Qt/Ow==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    -->
     <div class="container">
         <div class="row">
-            <h1>
-                <span th:if="${clientdetail.custname} != null" th:text="${clientdetail.custname}"/>
-                <span th:if="${clientdetail.custsurname} != null" th:text="' '+${clientdetail.custsurname}"/>
-                <span th:if="${clientdetail.firmname} != null" th:text="' / '+${clientdetail.firmname}"/>
-            </h1>
+
+            <!-- ===== ГОЛОВНА КОЛОНКА (8/12) ===== -->
             <div class="col-xl-8">
+
+                <!-- Картка профайлу -->
                 <div class="card">
                     <div class="card-body pb-0">
                         <div class="row align-items-center">
+                            <!-- Фото + ім'я -->
                             <div class="col-md-3">
                                 <div class="text-center border-end">
-                                    <img loading="lazy" th:if="${clientdetail.profilephoto} != null" th:src="'/store/content/' + ${clientdetail.profilephoto.uuid}" class="img-fluid avatar-xxl rounded-circle" >
-                                    <img th:if="${clientdetail.profilephoto} == null" src="/assets/img/default-avatar.svg" class="img-fluid avatar-xxl rounded-circle" >
+                                    <img loading="lazy"
+                                         th:if="${clientdetail.profilephoto} != null"
+                                         th:src="'/store/content/' + ${clientdetail.profilephoto.uuid}"
+                                         class="img-fluid avatar-xxl rounded-circle"
+                                         th:alt="${clientdetail.custname}">
+                                    <img th:if="${clientdetail.profilephoto} == null"
+                                         src="/assets/img/default-avatar.svg"
+                                         class="img-fluid avatar-xxl rounded-circle"
+                                         alt="Аватар">
                                     <h4 class="text-primary font-size-20 mt-3 mb-2">
-                                        <span th:text="${clientdetail.custname}+' '+${clientdetail.custsurname}"/>
+                                        <span th:text="${clientdetail.custname} + ' ' + ${clientdetail.custsurname}"/>
                                     </h4>
-                                    <h5 class="text-muted font-size-13 mb-0">
+                                    <h5 class="text-muted font-size-13 mb-2">
                                         <span th:text="${clientdetail.firmname}"/>
                                     </h5>
+                                    <!-- Дата реєстрації -->
+                                    <small class="text-muted"
+                                           th:if="${clientdetail.createdate} != null"
+                                           th:text="'З нами з ' + ${#dates.format(clientdetail.createdate, 'yyyy')}">
+                                    </small>
                                 </div>
-                            </div><!-- end col -->
+                            </div>
+
+                            <!-- Біо + статистика -->
                             <div class="col-md-9">
                                 <div class="ms-3">
+                                    <!-- Статистика -->
+                                    <div class="d-flex flex-wrap gap-3 mb-3">
+                                        <span class="badge bg-primary fs-6">
+                                            🎵 <span th:text="${#lists.size(albumList)}">0</span> альбомів
+                                        </span>
+                                        <span class="badge bg-success fs-6">
+                                            🎶 <span th:text="${#lists.size(trackList)}">0</span> треків
+                                        </span>
+                                        <span class="badge bg-info fs-6">
+                                            📝 <span th:text="${#lists.size(postList)}">0</span> постів
+                                        </span>
+                                        <span class="badge bg-warning fs-6"
+                                              th:if="${clientdetail.stationList} != null AND ${#lists.size(clientdetail.stationList) > 0}">
+                                            📻 <span th:text="${#lists.size(clientdetail.stationList)}">0</span> станцій
+                                        </span>
+                                    </div>
+
+                                    <!-- Біографія -->
                                     <div th:utext="${clientdetail.comments}"></div>
-                                </div>
-                            </div><!-- end col -->
-                        </div><!-- end row -->
-                    </div><!-- end card body -->
-                </div><!-- end card -->
-                <!-- Альбоми треки пости -->
-                <div class="row pt-subsection">
-                    <!-- Сторінка з інформацією -->
-                    <div class="col">
-                        <!-- колонка з інформацією -->
-                        <div class="accordion" id="accordionExample">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingOne">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        Альбоми <span th:text="${#lists.size(albumList)}" class="badge bg-primary rounded-pill">14</span>
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse " aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                    <div class="accordion-body">
-                                        <table class="table">
-                                            <tbody>
-                                            <tr th:each="album : ${albumList}">
-                                                <td><span th:text="${album.name}"></span></td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingTwo">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        Треки <span th:text="${#lists.size(trackList)}" class="badge bg-primary rounded-pill">12</span>
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                                    <div class="accordion-body">
-                                        <table class="table">
-                                            <tbody>
-                                            <tr th:each="track : ${trackList}">
-                                                <td><a th:href="'/guest/viewtrack/'+${track.uuid}"><span th:text="${track.name}"></span></a></td>
-<!--                                                <td><span th:text="${track.autor}"></span></td>-->
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingThree">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                        Пости <span th:text="${#lists.size(postList)}" class="badge bg-primary rounded-pill">19</span>
-                                    </button>
-                                </h2>
-                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-                                    <div class="accordion-body">
-                                        <table class="table">
-                                            <tbody>
-                                            <tr th:each="post : ${postList}">
-                                                <td><a th:href="'/post/postview/'+${post.id}"> <span th:text="${post.posttitle}"></span></a></td>
-<!--                                                <td><span th:text="${post.autor}"></span></td>-->
-                                            </tr>
-                                            </tbody>
-                                        </table>
+
+                                    <!-- Telegram посилання -->
+                                    <div th:if="${clientdetail.telegramuser} != null" class="mt-2">
+                                        <a th:href="'https://t.me/' + ${clientdetail.telegramuser}"
+                                           target="_blank"
+                                           rel="noopener"
+                                           class="btn btn-sm btn-outline-primary">
+                                            ✈️ Telegram
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -106,97 +81,192 @@
                     </div>
                 </div>
 
-                <!--
-                -->
-                <!-- end card -->
-            </div><!-- end col -->
+                <!-- ===== АЛЬБОМИ / ТРЕКИ / ПОСТИ (акордеон) ===== -->
+                <div class="row pt-subsection">
+                    <div class="col">
+                        <div class="accordion" id="accordionExample">
 
-<!--            <div class="col-xl-4">-->
-<!--                <div class="card">-->
-<!--                    <div class="card-body">-->
-<!--                        <div class="pb-2">-->
-<!--                            <h4 class="card-title mb-3">Про нас</h4>-->
-<!--                            <p>Hi I'm Jansh, has been the industry's standard dummy text To an English-->
-<!--                                person, it will seem like-->
-<!--                                simplified.</p>-->
-<!--                            <ul class="ps-3 mb-0">-->
-<!--                                <li>it will seem like simplified.</li>-->
-<!--                                <li>To achieve this, it would be necessary to have uniform pronunciation</li>-->
-<!--                            </ul>-->
-<!--                            &lt;!&ndash; end ul &ndash;&gt;-->
-<!--                        </div>-->
-<!--                        <hr>-->
-<!--                        <div class="pt-2">-->
-<!--                            <h4 class="card-title mb-4">My Skill</h4>-->
-<!--                            <div class="d-flex gap-2 flex-wrap">-->
-<!--                                <span class="badge badge-soft-secondary p-2">HTML</span>-->
-<!--                                <span class="badge badge-soft-secondary p-2">Bootstrap</span>-->
-<!--                                <span class="badge badge-soft-secondary p-2">Scss</span>-->
-<!--                                <span class="badge badge-soft-secondary p-2">Javascript</span>-->
-<!--                                <span class="badge badge-soft-secondary p-2">React</span>-->
-<!--                                <span class="badge badge-soft-secondary p-2">Angular</span>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>&lt;!&ndash; end cardbody &ndash;&gt;-->
-<!--                </div>&lt;!&ndash; end card &ndash;&gt;-->
+                            <!-- Альбоми -->
+                            <div class="accordion-item" th:if="${#lists.size(albumList) > 0}">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                                            aria-expanded="false" aria-controls="collapseOne">
+                                        📀 Альбоми
+                                        <span class="badge bg-primary ms-2" th:text="${#lists.size(albumList)}">0</span>
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse"
+                                     aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        <div class="list-group list-group-flush">
+                                            <a th:each="album : ${albumList}"
+                                               class="list-group-item list-group-item-action"
+                                               th:href="'/creater/profile/album/' + ${album.uuid}"
+                                               th:text="${album.name}">
+                                                Альбом
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-<!--                <div class="card">-->
-<!--                    <div class="card-body">-->
-<!--                        <div>-->
-<!--                            <h4 class="card-title mb-4">Детальніше про нас</h4>-->
-<!--                            <div class="table-responsive">-->
-<!--                                <table class="table table-bordered mb-0">-->
-<!--                                    <tbody>-->
-<!--                                    <tr>-->
-<!--                                        <th scope="row">Name</th>-->
-<!--                                        <td>Jansh Wells</td>-->
-<!--                                    </tr>&lt;!&ndash; end tr &ndash;&gt;-->
-<!--                                    <tr>-->
-<!--                                        <th scope="row">Location</th>-->
-<!--                                        <td>California, United States</td>-->
-<!--                                    </tr>&lt;!&ndash; end tr &ndash;&gt;-->
-<!--                                    <tr>-->
-<!--                                        <th scope="row">Language</th>-->
-<!--                                        <td>English</td>-->
-<!--                                    </tr>&lt;!&ndash; end tr &ndash;&gt;-->
-<!--                                    <tr>-->
-<!--                                        <th scope="row">Website</th>-->
-<!--                                        <td>abc12@probic.com</td>-->
-<!--                                    </tr>&lt;!&ndash; end tr &ndash;&gt;-->
-<!--                                    </tbody>&lt;!&ndash; end tbody &ndash;&gt;-->
-<!--                                </table>&lt;!&ndash; end table &ndash;&gt;-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>&lt;!&ndash; end card body &ndash;&gt;-->
-<!--                </div>&lt;!&ndash; end card &ndash;&gt;-->
+                            <!-- Треки -->
+                            <div class="accordion-item" th:if="${#lists.size(trackList) > 0}">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseTwo"
+                                            aria-expanded="false" aria-controls="collapseTwo">
+                                        🎶 Треки
+                                        <span class="badge bg-success ms-2" th:text="${#lists.size(trackList)}">0</span>
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse"
+                                     aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        <div class="list-group list-group-flush">
+                                            <a th:each="track : ${trackList}"
+                                               class="list-group-item list-group-item-action"
+                                               th:href="'/guest/viewtrack/' + ${track.uuid}">
+                                                <span th:text="${track.name}">Трек</span>
+                                                <small class="text-muted d-block"
+                                                       th:if="${track.autor} != null"
+                                                       th:text="${track.autor}">
+                                                </small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-<!--                <div class="card">-->
-<!--                    <div class="card-body">-->
-<!--                        <div>-->
-<!--                            <h4 class="card-title mb-4">Наші виступи</h4>-->
-<!--                            <ul class="list-unstyled work-activity mb-0">-->
-<!--                                <li class="work-item" data-date="2020-21">-->
-<!--                                    <h6 class="lh-base mb-0">ABCD Company</h6>-->
-<!--                                    <p class="font-size-13 mb-2">Web Designer</p>-->
-<!--                                    <p>To achieve this, it would be necessary to have uniform grammar, and more-->
-<!--                                        common words.</p>-->
-<!--                                </li>-->
-<!--                                <li class="work-item" data-date="2019-20">-->
-<!--                                    <h6 class="lh-base mb-0">XYZ Company</h6>-->
-<!--                                    <p class="font-size-13 mb-2">Graphic Designer</p>-->
-<!--                                    <p class="mb-0">It will be as simple as occidental in fact, it will be-->
-<!--                                        Occidental person, it will seem like simplified.</p>-->
-<!--                                </li>-->
-<!--                            </ul>&lt;!&ndash; end ul &ndash;&gt;-->
-<!--                        </div>-->
-<!--                    </div>&lt;!&ndash; end card-body &ndash;&gt;-->
-<!--                </div>&lt;!&ndash; end card &ndash;&gt;-->
-<!--            </div>&lt;!&ndash; end col &ndash;&gt;-->
+                            <!-- Пости -->
+                            <div class="accordion-item" th:if="${#lists.size(postList) > 0}">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseThree"
+                                            aria-expanded="false" aria-controls="collapseThree">
+                                        📝 Пости
+                                        <span class="badge bg-info ms-2" th:text="${#lists.size(postList)}">0</span>
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse"
+                                     aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        <div class="list-group list-group-flush">
+                                            <a th:each="post : ${postList}"
+                                               class="list-group-item list-group-item-action"
+                                               th:href="'/post/postview/' + ${post.id}">
+                                                <span th:text="${post.posttitle}">Пост</span>
+                                                <small class="text-muted d-block"
+                                                       th:if="${post.publishdate} != null"
+                                                       th:text="'Опубліковано: ' + ${#dates.format(post.publishdate, 'dd.MM.yyyy')}">
+                                                </small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Порожній стан -->
+                            <div class="text-center text-muted py-4"
+                                 th:if="${#lists.size(albumList) == 0 AND #lists.size(trackList) == 0 AND #lists.size(postList) == 0}">
+                                <p class="mb-0">Контент поки відсутній.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SIDEBAR (4/12) ===== -->
+            <div class="col-xl-4">
+
+                <!-- Про нас (біо) -->
+                <div class="card" th:if="${clientdetail.comments} != null AND ${#strings.length(clientdetail.comments) > 20}">
+                    <div class="card-body">
+                        <div class="pb-2">
+                            <h4 class="card-title mb-3">📋 Про нас</h4>
+                            <div th:utext="${#strings.abbreviate(clientdetail.comments, 200)}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Детальніше про нас -->
+                <div class="card" th:if="${clientdetail.firmname} != null OR ${clientdetail.telegramuser} != null">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">🔍 Детальніше</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <tbody>
+                                    <tr th:if="${clientdetail.firmname} != null">
+                                        <th scope="row">Сценічне ім'я</th>
+                                        <td><span th:text="${clientdetail.firmname}"></span></td>
+                                    </tr>
+                                    <tr th:if="${clientdetail.telegramuser} != null">
+                                        <th scope="row">Telegram</th>
+                                        <td>
+                                            <a th:href="'https://t.me/' + ${clientdetail.telegramuser}"
+                                               target="_blank" rel="noopener"
+                                               th:text="'@' + ${clientdetail.telegramuser}">
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${clientdetail.createdate} != null">
+                                        <th scope="row">Реєстрація</th>
+                                        <td>
+                                            <span th:text="${#dates.format(clientdetail.createdate, 'dd.MM.yyyy')}"></span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${clientdetail.account} != null AND ${clientdetail.account > 0}">
+                                        <th scope="row">Баланс</th>
+                                        <td>
+                                            <span class="badge bg-success"
+                                                  th:text="${clientdetail.account} + ' ₴'">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Станції -->
+                <div class="card"
+                     th:if="${clientdetail.stationList} != null AND ${#lists.size(clientdetail.stationList) > 0}">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">📻 Наші станції</h4>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2" th:each="station : ${clientdetail.stationList}">
+                                <a th:href="'/guest/station/' + ${station.uuid}"
+                                   class="text-decoration-none"
+                                   th:text="${station.name}">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Жанри/стилі (з треків) -->
+                <div class="card" th:if="${#lists.size(trackList) > 0}">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">🎵 Жанри</h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge badge-soft-secondary p-2"
+                                  th:each="style : ${#lists.toSet(trackList.![style])}"
+                                  th:if="${style} != null AND ${#strings.length(style) > 0}"
+                                  th:text="${style}">
+                            </span>
+                            <span class="text-muted" th:if="${#lists.isEmpty(#lists.toSet(trackList.![style].?[#this != null and #strings.length(#this) > 0]))}">
+                                Не вказано
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
-
-
 
 </body>
 </html>
