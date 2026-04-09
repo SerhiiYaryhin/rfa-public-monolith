@@ -24,7 +24,6 @@ public class ServiceSecurityUserDetails implements UserDetailsService {
     @Autowired
     private UserSecurityRepository repoUsers;
 //    @Override
-//    public Long saveUser(@NotNull Users user) { // TODO Видалити. Без використання
 //        String passwd= user.getPassword();
 //        String encodedPasswod = passwordEncoder.encode(passwd);
 //        user.setPassword(encodedPasswod);

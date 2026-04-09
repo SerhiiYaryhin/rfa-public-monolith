@@ -210,7 +210,6 @@ public class ServerRunnerService {
 //        rpcJob.setRJobType(JOB_STATION_START); // set job type
 //        String strgson = gson.toJson(rpcJob).toString();
 //        template.convertAndSend(queueName,gson.toJson(rpcJob).toString());
-//        // TODO Занести в історию запись про проведення міграції з кодом завершення.
         return rc;
     }
 
@@ -302,7 +301,6 @@ public class ServerRunnerService {
 //        rpcJob.setRJobType(JOB_STATION_STOP); // set job type
 //        String strgson = gson.toJson(rpcJob).toString();
 //        template.convertAndSend(queueName,gson.toJson(rpcJob).toString());
-//        // TODO Занести в історию запись про проведення міграції з кодом завершення.
 
 
 
@@ -356,7 +354,6 @@ public class ServerRunnerService {
 //        rpcJob.setRJobType(JOB_STATION_PREPARE_NGINX); // set job type
 //        String strgson = gson.toJson(rpcJob).toString();
 //        template.convertAndSend(queueName,gson.toJson(rpcJob).toString());
-//        // TODO Занести в історию запись про проведення міграції з кодом завершення.
         return rc;
     }
 
@@ -451,7 +448,6 @@ public class ServerRunnerService {
 //        rpcJob.setRJobType(JOB_STATION_LIBRETIME_MIGRATE); // set job type
 //        String strgson = gson.toJson(rpcJob).toString();
 //        template.convertAndSend(queueName,gson.toJson(rpcJob).toString());
-//        // TODO Занести в історию запись о создании конфігураційних файлів
         return rc;
     }
 
@@ -488,7 +484,6 @@ public class ServerRunnerService {
         }
         //================================================================
         // https://www.javaguides.net/2019/11/gson-localdatetime-localdate.html
-//        // TODO Занести в історию запись
         return rc;
     }
 
@@ -526,7 +521,6 @@ public class ServerRunnerService {
         }
 
 
-//        // TODO Занести в історию запись
         return rc;
     }
 
@@ -561,7 +555,6 @@ public class ServerRunnerService {
         }
 
 
-//        // TODO Занести в історию запись
         return rc;
     }
 

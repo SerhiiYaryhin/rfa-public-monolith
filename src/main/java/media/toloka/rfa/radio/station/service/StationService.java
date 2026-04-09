@@ -303,8 +303,6 @@ public class StationService {
 ////        if (station.getUser() == null) {
 ////            station.setUser(user);
 ////        }
-//        // TODO можливо потрібно перевірити на наявність станції
-//        // TODO На віддаленому сервері ми працюємо без користувача. Інакше отримувати перелік станцій
 //        // просто зберегли станцію
 ////        List<Station> listStations = GetListStationByUser(user);
 ////        if (station.getRadio_id() == null ) {

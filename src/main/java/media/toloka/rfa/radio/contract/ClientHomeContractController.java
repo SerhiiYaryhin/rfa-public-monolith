@@ -84,7 +84,7 @@ public class ClientHomeContractController {
         Contract contract = contractService.GetContractById(id);
         if (contract == null) {
             logger.info("Контракт з id={} не знайдено", id.toString());
-            // TODO Вивести в форму повідомлення, що контракт не знайдено
+            model.addAttribute("error", "Контракт не знайдено");
             return "redirect:/user/contract";
         }
         List<Station> stationContractList = stationService.GetListStationByClientAndContract(user.getClientdetail(), contract);
@@ -211,6 +211,7 @@ public class ClientHomeContractController {
         contract.setContractname(fcontract.getContractname());
         contractService.saveContract(contract);
         logger.info("Контракт з UUID={} збережено", contract.getUuid());
+        model.addAttribute("success", "Контракт успішно збережено");
         return "redirect:/user/contract";
     }
 
