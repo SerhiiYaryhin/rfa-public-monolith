@@ -1,6 +1,6 @@
 package media.toloka.rfa.radio.station.service;
 
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientaddress;
@@ -37,7 +37,7 @@ public class StationService {
     private StationRepo stationRepo;
 
     @Autowired
-    private MessangerService messangerService;
+    private MessengerService messengerService;
 
     @Autowired
     private ClientService clientService;
@@ -70,7 +70,7 @@ public class StationService {
     }
 
     @Cacheable(value = "stations", key = "#id")
-    public Station GetStationById(long id) {
+    public Station getStationById(long id) {
         Optional<Station> optionalStation = stationRepo.findById(id);
         if (optionalStation.isEmpty()) { return null;}
         return stationRepo.findById(id).get();
@@ -81,27 +81,27 @@ public class StationService {
         stationRepo.deleteById(id);
     }
 
-    public List<Station> GetListStationByUser(Users user) { // TODO Виправити.  На віддаленому сервері ми працюємо без користувача
-        Clientdetail cl = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+    public List<Station> getListStationByUser(Users user) { // TODO Виправити.  На віддаленому сервері ми працюємо без користувача
+        Clientdetail cl = clientService.getClientDetailByUser(clientService.getCurrentUser());
         return stationRepo.findStationByClientdetail(cl);
 //        findStationByUser(user);
     }
 
-    public Station CreateStation(Clientdetail clientdetail) {
+    public Station createStation(Clientdetail clientdetail) {
         // TODO правильно заповнити станцію
 
-//        if(CheckPossibilityCreateStation(clientService.GetClientDetailByUser(clientService.GetCurrentUser()),model ) == true ) {
+//        if(CheckPossibilitycreateStation(clientService.getClientDetailByUser(clientService.getCurrentUser()),model ) == true ) {
 
             Station station = new Station();
             station.setName(null);
-//            station.setClientdetail(clientService.getClientDetail(clientService.GetCurrentUser()));
+//            station.setClientdetail(clientService.getClientDetail(clientService.getCurrentUser()));
             SetStationDBName(station);
             station.setUuid(UUID.randomUUID().toString());
             station.setGuiserver(guiserver);
             station.setCreatedate(new Date());
             station.setClientdetail(clientdetail);
             clientdetail.getStationList().add(station);
-            clientService.SaveClientDetail(clientdetail);
+            clientService.saveClientDetail(clientdetail);
 //            saveStation(station);
             // TODO запис в журнал
             historyService.saveHistory(History_StationCreate, " Нова станція: "+station.getUuid(), clientdetail.getUser());
@@ -113,7 +113,7 @@ public class StationService {
     public void SetStationDBName(Station st) {
         while (true) {
             String  rstring = rfaService.GetRandomString(16);
-            if (GetStationDBName(rstring) == null) {
+            if (getStationDBName(rstring) == null) {
                 st.setDbname(rstring);
                 return;
             }
@@ -122,7 +122,7 @@ public class StationService {
 
 
     // Перевіряємо можливість створення станції
-    private boolean CheckPossibilityCreateStation(Clientdetail clientDetail, Model model) {
+    private boolean CheckPossibilitycreateStation(Clientdetail clientDetail, Model model) {
         // model != null коли ми визиваємо з контролера, який повинен намалювати повідомлення
 
         // можна привʼязати станцію до контракту коли:
@@ -210,12 +210,12 @@ public class StationService {
         // на рахунку достатньо коштів для роботи станції протягом 4-х тижнів
     }
 
-    public Station GetStationDBName(String rstring) {
+    public Station getStationDBName(String rstring) {
         // перевіряємо, чи є станція з таким імʼям бази для Libretime
         return stationRepo.getStationByDbname(rstring);
     }
 
-    public Object GetURLStation(Station station) {
+    public Object getURLStation(Station station) {
         // формуємо актуальний лінк на станцію
         String stationLinkURL;
         // TODO передбачити нормальну назву станції
@@ -228,8 +228,8 @@ public class StationService {
         return true;
     }
 
-    public boolean CreateCheckAddress(Clientdetail clientdetail) {
-        List<Clientaddress> clientaddressList = clientService.GetClientAddressList(clientdetail);
+    public boolean createCheckAddress(Clientdetail clientdetail) {
+        List<Clientaddress> clientaddressList = clientService.getClientAddressList(clientdetail);
         if (clientaddressList.isEmpty()) {
 //        if( clientdetail.getClientaddressList().isEmpty() ) {
             return false;
@@ -254,13 +254,13 @@ public class StationService {
         return false;
     }
 
-    public List<Station> GetListStationByClientAndContract(Clientdetail clientdetail, Contract contract) {
+    public List<Station> getListStationByClientAndContract(Clientdetail clientdetail, Contract contract) {
         List<Station> ls = stationRepo.findStationByClientdetailAndContract(clientdetail, contract);
         return ls;
     }
 
-    public boolean CreateCheckApruveAddress(Clientdetail clientdetail) {
-        List<Clientaddress> clientaddressList = clientService.GetClientAddressList(clientdetail);
+    public boolean createCheckApruveAddress(Clientdetail clientdetail) {
+        List<Clientaddress> clientaddressList = clientService.getClientAddressList(clientdetail);
 
         for (Clientaddress clientaddress : clientaddressList) {
             if (clientaddress.getApruve () == true) { return true; }
@@ -268,7 +268,7 @@ public class StationService {
         return false;
     }
 
-    public boolean CreateCheckFreeStation(Clientdetail clientdetail) {
+    public boolean createCheckFreeStation(Clientdetail clientdetail) {
 //        List<Station> stationList = clientdetail.getStationList();
         List<Contract> contractList = contractService.FindContractByClientDetail(clientdetail);
         for (Contract contract : contractList) {
@@ -286,31 +286,31 @@ public class StationService {
         stationRepo.save(st);
     }
 
-    public List<Station> GetListStationByStatus(boolean b) {
+    public List<Station> getListStationByStatus(boolean b) {
         return stationRepo.getStationByStationstate(b);
     }
 
-    public Station GetStationByUUID(String uuid) {
+    public Station getStationByUUID(String uuid) {
         return stationRepo.getStationByUuid(uuid);
     }
 
-    public Boolean GetStationRoomStatus(String roomuuid) {
+    public Boolean getStationRoomStatus(String roomuuid) {
         if (roomuuid == null) return false;
-        return messangerService.GetChatRoomByUUID(roomuuid).getRoomOnlineStatus();
+        return messengerService.GetChatRoomByUUID(roomuuid).getRoomOnlineStatus();
 
     }
 
-    public List<Station> GetListStationByCd(Clientdetail cd) {
+    public List<Station> getListStationByCd(Clientdetail cd) {
         return stationRepo.findStationByClientdetail(cd);
     }
 
 //    public void saveStation(Station station) {
-////        Users user = serviceUser.GetCurrentUser();
+////        Users user = serviceUser.getCurrentUser();
 ////        if (station.getUser() == null) {
 ////            station.setUser(user);
 ////        }
 //        // просто зберегли станцію
-////        List<Station> listStations = GetListStationByUser(user);
+////        List<Station> listStations = getListStationByUser(user);
 ////        if (station.getRadio_id() == null ) {
 ////            // Станція нова. Додаємо до переліку станцій
 ////            GetListRadioByUser(user).add(station);

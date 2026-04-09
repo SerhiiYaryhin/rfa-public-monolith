@@ -63,7 +63,7 @@ public class CreaterDropPostFileController {
             response.getWriter().write("Файл порожній");
             return;
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -92,7 +92,7 @@ public class CreaterDropPostFileController {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
@@ -120,7 +120,7 @@ public class CreaterDropPostFileController {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
@@ -149,7 +149,7 @@ public class CreaterDropPostFileController {
                 }
                 // Зберігаємо фото в ClientDetail
                 cd.setProfilephoto(storeNewPhoto);
-                clientService.SaveClientDetail(cd);
+                clientService.saveClientDetail(cd);
                 log.info("Завантажуємо фото профайлу {} для cd={}",file.getOriginalFilename(),cd.getUuid());
                 return;
             }
@@ -170,7 +170,7 @@ public class CreaterDropPostFileController {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());

@@ -49,7 +49,7 @@ public class ClientHomeController {
     @GetMapping(value = "/user/user_page")
     public String userHome(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

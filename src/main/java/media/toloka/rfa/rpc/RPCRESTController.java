@@ -154,7 +154,7 @@ public class RPCRESTController {
     Map<String, String> GetStateStationREST(@PathVariable Long id) {
         // для сайту - запит та асінхронну обробку. https://www.cat-in-web.ru/fetch-async-await/
 
-        Station station = stationService.GetStationById(id);
+        Station station = stationService.getStationById(id);
         if (station == null) {
             // не знайшли станцію
             logger.info("GetStateStationREST: Йой! не знайшли станцію id={}", id);
@@ -275,7 +275,7 @@ public class RPCRESTController {
         Long albumid = Long.parseLong(pathVarsMap.get("albumid"));
         Long cdid = Long.parseLong(pathVarsMap.get("cdid"));
 
-        Clientdetail cd = clientService.GetClientDetailById(cdid);
+        Clientdetail cd = clientService.getClientDetailById(cdid);
         Album album = createrService.GetAlbumById(albumid);
         // todo переробити роботу зі сховищем на uuid
         Albumсover albumсover = createrService.GetAlbumCoverById(alcoid);

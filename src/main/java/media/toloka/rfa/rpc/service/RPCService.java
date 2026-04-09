@@ -55,7 +55,7 @@ public class RPCService {
     public void SetStationDBName(Station st) {
         while (true) {
             String  rstring = rfaService.GetRandomString(16);
-            if (stationService.GetStationDBName(rstring) == null) {
+            if (stationService.getStationDBName(rstring) == null) {
                 st.setDbname(rstring);
                 return;
             }
@@ -64,7 +64,7 @@ public class RPCService {
 
 
 
-    public Long JobCreateStation (RPCJob rjob) {
+    public Long JobcreateStation (RPCJob rjob) {
 //        logger.info(rjob);
         // витягли користувача
         Users user = rjob.getUser();
@@ -73,11 +73,11 @@ public class RPCService {
         Gson gStation = gsonService.CreateGson();
         Station Radio = gStation.fromJson(sStation, Station.class);
 
-        Station newRadio = stationService.GetStationByUUID(gStation.fromJson(sStation, Station.class).getUuid());
-//        Station newRadio = stationService.GetStationByUUID(Radio.getUuid());
-//        Station newRadio = stationService.GetStationById(Radio.getId());
+        Station newRadio = stationService.getStationByUUID(gStation.fromJson(sStation, Station.class).getUuid());
+//        Station newRadio = stationService.getStationByUUID(Radio.getUuid());
+//        Station newRadio = stationService.getStationById(Radio.getId());
 //        if (newRadio == null) {
-//            newRadio = stationService.GetStationByUUID(Radio.getUuid());
+//            newRadio = stationService.getStationByUUID(Radio.getUuid());
 //        }
 //        // генеруємо випадковий рядок символів для імені бази
         SetStationDBName(newRadio);

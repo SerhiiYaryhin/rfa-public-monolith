@@ -75,7 +75,7 @@ public class AdminPrepare {
     @GetMapping(value = "/admin/prepare/mp3")
     public String getUserHome(
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

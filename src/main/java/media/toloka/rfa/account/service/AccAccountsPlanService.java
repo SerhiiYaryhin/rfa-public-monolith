@@ -1,0 +1,43 @@
+package media.toloka.rfa.account.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import media.toloka.rfa.account.model.accplan.AccAccountsPlan;
+import media.toloka.rfa.account.repository.transaction.AccAccountsPlanRepositore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+@Slf4j
+public class AccAccountsPlanService {
+
+    @Autowired
+    AccAccountsPlanRepositore accAccountsPlanRepositore;
+
+    public AccAccountsPlan GetByUuid(UUID uuid) {
+        return accAccountsPlanRepositore.getByUuid(uuid);
+    }
+
+    public Page FindAll(PageRequest acc) {
+        return accAccountsPlanRepositore.findAll(acc);
+    }
+
+    public AccAccountsPlan Save(AccAccountsPlan acc) {
+        return accAccountsPlanRepositore.save(acc);
+    }
+
+    public AccAccountsPlan GetByAcc(Long numberAcc) {
+        return accAccountsPlanRepositore.getByAcc(numberAcc);
+    }
+
+    public void Delete(AccAccountsPlan acc) {
+        accAccountsPlanRepositore.delete(acc);
+    }
+}

@@ -12,7 +12,7 @@ import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostStatus;
-import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
+import media.toloka.rfa.radio.post.repository.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
 import media.toloka.rfa.radio.station.service.StationOnlineList;
@@ -72,13 +72,13 @@ public class PostController {
             @RequestParam (defaultValue = "0")  Integer page,
             @RequestParam (defaultValue = "5")  Integer size,
             Model model) {
-        Post post = postService.GetPostById(idPost);
+        Post post = postService.getPostById(idPost);
 
         if (post == null) {
             return "redirect:/";
         }
         post.setLooked(post.getLooked() + 1L);
-        postService.SavePost(post);
+        postService.savePost(post);
 
 //        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
@@ -145,12 +145,12 @@ public class PostController {
     public String getCreaterEditPost(
             @PathVariable Long idPost,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (idPost == 0L) {
             logger.info("Створюємо новий пост");
         }
@@ -162,7 +162,7 @@ public class PostController {
             post = new Post();
             post.setId(0L);
         } else {
-            post = postService.GetPostById(idPost);
+            post = postService.getPostById(idPost);
         }
 
         List<EPostCategory> category = Arrays.asList(EPostCategory.values());
@@ -194,11 +194,11 @@ public class PostController {
 
 
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Post post;
         if (idPost == 0L) {
             logger.info("Створюємо новий пост");
@@ -206,7 +206,7 @@ public class PostController {
             post.setPostStatus(POSTSTATUS_REDY);
 
         } else {
-            post = postService.GetPostById(idPost);
+            post = postService.getPostById(idPost);
         }
         post.setPostbody(fPost.getPostbody());
         post.setPosttitle(fPost.getPosttitle());
@@ -216,7 +216,7 @@ public class PostController {
         post.setClientdetail(cd);
 
 
-        postService.SavePost(post);
+        postService.savePost(post);
 
 
         Integer curpage = 0;
@@ -237,7 +237,7 @@ public class PostController {
             @PathVariable String cPage,
 //            @ModelAttribute Post fPost,
             Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
 
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
@@ -259,11 +259,11 @@ public class PostController {
             @PathVariable Long idPost,
 //            @ModelAttribute Post fPost,
             Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        Post post = postService.GetPostById(idPost);
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
+        Post post = postService.getPostById(idPost);
         if (post != null) {
             post.setPostStatus(EPostStatus.POSTSTATUS_REQUEST);
-            postService.SavePost(post);
+            postService.savePost(post);
         }
 
 
@@ -288,12 +288,12 @@ public class PostController {
             @PathVariable Long idPost,
 //            @ModelAttribute Post fPost,
             Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
 
-        Post post = postService.GetPostById(idPost);
+        Post post = postService.getPostById(idPost);
         if (post != null) {
             post.setPostStatus(EPostStatus.POSTSTATUS_DELETE);
-            postService.SavePost(post);
+            postService.savePost(post);
         }
 
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
@@ -317,18 +317,18 @@ public class PostController {
             @PathVariable String uuidpost,
             @PathVariable String storeitemuuid,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Store store = storeService.GetStoreByUUID(storeitemuuid);
         Post post = postService.GetByUiid(uuidpost);
         post.setCoverstoreuuid(store.getUuid());
 //        post.setStore (store);
 
-        postService.SavePost(post);
+        postService.savePost(post);
 
         List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );

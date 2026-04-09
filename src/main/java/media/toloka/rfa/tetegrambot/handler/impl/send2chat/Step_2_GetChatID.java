@@ -2,8 +2,8 @@ package media.toloka.rfa.tetegrambot.handler.impl.send2chat;
 // Надсилаємо повідомлення в чат прямого ефіру
 // перелік прямих ефірів беремо з чату
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.media.messanger.model.MessageRoom;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.model.MessageRoom;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
 import media.toloka.rfa.tetegrambot.handler.UserRequestHandler;
 import media.toloka.rfa.tetegrambot.helper.KeyboardHelper;
@@ -26,7 +26,7 @@ import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_SEND_TO_CHAT;
 public class Step_2_GetChatID extends UserRequestHandler {
 
     @Autowired
-    private MessangerService messangerService;
+    private MessengerService messengerService;
 
     private final TelegramService telegramService;
     private final KeyboardHelper keyboardHelper;
@@ -69,7 +69,7 @@ public class Step_2_GetChatID extends UserRequestHandler {
                     replyKeyboardMarkup);
             // формуємо перелік чатів і нумеруємо їх
             String stringListRoomsOnline = "";
-            List<MessageRoom> listRoom = messangerService.GetChatRoomList();
+            List<MessageRoom> listRoom = messengerService.GetChatRoomList();
             for (MessageRoom p : listRoom) {
                 if (p.getRoomOnlineStatus()) {
                     stringListRoomsOnline += "\n"+ p.getId().toString()+ " - "+ p.getRoomname();
@@ -84,8 +84,8 @@ public class Step_2_GetChatID extends UserRequestHandler {
             return;
         }
         // Якась херня :(
-        MessageRoom curRoom = messangerService.GetChatRoomById(chatID);
-        MessageRoom cr2 = messangerService.GetRoomNameByUuid(curRoom.getUuid());
+        MessageRoom curRoom = messengerService.GetChatRoomById(chatID);
+        MessageRoom cr2 = messengerService.GetRoomNameByUuid(curRoom.getUuid());
         userRequest.getUserSession().setRFA_Chat_Choose(cr2);
         // візначаємо наступний крок
         telegramService.sendMessage(userRequest.getChatId(),

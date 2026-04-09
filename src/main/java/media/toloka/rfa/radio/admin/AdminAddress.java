@@ -32,12 +32,12 @@ public class AdminAddress {
     @GetMapping(value = "/admin/addresses")
     public String getAdminAdresses(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        List<Clientaddress> clientaddressList = adminService.GetNotApruvedAddresses();
+        List<Clientaddress> clientaddressList = adminService.getNotApruvedAddresses();
         HashMap<Long, Integer> clientdetailLongHashMap = new HashMap<>();
         List<Clientdetail> clientdetailList =  new ArrayList<>();
         for (Clientaddress adr : clientaddressList) {
@@ -49,7 +49,7 @@ public class AdminAddress {
             }
         }
 
-//        model.addAttribute("usersList", adminService.GetAllUsers() );
+//        model.addAttribute("usersList", adminService.getAllUsers() );
         model.addAttribute("clientdetailList", clientdetailList );
         return "/admin/addresses";
     }
@@ -61,7 +61,7 @@ public class AdminAddress {
             @PathVariable Long idAddress,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) { return "redirect:/"; }
 
         Clientaddress clientaddress = adminService.GetClientAddress(idAddress);
@@ -78,7 +78,7 @@ public class AdminAddress {
 //            @RequestParam(value = "id") Long id,
 //            @ModelAttribute Station station,
             Model model ) {
-        Users frmuser = clientService.GetCurrentUser();
+        Users frmuser = clientService.getCurrentUser();
         if (frmuser == null) {
             return "redirect:/";
         }
@@ -94,16 +94,16 @@ public class AdminAddress {
 //            @RequestParam(value = "id") Long id,
             @ModelAttribute Clientaddress fclientaddress,
             Model model ) {
-        Users frmuser = clientService.GetCurrentUser();
+        Users frmuser = clientService.getCurrentUser();
         if (frmuser == null) {
             return "redirect:/";
         }
 
-//        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+//        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
 //        Clientdetail cdf = fclientaddress.getClientdetail();
 
 
-        Clientaddress cal = clientService.GetClientAddressById(idAddress) ;
+        Clientaddress cal = clientService.getClientAddressById(idAddress) ;
         cal.setShortaddress(fclientaddress.getShortaddress());
         cal.setUserAddressType(fclientaddress.getUserAddressType());
         cal.setStreet(fclientaddress.getStreet());

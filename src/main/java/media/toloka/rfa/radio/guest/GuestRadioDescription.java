@@ -40,7 +40,7 @@ public class GuestRadioDescription {
 //            @ModelAttribute User user,
             Model model ) {
         // Відображаємо опис станції розклад та програвач
-        Station station = stationService.GetStationByUUID(uuid);
+        Station station = stationService.getStationByUUID(uuid);
         if (station == null) {
             // станцію не знайшли :(
             logger.info("Не знайшли станцію {}", uuid);

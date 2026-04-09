@@ -32,12 +32,12 @@ public class ModeratorController {
     @GetMapping(value = "/moderator/home")
     public String getUserHome(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
 //        List<Post> posts = createrService.GetAllPostsByCreater(cd);
 //        model.addAttribute("posts", posts );
 

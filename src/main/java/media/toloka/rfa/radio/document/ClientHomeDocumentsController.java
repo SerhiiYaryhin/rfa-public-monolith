@@ -32,11 +32,11 @@ public class ClientHomeDocumentsController {
             Model model) {
         Authentication au;
         // Якщо не залогінені, то переходимо на головну.
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         // дивимося його групи
         // відповідним чином виводимо пункти меню
         // Заповнюємо поля для форми

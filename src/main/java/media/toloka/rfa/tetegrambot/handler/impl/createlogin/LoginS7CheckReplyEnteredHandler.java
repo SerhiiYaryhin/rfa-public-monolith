@@ -72,7 +72,7 @@ public class LoginS7CheckReplyEnteredHandler extends UserRequestHandler {
                     "Все правильно. \nВідправляємо Вам листа для встановлення паролю.");
             // Вся Інформація корректна
             // шукаємо користувача серед зареєстрованих
-            Users potencialUser = clientService.GetUserByEmail(session.getUserEmail());
+            Users potencialUser = clientService.getUserByEmail(session.getUserEmail());
             if (potencialUser == null) {
                 // не знайшли цей e-mail у базі
                 potencialUser = new Users();

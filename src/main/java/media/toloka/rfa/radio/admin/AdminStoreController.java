@@ -47,7 +47,7 @@ public class AdminStoreController {
     @GetMapping(value = "/admin/storage")
     public String getAdminStore(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

@@ -28,7 +28,7 @@ public class ClientAddressEditController {
 //            @RequestParam(value = "id") Long id,
 //            @ModelAttribute Station station,
             Model model ) {
-        Users frmuser = clientService.GetCurrentUser();
+        Users frmuser = clientService.getCurrentUser();
         if (frmuser == null) {
             return "redirect:/";
         }
@@ -48,19 +48,19 @@ public class ClientAddressEditController {
 //            @RequestParam(value = "id") Long id,
             @ModelAttribute Clientaddress fclientaddress,
             Model model ) {
-        Users frmuser = clientService.GetCurrentUser();
+        Users frmuser = clientService.getCurrentUser();
         if (frmuser == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         Clientdetail cdf = fclientaddress.getClientdetail();
 
         if (fclientaddress.getId() == null) {
             fclientaddress.setClientdetail(cd);
             clientService.SaveAddress(fclientaddress);
             clientService.GetAddressList(cd).add(fclientaddress);
-            clientService.SaveClientDetail(cd);
+            clientService.saveClientDetail(cd);
         } else {
             // todo от тут фігню написав :(
             List<Clientaddress> clientaddressList = cd.getClientaddressList();
@@ -84,7 +84,7 @@ public class ClientAddressEditController {
                     break;
                 }
             }
-            clientService.SaveClientDetail(cd);
+            clientService.saveClientDetail(cd);
 //            clientService.SaveAddress(fclientaddress);
         }
 

@@ -55,7 +55,7 @@ public class ClientService {
     final Logger logger = LoggerFactory.getLogger(ClientHomeInfoController.class);
 
 
-    public Users GetUserByEmail(String email) {
+    public Users getUserByEmail(String email) {
         return userRepository.getUserByEmail(email);
     }
 
@@ -68,15 +68,15 @@ public class ClientService {
      *
      * @return поштова адреса зареєстрованого користувача
      */
-    public Users GetCurrentUser() {
+    public Users getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 //        List<Users> usersList= userRepository.findUserByEmail(email);
-        return GetUserByEmail(email);
+        return getUserByEmail(email);
     }
 
     public List<Roles> getListRole() {
 
-        return GetCurrentUser().getRoles();
+        return getCurrentUser().getRoles();
     }
 
     public boolean checkRole(ERole role) {
@@ -109,17 +109,17 @@ public class ClientService {
         userRepository.save(user);
     }
 
-    public Clientdetail GetClientDetailById(Long id) {
+    public Clientdetail getClientDetailById(Long id) {
 
         return clientDetailRepository.getReferenceById(id);
 //        return clientDetailRepository.getById(id);
     }
 
-    public Clientdetail GetClientDetailByUUID(String uuid) {
+    public Clientdetail getClientDetailByUUID(String uuid) {
         return clientDetailRepository.getByUuid(uuid);
     }
 
-    public Clientdetail GetClientDetailByUser(Users user) {
+    public Clientdetail getClientDetailByUser(Users user) {
         // todo якась херня :(
         if (user == null) {
             return null;
@@ -148,7 +148,7 @@ public class ClientService {
     }
 
     @Transactional
-    public void SaveClientDetail(Clientdetail curuserdetail) {
+    public void saveClientDetail(Clientdetail curuserdetail) {
         clientDetailRepository.save(curuserdetail);
     }
 
@@ -165,12 +165,12 @@ public class ClientService {
         return clientAddressRepository.findByClientdetail(Clientdetailrfa);
     }
 
-    public Users GetUserById(Long iduser) {
+    public Users getUserById(Long iduser) {
         return userRepository.getReferenceById(iduser);
 //        return userRepository.getById(iduser);
     }
 
-    public List<Clientaddress> GetClientAddressList(Clientdetail clientdetail) {
+    public List<Clientaddress> getClientAddressList(Clientdetail clientdetail) {
         List<Clientaddress> cal = clientAddressRepository.findByClientdetail(clientdetail);
         return cal;
     }
@@ -185,13 +185,13 @@ public class ClientService {
         return true;
     }
 
-    public Clientdetail GetClientDetailByUuid(String clientUUID) {
+    public Clientdetail getClientDetailByUuid(String clientUUID) {
         Clientdetail cd = clientDetailRepository.getByUuid(clientUUID);
         return cd;
 
     }
 
-    public List<Users> GetAllUsers() {
+    public List<Users> getAllUsers() {
 //        return userRepository.findAll();
         return userRepository.findAllByOrderByIdDesc();
     }
@@ -234,7 +234,7 @@ public class ClientService {
         return clientAddressRepository.findByApruve(false);
     }
 
-    public Clientaddress GetClientAddressById(Long idAddress) {
+    public Clientaddress getClientAddressById(Long idAddress) {
         return clientAddressRepository.getById(idAddress);
     }
 
@@ -270,7 +270,7 @@ public class ClientService {
         if (myToken != null) { // Знайшли токен для реєстрації
             Users user = myToken.getUser();
             tokenService.delete(myToken);
-            Clientdetail cd = GetClientDetailByUser(user);
+            Clientdetail cd = getClientDetailByUser(user);
             // додаємо ROLE_TELEGRAM якщо його він відсутній
             Roles role = null;
             List<Roles> lroles = user.getRoles();
@@ -288,7 +288,7 @@ public class ClientService {
             cd.setTelegramuser(userRequest.getUpdate().getMessage().getFrom().getId().toString());
             cd.setTelegramuserchatid(userRequest.getUpdate().getMessage().getChatId().toString());
             logger.info("Set Telegram Link. UserId: {} ChatId {}", cd.getTelegramuser(), cd.getTelegramuserchatid());
-            SaveClientDetail(cd);
+            saveClientDetail(cd);
             return true;
         }
         return false;

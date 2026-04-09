@@ -44,7 +44,7 @@ public class CreaterAlbumController {
     ) {
         // для сайту - запит та асінхронна обробка. https://www.cat-in-web.ru/fetch-async-await/
 
-        Clientdetail cd = clientService.GetClientDetailById(cdid);
+        Clientdetail cd = clientService.getClientDetailById(cdid);
         Album album = createrService.GetAlbumById(albumid);
         Store store = createrService.GetStoreAlbumCoverByUUID(storealcouuid);
 //        Albumсover albumсover = createrService.GetAlbumCoverById(alcoid);
@@ -78,11 +78,11 @@ public class CreaterAlbumController {
     @GetMapping(value = "/creater/albums")
     public String getCreaterAlbums(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
         model.addAttribute("albumList", albumList );
         return "/creater/albums";
@@ -93,12 +93,12 @@ public class CreaterAlbumController {
             @PathVariable Long idAlbum,
             @ModelAttribute Album falbum,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Album album;
         if (idAlbum == 0L) {
             album = new Album();
@@ -132,11 +132,11 @@ public class CreaterAlbumController {
 //            @PathVariable Long idAlbum,
             @ModelAttribute Album falbum,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Album album = createrService.GetAlbumById(falbum.getId());
         if (album == null) {
             logger.info("З якогось дива не знайшли альбом {}", falbum.getId());
@@ -162,12 +162,12 @@ public class CreaterAlbumController {
             @PathVariable Long idAlbum,
             @ModelAttribute Album falbum,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Album album;
         if (idAlbum == 0L) {
             album = new Album();

@@ -49,10 +49,10 @@ public class StoreItemController {
 //    public @ResponseBody String GetStoreItemEdit(
         @PathVariable String storeItemUUID,
         Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) { return "redirect:/"; }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Store store = storeService.GetStoreByUUID(storeItemUUID);
 
@@ -72,10 +72,10 @@ public class StoreItemController {
             @ModelAttribute Store fstore,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) { return "redirect:/"; }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Store store = storeService.GetStoreByUUID(storeItemUUID);
         store.setComment(fstore.getComment());
         store.setStorefiletype(fstore.getStorefiletype());
@@ -91,10 +91,10 @@ public class StoreItemController {
             @PathVariable String storeItemUUID,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) { return "redirect:/"; }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Store store = storeService.GetStoreByUUID(storeItemUUID);
         Boolean result = storeService.DeleteStoreRecord(store);

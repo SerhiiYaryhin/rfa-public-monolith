@@ -66,14 +66,14 @@ public class TemporaryController {
             @RequestParam(value = "id", required = true) Long id,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
 //            logger.warn("User not found. Redirect to main page");
             return "redirect:/login";
         }
 
-//        messageService.setQuantityMessage(clientService.getClientDetail(clientService.GetCurrentUser()));
-        Station station = stationService.GetStationById(id);
+//        messageService.setQuantityMessage(clientService.getClientDetail(clientService.getCurrentUser()));
+        Station station = stationService.getStationById(id);
         Clientdetail cd = station.getClientdetail();
 
         // відправляємо завдання на створення радіостанції.

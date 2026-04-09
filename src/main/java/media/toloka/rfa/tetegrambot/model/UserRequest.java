@@ -2,7 +2,7 @@ package media.toloka.rfa.tetegrambot.model;
 
 import lombok.Builder;
 import lombok.Data;
-import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messenger.model.MessageRoom;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Data

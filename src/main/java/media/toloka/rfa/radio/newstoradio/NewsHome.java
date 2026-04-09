@@ -84,17 +84,17 @@ public class NewsHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         News news = NewsBackServerService.GetByUUID(uuidnews);
         if (news == null) {
             return "redirect:/newsradio/home/0";
         }
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
-        List<Station> listStation = stationService.GetListStationByCd(cd);
+        List<Station> listStation = stationService.getListStationByCd(cd);
         List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
         model.addAttribute("voices", voices);        model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
@@ -121,11 +121,11 @@ public class NewsHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         News curnews = NewsBackServerService.GetByUUID(uuidnews);
 
@@ -137,7 +137,7 @@ public class NewsHome {
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
-        List<Station> listStation = stationService.GetListStationByCd(cd);
+        List<Station> listStation = stationService.getListStationByCd(cd);
 
         model.addAttribute("liststation", listStation);
         model.addAttribute("categorys", category);
@@ -158,11 +158,11 @@ public class NewsHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Integer curpage = Integer.parseInt(scurpage);
 
         /// виконуємо трансляцію на радіостанцію
@@ -253,17 +253,17 @@ public class NewsHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         News curnews = NewsBackServerService.GetByUUID(uuidnews);
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
-        List<Station> listStation = stationService.GetListStationByCd(cd);
+        List<Station> listStation = stationService.getListStationByCd(cd);
 
         List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
 
@@ -283,12 +283,12 @@ public class NewsHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
-        Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
+        Users user = clientService.getCurrentUser();
+        Clientdetail clientdetail = clientService.getClientDetailByUser(user);
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         News curnews = NewsBackServerService.GetByUUID(uuidnews);
         if (curnews != null) {
@@ -340,11 +340,11 @@ public class NewsHome {
     public String GetNewsHome(
             @PathVariable String cPage,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
@@ -374,11 +374,11 @@ public class NewsHome {
             @PathVariable String uuidnews,
             @PathVariable String scurpage,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         News curnews = NewsBackServerService.GetByUUID(uuidnews);
         if (curnews == null) {
@@ -391,7 +391,7 @@ public class NewsHome {
 
         List<ENewsCategory> category = Arrays.asList(ENewsCategory.values());
 
-        List<Station> listStation = stationService.GetListStationByCd(cd);
+        List<Station> listStation = stationService.getListStationByCd(cd);
 
         List<ENewsVoice> voices = Arrays.asList(ENewsVoice.values());
 
@@ -411,11 +411,11 @@ public class NewsHome {
             @PathVariable String pagelist,
             @ModelAttribute News fnews,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
 //        News news = newsService.GetByUUID(uuidNews);
 

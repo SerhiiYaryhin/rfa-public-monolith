@@ -53,12 +53,12 @@ public class CreaterTrackController {
     public String getCreaterTracks(
             @PathVariable String cPage,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
         Integer curpage = Integer.parseInt(cPage);
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
         List<Album> albums = createrService.GetAllAlbumsByCreater(cd);
 
@@ -82,11 +82,11 @@ public class CreaterTrackController {
      */
     @GetMapping(value = "/creater/newtrack")
     public String createNewTrack(Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         // Створюємо порожній трек (без файлу)
         Track track = new Track();
@@ -105,11 +105,11 @@ public class CreaterTrackController {
     public String getCreaterEditTracks(
             @PathVariable String uuidTrack,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Track track = createrService.GetTrackByUuid(uuidTrack);
         if (track == null) {
@@ -139,11 +139,11 @@ public class CreaterTrackController {
             @ModelAttribute Track ftrack,
             Model model,
             RedirectAttributes redirectAttributes ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Track track = createrService.GetTrackById(ftrack.getId());
         if (track == null) {
             logger.info("З якогось дива не знайшли трек {}", ftrack.getId());
@@ -212,11 +212,11 @@ public class CreaterTrackController {
     public String getCreaterPublishTracks(
             @ModelAttribute Track ftrack,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Track track = createrService.GetTrackById(ftrack.getId());
         if (track == null) {
             logger.info("З якогось дива не знайшли трек {}", ftrack.getId());

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.banner.model.Banner;
-import media.toloka.rfa.banner.repositore.BannerRepository;
+import media.toloka.rfa.banner.repository.BannerRepository;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -150,7 +150,7 @@ public class BannerRestController {
             @PathVariable String bannerUuid,
             @PathVariable String mediaUuid) {
 
-        if (clientService.GetClientDetailByUser(clientService.GetCurrentUser()) == null) return ResponseEntity.notFound().build();
+        if (clientService.getClientDetailByUser(clientService.getCurrentUser()) == null) return ResponseEntity.notFound().build();
 
         Optional<Banner> bannerOpt = bannerRepository.findById(bannerUuid);
         if (bannerOpt.isPresent()) {

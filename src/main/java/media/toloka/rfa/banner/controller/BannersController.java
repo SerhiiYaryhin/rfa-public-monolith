@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;
-import media.toloka.rfa.banner.repositore.BannerRepository;
+import media.toloka.rfa.banner.repository.BannerRepository;
 import media.toloka.rfa.banner.service.BannerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -71,11 +71,11 @@ public class BannersController {
      */
     @GetMapping("/new")
     public String createForm(Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -106,11 +106,11 @@ public class BannersController {
     public String save(@ModelAttribute("banner") Banner banner,
                        BindingResult bindingResult,
                        Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -154,11 +154,11 @@ public class BannersController {
     /// Видаляємо баннер
     @PostMapping("/{uuid}/delete")
     public String delete(@PathVariable String uuid) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -170,11 +170,11 @@ public class BannersController {
     /// Змінюємо статус і дату погодження
     @PostMapping("/{uuid}/toggle-approve")
     public String toggleApprove(@PathVariable String uuid) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -246,7 +246,7 @@ public class BannersController {
             )
     {
 
-        if (clientService.GetClientDetailByUser(clientService.GetCurrentUser()) == null)
+        if (clientService.getClientDetailByUser(clientService.getCurrentUser()) == null)
             return "redirect:/";
 
         Banner banner =  bannerService.BannerGetByUUID(bannerUuid);

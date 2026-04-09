@@ -49,13 +49,13 @@ public class AdminPosts {
     @GetMapping(value = "/admin/posts")
     public String getUserHome(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-//        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        List<Post> posts = adminService.GetNotApruvePosts();
+//        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
+        List<Post> posts = adminService.getNotApruvePosts();
         model.addAttribute("posts", posts );
 
         return "/admin/posts";
@@ -65,16 +65,16 @@ public class AdminPosts {
     public String getAdminPublishPost(
             @PathVariable Long postId,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = adminService.getPostById(postId);
         post.setPostStatus(POSTSTATUS_PUBLICATE);
         post.setApruve(true);
         post.setPublishdate(new Date());
-        adminService.SavePost(post);
+        adminService.savePost(post);
         historyService.saveHistory(EHistoryType.History_PostPublicate,"Apruve post "+post.getUuid()
                         +" cd="+post.getClientdetail().getId()
                         +" Client UUID="+post.getClientdetail().getUuid()
@@ -86,16 +86,16 @@ public class AdminPosts {
     public String getAdminDeletePost(
             @PathVariable Long postId,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = adminService.getPostById(postId);
         post.setPostStatus(POSTSTATUS_DELETE);
         post.setApruve(false);
 //        post.setPublishdate(new Date());
-        adminService.SavePost(post);
+        adminService.savePost(post);
         historyService.saveHistory(EHistoryType.History_PostDelete,"Delete post "+post.getUuid()
                         +" cd="+post.getClientdetail().getId()
                         +" Client UUID="+post.getClientdetail().getUuid()
@@ -108,16 +108,16 @@ public class AdminPosts {
     public String getAdminRejectPost(
             @PathVariable Long postId,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = adminService.getPostById(postId);
         post.setPostStatus(POSTSTATUS_REJECT);
         post.setApruve(false);
 //        post.setPublishdate(new Date());
-        adminService.SavePost(post);
+        adminService.savePost(post);
         historyService.saveHistory(EHistoryType.History_PostReject,"Reject post id="+post.getUuid()
                 +" cd="+post.getClientdetail().getId()
                 +" Client UUID="+post.getClientdetail().getUuid()

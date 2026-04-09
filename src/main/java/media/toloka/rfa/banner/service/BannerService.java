@@ -1,7 +1,7 @@
 package media.toloka.rfa.banner.service;
 
 import media.toloka.rfa.banner.model.Banner;
-import media.toloka.rfa.banner.repositore.BannerRepository;
+import media.toloka.rfa.banner.repository.BannerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

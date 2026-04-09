@@ -57,12 +57,12 @@ public class PodcastEditController {
             Model model ) {
 /* */
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         logger.info("Зайшли на /podcast/pedit/{}",puuid);
@@ -115,11 +115,11 @@ public class PodcastEditController {
             @ModelAttribute PodcastChannel podcast,
 //            @ModelAttribute Users formUserPSW,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         PodcastChannel tpodcast = podcastService.GetChanelByUUID(podcast.getUuid());
@@ -146,11 +146,11 @@ public class PodcastEditController {
             @ModelAttribute PodcastChannel podcast,
             Model model ) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         podcast.setClientdetail(cd.getUuid());
@@ -234,11 +234,11 @@ public class PodcastEditController {
             @PathVariable String euuid,
             @PathVariable String puuid,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         // витягуємо епізод
@@ -279,11 +279,11 @@ public class PodcastEditController {
             @PathVariable String iuuid,
             @PathVariable String puuid,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         // витягуємо епізод

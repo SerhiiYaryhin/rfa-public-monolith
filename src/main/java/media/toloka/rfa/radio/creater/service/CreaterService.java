@@ -7,13 +7,13 @@ import media.toloka.rfa.radio.creater.repository.AlbumRepository;
 import media.toloka.rfa.radio.creater.repository.TrackRepository;
 import media.toloka.rfa.radio.document.ClientDocumentEditController;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
-import media.toloka.rfa.media.messanger.model.ChatMessage;
-import media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.model.ChatMessage;
+import media.toloka.rfa.media.messenger.model.enumerate.EChatRecordType;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.radio.login.service.TokenService;
 import media.toloka.rfa.radio.model.*;
 import media.toloka.rfa.radio.model.enumerate.EDocumentStatus;
-import media.toloka.rfa.radio.post.repositore.PostRepositore;
+import media.toloka.rfa.radio.post.repository.PostRepositore;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
@@ -52,7 +52,7 @@ public class CreaterService {
     private FilesService filesService;
 
     @Autowired
-    private MessangerService messangerService;
+    private MessengerService messengerService;
 
     @Autowired
     private StoreService storeService;
@@ -204,7 +204,7 @@ public class CreaterService {
         );
         cm.setRtype(EChatRecordType.RECORD_TYPE_MEDIA.ordinal());
         cm.setRoomuuid(chatmainroom);
-        messangerService.SaveMessage(cm);
+        messengerService.SaveMessage(cm);
         try {
             this.template.convertAndSend("/topic/"+chatmainroom, cm);
         } catch (Exception e) {
@@ -212,7 +212,7 @@ public class CreaterService {
             e.printStackTrace();
         }
         cm.setRoomuuid(chatmainroom);
-        messangerService.SaveMessage(cm);
+        messengerService.SaveMessage(cm);
         try {
             this.template.convertAndSend("/topic/"+chatmainroom, cm);
         } catch (Exception e) {
@@ -226,7 +226,7 @@ public class CreaterService {
         cmt.setRtype(cm.getRtype());
         cmt.setBody(cm.getBody());
         cmt.setRoomuuid(chattrackroom);
-        messangerService.SaveMessage(cmt);
+        messengerService.SaveMessage(cmt);
         try {
             this.template.convertAndSend("/topic/"+chattrackroom, cmt);
         } catch (Exception e) {
@@ -256,7 +256,7 @@ public class CreaterService {
 
     public boolean checkTelegramTooken() {
         // Перевіряємо наявність Токена для привʼязки Телеграму в базі токенів для поточного Users
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) return false;
         Token token = serviceToken.findByUser(user);
         if (token == null) return false;
@@ -265,7 +265,7 @@ public class CreaterService {
     }
 
     public String getTelegramToken() {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) return null;
 //        return user.getClientdetail().getUuid();
         Token token = serviceToken.findByUser(user);

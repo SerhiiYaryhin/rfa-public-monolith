@@ -1,7 +1,7 @@
 package media.toloka.rfa.radio.store.Service;
 
 
-import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
+import media.toloka.rfa.radio.store.repository.StoreRepositoryPagination;
 import media.toloka.rfa.radio.store.implementation.StoreFileImplementation;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -27,55 +27,55 @@ public class StoreService extends StoreFileImplementation {
     final Logger logger = LoggerFactory.getLogger(StoreService.class);
 
     @Autowired
-    private StoreRepositorePagination storeRepositore;
+    private StoreRepositoryPagination storeRepositoryPagination;
 
     @Autowired
     private FilesService filesService;
 
     public List<Store> GetAllByClientId(Clientdetail cd) {
-        return storeRepositore.findAllByClientdetail(cd);
+        return storeRepositoryPagination.findAllByClientdetail(cd);
     }
 
     public Page GetStorePage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = storeRepositore.findAll(storePage);
+        Page page = storeRepositoryPagination.findAll(storePage);
         return page;
     }
 
     public Page GetStorePageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
 //        Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        return storeRepositore.findByClientdetailOrderByIdDesc(PageRequest.of(pageNumber, pageCount),cd);
+        return storeRepositoryPagination.findByClientdetailOrderByIdDesc(PageRequest.of(pageNumber, pageCount),cd);
 //        return page;
     }
 
     public List<Store> GetAllTrackByClientId(Clientdetail cd) {
-//        return storeRepositore.findByClientdetailAndStorefiletype(cd,STORE_TRACK);
-        return storeRepositore.findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_TRACK);
+//        return storeRepositoryPagination.findByClientdetailAndStorefiletype(cd,STORE_TRACK);
+        return storeRepositoryPagination.findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_TRACK);
     }
 
     @Transactional
     public void SaveStore(Store store) {
-        storeRepositore.save(store);
+        storeRepositoryPagination.save(store);
     }
 
     public List<Store> GetAllEpisodeByClientId(Clientdetail cd) {
-        return storeRepositore.findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_EPISODETRACK);
+        return storeRepositoryPagination.findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_EPISODETRACK);
     }
 
     public Page GetAllPictures(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page ttt = storeRepositore.findByStorelAllPictures(storePage, cd);
-        return ttt; // storeRepositore.findByStorelAllPictures(storePage, cd);
-//        return storeRepositore.findByStorelAllPictures(cd.getId());
+        Page ttt = storeRepositoryPagination.findByStorelAllPictures(storePage, cd);
+        return ttt; // storeRepositoryPagination.findByStorelAllPictures(storePage, cd);
+//        return storeRepositoryPagination.findByStorelAllPictures(cd.getId());
     }
 
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
-        return storeRepositore.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
+        return storeRepositoryPagination.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
     }
 
 
     public Page<Store> GetPagingStoreFilesByType(int page, int size, EStoreFileType fileType) {
         PageRequest pageable = PageRequest.of(page, size);
-        return storeRepositore.findByStorefiletype(pageable, fileType);
+        return storeRepositoryPagination.findByStorefiletype(pageable, fileType);
     }
 }

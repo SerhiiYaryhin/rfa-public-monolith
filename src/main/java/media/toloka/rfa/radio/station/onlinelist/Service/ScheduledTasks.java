@@ -52,7 +52,7 @@ public class ScheduledTasks {
         // REST інтерфейc LibreTime
 
         // беремо станції, які знаходяться онлайн
-        List<Station> stationOnlineList = stationService.GetListStationByStatus(true);
+        List<Station> stationOnlineList = stationService.getListStationByStatus(true);
         // беремо перелік станцій для морди
         List<ListOnlineFront> listOnlineFronts = StationOnlineList.getInstance().GetOnlineList();
 

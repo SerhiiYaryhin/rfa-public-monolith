@@ -42,7 +42,7 @@ public class ClientHomeInfoController {
     public String getUserHomeInfo(
 //            @ModelAttribute User user,
             Model model ) {
-        Users frmuser = clientService.GetCurrentUser();
+        Users frmuser = clientService.getCurrentUser();
         if (frmuser == null) {
             return "redirect:/";
         }
@@ -51,7 +51,7 @@ public class ClientHomeInfoController {
         // дивимося його групи
         // відповідним чином виводимо пункти меню
         // Заповнюємо поля для форми
-        Clientdetail userdetail = clientService.GetClientDetailByUser(frmuser);
+        Clientdetail userdetail = clientService.getClientDetailByUser(frmuser);
         if ( userdetail == null) {
             logger.info("Додаємо UserDetail та UserAddress до структури користувача.");
             userdetail = new Clientdetail();
@@ -74,7 +74,7 @@ public class ClientHomeInfoController {
 //            @ModelAttribute Clientaddress faddress,
             Model model ) {
         // Витягуєм користувача
-        Clientdetail curuserdetail = clientService.GetClientDetailById(fuserdetail.getId());
+        Clientdetail curuserdetail = clientService.getClientDetailById(fuserdetail.getId());
         if (curuserdetail == null) {
 //            logger.info("Додаємо UserDetail та UserAddress до структури користувача.");
             curuserdetail = new Clientdetail();
@@ -98,7 +98,7 @@ public class ClientHomeInfoController {
 
         // Зберігаємо інформацію про користувача
 */
-        clientService.SaveClientDetail(curuserdetail);
+        clientService.saveClientDetail(curuserdetail);
         historyService.saveHistory( History_UserInfoSave, "UserInfoSave", curuserdetail.getUser() );
 
         return "redirect:/user/user_page";

@@ -20,7 +20,7 @@ public class AdminFinance {
     @GetMapping(value = "/admin/financeuser")
     public String getUserFinance(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

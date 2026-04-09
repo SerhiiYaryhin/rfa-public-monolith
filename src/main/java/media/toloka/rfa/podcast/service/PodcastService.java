@@ -5,16 +5,16 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.Setter;
 import media.toloka.rfa.podcast.model.PodcastItunesCategory;
-import media.toloka.rfa.podcast.repositore.ItunesCategoryRepository;
+import media.toloka.rfa.podcast.repository.ItunesCategoryRepository;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 //import media.toloka.rfa.podcast.model.PodcastImage;
 import media.toloka.rfa.podcast.model.PodcastItem;
-import media.toloka.rfa.podcast.repositore.ChanelRepository;
-import media.toloka.rfa.podcast.repositore.EpisodeRepository;
-//import media.toloka.rfa.podcast.repositore.PodcastCoverRepository;
+import media.toloka.rfa.podcast.repository.ChanelRepository;
+import media.toloka.rfa.podcast.repository.EpisodeRepository;
+//import media.toloka.rfa.podcast.repository.PodcastCoverRepository;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.service.DownloadFileException;
@@ -87,7 +87,7 @@ public class PodcastService {
     }
 
     public Clientdetail GetCdByUUID(PodcastChannel podcastChannel) {
-        return clientService.GetClientDetailByUUID(podcastChannel.getClientdetail());
+        return clientService.getClientDetailByUUID(podcastChannel.getClientdetail());
     }
 
     public PodcastItem GetEpisodeByTitle(String euuid) {
@@ -461,7 +461,7 @@ public class PodcastService {
     @Transactional
     public void PutPodcastFromRSS(Model model, strUrl gstrUrl) {
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
 
 // тимчасово закоментував
 //        gstrUrl.setTested(false);

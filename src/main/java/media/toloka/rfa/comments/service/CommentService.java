@@ -243,12 +243,12 @@ public class CommentService {
     }
 
     public Clientdetail getCurrentUser() {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return null;
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         return cd; // Заглушка: ID поточного користувача
     }
 
@@ -274,12 +274,12 @@ public class CommentService {
     }
 
     public Clientdetail getCurrentUserId() {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return null;
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         return cd;
     }
 

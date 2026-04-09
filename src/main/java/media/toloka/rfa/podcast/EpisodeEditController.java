@@ -39,12 +39,12 @@ public class EpisodeEditController {
             @PathVariable String puuid,
             Model model ) {
 //        logger.info("Зайшли на епізод: /podcast/episodedit/{}",euuid);
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
         PodcastChannel podcast;
 
@@ -62,12 +62,12 @@ public class EpisodeEditController {
             @ModelAttribute PodcastItem episode,
 //            @ModelAttribute Users formUserPSW,
             Model model ) {
-        // Users user = clientService.GetCurrentUser();
-        Users user = clientService.GetCurrentUser();
+        // Users user = clientService.getCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         PodcastItem tepisode = podcastService.GetEpisodeByUUID(euuid);
@@ -93,12 +93,12 @@ public class EpisodeEditController {
             @PathVariable String euuid, // uuid епізоду
             @PathVariable String iuuid, // uuid обкладинки у сховищі
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);

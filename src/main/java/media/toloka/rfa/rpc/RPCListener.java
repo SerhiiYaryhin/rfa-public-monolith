@@ -50,7 +50,7 @@ Logger logger = LoggerFactory.getLogger(RPCListener.class);
 //        switch (rjob.getRJobType()) {
             case JOB_STATION_CREATE:  // Заповнюємо базу необхідною інформацією
                 logger.info("+++++++++++++++++ START JOB_STATION_CREATE");
-                rc = serviceRPC.JobCreateStation(rjob); // from Client Page. Next step
+                rc = serviceRPC.JobcreateStation(rjob); // from Client Page. Next step
                 rjob.getResultJobList().add(new ResultJob(rc, curJob));
                 logger.info("+++++++++++++++++ END JOB_STATION_CREATE");
                 break;

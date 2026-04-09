@@ -6,7 +6,7 @@ import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.document.service.DocumentService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.store.Interface.StoreInterface;
-import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
+import media.toloka.rfa.radio.store.repository.StoreRepositoryPagination;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
@@ -36,7 +36,7 @@ public class StoreFileImplementation implements StoreInterface {
     //private String PATHuploadDirectory;
 
     @Autowired
-    private StoreRepositorePagination storerepositore;
+    private StoreRepositoryPagination storeRepositoryPagination;
 
     @Autowired
     private FilesService filesService;
@@ -45,7 +45,7 @@ public class StoreFileImplementation implements StoreInterface {
     private DocumentService documentService;
 
     @Autowired
-    private StoreRepositorePagination storeRepositore;
+    private StoreRepositoryPagination storeRepositore;
 
     @Autowired
     private HistoryService historyService;
@@ -57,7 +57,7 @@ public class StoreFileImplementation implements StoreInterface {
 
     @Override
     public InputStream GetFileFromStore(String uuid) {
-        Store store = storerepositore.getByUuid(uuid);
+        Store store = storeRepositoryPagination.getByUuid(uuid);
         File file = new File(store.getFilepatch());
         if (file.exists()) {
             try {
@@ -127,7 +127,7 @@ public class StoreFileImplementation implements StoreInterface {
     /// Видаляємо запис з бази
     public Boolean DeleteStoreRecord(Store store) {
         try {
-            storeRepositore.delete(store);
+            storeRepositoryPagination.delete(store);
             return true;
         } catch (DataIntegrityViolationException ee) {
             logger.info("===== DataIntegrityViolationException: Помилка видалення запису у сховищі {}",store.getUuid());
@@ -155,7 +155,7 @@ public class StoreFileImplementation implements StoreInterface {
                 logger.info("===== Store ID: {} Файл не існує. Patch {}", store.getId(), sPatch);
             }
            }
-        storeRepositore.delete(store);
+        storeRepositoryPagination.delete(store);
         return true;
     }
 
@@ -177,30 +177,30 @@ public class StoreFileImplementation implements StoreInterface {
             storeitem.setFilelength(filesService.GetMediaLength(destination));
         }
         try {
-            storeRepositore.save(storeitem);
+            storeRepositoryPagination.save(storeitem);
         } catch (Exception e)
         {
-            logger.error("StoreFileImplementation -> SaveStoreItemInfo -> storeRepositore.save(storeitem)");
+            logger.error("StoreFileImplementation -> SaveStoreItemInfo -> storeRepositoryPagination.save(storeitem)");
         }
         return storeitem;
     }
 
     public Store GetStoreItemByFilenameByClientDetail(String fileName, Clientdetail cd) {
-        return storeRepositore.getByFilenameAndClientdetail(fileName,cd);
+        return storeRepositoryPagination.getByFilenameAndClientdetail(fileName,cd);
     }
 
     public Page GetStorePageItemType(int pageNumber, int pageCount, EStoreFileType eStoreFileType) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = storeRepositore.findByStorefiletype(storePage, eStoreFileType);
+        Page page = storeRepositoryPagination.findByStorefiletype(storePage, eStoreFileType);
         return page;
 
     }
 
     public Store GetStoreByUUID(String storeUUID) {
-        return storeRepositore.getByUuid(storeUUID);
+        return storeRepositoryPagination.getByUuid(storeUUID);
     }
 
     public List<Store> GetAll() {
-        return storeRepositore.findAll();
+        return storeRepositoryPagination.findAll();
     }
 }

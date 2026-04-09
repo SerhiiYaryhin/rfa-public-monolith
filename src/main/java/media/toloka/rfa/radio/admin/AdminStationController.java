@@ -65,7 +65,7 @@ public class AdminStationController {
     @GetMapping(value = "/admin/station")
     public String getAdminStation(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

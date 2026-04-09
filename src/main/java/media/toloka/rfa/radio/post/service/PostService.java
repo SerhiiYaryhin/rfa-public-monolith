@@ -4,8 +4,8 @@ import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.PostCategory;
 import media.toloka.rfa.radio.model.enumerate.EPostCategory;
-import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
-import media.toloka.rfa.radio.post.repositore.PostRepositore;
+import media.toloka.rfa.radio.post.repository.PostCategoryRepositore;
+import media.toloka.rfa.radio.post.repository.PostRepositore;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,18 +31,18 @@ public class PostService {
     private ClientDetailRepository clientDetailRepository;
 
 
-    public Post GetPostById(Long idPost) {
+    public Post getPostById(Long idPost) {
         Post post = postRepositore.getById(idPost);
         return post;
     }
 
 // Варіант, який працював.
-//    public void SavePost(Post post) {
+//    public void savePost(Post post) {
 //        postRepositore.save(post);
 //    }
 
     @Transactional
-    public void SavePost(Post post) {
+    public void savePost(Post post) {
         Clientdetail cd = post.getClientdetail();
 
         if (cd != null && cd.getId() != null) {

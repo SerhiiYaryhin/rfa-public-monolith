@@ -47,12 +47,12 @@ public class CreaterStoreController {
 //            @PathVariable String fileName,
 //            @ModelAttribute Clientdetail fuserdetail,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Page pageStore = storeService.GetStorePageByClientDetail(pageNumber,10, cd);
         List<Store> storeList = pageStore.stream().toList();
@@ -80,12 +80,12 @@ public class CreaterStoreController {
 //            @PathVariable String fileName,
 //            @ModelAttribute Clientdetail fuserdetail,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Post curpost = createrService.GetPostByUuid(postUuid);
 
         Page pageStore = storeService.GetAllPictures(pageNumber,10, cd);

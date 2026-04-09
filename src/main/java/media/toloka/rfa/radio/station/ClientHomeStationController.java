@@ -4,9 +4,9 @@ package media.toloka.rfa.radio.station;
 import com.google.gson.Gson;
 import lombok.Data;
 import media.toloka.rfa.config.gson.service.GsonService;
-import media.toloka.rfa.media.messanger.model.MessageRoom;
-import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.model.MessageRoom;
+import media.toloka.rfa.media.messenger.model.enumerate.EChatRoomType;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.history.service.HistoryService;
@@ -69,7 +69,7 @@ public class ClientHomeStationController {
     RabbitTemplate template;
 
     @Autowired
-    private MessangerService messangerService;
+    private MessengerService messengerService;
 
     @Autowired
     private SendToRadio sendToRadio;
@@ -92,12 +92,12 @@ public class ClientHomeStationController {
     public String GetUserControltToradioUser(
             @RequestParam(value = "id", required = true) Long id,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
         Station mstation;
-        mstation = stationService.GetStationById(id);
+        mstation = stationService.getStationById(id);
         if (mstation == null) {
             // Станцію створити не можемо. Показуємо про це повідомлення.
             logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
@@ -117,7 +117,7 @@ public class ClientHomeStationController {
     public String PostUserControltToradioUser(
             @ModelAttribute ToRadioUser toradiouser,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
 //            logger.warn("userHomeStationSave: User not found. Redirect to main page");
             return "redirect:/";
@@ -130,7 +130,7 @@ public class ClientHomeStationController {
 
         Station nstation;
         if (toradiouser.getId() != null) {
-            nstation = stationService.GetStationById(toradiouser.getId());
+            nstation = stationService.getStationById(toradiouser.getId());
         } else {
             logger.info("userHomeStationSave:  Не можемо знайти станцію id={} для користувача {}", toradiouser.getId(), user.getEmail());
             return "redirect:/user/stations";
@@ -160,11 +160,11 @@ public class ClientHomeStationController {
             @PathVariable String suuid,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationByUUID(suuid);
+        Station station = stationService.getStationByUUID(suuid);
         if (station == null) {
             return "redirect:/";
         }
@@ -172,7 +172,7 @@ public class ClientHomeStationController {
             MessageRoom stRoom = new MessageRoom();
             stRoom.setRoomname(station.getName());
             stRoom.setRoomtype(EChatRoomType.CHATROOM_TYPE_STATION);
-            messangerService.SaveRoom(stRoom);
+            messengerService.SaveRoom(stRoom);
             station.setRoomuuid(stRoom.getUuid());
             stationService.saveStation(station);
         }
@@ -184,47 +184,47 @@ public class ClientHomeStationController {
     public String userHomeStationLiveBroadcast(
             @PathVariable String suuid,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationByUUID(suuid);
+        Station station = stationService.getStationByUUID(suuid);
         if (station == null) {
             return "redirect:/";
         }
-        MessageRoom msgroom = messangerService.GetChatRoomByUUID(station.getRoomuuid());
+        MessageRoom msgroom = messengerService.GetChatRoomByUUID(station.getRoomuuid());
         msgroom.setRoomOnlineStatus(!msgroom.getRoomOnlineStatus());
         if (msgroom.getRoomOnlineStatus()) {
             msgroom.setStartonline(new Date());
         } else {
             msgroom.setStartonline(null);
         }
-        messangerService.SaveRoom(msgroom);
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        messengerService.SaveRoom(msgroom);
+//        model.addAttribute("stations",  stationService.getListStationByUser(user));
         return "redirect:/user/controlstation?id=" + station.getId().toString();
     }
 
     @GetMapping(value = "/user/stations")
     public String userHomeStation(
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        model.addAttribute("stations", stationService.GetListStationByUser(user));
+        model.addAttribute("stations", stationService.getListStationByUser(user));
         return "/user/stations";
     }
 
 
     @GetMapping(value = "/user/createstation")
-    public String userCreateStation(
+    public String usercreateStation(
             Model model) {
 
 //        logger.info("Create New station.");
-        Users user = clientService.GetCurrentUser();
-        Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
+        Users user = clientService.getCurrentUser();
+        Clientdetail clientdetail = clientService.getClientDetailByUser(user);
         if (user == null) {
-            logger.warn("ClientHomeStationController -> userCreateStation. User not found. Redirect to main page");
+            logger.warn("ClientHomeStationController -> usercreateStation. User not found. Redirect to main page");
             return "redirect:/";
         }
         if (stationService.CreateCheckConfirminfo(clientdetail) == false) {
@@ -235,12 +235,12 @@ public class ClientHomeStationController {
                     "У Профайлі відмітте поле \"З умовами надання сервісу погоджуюся\".");
             return "/user/stations";
         }
-        if (stationService.CreateCheckAddress(clientdetail) == false) {
+        if (stationService.createCheckAddress(clientdetail) == false) {
             model.addAttribute("warning", "Неможливо створити станцію! У Профайлі відсутня поштова адреса.");
             return "/user/stations";
         }
 
-        if (stationService.CreateCheckApruveAddress(clientdetail) == false) {
+        if (stationService.createCheckApruveAddress(clientdetail) == false) {
             model.addAttribute("warning", "Неможливо створити станцію! У Профайлі відсутня схвалена адреса. Дочекайтеся будь ласка схвалення адміністрацією сервісом.");
             return "/user/stations";
         }
@@ -248,7 +248,7 @@ public class ClientHomeStationController {
         if (clientdetail.getStationList().size() > 0) {
             if (stationService.HavePayContract(clientdetail) == false) {
                 // перевіряємо наявності безкоштовної станції
-                if (stationService.CreateCheckFreeStation(clientdetail) == true) {
+                if (stationService.createCheckFreeStation(clientdetail) == true) {
                     model.addAttribute("warning", "Неможливо створити станцію! У Вас вже є тестова станція що додана до безкоштовного контракту");
                     return "/user/stations";
                 }
@@ -257,7 +257,7 @@ public class ClientHomeStationController {
             }
         }
 
-        Station station = stationService.CreateStation(clientdetail);
+        Station station = stationService.createStation(clientdetail);
         if (station == null) {
             logger.info("Не можемо створити станцію для користувача {}. ", user.getEmail());
             model.addAttribute("warning", "Не можемо створити станцію. Повідомте про це службі підтримки.");
@@ -302,7 +302,7 @@ public class ClientHomeStationController {
 
 //        template.convertAndSend(queueNameRabbitMQ, gson.toJson(rjob).toString());
         template.convertAndSend(queueNameRabbitMQ, strgson);
-        logger.warn("ClientHomeStationController -> userCreateStation. Завдання відправлено на виконання у чергу {}.", queueNameRabbitMQ);
+        logger.warn("ClientHomeStationController -> usercreateStation. Завдання відправлено на виконання у чергу {}.", queueNameRabbitMQ);
 
         return "redirect:/user/stations";
     }
@@ -312,12 +312,12 @@ public class ClientHomeStationController {
     public String userControltStation(
             @RequestParam(value = "id", required = true) Long id,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
         Station mstation;
-        mstation = stationService.GetStationById(id);
+        mstation = stationService.getStationById(id);
         if (mstation == null) {
             // Станцію створити не можемо. Показуємо про це повідомлення.
             logger.info("ClientHomeStationController:  Не можемо запустити станцію для користувача {}", user.getEmail());
@@ -329,12 +329,12 @@ public class ClientHomeStationController {
 
         model.addAttribute("formUserPSW", new Users());
         model.addAttribute("contracts", contractService.ListContractByUser(user));
-        model.addAttribute("linkstation", stationService.GetURLStation(mstation));
+        model.addAttribute("linkstation", stationService.getURLStation(mstation));
         model.addAttribute("station", mstation);
-        Boolean stationstateonline = stationService.GetStationRoomStatus(mstation.getRoomuuid());
+        Boolean stationstateonline = stationService.getStationRoomStatus(mstation.getRoomuuid());
         model.addAttribute("stationstateonline", stationstateonline);
-        if (messangerService.GetChatRoomByUUID(mstation.getRoomuuid()) != null) {
-            model.addAttribute("roomstart", messangerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline());
+        if (messengerService.GetChatRoomByUUID(mstation.getRoomuuid()) != null) {
+            model.addAttribute("roomstart", messengerService.GetChatRoomByUUID(mstation.getRoomuuid()).getStartonline());
         } else {
             model.addAttribute("roomstart", null);
         }
@@ -348,7 +348,7 @@ public class ClientHomeStationController {
             @ModelAttribute Station station,
             Model model) {
         logger.info("Збереження паролю для станції.");
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -356,11 +356,11 @@ public class ClientHomeStationController {
 
 
         Station mstation;
-        mstation = stationService.GetStationById(id);
+        mstation = stationService.getStationById(id);
 
         model.addAttribute("formUserPSW", new Users());
         model.addAttribute("contracts", contractService.ListContractByUser(user));
-        model.addAttribute("linkstation", stationService.GetURLStation(mstation));
+        model.addAttribute("linkstation", stationService.getURLStation(mstation));
         model.addAttribute("station", mstation);
         return "/user/controlstation";
     }
@@ -370,7 +370,7 @@ public class ClientHomeStationController {
             @ModelAttribute Station station,
             @ModelAttribute Users formUserPSW,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
 //            logger.warn("userHomeStationSave: User not found. Redirect to main page");
             return "redirect:/";
@@ -387,7 +387,7 @@ public class ClientHomeStationController {
 
         Station nstation;
         if (station.getId() != null) {
-            nstation = stationService.GetStationById(station.getId());
+            nstation = stationService.getStationById(station.getId());
         } else {
             logger.info("userHomeStationSave:  Не можемо зберегти станцію id={} для користувача {}", station.getId(), user.getEmail());
             return "redirect:/user/stations";
@@ -447,11 +447,11 @@ public class ClientHomeStationController {
 
         String message;
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationById(id);
+        Station station = stationService.getStationById(id);
         if (station == null) {
             // Станцію створити не можемо. Показуємо про це повідомлення.
             logger.info("userStartStation: Не можемо запустити станцію для користувача {}", user.getEmail());
@@ -490,11 +490,11 @@ public class ClientHomeStationController {
 
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationById(id);
+        Station station = stationService.getStationById(id);
         if (station == null) {
             return "redirect:/user/stations";
         }
@@ -516,11 +516,11 @@ public class ClientHomeStationController {
 
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationById(id);
+        Station station = stationService.getStationById(id);
         if (station == null) {
             model.addAttribute("error", "Йой! Щось пішло не так. Ми вже працюємо над цим!");
             return "redirect:/user/stations";
@@ -551,11 +551,11 @@ public class ClientHomeStationController {
             Model model) {
 
 //        logger.info("Create New station.");
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Station station = stationService.GetStationById(id);
+        Station station = stationService.getStationById(id);
         if (station == null) {
             // Станцію створити не можемо. Показуємо про це повідомлення.
             logger.info("userPSStation:  Не можемо перевірити стан станції для користувача {}", user.getEmail());

@@ -50,7 +50,7 @@ public class TrackListAllController {
         model.addAttribute("currentpage", page );
         model.addAttribute("trackList", storeTrackList );
 //        model.addAttribute("posts", posts );
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+//        model.addAttribute("stations",  stationService.getListStationByUser(user));
 
         return "/guest/tracksall";
     }

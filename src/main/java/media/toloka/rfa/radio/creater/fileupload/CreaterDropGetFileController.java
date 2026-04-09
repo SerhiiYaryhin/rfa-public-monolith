@@ -34,7 +34,7 @@ public class CreaterDropGetFileController {
     public String CreaterDropGetUploadTrack(
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -45,7 +45,7 @@ public class CreaterDropGetFileController {
     public String CreaterDropGetPicontroller (
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }

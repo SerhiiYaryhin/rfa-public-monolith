@@ -60,7 +60,7 @@ public class BannerDropPostFileController {
             logger.info("Завантаження баннера: Файл порожній");
             return;
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());

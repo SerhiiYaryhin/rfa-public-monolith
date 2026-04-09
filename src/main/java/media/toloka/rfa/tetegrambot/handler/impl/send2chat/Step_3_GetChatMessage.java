@@ -2,8 +2,8 @@ package media.toloka.rfa.tetegrambot.handler.impl.send2chat;
 // Надсилаємо повідомлення в чат прямого ефіру
 // перелік прямих ефірів беремо з чату
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.media.messanger.model.ChatMessage;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.model.ChatMessage;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
@@ -22,7 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 
 import java.util.Date;
 
-import static media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType.RECORD_TYPE_TEXT;
+import static media.toloka.rfa.media.messenger.model.enumerate.EChatRecordType.RECORD_TYPE_TEXT;
 
 @Slf4j
 @Profile("Telegram")
@@ -30,7 +30,7 @@ import static media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType.R
 public class Step_3_GetChatMessage extends UserRequestHandler {
 
     @Autowired
-    private MessangerService messangerService;
+    private MessengerService messengerService;
     @Autowired
     private ClientService clientService;
 
@@ -70,7 +70,7 @@ public class Step_3_GetChatMessage extends UserRequestHandler {
 
 
         // Перевіряємо, чи чат в онлайні
-        if (messangerService.GetChatRoomById(userRequest.getUserSession().getRFA_Chat_Choose().getId()).getRoomOnlineStatus()) {
+        if (messengerService.GetChatRoomById(userRequest.getUserSession().getRFA_Chat_Choose().getId()).getRoomOnlineStatus()) {
             telegramService.sendMessage(userRequest.getChatId(),
                     "Ви надсилаєте повідомлення до чату: \n"+userRequest.getUserSession().getRFA_Chat_Choose().getRoomname());
             // Формуємо повідомлення дл чату RFA
@@ -92,7 +92,7 @@ public class Step_3_GetChatMessage extends UserRequestHandler {
                 e.printStackTrace();
             }
 //            inmsg.setRtype(RECORD_TYPE_TEXT.ordinal());
-            messangerService.SaveMessageFromChat(cmsg);
+            messengerService.SaveMessageFromChat(cmsg);
 
             telegramService.sendMessage(userRequest.getChatId(),
                     "Введіть повідомлення та надішліть\nДля завершення натисніть \"Скасувати\"",

@@ -52,12 +52,12 @@ public class CreaterInfo {
     public String getTelegramToken(
             @PathVariable String cduuid,
             Model model ) {
-//        Users user = clientService.GetClientDetailByUuid(cduuid);
+//        Users user = clientService.getClientDetailByUuid(cduuid);
 //        if (user == null) {
 //            return "redirect:/creater/info";
 //        }
 //        Users user =
-        Clientdetail cd = clientService.GetClientDetailByUuid(cduuid);
+        Clientdetail cd = clientService.getClientDetailByUuid(cduuid);
         Users user = cd.getUser();
         String token = UUID.randomUUID().toString();
         serviceToken.createVerificationToken(user, token);
@@ -68,12 +68,12 @@ public class CreaterInfo {
     @GetMapping(value = "/creater/info")
     public String getUserInfo(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         model.addAttribute("clientdetail", cd );
         model.addAttribute("createrService",createrService);
 
@@ -88,18 +88,18 @@ public class CreaterInfo {
             Model model )
 
     {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         //
         cd.setComments(fcd.getComments());
         cd.setFirmname(fcd.getFirmname());
         cd.setCustname(fcd.getCustname());
         cd.setCustsurname(fcd.getCustsurname());
 
-        clientService.SaveClientDetail(cd);
+        clientService.saveClientDetail(cd);
 
         model.addAttribute("clientdetail", cd );
         return "/creater/info";
@@ -111,7 +111,7 @@ public class CreaterInfo {
             @PathVariable String uuidCreater,
             Model model ) {
 
-        Clientdetail cd = clientService.GetClientDetailByUuid(uuidCreater);
+        Clientdetail cd = clientService.getClientDetailByUuid(uuidCreater);
         // загальна інформація розміщується у верхньому рядку
         // вся інша інформація розміщується у трьох колонках нижче.
 

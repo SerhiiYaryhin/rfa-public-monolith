@@ -60,26 +60,26 @@ public class AdminService {
     final Logger logger = LoggerFactory.getLogger(AdminService.class);
 
 
-    public List<Post> GetNotApruvePosts() {
+    public List<Post> getNotApruvePosts() {
         return postService.GetListPostByApruve(false);
     }
 
-    public Post GetPostById(Long postId) {
-        return postService.GetPostById(postId);
+    public Post getPostById(Long postId) {
+        return postService.getPostById(postId);
     }
 
-    public void SavePost(Post post) {
-        postService.SavePost(post);
+    public void savePost(Post post) {
+        postService.savePost(post);
     }
 
-    public List<Users> GetAllUsers() {
-       List<Users> usersList = clientService.GetAllUsers();
+    public List<Users> getAllUsers() {
+       List<Users> usersList = clientService.getAllUsers();
         return usersList;
     }
 
     public List<Users> GetSearchUsers(String template) {
         if (template == null) {
-            List<Users> usersList = clientService.GetAllUsers();
+            List<Users> usersList = clientService.getAllUsers();
             return usersList;
         }
         List<Users> usersList = clientService.GetSearchUsers(template);
@@ -91,12 +91,12 @@ public class AdminService {
         return documentService.GetUnApruvedDocumentsOrderLoaddate();
     }
 
-    public List<Clientaddress> GetNotApruvedAddresses() {
+    public List<Clientaddress> getNotApruvedAddresses() {
         return clientService.GetUnApruvedDocumentsOrderLoaddate();
     }
 
     public Clientaddress GetClientAddress(Long idAddress) {
-        return clientService.GetClientAddressById(idAddress);
+        return clientService.getClientAddressById(idAddress);
     }
 
     public void SaveClientAddress(Clientaddress clientaddress) {
@@ -105,7 +105,7 @@ public class AdminService {
 
     public List<Clientdetail> GetClienListWithNotApruvedAdresses() {
         List<Clientdetail> clientdetailList =  new ArrayList<>();
-        List<Clientaddress> clientaddressList = GetNotApruvedAddresses();
+        List<Clientaddress> clientaddressList = getNotApruvedAddresses();
         HashMap<Long, Integer> clientdetailLongHashMap = new HashMap<>();
         for (Clientaddress adr : clientaddressList) {
             if (!clientdetailLongHashMap.containsKey(adr.getClientdetail().getId())) {
@@ -118,7 +118,7 @@ public class AdminService {
         return clientdetailList;
     }
 
-    public List<Clientdetail> GetClientsWithNotApruvedDocoments() {
+    public List<Clientdetail> getClientsWithNotApruvedDocoments() {
         List<Documents> documentsList = GetNotApruvedDocuments();
         List<Clientdetail> clientdetailList = new ArrayList<>();
         HashMap<Long, Integer> qDocuments = new HashMap<>();
@@ -132,6 +132,6 @@ public class AdminService {
     }
 
     public Users GetUsersById(Long iduser) {
-        return clientService.GetUserById(iduser);
+        return clientService.getUserById(iduser);
     }
 }

@@ -2,8 +2,8 @@ package media.toloka.rfa.tetegrambot.handler.impl.send2chat;
 // Надсилаємо повідомлення в чат прямого ефіру
 // перелік прямих ефірів беремо з чату
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.media.messanger.model.MessageRoom;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messenger.model.MessageRoom;
+import media.toloka.rfa.media.messenger.service.MessengerService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.tetegrambot.enums.ConversationState;
@@ -29,7 +29,7 @@ import static media.toloka.rfa.tetegrambot.constant.Constants.BTN_SEND_TO_CHAT;
 public class Step_1_SendToChat extends UserRequestHandler {
 
     @Autowired
-    MessangerService messangerService;
+    MessengerService messengerService;
     @Autowired
     private ClientService clientService;
 
@@ -65,7 +65,7 @@ public class Step_1_SendToChat extends UserRequestHandler {
         // формуємо перелік чатів і нумеруємо їх
         String stringListRoomsOnline = "";
         Boolean isOnline = false;
-        List<MessageRoom> listRoom = messangerService.GetChatRoomList();
+        List<MessageRoom> listRoom = messengerService.GetChatRoomList();
         for (MessageRoom p : listRoom) {
             if (p.getRoomOnlineStatus()) {
                 stringListRoomsOnline += "\n"+ p.getId().toString()+ " - "+ p.getRoomname();

@@ -103,7 +103,7 @@ public class UserLoginController {
     ) {
         logger.info("============ ROUTE to Group page ");
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -112,7 +112,7 @@ public class UserLoginController {
         if (remoteAddr == null || "".equals(remoteAddr)) {
             remoteAddr = request.getRemoteAddr();
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
 //        String remip = request.getRemoteAddr();
 
@@ -168,7 +168,7 @@ public class UserLoginController {
             Model model
     ) {
         logger.info("==========: {}", chooserole.getValue());
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         Roles roles = new Roles();
         roles.setRole(chooserole.getValue());
         user.getRoles().add(roles);
@@ -204,7 +204,7 @@ public class UserLoginController {
     ) {
         // Забираємо з форми email користувача
         String email = formuser.getEmail();
-        Users newUser = clientService.GetUserByEmail(email);
+        Users newUser = clientService.getUserByEmail(email);
 
         // перевіряємо, чи є цей емайл в базі
         if (newUser == null) {
@@ -266,7 +266,7 @@ public class UserLoginController {
         // Забираємо з форми email користувача
         String email = formuser.getEmail();
 
-        Users newUser = clientService.GetUserByEmail(email);
+        Users newUser = clientService.getUserByEmail(email);
 
         // перевіряємо, чи є цей емайл в базі
         if (newUser == null) {
@@ -339,7 +339,7 @@ public class UserLoginController {
         // Забираємо з форми email користувача
         String email = userDTO.getEmail();
         // намагаємося знайти пошту в базі кристувачів
-        Users user = clientService.GetUserByEmail(email);
+        Users user = clientService.getUserByEmail(email);
         // перевіряємо, чи є цей емайл в базі
         if (user != null) {  // користувач є в базі
             // формуємо токен та зберігаємо в базу

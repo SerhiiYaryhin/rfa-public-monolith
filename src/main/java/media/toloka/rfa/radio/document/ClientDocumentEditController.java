@@ -48,7 +48,7 @@ public class ClientDocumentEditController {
             Model model
     ) {
         // Витягуєм користувача
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) { return "redirect:/"; }
         // витягуємо документ, який ми будемо редагувати і передаємо в форму
 //        Documents doc = documentService.GetDocument(idDocument);
@@ -76,7 +76,7 @@ public class ClientDocumentEditController {
         Authentication au;
         au = SecurityContextHolder.getContext().getAuthentication();
 //        Users user = clientService.getByEmail(au.getName());
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         // Якщо не залогінені, то переходимо на головну.
         if (user == null) {
             return "redirect:/";

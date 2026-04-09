@@ -6,7 +6,7 @@ import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.stt.model.ESttStatus;
 import media.toloka.rfa.radio.stt.model.Stt;
 import media.toloka.rfa.radio.stt.model.SttRPC;
-import media.toloka.rfa.radio.stt.repositore.SttRepositore;
+import media.toloka.rfa.radio.stt.repository.SttRepositore;
 import media.toloka.rfa.rpc.service.RPCSpeachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

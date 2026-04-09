@@ -59,7 +59,7 @@ public class AdminUser {
 //            @RequestParam(value = "searchString") String searchString,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -81,7 +81,7 @@ public class AdminUser {
     public String getAdmiUser(
 //            @ModelAttribute("ss") SS ss,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -91,7 +91,7 @@ public class AdminUser {
         if (ss == null) {
             ss = new SS();
             ss.setSearchString("");
-            usersList = adminService.GetAllUsers();
+            usersList = adminService.getAllUsers();
         } else {
             usersList = adminService.GetSearchUsers(ss.getSearchString());
         }
@@ -108,7 +108,7 @@ public class AdminUser {
     public String getAdminDelUser(
             @PathVariable Long iduser,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -125,7 +125,7 @@ public class AdminUser {
 
 
 
-        List<Users> usersList = adminService.GetAllUsers();
+        List<Users> usersList = adminService.getAllUsers();
         model.addAttribute("usersList", usersList );
         model.addAttribute("searchString", new String() );
 
@@ -138,7 +138,7 @@ public class AdminUser {
     public String getAdminEnableUser(
             @PathVariable Long iduser,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -154,7 +154,7 @@ public class AdminUser {
 
 
 
-        List<Users> usersList = adminService.GetAllUsers();
+        List<Users> usersList = adminService.getAllUsers();
         model.addAttribute("usersList", usersList );
         model.addAttribute("searchString", new String() );
 
@@ -167,7 +167,7 @@ public class AdminUser {
             @PathVariable Long iduser,
             @PathVariable Integer idgroup,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -212,7 +212,7 @@ public class AdminUser {
         }
         clientService.SaveUser(curuser);
 
-        List<Users> usersList = adminService.GetAllUsers();
+        List<Users> usersList = adminService.getAllUsers();
         model.addAttribute("usersList", usersList );
         model.addAttribute("searchString", new String() );
 

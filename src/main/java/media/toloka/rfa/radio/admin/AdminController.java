@@ -45,16 +45,16 @@ public class AdminController {
     @GetMapping(value = "/admin/home")
     public String getUserHome(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-//        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-//        List<Post> posts = adminService.GetNotApruvePosts();
+//        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
+//        List<Post> posts = adminService.getNotApruvePosts();
         // Документи до опрацювання
 
-//        List<Clientdetail> documentsList = adminService.GetClientsWithNotApruvedDocoments();
+//        List<Clientdetail> documentsList = adminService.getClientsWithNotApruvedDocoments();
 //        List<Documents> documentsList = adminService.GetNotApruvedDocuments();
 //        HashMap<Long, Integer> qDocuments = new HashMap<>();
 //        for (Documents doc : documentsList) {
@@ -65,13 +65,13 @@ public class AdminController {
         // тимчасово поточний користувач
         model.addAttribute("curuser", user );
         // Документи до опрацювання
-        model.addAttribute("qDocuments", adminService.GetClientsWithNotApruvedDocoments().size() );
+        model.addAttribute("qDocuments", adminService.getClientsWithNotApruvedDocoments().size() );
         // Пости до опрацювання
-        model.addAttribute("posts", adminService.GetNotApruvePosts().size() );
+        model.addAttribute("posts", adminService.getNotApruvePosts().size() );
         // користувачі до опрацювання
-        model.addAttribute("usersList", adminService.GetAllUsers().size() );
+        model.addAttribute("usersList", adminService.getAllUsers().size() );
         // Адреси до опрацювання
-        model.addAttribute("addressesList", adminService.GetNotApruvedAddresses().size() );
+        model.addAttribute("addressesList", adminService.getNotApruvedAddresses().size() );
 
         return "/admin/home";
     }

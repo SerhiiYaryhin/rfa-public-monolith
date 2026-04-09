@@ -24,7 +24,7 @@ public class DropGetFileController {
     final Logger logger = LoggerFactory.getLogger(DropGetFileController.class);
     @GetMapping
     public String GetUploadFile() {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         // Якщо не залогінені, то переходимо на головну.
 //        if (opt.isEmpty()) {
         if (user == null) {

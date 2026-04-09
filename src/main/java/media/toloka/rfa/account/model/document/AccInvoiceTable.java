@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.account.model.base.AccBaseDoc;
-import media.toloka.rfa.account.model.referens.AccGoodsReference;
-import media.toloka.rfa.account.model.referens.AccMeasurementReference;
+import media.toloka.rfa.account.model.reference.AccGoodsReference;
+import media.toloka.rfa.account.model.reference.AccMeasurementReference;
 
 import java.math.BigDecimal;
 import java.util.List;

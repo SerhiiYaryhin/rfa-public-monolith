@@ -2,8 +2,8 @@ package media.toloka.rfa.account.controller.reference;
 
 
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.account.model.referens.AccMeasurementReference;
-import media.toloka.rfa.account.sevice.reference.AccMeasurementService;
+import media.toloka.rfa.account.model.reference.AccMeasurementReference;
+import media.toloka.rfa.account.service.reference.AccMeasurementService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.ERole;
@@ -33,11 +33,11 @@ public class AccMeasurementController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/list")
     public String listGoods(Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -55,11 +55,11 @@ public class AccMeasurementController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/create")
     public String createForm(Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -78,11 +78,11 @@ public class AccMeasurementController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @PostMapping("/save")
     public String save(@ModelAttribute AccMeasurementReference measurement) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -104,11 +104,11 @@ public class AccMeasurementController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/edit/{uuid}")
     public String editForm(@PathVariable UUID uuid, Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -126,11 +126,11 @@ public class AccMeasurementController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_Moderator')")
     @GetMapping("/delete/{uuid}")
     public String delete(@PathVariable UUID uuid) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }

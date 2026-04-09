@@ -49,7 +49,7 @@ public class DropPostFileController {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         // todo обробка права завантажувати файли
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли

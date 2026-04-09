@@ -80,11 +80,11 @@ public class PodcastController {
     public String podcastroot(
             Model model) {
 //        logger.info("Зайшли на /podcast/home");
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -152,7 +152,7 @@ public class PodcastController {
             @ModelAttribute Users formUserPSW,
             Model model) {
 
-         Users user = clientService.GetCurrentUser();
+         Users user = clientService.getCurrentUser();
 
         // TODO відправити повідомлення на сторінку
         model.addAttribute("success", "Реакція на POST зі сторінки /podcast/proot");
@@ -260,11 +260,11 @@ public class PodcastController {
                                                    @ModelAttribute PodcastService.strUrl gstrUrl,
                                                    Model model) {
 //        strUrl tmpstrUrl = new strUrl();
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -301,11 +301,11 @@ public class PodcastController {
             @ModelAttribute PodcastService.strUrl gstrUrl,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -336,11 +336,11 @@ public class PodcastController {
 //            @ModelAttribute PodcastService.strUrl gstrUrl,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }
@@ -379,11 +379,11 @@ public class PodcastController {
 //            @ModelAttribute PodcastService.strUrl gstrUrl,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) {
             return "redirect:/";
         }

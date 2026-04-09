@@ -52,7 +52,7 @@ public class ClientHomeContractController {
     @GetMapping(value = "/user/contract")
     public String ContractHome(
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
@@ -74,21 +74,21 @@ public class ClientHomeContractController {
     public String getEditContract(
             @RequestParam(value = "id", required = true) Long id,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
         }
         // Редагуємо контракт
         // передали id контракту
-        Contract contract = contractService.GetContractById(id);
+        Contract contract = contractService.getContractById(id);
         if (contract == null) {
             logger.info("Контракт з id={} не знайдено", id.toString());
             model.addAttribute("error", "Контракт не знайдено");
             return "redirect:/user/contract";
         }
-        List<Station> stationContractList = stationService.GetListStationByClientAndContract(user.getClientdetail(), contract);
-        List<Station> stationWoContract = stationService.GetListStationByClientAndContract(user.getClientdetail(), null);
+        List<Station> stationContractList = stationService.getListStationByClientAndContract(user.getClientdetail(), contract);
+        List<Station> stationWoContract = stationService.getListStationByClientAndContract(user.getClientdetail(), null);
 
 
         List<EContractStatus> options = new ArrayList<EContractStatus>();
@@ -109,13 +109,13 @@ public class ClientHomeContractController {
             @RequestParam(value = "cnt", required = true) Long contract_id,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
         }
-        Contract contract = contractService.GetContractById(contract_id);
-        Station station = stationService.GetStationById(id);
+        Contract contract = contractService.getContractById(contract_id);
+        Station station = stationService.getStationById(id);
         station.setContract(null);
         stationService.saveStation(station);
         historyService.saveHistory(History_StationChange,
@@ -123,8 +123,8 @@ public class ClientHomeContractController {
                 + " з контракту " + contract.getUuid(),
                 user);
 
-        List<Station> stationContractList = stationService.GetListStationByClientAndContract(user.getClientdetail(), contract);
-        List<Station> stationWoContract = stationService.GetListStationByClientAndContract(user.getClientdetail(), null);
+        List<Station> stationContractList = stationService.getListStationByClientAndContract(user.getClientdetail(), contract);
+        List<Station> stationWoContract = stationService.getListStationByClientAndContract(user.getClientdetail(), null);
 
 
         List<EContractStatus> options = new ArrayList<EContractStatus>();
@@ -147,13 +147,13 @@ public class ClientHomeContractController {
             @RequestParam(value = "cnt", required = true) Long contract_id,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
         }
-        Contract contract = contractService.GetContractById(contract_id);
-        Station station = stationService.GetStationById(id);
+        Contract contract = contractService.getContractById(contract_id);
+        Station station = stationService.getStationById(id);
         if ((contract.getContractStatus() == CONTRACT_FREE) && (contract.getStationList().size() > 0)) {
             // Не можемо додати на безкоштовний контакт більше однієї станції.
             logger.info("Не можемо додати на безкоштовний контакт більше однієї станції. ");
@@ -172,8 +172,8 @@ public class ClientHomeContractController {
         options.add(CONTRACT_PAY);
         model.addAttribute("options", options);
 
-        List<Station> stationContractList = stationService.GetListStationByClientAndContract(user.getClientdetail(), contract);
-        List<Station> stationWoContract = stationService.GetListStationByClientAndContract(user.getClientdetail(), null);
+        List<Station> stationContractList = stationService.getListStationByClientAndContract(user.getClientdetail(), contract);
+        List<Station> stationWoContract = stationService.getListStationByClientAndContract(user.getClientdetail(), null);
 
         model.addAttribute("stationContractList",  stationContractList);
         model.addAttribute("stationWoContract",  stationWoContract);
@@ -190,13 +190,13 @@ public class ClientHomeContractController {
             Model model ) {
         // Редагуємо контракт
         // передали id контракту
-//        Contract contract = contractService.GetContractById(id);
-        Users user = clientService.GetCurrentUser();
+//        Contract contract = contractService.getContractById(id);
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
         }
-        Contract contract = contractService.GetContractById(fcontract.getId());
+        Contract contract = contractService.getContractById(fcontract.getId());
         if (contract == null) {
             logger.info("Контракт з id={} не знайдено", fcontract.getId().toString());
             // TODO Вивести в форму повідомлення, що контракт збережено
@@ -220,7 +220,7 @@ public class ClientHomeContractController {
             @ModelAttribute Contract contract,
             Model model ) {
         // перевірити чи увійшли
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
@@ -228,7 +228,7 @@ public class ClientHomeContractController {
         Contract ncontract = new Contract();
         ncontract.setContractStatus(CONTRACT_FREE);
         ncontract.setNumber( UUID.randomUUID().toString());
-        ncontract.setClientdetail(clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
+        ncontract.setClientdetail(clientService.getClientDetailByUser(clientService.getCurrentUser()));
         model.addAttribute("contract",  ncontract);
         return "/user/createcontract";
     }
@@ -237,7 +237,7 @@ public class ClientHomeContractController {
     public String postuserCreateContract(
             @ModelAttribute Contract contract,
             Model model ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             logger.warn("User not found. Redirect to main page");
             return "redirect:/";
@@ -250,7 +250,7 @@ public class ClientHomeContractController {
 //        ncontract.setUuid(ncontract.getNumber());
 //        ncontract.setCreateDate(LocalDateTime.now());
         ncontract.setLastPayDate(null);
-        ncontract.setClientdetail(clientService.GetClientDetailByUser(clientService.GetCurrentUser()));
+        ncontract.setClientdetail(clientService.getClientDetailByUser(clientService.getCurrentUser()));
         ncontract.setUsercomment(contract.getUsercomment());
         ncontract.setContractname(contract.getContractname());
 
@@ -258,9 +258,9 @@ public class ClientHomeContractController {
             ncontract.setContractStatus(CONTRACT_PAY);
         }
         contractService.saveContract(ncontract);
-        Clientdetail cl = clientService.GetClientDetailByUser(user);
+        Clientdetail cl = clientService.getClientDetailByUser(user);
 //        cl.getContractList().add(ncontract);
-        clientService.SaveClientDetail(cl);
+        clientService.saveClientDetail(cl);
         historyService.saveHistory(History_UserCreateContract, " Новий контракт: "+ncontract.getNumber().toString(), user);
 
         return "redirect:/user/contract";

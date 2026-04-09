@@ -136,11 +136,11 @@ public class STTHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Stt stt = sttBackServerService.GetByUUID(uuidstt);
         if (stt == null) {
             model.addAttribute("success", "Запис не знайдено");
@@ -162,12 +162,12 @@ public class STTHome {
             @PathVariable String scurpage,
             Model model) {
 
-        Users user = clientService.GetCurrentUser();
-        Clientdetail clientdetail = clientService.GetClientDetailByUser(user);
+        Users user = clientService.getCurrentUser();
+        Clientdetail clientdetail = clientService.getClientDetailByUser(user);
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Stt curstt = sttBackServerService.GetByUUID(uuidstt);
         if (curstt != null) {
@@ -223,11 +223,11 @@ public class STTHome {
     public String GetNewsHome(
             @PathVariable String cPage,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
@@ -250,11 +250,11 @@ public class STTHome {
             @PathVariable String uuid, // uuid або запису stt, або запису storage
             @PathVariable String scurpage,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         Stt curstt = sttBackServerService.GetByUUID(uuid);
         if (curstt == null) {
@@ -286,11 +286,11 @@ public class STTHome {
             @PathVariable String pagelist,
             @ModelAttribute Stt fStt,
             Model model) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
 //        News stt = newsService.GetByUUID(uuidNews);
 

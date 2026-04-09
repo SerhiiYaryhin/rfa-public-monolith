@@ -81,7 +81,7 @@ public class RootController {
 
         List<Track> trackList = createrService.GetLastUploadTracks();
 
-//        List<Station> stationOnlineList = stationService.GetListStationByStatus(true);
+//        List<Station> stationOnlineList = stationService.getListStationByStatus(true);
         List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
         // витаскуємо подкасти для каруселі
@@ -103,7 +103,7 @@ public class RootController {
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
 
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+//        model.addAttribute("stations",  stationService.getListStationByUser(user));
 
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);
@@ -124,7 +124,7 @@ public class RootController {
 //        model.addAttribute("trackList", trackList );
         model.addAttribute("trackList", storeTrackList );
         model.addAttribute("posts", posts );
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+//        model.addAttribute("stations",  stationService.getListStationByUser(user));
 
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);

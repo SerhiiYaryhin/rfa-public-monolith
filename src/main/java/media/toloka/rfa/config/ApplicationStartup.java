@@ -1,6 +1,6 @@
 package media.toloka.rfa.config;
 
-import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
+import media.toloka.rfa.media.messenger.service.ChatReferenceSingleton;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;

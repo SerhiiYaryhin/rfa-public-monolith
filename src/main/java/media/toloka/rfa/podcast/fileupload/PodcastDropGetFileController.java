@@ -42,7 +42,7 @@ public class PodcastDropGetFileController {
             @PathVariable String puuid,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
@@ -53,7 +53,7 @@ public class PodcastDropGetFileController {
                     +" Зверніться будь ласка до служби підтримки");
         }
         // Малюємо список всіх епізодів всіх подкастів для вибору незайнятих з можливістю зміни подкасту
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (cd == null) { return "redirect:/"; }
 
         List<PodcastItem> podcastAllItemList = podcastService.GetAllEpisodePaging(cd);
@@ -70,11 +70,11 @@ public class PodcastDropGetFileController {
             @PathVariable String euuid,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
         if (podcast == null ) {
@@ -100,11 +100,11 @@ public class PodcastDropGetFileController {
             @PathVariable String puuid,
             Model model
     ) {
-        Users user = clientService.GetCurrentUser();
+        Users user = clientService.getCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Clientdetail cd = clientService.getClientDetailByUser(user);
 
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
         if (podcast == null ) {

@@ -60,7 +60,7 @@ public class PodcastDropPostFileController {
             logger.info("Завантаження епізоду подкасту: Файл порожній");
             return;
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
@@ -108,7 +108,7 @@ public class PodcastDropPostFileController {
             logger.warn("PodcastCoverEpisodeUpload: Файл, що завантажуємо порожній");
             return;
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
@@ -145,7 +145,7 @@ public class PodcastDropPostFileController {
             logger.warn("PodcastCoverEpisodeUpload: Файл обкладинки порожній");
             return;
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.getClientDetailByUser(clientService.getCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("PodcastCoverEpisodeUpload: Клієнт {} не має права завантажувати файли.", cd.getUuid());

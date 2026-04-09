@@ -29,7 +29,7 @@ public class HistoryService {
         history.setHistoryType(type);
         history.setAction(type.label);
         if (user != null) { // TODO А що робити в мікросервісі, де брати поточного користувача?
-            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            Clientdetail cd = clientService.getClientDetailByUser(user);
             history.setClientdetail(cd);
         }
 
