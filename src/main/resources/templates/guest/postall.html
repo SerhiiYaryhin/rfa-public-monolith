@@ -40,13 +40,13 @@
                                 <div class="card d-flex flex-column h-100">
                                     <div th:if="${post.coverstoreuuid} == null">
                                         <!--              post.coverstoreuuid == null-->
-                                        <img class="card-img-top img-fluid"
+                                        <img loading="lazy" class="card-img-top img-fluid"
                                              th:src="'/assets/img/default-post-cover.svg'"
                                              alt="Card image cap">
                                     </div>
                                     <div th:if="${post.coverstoreuuid} != null">
                                         <!--              post.coverstoreuuid != null-->
-                                        <img class="card-img-top img-fluid"
+                                        <img loading="lazy" class="card-img-top img-fluid"
                                              th:src="'https://rfa.toloka.media/store/content/'+${post.coverstoreuuid}"
                                              alt="Card image cap">
                                     </div>

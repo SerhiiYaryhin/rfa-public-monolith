@@ -52,14 +52,14 @@
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
                             <div class="col-9 ">
-                                <img class="img-fluid align-center pt-subsection"
+                                <img loading="lazy" class="img-fluid align-center pt-subsection"
                                      th:if="${podcast.imagechanelstore != null}"
                                      th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
                                      th:id="${podcast.imagechanelstore.uuid}"/>
                             </div>
                             <div class="col-3 text-center">
                                 <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
-                                    <img class="img-fluid align-center pt-subsection"
+                                    <img loading="lazy" class="img-fluid align-center pt-subsection"
                                          src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
                                     <br>
                                 </a>
@@ -134,7 +134,7 @@
                                 </a>
                             </div>
                             <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                                <img class="img-fluid"
+                                <img loading="lazy" class="img-fluid"
                                      th:if="${item.imagestoreitem != null} AND ${podcast.imagechanelstore} != null"
                                      th:src="'/store/thrumbal/w/400/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
                                      th:id="${item.imagestoreitem.uuid}"/>

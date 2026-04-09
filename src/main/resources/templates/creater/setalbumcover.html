@@ -50,7 +50,7 @@
         <div class="row pt-section">
             <div class="col" th:each="coverl : ${coverlist}">
                 <!--  -->
-                <img  th:if="${coverl.storeitem} != null" th:data-p1="${coverl.storeuuid}" th:data-p2="${album.id}" th:data-p3="${cd.id}" th:onclick="setcover(this, this.getAttribute('data-p1'), this.getAttribute('data-p2'), this.getAttribute('data-p3'))"
+                <img loading="lazy"  th:if="${coverl.storeitem} != null" th:data-p1="${coverl.storeuuid}" th:data-p2="${album.id}" th:data-p3="${cd.id}" th:onclick="setcover(this, this.getAttribute('data-p1'), this.getAttribute('data-p2'), this.getAttribute('data-p3'))"
                       th:src="'/store/thrumbal/w/150/' + ${coverl.storeuuid} + '/' + ${coverl.storeitem.filename}"
                       th:id="${coverl.storeuuid} + '/' + ${coverl.storeitem.filename}"/>
                 <!--      th:onclick="'setcover(this, ' + ${coverl.storeuuid} +',' + ${album.id} +', ' + ${cd.id} + ' )'" th:src="'/store/thrumbal/w/150/' + ${coverl.storeuuid} + '/' + ${coverl.albumcoverfile}" id="${coverl.storeuuid} + '/' + ${coverl.albumcoverfile}"/>

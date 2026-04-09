@@ -51,7 +51,7 @@
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
                             <div class="col">
-                                <img class="img-fluid align-center pt-subsection"
+                                <img loading="lazy" class="img-fluid align-center pt-subsection"
                                      th:if="${podcastItem.imagestoreitem != null}"
                                      th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
                                      th:id="${podcastItem.imagestoreitem.uuid}"/>
