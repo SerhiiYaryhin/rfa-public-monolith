@@ -1,5 +1,3 @@
-
-
 plugins {
 	id 'java'
 	id 'war'
@@ -27,10 +25,6 @@ tasks.withType(JavaCompile) {
 	options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
 
-//java {
-//	sourceCompatibility = '17'
-//}
-
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
@@ -44,15 +38,10 @@ repositories {
 //	maven { url 'https://repo.spring.io/snapshot' }
 }
 
-
-
 dependencies {
 	implementation "org.telegram:telegrambots-springboot-longpolling-starter:${telegrambotsVersion}"
 	implementation "org.telegram:telegrambots-client:${telegrambotsVersion}"
 	implementation "org.telegram:telegrambots-abilities:${telegrambotsVersion}"
-//	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
-//	implementation 'org.telegram:telegrambots-client:7.10.0'
-//	implementation 'org.telegram:telegrambots-abilities:7.10.0'
 
 	implementation 'javax.mail:javax.mail-api:1.6.2'
 	implementation 'org.springframework.boot:spring-boot-starter'
@@ -69,60 +58,37 @@ dependencies {
 
 	implementation "org.thymeleaf.extras:thymeleaf-extras-springsecurity6:${thymeleafExtrasSpringsecurityVersion}"
 	implementation "commons-io:commons-io:${commonsIoVersion}"
-//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.2.RELEASE'
 
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
-	// https://mvnrepository.com/artifact/commons-io/commons-io
-//	implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
-	// https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib
 	implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
-	// https://mvnrepository.com/artifact/org.json/json
-	// Оновлено з 20090211 (відомі CVE) → 20240303
 	implementation group: 'org.json', name: 'json', version: '20240303'
-	// https://mvnrepository.com/artifact/org/jaudiotagger
-//	implementation group: 'org', name: 'jaudiotagger', version: '2.0.3'
 	implementation group: 'net.jthink', name: 'jaudiotagger', version: '3.0.1'
-// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
 
-// OWASP Java HTML Sanitizer - for sanitizing user-supplied HTML (TinyMCE content)
-	// https://mvnrepository.com/artifact/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
 	implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
 
-	// пробуємо Spring AI
-//	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation group: 'org.springframework.ai', name: 'spring-ai-starter-model-ollama', version: '1.0.0'
 
-
-
-
-
-	// stomp web socket
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.springframework:spring-messaging")
 
-// для RSS
-	// https://mvnrepository.com/artifact/dev.stalla/stalla    //stallaVersion
 	implementation("dev.stalla:stalla:${stallaVersion}")
-//	implementation group: 'dev.stalla', name: 'stalla', version: '1.1.0'
-
-// https://mvnrepository.com/artifact/com.rometools/rome
-//	implementation group: 'com.rometools', name: 'rome', version: ${romeVersion}
-// https://mvnrepository.com/artifact/com.rometools/rome
 	implementation("com.rometools:rome:${romeVersion}")
 
-
-//	compile 'org.springframework.boot:spring-context-support:6.1.3'
 	implementation 'org.springframework:spring-context-support:6.1.3'
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-//	implementation 'jakarta.mail:jakarta.mail-api:2.1.1'
 	implementation 'com.google.code.gson:gson'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'com.h2database:h2'
 }
 
 dependencyManagement {
@@ -130,7 +96,6 @@ dependencyManagement {
 		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
 	}
 }
-
 
 tasks.named('test') {
 	useJUnitPlatform()
