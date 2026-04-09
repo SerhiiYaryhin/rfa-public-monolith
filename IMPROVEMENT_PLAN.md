@@ -38,6 +38,7 @@
 | ✅ 2.4 | **Actuator + Health Endpoints** (DB, TelegramBot, RabbitMQ) | MEDIUM | 2026-04-09 | `f9e7bf2d` |
 | ✅ 2.1 | **TODO/FIXME розбір** — 45→34, видалено dead code, додано повідомлення | MEDIUM | 2026-04-09 | `c540be05` |
 | ✅ 2.3 | **Response Caching** — Spring Cache + Caffeine, кешування станцій | MEDIUM | 2026-04-09 | `9a68ab4f` |
+| 🔧 1.5 | **Тестове покриття (Базове)** — інфраструктура, H2, Unit тести | HIGH | 2026-04-09 | `7eab8ce0` |
 | ✅ — | TinyMCE 7 self-hosted інтеграція | HIGH | 2026-04-07 | `10a270e2` |
 | ✅ — | Завантаження треку (Dropzone + форма) | HIGH | 2026-04-07 | `ba357f8c` |
 | ✅ — | Сторінки помилок (404/403/500) | MEDIUM | 2026-04-07 | `2ee58700` |
