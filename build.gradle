@@ -84,7 +84,10 @@ dependencies {
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	implementation 'com.google.code.gson:gson'
+	implementation 'com.google.code.gson:gson:2.13.1'
+	implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
+	implementation group: 'org.json', name: 'json', version: '20240303'
+	implementation group: 'commons-io', name: 'commons-io', version: '2.20.0'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
