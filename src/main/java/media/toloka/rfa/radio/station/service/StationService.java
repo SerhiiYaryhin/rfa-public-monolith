@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -57,20 +59,24 @@ public class StationService {
     final Logger logger = LoggerFactory.getLogger(ClientHomeStationController.class);
 
 
+    @Cacheable(value = "stations", key = "'all'")
     public List<Station> listAll() {
         return stationRepo.findAll();
     }
 
+    @CacheEvict(value = "stations", allEntries = true)
     public void saveStation(Station station) {
         stationRepo.save(station);
     }
 
+    @Cacheable(value = "stations", key = "#id")
     public Station GetStationById(long id) {
         Optional<Station> optionalStation = stationRepo.findById(id);
         if (optionalStation.isEmpty()) { return null;}
         return stationRepo.findById(id).get();
     }
 
+    @CacheEvict(value = "stations", allEntries = true)
     public void delete(long id) {
         stationRepo.deleteById(id);
     }
