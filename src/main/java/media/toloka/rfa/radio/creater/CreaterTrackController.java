@@ -29,7 +29,7 @@ import java.util.List;
 @Controller
 public class CreaterTrackController {
 
-    final Logger logger = LoggerFactory.getLogger(ClientDocumentEditController.class);
+    final Logger logger = LoggerFactory.getLogger(CreaterTrackController.class);
 
     @Autowired
     private ClientService clientService;
@@ -61,12 +61,12 @@ public class CreaterTrackController {
 
 // Пейджинг для сторінки
 //        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
-        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
-        List<Store> treckList = pageStore.stream().toList();
+        Page<Track> pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
+        List<Track> treckList = pageStore.getContent();
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks/0");
+        model.addAttribute("linkPage","/creater/tracks/");
 
         // Пейджинг для сторінки
 
