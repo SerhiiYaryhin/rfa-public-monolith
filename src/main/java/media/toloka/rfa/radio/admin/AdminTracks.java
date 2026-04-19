@@ -1,5 +1,8 @@
 package media.toloka.rfa.radio.admin;
 
+import media.toloka.rfa.radio.admin.service.AdminService;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.email.service.EmailSenderService;
 import media.toloka.rfa.radio.model.Mail;
 import media.toloka.rfa.radio.model.Track;
@@ -133,7 +136,7 @@ public class AdminTracks {
             
             adminService.DeleteTrack(trackId);
             
-            historyService.saveHistory(EHistoryType.History_DocumentDelete, 
+            historyService.saveHistory(EHistoryType.History_PostDelete, 
                 "Admin deleted track: " + trackName, 
                 user);
         }
