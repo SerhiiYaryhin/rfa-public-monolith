@@ -7,6 +7,7 @@ import media.toloka.rfa.radio.document.service.DocumentService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.model.Track;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import org.slf4j.Logger;
@@ -52,27 +53,30 @@ public class CreaterDropPostFileController {
     final Logger logger = LoggerFactory.getLogger(CreaterDropPostFileController.class);
 
     @PostMapping(path = "/creater/trackupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE
-    public void uploadTrack(@RequestParam("file") MultipartFile file) {
+    public String uploadTrack(@RequestParam("file") MultipartFile file) {
 
 //        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
+            return "error: empty file";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
+            return "error: no permission";
         }
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_TRACK);
-            createrService.SaveTrackUploadInfo(storeUUID, cd);
+            Track track = createrService.SaveTrackUploadInfo(storeUUID, cd);
+            log.info("uploaded file " + file.getOriginalFilename() + " track UUID: " + track.getUuid());
+            return track.getUuid();
         } catch (IOException e) {
             logger.info("Завантаження файлу: Проблема збереження");
             e.printStackTrace();
+            return "error: save problem";
         }
-        log.info("uploaded file " + file.getOriginalFilename());
 
     }
 

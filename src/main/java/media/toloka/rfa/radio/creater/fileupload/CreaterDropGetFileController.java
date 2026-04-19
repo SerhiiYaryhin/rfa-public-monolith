@@ -28,6 +28,9 @@ public class CreaterDropGetFileController {
     @Value("${media.toloka.rfa.upload_directory}")
     private String PATHuploadDirectory;
 
+    @Autowired
+    private media.toloka.rfa.radio.creater.service.CreaterService createrService;
+
     final Logger logger = LoggerFactory.getLogger(CreaterDropGetFileController.class);
 
     @GetMapping("/creator/trackupload")
@@ -38,6 +41,9 @@ public class CreaterDropGetFileController {
         if (user == null) {
             return "redirect:/";
         }
+        media.toloka.rfa.radio.model.Clientdetail cd = clientService.GetClientDetailByUser(user);
+        model.addAttribute("albumList", createrService.GetAllAlbumsByCreater(cd));
+        model.addAttribute("track", new media.toloka.rfa.radio.model.Track());
         return "/creater/trackupload";
     }
 

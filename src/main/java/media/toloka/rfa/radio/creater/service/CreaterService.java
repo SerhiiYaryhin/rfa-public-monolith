@@ -116,14 +116,14 @@ public class CreaterService {
         return postList;
     }
 
-    public void SaveTrackUploadInfo(String storeitemUUID, Clientdetail cd) {
+    public Track SaveTrackUploadInfo(String storeitemUUID, Clientdetail cd) {
         Track track = new Track();
         track.setStatus(EDocumentStatus.STATUS_LOADED);
         track.setClientdetail(cd);
         track.setStoreuuid(storeitemUUID);
         track.setTochat(false);
         track.setStoreitem(storeService.GetStoreByUUID(storeitemUUID));
-        trackRepository.save(track);
+        return trackRepository.save(track);
     }
 
     public Track GetTrackById(Long idTrack) {

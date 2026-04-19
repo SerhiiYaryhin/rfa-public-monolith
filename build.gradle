@@ -85,9 +85,8 @@ dependencies {
 //	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation group: 'org.springframework.ai', name: 'spring-ai-starter-model-ollama', version: '1.0.0'
 
-
-
-
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// stomp web socket
 	implementation("org.springframework.boot:spring-boot-starter-websocket")

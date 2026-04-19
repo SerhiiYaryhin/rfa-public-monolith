@@ -111,9 +111,15 @@ public class CreaterTrackController {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Track track = createrService.GetTrackById(ftrack.getId());
+        Track track = null;
+        if (ftrack.getId() != null) {
+            track = createrService.GetTrackById(ftrack.getId());
+        } else if (ftrack.getUuid() != null) {
+            track = createrService.GetTrackByUuid(ftrack.getUuid());
+        }
+        
         if (track == null) {
-            logger.info("З якогось дива не знайшли трек {}", ftrack.getId());
+            logger.info("З якогось дива не знайшли трек за ID або UUID");
             return "/creater/home";
         }
         track.setName(ftrack.getName());
