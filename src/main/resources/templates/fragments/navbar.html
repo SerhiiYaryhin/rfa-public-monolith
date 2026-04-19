@@ -103,7 +103,7 @@
                         <li><a class="dropdown-item" href="/podcast/getRSSFromUrl">Подкасти</a></li>
                     </ul>
                 </li>            <!-- admin -->
-                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'Адмін')" class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Адмін</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarAdmin">
@@ -117,7 +117,7 @@
                         <li><a class="dropdown-item" href="/admin/financeuser">Фінанси</a></li>
                     </ul>
                 </li>  <!-- admin -->
-                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'Адмін')" class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>
 
