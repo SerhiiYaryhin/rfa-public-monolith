@@ -138,6 +138,14 @@ public class CreaterService {
         trackRepository.save(track);
     }
 
+    public List<Track> GetNotApruveTracks() {
+        return trackRepository.findByApruveFalseOrderByUploaddateDesc();
+    }
+
+    public void DeleteTrack(Track track) {
+        trackRepository.delete(track);
+    }
+
     public Album GetAlbumById(Long id) {
         Album album = albumRepository.getById(id);
         return album;

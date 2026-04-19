@@ -11,6 +11,7 @@ import media.toloka.rfa.radio.model.Clientaddress;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Documents;
 import media.toloka.rfa.radio.model.Post;
+import media.toloka.rfa.radio.model.Track;
 import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
@@ -133,5 +134,27 @@ public class AdminService {
 
     public Users GetUsersById(Long iduser) {
         return clientService.GetUserById(iduser);
+    }
+
+    public List<Track> GetNotApruveTracks() {
+        return createrService.GetNotApruveTracks();
+    }
+
+    public Track GetTrackById(Long idTrack) {
+        return createrService.GetTrackById(idTrack);
+    }
+
+    public void SaveTrack(Track track) {
+        createrService.SaveTrack(track);
+    }
+
+    public void DeleteTrack(Long idTrack) {
+        Track track = createrService.GetTrackById(idTrack);
+        if (track != null) {
+            if (track.getStoreitem() != null) {
+                storeService.DeleteInStore(track.getStoreitem());
+            }
+            createrService.DeleteTrack(track);
+        }
     }
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Статус завантаженого треку</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 80%; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .header { background-color: #f8f9fa; padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
+        .content { padding: 20px; }
+        .footer { font-size: 0.8em; color: #777; text-align: center; margin-top: 20px; }
+        .status-approved { color: green; font-weight: bold; }
+        .status-rejected { color: orange; font-weight: bold; }
+        .status-deleted { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Радіо Толока</h2>
+    </div>
+    <div class="content">
+        <p>Вітаємо, <span th:text="${userName}">Користувач</span>!</p>
+        
+        <p>Повідомляємо вас про зміну статусу вашого треку: <strong><span th:text="${trackName}">Назва</span></strong></p>
+        
+        <div th:switch="${status}">
+            <p th:case="'APPROVED'">
+                Ваш трек був <span class="status-approved">схвалений</span> адміністратором і тепер доступний для прослуховування на сайті!
+            </p>
+            <p th:case="'REJECTED'">
+                На жаль, ваш трек був <span class="status-rejected">відхилений</span> модератором. Будь ласка, перевірте правильність заповнення полів (автор, назва, опис).
+            </p>
+            <p th:case="'DELETED'">
+                Ваш трек був <span class="status-deleted">видалений</span> адміністратором. Це могло статися через невідповідність правилам сервісу або технічну помилку.
+            </p>
+        </div>
+        
+        <p>З повагою, команда Радіо Толока.</p>
+    </div>
+    <div class="footer">
+        Це автоматичне повідомлення, будь ласка, не відповідайте на нього.
+    </div>
+</div>
+</body>
+</html>

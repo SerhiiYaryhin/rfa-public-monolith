@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>Адмін - Треки</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="/css/styles.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+
+<div style="padding-top: 100px" class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h2 class="section-heading text-uppercase">Модерація треків</h2>
+            <h3 class="section-subheading text-muted">Список треків, що очікують на схвалення</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Слухати</th>
+                    <th>Назва / Автор</th>
+                    <th>Файл</th>
+                    <th>Клієнт</th>
+                    <th>Дата завантаження</th>
+                    <th>Дії</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="track : ${trackList}">
+                    <td>
+                        <audio th:if="${track.storeitem != null}" th:id="'voice'+${track.uuid}" controls style="width: 250px;">
+                            <source th:src="'/store/audio/'+${track.storeitem.uuid}">
+                        </audio>
+                        <span th:if="${track.storeitem == null}" class="text-danger">Файл відсутній</span>
+                    </td>
+                    <td>
+                        <strong th:text="${track.name}">Назва</strong><br>
+                        <span th:text="${track.autor}">Автор</span><br>
+                        <small class="text-muted" th:text="${track.style}">Стиль</small>
+                    </td>
+                    <td>
+                        <span th:if="${track.storeitem != null}" th:text="${track.storeitem.filename}">filename</span>
+                    </td>
+                    <td>
+                        <span th:text="${track.clientdetail.custname} + ' ' + ${track.clientdetail.custsurname}">Клієнт</span>
+                    </td>
+                    <td th:text="${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm')}">Дата</td>
+                    <td>
+                        <a th:href="@{'/admin/publishtrack/' + ${track.id}}" class="btn btn-success btn-sm" title="Схвалити">
+                            <i class="fas fa-check"></i>
+                        </a>
+                        <a th:href="@{'/admin/rejecttrack/' + ${track.id}}" class="btn btn-warning btn-sm" title="Відхилити">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        <a th:href="@{'/admin/deltrack/' + ${track.id}}" class="btn btn-danger btn-sm" 
+                           onclick="return confirm('Ви впевнені, що хочете видалити цей трек назавжди?')" title="Видалити">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${trackList.isEmpty()}">
+                    <td colspan="6" class="text-center">Немає треків для модерації</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:insert="~{/fragments/common :: footer}"></div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

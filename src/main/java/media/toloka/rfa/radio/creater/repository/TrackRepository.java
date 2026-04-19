@@ -31,6 +31,8 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 
     Track getByUuid(String trackUuid);
 
+    List<Track> findByApruveFalseOrderByUploaddateDesc();
+
 
 //    Page findAllOrderByUploaddateByAsc(Pageable storePage);
 //
