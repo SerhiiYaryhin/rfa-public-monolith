@@ -38,7 +38,7 @@ public class AdminTracks {
     @Autowired
     private EmailSenderService emailSenderService;
 
-    @Value("${media.toloka.rfa.mail.from}")
+    @Value("${media.toloka.rfa.mail.from:info@toloka.media}")
     private String mailFrom;
 
     final Logger logger = LoggerFactory.getLogger(AdminTracks.class);
