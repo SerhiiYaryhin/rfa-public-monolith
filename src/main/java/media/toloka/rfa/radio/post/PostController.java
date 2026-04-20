@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.Map;
-import static media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY;
+import static media.toloka.rfa.radio.model.enumerate.EPostStatus.*;
 
 @Profile("Front")
 @Controller
