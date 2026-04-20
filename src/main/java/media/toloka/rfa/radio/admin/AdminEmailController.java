@@ -68,8 +68,9 @@ public class AdminEmailController {
 
     /**
      * AJAX-ендпоінт для отримання контенту шаблону.
+     * Явно вказуємо charset=UTF-8 для коректного відображення кирилиці.
      */
-    @GetMapping("/template-content")
+    @GetMapping(value = "/template-content", produces = "text/html;charset=UTF-8")
     @ResponseBody
     public String getTemplateContent(@RequestParam String name) {
         return emailSenderService.getTemplateRawContent(name);
