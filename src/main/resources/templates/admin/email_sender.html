@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="utf-8"/>
+    <title>Адмін - Поштовий офіс</title>
+    <link href="/css/styles.css" rel="stylesheet"/>
+    <link th:rel="stylesheet" th:href="@{/css/bootstrap.min.css} "/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <style>
+        .recipient-list { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+        .group-btn-bar { margin-bottom: 15px; }
+        .template-preview { border: 1px dashed #ccc; padding: 15px; margin-top: 15px; }
+    </style>
+</head>
+<body id="page-top">
+
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+
+<div style="padding-top: 100px" class="container">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h2 class="section-heading text-uppercase">Поштовий офіс</h2>
+            <h3 class="section-subheading text-muted">Універсальний інструмент для розсилок</h3>
+        </div>
+    </div>
+
+    <div th:if="${param.success}" class="alert alert-success">Листи успішно відправлено!</div>
+
+    <form th:action="@{/admin/email/send}" method="post" th:object="${draft}">
+        <div class="row">
+            <!-- Ліва колонка: Отримувачі -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">1. Отримувачі</div>
+                    <div class="card-body">
+                        <div class="group-btn-bar text-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectGroup('ALL')">Всі</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectGroup('CREATER')">Автори</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectGroup('NONE')">Очистити</button>
+                        </div>
+                        <div class="recipient-list">
+                            <div th:each="u : ${users}" class="form-check">
+                                <input class="form-check-input user-checkbox" type="checkbox" 
+                                       th:name="recipients" 
+                                       th:value="${u.email}" 
+                                       th:id="'u'+${u.id}"
+                                       th:checked="${draft.recipients.contains(u.email)}"
+                                       th:data-roles="${u.roles}">
+                                <label class="form-check-label" th:for="'u'+${u.id}">
+                                    <span th:text="${u.username}">Username</span>
+                                    <small class="text-muted" th:text="' (' + ${u.email} + ')'"></small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Права колонка: Лист -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">2. Контент листа</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Шаблон-основа</label>
+                            <select class="form-select" id="templateSelect" th:field="*{selectedTemplate}" onchange="loadTemplate()">
+                                <option value="">-- Оберіть шаблон --</option>
+                                <option th:each="t : ${templates}" th:value="${t}" th:text="${t}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Тема листа</label>
+                            <input type="text" th:field="*{subject}" class="form-control" placeholder="Введіть тему..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Текст повідомлення</label>
+                            <textarea th:field="*{body}" id="emailBody"></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Надіслати розсилку
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    tinymce.init({
+        selector: '#emailBody',
+        height: 400,
+        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code help'
+    });
+
+    function loadTemplate() {
+        const templateName = document.getElementById('templateSelect').value;
+        if (!templateName) return;
+
+        fetch(`/admin/email/template-content?name=${templateName}`)
+            .then(response => response.text())
+            .then(html => {
+                tinymce.get('emailBody').setContent(html);
+            });
+    }
+
+    function selectGroup(group) {
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        checkboxes.forEach(cb => {
+            if (group === 'ALL') cb.checked = true;
+            else if (group === 'NONE') cb.checked = false;
+            else if (group === 'CREATER') {
+                const roles = cb.getAttribute('data-roles');
+                cb.checked = roles.includes('ROLE_CREATER');
+            }
+        });
+    }
+</script>
+
+<div th:insert="~{/fragments/common :: footer}"></div>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

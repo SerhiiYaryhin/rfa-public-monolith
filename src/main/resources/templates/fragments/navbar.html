@@ -102,7 +102,11 @@
                         <li><a class="dropdown-item" href="/creater/tracks/0">Треки</a></li>
                         <li><a class="dropdown-item" href="/podcast/getRSSFromUrl">Подкасти</a></li>
                     </ul>
-                </li>            <!-- admin -->
+                </li>
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR', 'ROLE_EDITOR', 'Адмін')" class="nav-item">
+                    <a class="nav-link text-warning" href="/admin/email/tool"><i class="fas fa-envelope me-1"></i>Пошта</a>
+                </li>
+                <!-- admin -->
                 <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'Адмін')" class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Адмін</a>

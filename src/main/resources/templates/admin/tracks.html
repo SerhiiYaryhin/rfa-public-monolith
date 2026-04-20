@@ -83,6 +83,9 @@
                     <td th:text="${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm')}">Дата</td>
                     <td>
                         <div class="btn-group">
+                            <a class="btn btn-outline-info btn-sm" th:href="@{'/admin/email/tool?recipient=' + ${track.clientdetail.user.email} + '&template=trackStatusNotification'}" title="Написати автору">
+                                <i class="fas fa-envelope"></i>
+                            </a>
                             <!-- Кнопка швидкого схвалення (лише для нових) -->
                             <a th:if="${!track.apruve}" th:href="@{'/admin/publishtrack/' + ${track.id}}" 
                                class="btn btn-outline-success btn-sm" title="Схвалити">

@@ -18,6 +18,16 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Service
 //@RequiredArgsConstructor
 public class EmailSenderService {
@@ -38,6 +48,57 @@ public class EmailSenderService {
     private String  mailprotocol;
     @Value("${media.toloka.rfa.mail.defaultencoding}")
     private String maildefaultencoding;
+
+    /**
+     * Отримує список імен усіх HTML шаблонів у папці templates/mail/
+     */
+    public List<String> getAvailableTemplates() {
+        try (Stream<Path> paths = Files.walk(Paths.get("src/main/resources/templates/mail"))) {
+            return paths
+                    .filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString().replace(".html", ""))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.error("Помилка читання каталогу шаблонів: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Читає сирий HTML вміст шаблону для завантаження в редактор
+     */
+    public String getTemplateRawContent(String templateName) {
+        try {
+            Path path = Paths.get("src/main/resources/templates/mail/" + templateName + ".html");
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            logger.error("Помилка читання файлу шаблону {}: {}", templateName, e.getMessage());
+            return "";
+        }
+    }
+
+    /**
+     * Відправка листа на основі вже відредагованого HTML контенту (без обробки Thymeleaf)
+     */
+    public void sendRawHtmlEmail(String to, String subject, String htmlBody) {
+        JavaMailSenderImpl emailSender = new JavaMailSenderImpl();
+        emailSender.setHost(mailhost);
+        emailSender.setPort(mailport);
+        emailSender.setProtocol(mailprotocol);
+        emailSender.setDefaultEncoding(maildefaultencoding);
+
+        jakarta.mail.internet.MimeMessage message = emailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setFrom(mailhost.contains("iw") ? "info@toloka.media" : "info@toloka.media"); // todo: use config
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            emailSender.send(message);
+        } catch (Exception e) {
+            logger.error("Помилка відправки Raw Email до {}: {}", to, e.getMessage());
+        }
+    }
 
     public void sendEmail(Mail mail) throws MessagingException //, IOException
     {
