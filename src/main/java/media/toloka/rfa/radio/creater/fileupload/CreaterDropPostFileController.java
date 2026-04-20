@@ -159,31 +159,31 @@ public class CreaterDropPostFileController {
 
 
     @PostMapping(path = "/creater/storefileupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE
-    public void uploadStore(@RequestParam("file") MultipartFile file) {
+    public String uploadStore(@RequestParam("file") MultipartFile file) {
 
         log.info("Завантажуємо файл у сховище " + file.getOriginalFilename());
         if (file.isEmpty()) {
 //                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження файлу: Файл порожній");
+            return "error: empty file";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
             // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
+            return "error: no permission";
         }
 
         try {
             // тестуємо завантаження через сервіси сховища.
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_FILE);
-
+            return storeUUID;
 
         } catch (IOException e) {
             logger.info("Завантаження файлу: Проблема збереження");
             e.printStackTrace();
+            return "error: io exception";
         }
-        log.info("uploaded file " + file.getOriginalFilename());
-
     }
 
     // Старі версії.

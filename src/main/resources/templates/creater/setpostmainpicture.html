@@ -6,106 +6,132 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока - Головна ілюстрація</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-
     <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<!--// User page container-->
-<div style="padding-top: 100px">
-    <div class="container-fluid">
-        <div class="row" >
-            <h1>Завантажити головну ілюстрацію.</h1>
-            <p>Ця ілюстрація буде відображатися на головній сторінці та у каталозі постів. </p>
-            <p>Після завантаження ілюстрації не забудьте оновити цю сторінкую</p>
-            <div id="dropzone" >
-                <form action="/creater/storefileupload" class="dropzone needsclick" id="file-upload" method="post" style="background-color:rgba(225, 225, 0, .2); ">
-<!--                <form action="/creater/storefileupload" class="dropzone needsclick" id="demo-upload" method="post" style="opacity: 0.3;background-color: #FBD603; ">-->
-                    <input type="hidden"
-                           th:name="${_csrf.parameterName}"
-                           th:value="${_csrf.token}" />
-<!--                    <div class="dz-message needsclick">-->
+<div style="padding-top: 100px" class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{'/creater/editpost/'+${curpost.id}}">Редагування посту</a></li>
+                    <li class="breadcrumb-item active">Вибір ілюстрації</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mt-4">Встановити головну ілюстрацію</h1>
+            <p class="lead">Оберіть зображення, яке буде обкладинкою вашого посту.</p>
+        </div>
+    </div>
 
-                        <div class="dz-message needsclick" >
-                            <button type="button" class="dz-button" style="color:red;"><b>Перенсіть файл сюди або натисніть для вибору файлу та перезавантажте сторінку.<br>Після чого оберіть завантажений файл зі списку.</b></button>
-                            <br/>
-                        </div>
-<!--                    </div>-->
-                </form>
+    <div class="row mt-4">
+        <!-- Секція завантаження -->
+        <div class="col-md-12">
+            <div class="card border-primary mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Крок 1: Завантажити нову ілюстрацію</h5>
+                </div>
+                <div class="card-body">
+                    <div id="dropzone">
+                        <form action="/creater/storefileupload" class="dropzone needsclick" id="main-picture-upload" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="dz-message needsclick">
+                                <button type="button" class="dz-button">
+                                    <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i><br>
+                                    Перетягніть файл сюди або натисніть для вибору. <br>
+                                    <small class="text-muted">Після завантаження ілюстрація буде автоматично призначена головною.</small>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="row" style="padding-top: 40px">
-            <h2>Перелік завантажених Вами ілюстрацій.</h2>
-            <p>Після завантаження ілюстрації не забудьте оновити сторінку. Лише після оновлення сторінки завантажена ілюстрація буде в переліку ваших ілюстрацій. Остання завантажена Вами ілюстрація буде першою у переліку.</p>
-            <p>Щоб додати головну ілюстрацію до посту - натисніть на "Обрати" напроти неї.</p>
-            <div class="col-lg-3 col-sm-12">
-<!--                <a class="btn btn-primary" th:href="@{'/store/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Встановити</a>-->
-            </div>
-            <div class="col-lg-9 col-sm-12">
-                <nav aria-label="navigation">
-                    <ul class="pagination" >
-                        <li class="page-item"><a class="page-link"  th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${privpage}">Попередня</a></li>
-                        <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                            <li class="page-item"><a class="page-link"  th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${lpage}" ><span th:text="${lpage+1}">1</a></li>
+        <!-- Секція вибору з наявних -->
+        <div class="col-md-12 mt-4">
+            <div class="card border-dark">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>Крок 2: Або обрати з раніше завантажених</h5>
+                    <span class="badge bg-light text-dark" th:text="'Всього: ' + ${pagetrack.totalElements}"></span>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="row row-cols-1 row-cols-md-4 g-4" th:if="${!storeList.isEmpty()}">
+                        <div class="col" th:each="storeitem : ${storeList}">
+                            <div class="card h-100 shadow-sm">
+                                <img th:src="'/store/content/'+${storeitem.uuid}" class="card-img-top" alt="Preview" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2 text-center">
+                                    <p class="card-text small text-truncate" th:text="${storeitem.filename}"></p>
+                                    <a class="btn btn-sm btn-primary w-100" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">
+                                        <i class="fas fa-check-circle me-1"></i> Обрати
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        <li class="page-item"><a class="page-link" th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${nextpage}">Наступна</a></li>
-                    </ul>
-                </nav>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">Дата</th>
-                        <th scope="col">Файл</th>
-<!--                        <th scope="col">Тип</th>-->
-                        <th scope="col">Призначити</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="storeitem : ${storeList}">
-                        <td><span th:text="${#dates.format(storeitem.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span></td>
-                        <td><a class="badge rounded-pill bg-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>
-<!--                        <td><a class="btn btn-primary" th:href="@{'/post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid} }">Обрати</a></td>-->
-                        <td><span th:text="${storeitem.filename}"></span></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <nav aria-label="navigation">
-                    <ul class="pagination" >
-                        <li class="page-item"><a class="page-link"  th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${privpage}">Попередня</a></li>
-                        <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                            <li class="page-item"><a class="page-link"  th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${lpage}" ><span th:text="${lpage+1}">1</a></li>
-                        </div>
-                        <li class="page-item"><a class="page-link" th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${nextpage}">Наступна</a></li>
-                    </ul>
-                </nav>
-            </div>
+                    </div>
+                    
+                    <div th:if="${storeList.isEmpty()}" class="text-center p-5">
+                        <p class="text-muted">У вас поки немає завантажених ілюстрацій.</p>
+                    </div>
 
+                    <!-- Пагінація -->
+                    <nav aria-label="Page navigation" class="mt-4" th:if="${totalpage > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${privpage}">Попередня</a>
+                            </li>
+                            <li class="page-item" th:each="lpage : ${#numbers.sequence(0, totalpage-1)}" th:classappend="${currentpage == lpage} ? 'active'">
+                                <a class="page-link" th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${lpage}" th:text="${lpage+1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentpage == totalpage-1} ? 'disabled'">
+                                <a class="page-link" th:href="'/creater/setpostmainpicture/'+${curpost.uuid}+'/'+${nextpage}">Наступна</a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<div th:insert="~{/fragments/common :: footer}"></div>
 
-
-
+<script th:src="@{/js/jquery.min.js}"></script>
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/dropzone.min.js}"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
+
+<script th:inline="javascript">
+    Dropzone.autoDiscover = false;
+    const postUuid = [[${curpost.uuid}]];
+
+    $(document).ready(function() {
+        $("#main-picture-upload").dropzone({
+            maxFiles: 1,
+            acceptedFiles: "image/*",
+            success : function(file, response) {
+                if (response && !response.startsWith("error")) {
+                    toastr.success('Ілюстрацію завантажено! Встановлюємо...');
+                    // Автоматично призначаємо завантажене зображення
+                    window.location.href = '/post/setpostimage/' + postUuid + '/' + response;
+                } else {
+                    toastr.error('Помилка завантаження: ' + response);
+                }
+            }
+        });
+    });
+</script>
 
 </body>
 </html>

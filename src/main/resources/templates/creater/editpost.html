@@ -6,104 +6,143 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока - Редагування посту</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
+    <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
     <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-
 </head>
 <body>
 <header>
-    <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 <div style="padding-top: 100px">
     <div class="container-fluid">
-<!--        <div class="row">-->
-<!--            <div class="col-lg-12 col-sm-12">-->
-<!--                <div th:insert="~{/fragments/user :: user_service}"> </div>-->
-<!--            </div>-->
-<!--        </div>-->
-        <div class="row text-center" style="padding-top: 20px">
-            <div class="col align-center">
-                <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+        
+        <div th:if="${error}" class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong th:text="${error}">Помилка!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         </div>
+
         <div class="row" style="padding-top: 20px">
             <!-- Колонка редагування посту -->
             <div class="col-lg-9 col-sm-12">
-                <form th:action="@{'/creater/editpost/'+${post.id}}"  method="post" th:object="${post}">
-                    <input type="hidden" th:field="*{id}"/>
-                    <input th:field="*{posttitle}" type="text"  class="form-control"  />
-                    <label class="form-label" for="posttitle">Заголовок посту</label>
-                    <br>
-                    <span>Розділ:</span>
-                    <select th:field="*{category}" >
-<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
-                        <option th:each="item: ${categorys}"
-                                th:value="${item.name}"
-                                th:text="${item.label}" />
-                    </select>
-                    <select th:field="*{postcategory}" >
-<!--                        <option value="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;" text="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;"/>-->
-                        <option th:each="item: ${firstpostcategoryslist}"
-                                th:value="${item.id}"
-                                th:text="${item.label}" />
-                    </select>
-                    <script>
-                    tinymce.init({
-                      selector: 'textarea',
-<!--                      plugins: 'ai tinycomments mentions anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed permanentpen footnotes advtemplate advtable advcode editimage tableofcontents mergetags powerpaste tinymcespellchecker autocorrect a11ychecker typography inlinecss',-->
-<!--                      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | align lineheight | tinycomments | checklist numlist bullist indent outdent | emoticons charmap | removeformat',-->
-                                          plugins: [
-                                          "preview", "importcss", "searchreplace", "autolink", "autosave", "save", "directionality", "code", "visualblocks",
-                                           "visualchars", "fullscreen", "image", "link", "media", "template", "codesample", "table", "charmap", "pagebreak", "nonbreaking", "anchor",
-                                            "insertdatetime", "advlist", "lists", "wordcount", "help", "charmap", "quickbars", "emoticons", "accordion",
-                                            ],
-                      tinycomments_mode: 'embedded',
-                      tinycomments_author: 'Author name',
-                      mergetags_list: [
-                        { value: 'First.Name', title: 'First Name' },
-                        { value: 'Email', title: 'Email' },
-                      ],
-                      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                    });
-                </script>
-                    <textarea th:field="*{postbody}">
-                    </textarea>
-                    <hr>
-                    <button type="submit" class="btn btn-primary btn-lg btn-block" >
-                        Зберегти
-                    </button>
-                </form>
-            </div>
-            <div class="col-lg-3 col-sm-12">
-                <!--                    вставляем Медіа Хаб-->
-<!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
-                <a class="btn btn-primary" th:href="@{'/creater/setpostmainpicture/'+${post.uuid}+'/0' }">Встановити Головну ілюстрацію</a>
-                <div th:if="${post.coverstoreuuid} != null">
-                    <img class="card-img-top img-fluid"  th:src="'/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">
-<!--                    <img class="card-img-top img-fluid"  th:src="'https://rfa.toloka.mediahttps://rfa.toloka.media/store/content/'+${post.coverstoreuuid}" alt="Головна ілюстрація для посту">-->
-                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Вміст посту</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{'/creater/editpost/'+${post.id}}" method="post" th:object="${post}" id="post-form">
+                            <input type="hidden" th:field="*{id}"/>
+                            <input type="hidden" th:field="*{uuid}" id="post-uuid"/>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="posttitle">Заголовок посту</label>
+                                <input th:field="*{posttitle}" type="text" class="form-control form-control-lg" placeholder="Введіть заголовок..." required />
+                            </div>
 
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Тип контенту</label>
+                                    <select th:field="*{category}" class="form-select">
+                                        <option th:each="item: ${categorys}" th:value="${item.name}" th:text="${item.label}" />
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Категорія</label>
+                                    <select th:field="*{postcategory}" class="form-select">
+                                        <option th:each="item: ${firstpostcategoryslist}" th:value="${item.id}" th:text="${item.label}" />
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Статус публікації</label>
+                                    <select th:field="*{postStatus}" class="form-select" id="post-status">
+                                        <option th:each="status : ${postStatuses}" th:value="${status}" th:text="${status.label}"></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Текст посту</label>
+                                <textarea th:field="*{postbody}" id="post-body"></textarea>
+                            </div>
+                            
+                            <div class="text-end mt-4">
+                                <a href="/creater/home" class="btn btn-secondary me-2">Скасувати</a>
+                                <button type="submit" class="btn btn-primary px-5">
+                                    <i class="fas fa-save me-2"></i>Зберегти зміни
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Права колонка: Ілюстрація -->
+            <div class="col-lg-3 col-sm-12">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-image me-2"></i>Ілюстрація</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div th:if="${post.coverstoreuuid} != null" class="mb-3">
+                            <img class="img-fluid rounded shadow-sm" th:src="'/store/content/'+${post.coverstoreuuid}" alt="Main Illustration">
+                        </div>
+                        <div th:if="${post.coverstoreuuid} == null" class="mb-3 p-4 bg-light border rounded">
+                            <i class="fas fa-photo-video fa-3x text-muted mb-2"></i>
+                            <p class="text-muted small">Ілюстрацію не встановлено</p>
+                        </div>
+                        
+                        <a class="btn btn-outline-primary w-100" th:href="@{'/creater/setpostmainpicture/'+${post.uuid}+'/0' }">
+                            <i class="fas fa-edit me-1"></i> Змінити ілюстрацію
+                        </a>
+                        <p class="mt-2 text-muted small">Обов'язково для публікації</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<div th:insert="~{/fragments/common :: footer}"></div>
 
+<script th:src="@{/js/jquery.min.js}"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
 
+<script>
+    tinymce.init({
+        selector: '#post-body',
+        height: 500,
+        plugins: 'preview importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help charmap quickbars emoticons accordion',
+        toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist outdent indent | link image media | code preview help',
+        setup: function (editor) {
+            editor.on('change', function () {
+                tinymce.triggerSave();
+            });
+        }
+    });
 
-    <script src="/js/bootstrap.bundle.min.js"></script>
-<!--    <script src="/js/tinymce.min.js"></script>-->
+    $(document).ready(function() {
+        const hasImage = [[${post.coverstoreuuid != null && !post.coverstoreuuid.isEmpty()}]];
+        
+        $("#post-form").on("submit", function(e) {
+            const status = $("#post-status").val();
+            // POSTSTATUS_REQUEST - це статус для подачі на модерацію
+            if (status === 'POSTSTATUS_REQUEST' && !hasImage) {
+                e.preventDefault();
+                toastr.error('Ви не можете подати пост на публікацію без головної ілюстрації!');
+                return false;
+            }
+        });
+    });
+</script>
+
 </body>
 </html>

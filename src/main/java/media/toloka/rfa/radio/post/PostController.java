@@ -170,6 +170,7 @@ public class PostController {
 
         model.addAttribute("post", post);
         model.addAttribute("categorys", category);
+        model.addAttribute("postStatuses", Arrays.asList(EPostStatus.POSTSTATUS_REDY, EPostStatus.POSTSTATUS_REQUEST));
         model.addAttribute("firstpostcategoryslist", postcategory);
 
         return "/creater/editpost";
@@ -206,10 +207,24 @@ public class PostController {
         post.setPostbody(fPost.getPostbody());
         post.setPosttitle(fPost.getPosttitle());
         post.setCategory(fPost.getCategory());
-//        PostCategory pc = postService.getCategoryByUUID(fPost.getPostcategory().getUuid());
         post.setPostcategory(fPost.getPostcategory());
         post.setClientdetail(cd);
 
+        // Валідація ілюстрації при запиті на публікацію
+        if (fPost.getPostStatus() == POSTSTATUS_REQUEST && (post.getCoverstoreuuid() == null || post.getCoverstoreuuid().isEmpty())) {
+            model.addAttribute("error", "Для публікації посту необхідно встановити головну ілюстрацію!");
+            model.addAttribute("post", post);
+            model.addAttribute("categorys", Arrays.asList(EPostCategory.values()));
+            model.addAttribute("postStatuses", Arrays.asList(EPostStatus.POSTSTATUS_REDY, EPostStatus.POSTSTATUS_REQUEST));
+            List<PostCategory> pcats = new ArrayList<>();
+            for (PostCategory pc : postService.getPostCategory()) {
+                if (pc.getParent() == null) pcats.add(pc);
+            }
+            model.addAttribute("firstpostcategoryslist", pcats);
+            return "/creater/editpost";
+        }
+        
+        post.setPostStatus(fPost.getPostStatus());
 
         postService.SavePost(post);
 
@@ -325,11 +340,7 @@ public class PostController {
 
         postService.SavePost(post);
 
-        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
-        model.addAttribute("post", post);
-
-        return "/creater/editpost";
+        return "redirect:/creater/editpost/" + post.getId();
     }
 
 
