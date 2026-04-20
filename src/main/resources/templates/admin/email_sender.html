@@ -49,7 +49,7 @@
                                        th:value="${u.email}" 
                                        th:id="'u'+${u.id}"
                                        th:checked="${draft.recipients.contains(u.email)}"
-                                       th:data-roles="${u.roles}">
+                                       th:data-roles="${#strings.listJoin(u.roles.![role.name()], ',')}">
                                 <label class="form-check-label" th:for="'u'+${u.id}">
                                     <span th:if="${u.clientdetail != null}" th:text="${u.clientdetail.custname} + ' ' + ${u.clientdetail.custsurname}">Name</span>
                                     <span th:if="${u.clientdetail == null}" th:text="${u.email}">Email</span>
