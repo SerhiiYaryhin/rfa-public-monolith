@@ -180,4 +180,41 @@ public class AdminTracks {
         }
         return "redirect:/admin/tracks";
     }
+
+    /** Сторінка редагування треку адміністратором */
+    @GetMapping(value = "/admin/edittrack/{trackUuid}")
+    public String adminEditTrack(@PathVariable String trackUuid, Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Track track = createrService.GetTrackByUuid(trackUuid);
+        if (track == null) return "redirect:/admin/tracks";
+
+        model.addAttribute("track", track);
+        model.addAttribute("albumList", createrService.GetAllAlbumsByCreater(track.getClientdetail()));
+        
+        return "/admin/edittrack";
+    }
+
+    /** Збереження відредагованого треку адміністратором */
+    @PostMapping(value = "/admin/edittrack")
+    public String adminSaveTrack(@ModelAttribute Track ftrack) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Track track = createrService.GetTrackByUuid(ftrack.getUuid());
+        if (track != null) {
+            track.setName(ftrack.getName());
+            track.setAutor(ftrack.getAutor());
+            track.setStyle(ftrack.getStyle());
+            track.setDescription(ftrack.getDescription());
+            track.setAlbum(ftrack.getAlbum());
+            track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
+            
+            createrService.SaveTrack(track);
+            
+            logger.info("Admin updated track: {}", track.getUuid());
+        }
+        return "redirect:/admin/tracks";
+    }
 }

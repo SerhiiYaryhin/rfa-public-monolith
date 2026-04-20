@@ -49,7 +49,7 @@
                 </thead>
                 <tbody>
                 <!-- Цикл по списку треків, додаємо клас для підсвічування неопублікованих -->
-                <tr th:each="track : ${trackList}" th:classappend="${!track.apruve} ? 'track-unapproved'">
+                <tr th:each="track : ${trackList}" th:classappend="${track.apruve != true} ? 'track-unapproved'">
                     <td>
                         <!-- Плеєр для попереднього прослуховування адміністратором -->
                         <audio th:if="${track.storeitem != null}" th:id="'voice'+${track.uuid}" controls style="width: 250px;">
@@ -65,13 +65,13 @@
                     <td class="text-center">
                         <!-- Перемикач статусу публікації (AJAX-like поведінка через перезавантаження) -->
                         <label class="switch">
-                            <input type="checkbox" th:checked="${track.apruve}" 
+                            <input type="checkbox" th:checked="${track.apruve == true}" 
                                    th:onchange="'window.location.href=\'/admin/toggletrack/' + ${track.id} + '\''">
                             <span class="slider"></span>
                         </label>
                         <br>
-                        <small th:text="${track.apruve} ? 'Так' : 'Ні'" 
-                               th:class="${track.apruve} ? 'text-success' : 'text-danger'"></small>
+                        <small th:text="${track.apruve == true} ? 'Так' : 'Ні'" 
+                               th:class="${track.apruve == true} ? 'text-success' : 'text-danger'"></small>
                     </td>
                     <td>
                         <span th:if="${track.storeitem != null}" th:text="${track.storeitem.filename}">filename</span>
@@ -86,13 +86,16 @@
                             <a class="btn btn-outline-info btn-sm" th:href="@{'/admin/email/tool?recipient=' + ${track.clientdetail.user.email} + '&template=trackStatusNotification'}" title="Написати автору">
                                 <i class="fas fa-envelope"></i>
                             </a>
+                            <a class="btn btn-outline-primary btn-sm" th:href="@{'/admin/edittrack/' + ${track.uuid}}" title="Редагувати дані треку">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <!-- Кнопка швидкого схвалення (лише для нових) -->
-                            <a th:if="${!track.apruve}" th:href="@{'/admin/publishtrack/' + ${track.id}}" 
+                            <a th:if="${track.apruve != true}" th:href="@{'/admin/publishtrack/' + ${track.id}}" 
                                class="btn btn-outline-success btn-sm" title="Схвалити">
                                 <i class="fas fa-check"></i>
                             </a>
                             <!-- Кнопка швидкого зняття з публікації (лише для опублікованих) -->
-                            <a th:if="${track.apruve}" th:href="@{'/admin/rejecttrack/' + ${track.id}}" 
+                            <a th:if="${track.apruve == true}" th:href="@{'/admin/rejecttrack/' + ${track.id}}" 
                                class="btn btn-outline-warning btn-sm" title="Зняти з публікації">
                                 <i class="fas fa-pause"></i>
                             </a>
