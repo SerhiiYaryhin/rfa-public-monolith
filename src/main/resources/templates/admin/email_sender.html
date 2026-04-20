@@ -51,7 +51,8 @@
                                        th:checked="${draft.recipients.contains(u.email)}"
                                        th:data-roles="${u.roles}">
                                 <label class="form-check-label" th:for="'u'+${u.id}">
-                                    <span th:text="${u.username}">Username</span>
+                                    <span th:if="${u.clientdetail != null}" th:text="${u.clientdetail.custname} + ' ' + ${u.clientdetail.custsurname}">Name</span>
+                                    <span th:if="${u.clientdetail == null}" th:text="${u.email}">Email</span>
                                     <small class="text-muted" th:text="' (' + ${u.email} + ')'"></small>
                                 </label>
                             </div>
