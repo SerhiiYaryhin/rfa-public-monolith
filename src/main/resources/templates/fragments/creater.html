@@ -93,21 +93,33 @@
 </div>
 
 <div th:fragment="listalbum">
-    <table class="table">
-        <thead>
+    <div class="mb-3">
+        <a class="btn btn-success" href="/creater/editalbum/0">
+            <i class="fas fa-folder-plus me-1"></i> Створити новий альбом
+        </a>
+    </div>
+    <table class="table table-hover align-middle shadow-sm bg-white rounded">
+        <thead class="table-dark">
         <tr>
             <th scope="col">Назва альбому</th>
-            <th scope="col">Дія</th>
+            <th scope="col" class="text-end">Дії</th>
         </tr>
         </thead>
         <tbody>
-        <a class="btn btn-primary" href="/creater/editalbum/0">Створити альбом</a>
         <tr th:each="album : ${albumList}">
-            <td><span th:text="${album.name}"></span></td>
             <td>
-                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/editalbum/' + ${album.id}}">Редагувати</a>
-                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/setalbumcover/' + ${album.id}}">Обрати
-                    обкладинку</a>
+                <i class="fas fa-compact-disc me-2 text-primary"></i>
+                <strong th:text="${album.name}"></strong>
+            </td>
+            <td class="text-end">
+                <div class="btn-group">
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editalbum/' + ${album.id}}">
+                        <i class="fas fa-edit me-1"></i> Редагувати
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{'/creater/setalbumcover/' + ${album.id}}">
+                        <i class="fas fa-image me-1"></i> Обкладинка
+                    </a>
+                </div>
             </td>
         </tr>
         </tbody>
@@ -134,36 +146,54 @@
 </div>
 
 <div th:fragment="listpostcontrol">
-    <div th:insert="~{/fragments/common :: pagingline}"/>
-    <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>
-    <table class="table table-striped table-hover">
-        <thead>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-success" th:href="@{'/creater/editpost/'+${0}}">
+            <i class="fas fa-file-medical me-1"></i> Новий пост
+        </a>
+        <div th:insert="~{/fragments/common :: pagingline}"/>
+    </div>
+    <table class="table table-hover align-middle shadow-sm bg-white rounded">
+        <thead class="table-dark">
         <tr>
-            <th scope="col">Заголовок</th>
-            <!--            <th scope="col">Статус</th>-->
-            <!--            <th scope="col">Створено</th>-->
+            <th scope="col">Заголовок та Статус</th>
+            <th scope="col">Статистика</th>
+            <th scope="col">Дати</th>
+            <th scope="col" class="text-end">Дії</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="post : ${viewList}">
+        <tr th:each="post : ${viewList}" th:classappend="${post.apruve != true} ? 'bg-light'">
             <td>
-                <span th:text="${post.posttitle}"></span><br>
-                <a class="badge rounded-pill bg-primary"
-                   th:href="@{'/creater/publishpost/'+${post.id} }">Опублікувати</a>
-                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a>
-                <a class="badge rounded-pill bg-primary" th:href="@{'/creater/delpost/'+${post.id} }">Видалити</a>
-                <span th:text="'Status: ' + ${post.postStatus.label}+' / '"></span>
-                <span th:text="${'Створено: '+#dates.format(post.createdate, 'dd-MM-yyyy HH:mm:ss')}"></span>
-                <span th:if="${post.apruve == true && post.apruvedate != null}"
-                      th:text="${' / Схвалено: '+#dates.format(post.apruvedate, 'dd-MM-yyyy HH:mm:ss')}"></span>
-                <span th:text="' Перегляди: '+${post.looked}"></span>
-
-                <!--                <span th:text="Статус: "></span>-->
+                <strong th:text="${post.posttitle}"></strong><br>
+                <span th:text="${post.postStatus.label}" 
+                      th:class="${post.apruve == true} ? 'badge bg-success' : 'badge bg-warning text-dark'"></span>
+                <span th:if="${post.apruve != true}" class="small text-muted ms-2">Очікує модерації</span>
             </td>
-            <!--            <td><span>Статус</span></td>-->
-            <!--            <td>-->
-
-            <!--            </td>-->
+            <td>
+                <span class="badge bg-secondary rounded-pill">
+                    <i class="fas fa-eye me-1"></i> <span th:text="${post.looked}">0</span>
+                </span>
+            </td>
+            <td class="small">
+                Створено: <span th:text="${#dates.format(post.createdate, 'dd-MM-yyyy')}"></span><br>
+                <span th:if="${post.apruve == true && post.apruvedate != null}" class="text-success">
+                    Схвалено: <span th:text="${#dates.format(post.apruvedate, 'dd-MM-yyyy')}"></span>
+                </span>
+            </td>
+            <td class="text-end">
+                <div class="btn-group">
+                    <a th:if="${post.apruve != true}" class="btn btn-outline-success btn-sm" th:href="@{'/creater/publishpost/'+${post.id} }" title="Опублікувати">
+                        <i class="fas fa-upload"></i>
+                    </a>
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.id} }" title="Редагувати">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/creater/delpost/'+${post.id} }" 
+                       onclick="return confirm('Видалити цей пост назавжди?')" title="Видалити">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </td>
         </tr>
         </tbody>
     </table>
@@ -171,39 +201,50 @@
 </div>
 
 <div th:fragment="listtracs">
-    <a class="btn btn-primary" th:href="@{/creator/trackupload}">Завантажити треки</a>
-    <div th:insert="~{/fragments/common :: pagingline}"/>
-    <table class="table table-striped table-hover">
-        <thead>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-success" th:href="@{/creator/trackupload}">
+            <i class="fas fa-plus me-1"></i> Додати новий трек
+        </a>
+        <div th:insert="~{/fragments/common :: pagingline}"/>
+    </div>
+    <table class="table table-hover align-middle shadow-sm bg-white rounded">
+        <thead class="table-dark">
         <tr>
-            <th scope="col">Слухати</th>
-            <th scope="col">Назва</th>
-            <th scope="col">Файл</th>
+            <th scope="col" style="width: 260px">Прослухати</th>
+            <th scope="col">Інформація</th>
             <th scope="col">Альбом</th>
-            <th scope="col">Дія</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Дії</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="track : ${viewList}">
             <td>
-                <audio th:if="${track.storeitem != null}" th:id="'voice'+${track.uuid}" controls>
+                <audio th:if="${track.storeitem != null}" th:id="'voice'+${track.uuid}" controls style="width: 250px;">
                     <source th:src="'/store/audio/'+${track.storeitem.uuid}">
                 </audio>
-                <span th:if="${track.storeitem == null}" class="text-danger">Файл відсутній</span>
+                <span th:if="${track.storeitem == null}" class="text-danger small">Файл не знайдено</span>
             </td>
             <td>
-                <span th:text="${track.name}"></span>
+                <strong th:text="${track.name}"></strong><br>
+                <small class="text-muted" th:text="${track.autor}"></small><br>
+                <small class="text-muted" th:if="${track.storeitem != null}" th:text="'Файл: ' + ${track.storeitem.filename}"></small>
             </td>
             <td>
-                <span th:if="${track.storeitem != null}" th:text="${track.storeitem.filename}"></span>
-                <span th:if="${track.storeitem == null}" class="badge bg-warning text-dark">Метадані відсутні</span>
-                <br>
-                <span th:text="'Завантажено: '+${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                <span th:if="${track.album} != null" class="badge bg-info text-dark" th:text="${track.album.name}"></span>
+                <span th:if="${track.album} == null" class="text-muted small">Поза альбомом</span>
             </td>
             <td>
-                <span th:if="${track.album} != null" th:text="${track.album.name}"></span>
+                <span th:if="${track.apruve == true}" class="badge bg-success">Опубліковано</span>
+                <span th:if="${track.apruve != true}" class="badge bg-warning text-dark">На модерації</span>
             </td>
-            <td><a class="btn btn-primary" th:href="@{'/creater/edittrack/'+${track.uuid} }">Редагувати</a></td>
+            <td>
+                <div class="btn-group">
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/edittrack/'+${track.uuid} }" title="Редагувати">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </div>
+            </td>
         </tr>
         </tbody>
     </table>
