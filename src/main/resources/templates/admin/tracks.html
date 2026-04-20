@@ -4,10 +4,20 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <title>Адмін - Треки</title>
+    <title>Адмін - Керування треками</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="/css/styles.css" rel="stylesheet"/>
+    <style>
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:focus + .slider { box-shadow: 0 0 1px #28a745; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .track-unapproved { background-color: rgba(255, 193, 7, 0.05) !important; }
+    </style>
 </head>
 <body id="page-top">
 
@@ -18,18 +28,19 @@
 <div style="padding-top: 100px" class="container-fluid">
     <div class="row">
         <div class="col-lg-12 text-center">
-            <h2 class="section-heading text-uppercase">Модерація треків</h2>
-            <h3 class="section-subheading text-muted">Список треків, що очікують на схвалення</h3>
+            <h2 class="section-heading text-uppercase">Керування треками</h2>
+            <h3 class="section-subheading text-muted">Повний список треків системи</h3>
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-12">
-            <table class="table table-striped table-hover">
+            <table class="table table-hover align-middle">
                 <thead class="table-dark">
                 <tr>
                     <th>Слухати</th>
                     <th>Назва / Автор</th>
+                    <th>Опубліковано</th>
                     <th>Файл</th>
                     <th>Клієнт</th>
                     <th>Дата завантаження</th>
@@ -37,8 +48,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="track : ${trackList}">
+                <!-- Цикл по списку треків, додаємо клас для підсвічування неопублікованих -->
+                <tr th:each="track : ${trackList}" th:classappend="${!track.apruve} ? 'track-unapproved'">
                     <td>
+                        <!-- Плеєр для попереднього прослуховування адміністратором -->
                         <audio th:if="${track.storeitem != null}" th:id="'voice'+${track.uuid}" controls style="width: 250px;">
                             <source th:src="'/store/audio/'+${track.storeitem.uuid}">
                         </audio>
@@ -49,28 +62,47 @@
                         <span th:text="${track.autor}">Автор</span><br>
                         <small class="text-muted" th:text="${track.style}">Стиль</small>
                     </td>
+                    <td class="text-center">
+                        <!-- Перемикач статусу публікації (AJAX-like поведінка через перезавантаження) -->
+                        <label class="switch">
+                            <input type="checkbox" th:checked="${track.apruve}" 
+                                   th:onchange="'window.location.href=\'/admin/toggletrack/' + ${track.id} + '\''">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <small th:text="${track.apruve} ? 'Так' : 'Ні'" 
+                               th:class="${track.apruve} ? 'text-success' : 'text-danger'"></small>
+                    </td>
                     <td>
                         <span th:if="${track.storeitem != null}" th:text="${track.storeitem.filename}">filename</span>
                     </td>
                     <td>
+                        <!-- Інформація про автора завантаження -->
                         <span th:text="${track.clientdetail.custname} + ' ' + ${track.clientdetail.custsurname}">Клієнт</span>
                     </td>
                     <td th:text="${#dates.format(track.uploaddate, 'dd-MM-yyyy HH:mm')}">Дата</td>
                     <td>
-                        <a th:href="@{'/admin/publishtrack/' + ${track.id}}" class="btn btn-success btn-sm" title="Схвалити">
-                            <i class="fas fa-check"></i>
-                        </a>
-                        <a th:href="@{'/admin/rejecttrack/' + ${track.id}}" class="btn btn-warning btn-sm" title="Відхилити">
-                            <i class="fas fa-times"></i>
-                        </a>
-                        <a th:href="@{'/admin/deltrack/' + ${track.id}}" class="btn btn-danger btn-sm" 
-                           onclick="return confirm('Ви впевнені, що хочете видалити цей трек назавжди?')" title="Видалити">
-                            <i class="fas fa-trash"></i>
-                        </a>
+                        <div class="btn-group">
+                            <!-- Кнопка швидкого схвалення (лише для нових) -->
+                            <a th:if="${!track.apruve}" th:href="@{'/admin/publishtrack/' + ${track.id}}" 
+                               class="btn btn-outline-success btn-sm" title="Схвалити">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <!-- Кнопка швидкого зняття з публікації (лише для опублікованих) -->
+                            <a th:if="${track.apruve}" th:href="@{'/admin/rejecttrack/' + ${track.id}}" 
+                               class="btn btn-outline-warning btn-sm" title="Зняти з публікації">
+                                <i class="fas fa-pause"></i>
+                            </a>
+                            <!-- Незворотне видалення з диска та бази даних -->
+                            <a th:href="@{'/admin/deltrack/' + ${track.id}}" class="btn btn-outline-danger btn-sm" 
+                               onclick="return confirm('Ви впевнені, що хочете видалити цей трек назавжди? Це видалить файл із сервера!')" title="Видалити">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 <tr th:if="${trackList.isEmpty()}">
-                    <td colspan="6" class="text-center">Немає треків для модерації</td>
+                    <td colspan="7" class="text-center">Треків не знайдено</td>
                 </tr>
                 </tbody>
             </table>

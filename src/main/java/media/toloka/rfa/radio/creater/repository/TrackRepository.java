@@ -31,7 +31,11 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 
     Track getByUuid(String trackUuid);
 
+    /** Отримати список треків, що очікують на модерацію (apruve = false) */
     List<Track> findByApruveFalseOrderByUploaddateDesc();
+
+    /** Отримати повний список усіх треків системи для панелі адміністратора */
+    List<Track> findAllByOrderByUploaddateDesc();
 
 
 //    Page findAllOrderByUploaddateByAsc(Pageable storePage);

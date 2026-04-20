@@ -126,22 +126,32 @@ public class CreaterService {
         return trackRepository.save(track);
     }
 
+    /** Пошук треку за його внутрішнім ID */
     public Track GetTrackById(Long idTrack) {
         return trackRepository.getById(idTrack);
     }
 
+    /** Пошук треку за UUID зі сховища */
     public Track GetTrackByStoreuuid (String storeUuid) {
         return trackRepository.getByUuid(storeUuid);
     }
 
+    /** Збереження змін у треку */
     public void SaveTrack(Track track) {
         trackRepository.save(track);
     }
 
+    /** Отримання списку треків для модерації (лише не схвалені) */
     public List<Track> GetNotApruveTracks() {
         return trackRepository.findByApruveFalseOrderByUploaddateDesc();
     }
 
+    /** Отримання всіх треків системи для повного керування адміністратором */
+    public List<Track> GetAllTracks() {
+        return trackRepository.findAllByOrderByUploaddateDesc();
+    }
+
+    /** Видалення запису про трек із бази даних */
     public void DeleteTrack(Track track) {
         trackRepository.delete(track);
     }

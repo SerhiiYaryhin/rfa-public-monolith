@@ -43,6 +43,11 @@ public class AdminTracks {
 
     final Logger logger = LoggerFactory.getLogger(AdminTracks.class);
 
+    /**
+     * Відправляє авторський лист про зміну статусу треку.
+     * @param track Об'єкт треку
+     * @param status Рядок статусу для шаблону (APPROVED, REJECTED, DELETED)
+     */
     private void sendTrackStatusEmail(Track track, String status) {
         if (track.getClientdetail() == null || track.getClientdetail().getUser() == null) return;
         
@@ -55,6 +60,7 @@ public class AdminTracks {
             mail.setTo(userEmail);
             mail.setSubject("Статус вашого треку на Радіо Толока");
             
+            // Підготовка даних для Thymeleaf-шаблону листа
             Map<String, Object> model = new HashMap<>();
             model.put("userName", track.getClientdetail().getCustname());
             model.put("trackName", track.getName());
@@ -67,6 +73,7 @@ public class AdminTracks {
         }
     }
 
+    /** Відображення списку всіх треків для адміністратора */
     @GetMapping(value = "/admin/tracks")
     public String getAdminTracks(Model model) {
         Users user = clientService.GetCurrentUser();
@@ -74,12 +81,39 @@ public class AdminTracks {
             return "redirect:/";
         }
 
-        List<Track> tracks = adminService.GetNotApruveTracks();
+        List<Track> tracks = adminService.GetAllTracks();
         model.addAttribute("trackList", tracks);
 
         return "/admin/tracks";
     }
 
+    /** Перемикання статусу публікації треку (Toggle) */
+    @GetMapping(value = "/admin/toggletrack/{trackId}")
+    public String toggleTrackStatus(@PathVariable Long trackId) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+
+        Track track = adminService.GetTrackById(trackId);
+        if (track != null) {
+            boolean newState = !track.getApruve();
+            track.setApruve(newState);
+            track.setPublishstatus(newState);
+            adminService.SaveTrack(track);
+            
+            // Повідомляємо автора
+            String statusString = newState ? "APPROVED" : "REJECTED";
+            sendTrackStatusEmail(track, statusString);
+            
+            historyService.saveHistory(EHistoryType.History_DocumentChange, 
+                "Admin toggled track status to " + newState + ": " + track.getName(), 
+                track.getClientdetail().getUser());
+        }
+        return "redirect:/admin/tracks";
+    }
+
+    /** Схвалення треку для публікації */
     @GetMapping(value = "/admin/publishtrack/{trackId}")
     public String getAdminPublishTrack(@PathVariable Long trackId) {
         Users user = clientService.GetCurrentUser();
@@ -92,6 +126,8 @@ public class AdminTracks {
             track.setApruve(true);
             track.setPublishstatus(true);
             adminService.SaveTrack(track);
+            
+            // Реєстрація дії в системному журналі
             historyService.saveHistory(EHistoryType.History_DocumentCreate, 
                 "Admin approved track: " + track.getName() + " (UUID: " + track.getUuid() + ")", 
                 track.getClientdetail().getUser());
@@ -101,6 +137,7 @@ public class AdminTracks {
         return "redirect:/admin/tracks";
     }
 
+    /** Відхилення публікації треку */
     @GetMapping(value = "/admin/rejecttrack/{trackId}")
     public String getAdminRejectTrack(@PathVariable Long trackId) {
         Users user = clientService.GetCurrentUser();
@@ -119,6 +156,7 @@ public class AdminTracks {
         return "redirect:/admin/tracks";
     }
 
+    /** Повне видалення треку (файл + записи в БД) */
     @GetMapping(value = "/admin/deltrack/{trackId}")
     public String getAdminDeleteTrack(@PathVariable Long trackId) {
         Users user = clientService.GetCurrentUser();
@@ -129,11 +167,11 @@ public class AdminTracks {
         Track track = adminService.GetTrackById(trackId);
         if (track != null) {
             String trackName = track.getName();
-            String userEmail = track.getClientdetail().getUser().getEmail();
             
-            // Відправляємо лист перед видаленням, поки об'єкт існує
+            // Повідомляємо автора перед видаленням об'єкта
             sendTrackStatusEmail(track, "DELETED");
             
+            // Каскадне видалення через сервіс
             adminService.DeleteTrack(trackId);
             
             historyService.saveHistory(EHistoryType.History_PostDelete, 

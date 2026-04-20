@@ -140,20 +140,35 @@ public class AdminService {
         return createrService.GetNotApruveTracks();
     }
 
+    /** Отримати всі треки системи */
+    public List<Track> GetAllTracks() {
+        return createrService.GetAllTracks();
+    }
+
+    /** Знайти трек за ID */
     public Track GetTrackById(Long idTrack) {
         return createrService.GetTrackById(idTrack);
     }
 
+    /** Зберегти зміни в треку (схвалення/відхилення) */
     public void SaveTrack(Track track) {
         createrService.SaveTrack(track);
     }
 
+    /** 
+     * Реалізує ПОВНЕ КАСКАДНЕ ВИДАЛЕННЯ треку:
+     * 1. Видалення фізичного файлу з диска сервера.
+     * 2. Видалення метаданих файлу зі сховища (Store).
+     * 3. Видалення запису про трек із медіатеки (Track).
+     */
     public void DeleteTrack(Long idTrack) {
         Track track = createrService.GetTrackById(idTrack);
         if (track != null) {
+            // Крок 1 та 2: Фізичне видалення + БД Store
             if (track.getStoreitem() != null) {
                 storeService.DeleteInStore(track.getStoreitem());
             }
+            // Крок 3: БД Track
             createrService.DeleteTrack(track);
         }
     }
