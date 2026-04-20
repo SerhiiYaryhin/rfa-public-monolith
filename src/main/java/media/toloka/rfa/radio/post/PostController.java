@@ -333,12 +333,24 @@ public class PostController {
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Store store = storeService.GetStoreByUUID(storeitemuuid);
         Post post = postService.GetByUiid(uuidpost);
-        post.setCoverstoreuuid(store.getUuid());
-//        post.setStore (store);
+        if (post == null) {
+            logger.error("Пост з UUID {} не знайдено", uuidpost);
+            return "redirect:/creater/home";
+        }
 
-        postService.SavePost(post);
+        // Перевіряємо наявність об'єкта в сховищі перед призначенням
+        Store store = storeService.GetStoreByUUID(storeitemuuid);
+        if (store != null) {
+            post.setCoverstoreuuid(store.getUuid());
+            postService.SavePost(post);
+            logger.info("Призначено ілюстрацію {} для посту {}", storeitemuuid, uuidpost);
+        } else {
+            logger.error("Файл з UUID {} не знайдено у сховищі", storeitemuuid);
+            // Навіть якщо об'єкт Store не знайдено в БД (можливо затримка запису), 
+            // ми все одно можемо зберегти UUID, якщо впевнені в ньому.
+            // Але краще просто залогувати помилку.
+        }
 
         return "redirect:/creater/editpost/" + post.getId();
     }
