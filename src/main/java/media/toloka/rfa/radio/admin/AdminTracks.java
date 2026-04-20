@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.admin;
 
 import media.toloka.rfa.radio.admin.service.AdminService;
+import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.email.service.EmailSenderService;
@@ -15,8 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +28,9 @@ public class AdminTracks {
 
     @Autowired
     private AdminService adminService;
+
+    @Autowired
+    private CreaterService createrService;
 
     @Autowired
     private ClientService clientService;
