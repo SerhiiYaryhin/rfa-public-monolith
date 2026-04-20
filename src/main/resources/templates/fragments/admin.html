@@ -495,30 +495,61 @@
 </div>
 
 <div th:fragment="listpostcontrol">
-    <table class="table">
-        <thead>
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
         <tr>
             <th scope="col">Заголовок</th>
             <th scope="col">Автор</th>
+            <th scope="col" class="text-center">Опубліковано</th>
             <th scope="col">Статус</th>
             <th scope="col">Створено</th>
-            <th scope="col">Опубліковано</th>
-            <!--            <th scope="col">Дії</th>-->
+            <th scope="col">Дії</th>
         </tr>
         </thead>
         <tbody>
-<!--        <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>-->
-        <tr th:each="post : ${posts}">
-            <td><span th:text="${post.posttitle}"></span><br>
-                <a class="btn btn-primary" th:href="@{'/admin/publishpost/'+${post.id} }">Опублікувати</a>
-                <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${post.id} }">Редагувати</a>
-                <a class="btn btn-primary" th:href="@{'/admin/rejectpost/'+${post.id} }">Відхилити</a>
-                <a class="btn btn-primary" th:href="@{'/admin/delpost/'+${post.id} }">Видалити</a>
+        <tr th:each="post : ${posts}" th:classappend="${post.apruve != true} ? 'post-unapproved'">
+            <td>
+                <strong th:text="${post.posttitle}"></strong><br>
+                <small class="text-muted" th:text="${post.uuid}"></small>
             </td>
-            <td><span th:text="${post.clientdetail.custname}+' '+${post.clientdetail.custsurname}">Автор</span></td>
-            <td><span th:text="${post.postStatus.label}">Статус</span></td>
-            <td><span th:text="${#dates.format(post.createdate, 'dd-MM-yyyy HH:mm')}">Створено</span></td>
-            <td><span th:text="${#dates.format(post.publishdate, 'dd-MM-yyyy HH:mm')}">Опубліковано</span></td>
+            <td>
+                <span th:text="${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}">Автор</span><br>
+                <small class="text-muted" th:text="${post.clientdetail.user.email}"></small>
+            </td>
+            <td class="text-center">
+                <label class="switch">
+                    <input type="checkbox" th:checked="${post.apruve == true}" 
+                           th:onchange="'window.location.href=\'/admin/togglepost/' + ${post.id} + '\''">
+                    <span class="slider"></span>
+                </label>
+            </td>
+            <td>
+                <span th:text="${post.postStatus.label}" 
+                      th:class="${post.apruve == true} ? 'badge bg-success' : 'badge bg-warning text-dark'"></span>
+            </td>
+            <td>
+                <span th:text="${#dates.format(post.createdate, 'dd-MM-yyyy HH:mm')}">Створено</span><br>
+                <small th:if="${post.publishdate != null}" class="text-success">
+                    Опубл: <span th:text="${#dates.format(post.publishdate, 'dd-MM-yyyy')}"></span>
+                </small>
+            </td>
+            <td>
+                <div class="btn-group">
+                    <!-- Повідомити автора -->
+                    <a class="btn btn-outline-info btn-sm" th:href="@{'/admin/email/tool?recipient=' + ${post.clientdetail.user.email}}" title="Написати автору">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <!-- Редагувати (через редактор творця) -->
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.id} }" title="Редагувати вміст">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <!-- Видалити -->
+                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/admin/delpost/'+${post.id} }" 
+                       onclick="return confirm('Видалити цей пост назавжди?')" title="Видалити">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </td>
         </tr>
         </tbody>
     </table>

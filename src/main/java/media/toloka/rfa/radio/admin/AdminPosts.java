@@ -55,10 +55,37 @@ public class AdminPosts {
         }
 
 //        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        List<Post> posts = adminService.GetNotApruvePosts();
+        List<Post> posts = adminService.GetAllPosts();
         model.addAttribute("posts", posts );
 
         return "/admin/posts";
+    }
+
+    /**
+     * Перемикання статусу публікації поста (схвалено/не схвалено)
+     */
+    @GetMapping(value = "/admin/togglepost/{postId}")
+    public String togglePostPublish(@PathVariable Long postId) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Post post = adminService.GetPostById(postId);
+        if (post != null) {
+            boolean newState = !post.getApruve();
+            post.setApruve(newState);
+            if (newState) {
+                post.setPostStatus(POSTSTATUS_PUBLICATE);
+                post.setPublishdate(new Date());
+            } else {
+                post.setPostStatus(POSTSTATUS_REJECT);
+            }
+            adminService.SavePost(post);
+            
+            historyService.saveHistory(EHistoryType.History_PostPublicate, 
+                "Admin toggled post status to " + newState + " for post: " + post.getUuid(), 
+                post.getClientdetail().getUser());
+        }
+        return "redirect:/admin/posts";
     }
 
     @GetMapping(value = "/admin/publishpost/{postId}")

@@ -19,6 +19,8 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
     Post getById(Long id);
     List<Post> findByApruveOrderByCreatedateDesc(Boolean apruve);
 
+    List<Post> findAllByOrderByCreatedateDesc();
+
     Page findAllByOrderByPublishdateDesc(Pageable storePage);
 
     Page findAllByPublishdateIsNotNullOrderByPublishdateDesc(Pageable storePage);

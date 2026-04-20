@@ -65,6 +65,10 @@ public class AdminService {
         return postService.GetListPostByApruve(false);
     }
 
+    public List<Post> GetAllPosts() {
+        return postService.GetAllPosts();
+    }
+
     public Post GetPostById(Long postId) {
         return postService.GetPostById(postId);
     }

@@ -54,6 +54,10 @@ public class PostService {
         return postRepositore.findByApruveOrderByCreatedateDesc(apruve);
     }
 
+    public List<Post> GetAllPosts() {
+        return postRepositore.findAllByOrderByCreatedateDesc();
+    }
+
     public Post GetByUiid(String uuidpost) {
         return postRepositore.getByUuid(uuidpost);
     }
