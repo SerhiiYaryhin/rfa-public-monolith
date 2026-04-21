@@ -44,32 +44,40 @@ public class ClientHomeController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private media.toloka.rfa.podcast.service.PodcastService podcastService;
+
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
     @GetMapping(value = "/user/user_page")
     public String userHome(
+            @RequestParam(defaultValue = "0") Integer postPage,
+            @RequestParam(defaultValue = "0") Integer trackPage,
+            @RequestParam(defaultValue = "0") Integer podcastPage,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
+        media.toloka.rfa.radio.model.Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        String curshow;
-        // todo Взяти трек з List<ListOnlineFront> listOnlineFronts = StationOnlineList.getInstance().GetOnlineList();
-        // та передати його на сайт
+        // 1. Пости користувача
+        Page<Post> posts = createrService.GetPostPageByClientDetail(postPage, 6, cd);
+        model.addAttribute("postList", posts.getContent());
+        model.addAttribute("postTotalPages", posts.getTotalPages());
+        model.addAttribute("postCurrentPage", postPage);
 
-        // https://www.baeldung.com/java-read-json-from-url
+        // 2. Треки користувача
+        Page<Track> tracks = createrService.GetTrackPageByClientDetail(trackPage, 10, cd);
+        model.addAttribute("trackList", tracks.getContent());
+        model.addAttribute("trackTotalPages", tracks.getTotalPages());
+        model.addAttribute("trackCurrentPage", trackPage);
 
-//        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-//        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-//        List<Track> trackList = createrService.GetLastUploadTracks();
-
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pageTrack = createrService.GetTrackPage(0,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
-
-        model.addAttribute("trackList", storeTrackList );
-        model.addAttribute("postList", createrService.GetAllPostsByApruveAndMusicPost(true) );
+        // 3. Подкасти користувача
+        Page<media.toloka.rfa.podcast.model.PodcastChannel> podcasts = podcastService.GetPodcastPageByCd(cd, podcastPage, 6);
+        model.addAttribute("podcastList", podcasts.getContent());
+        model.addAttribute("podcastTotalPages", podcasts.getTotalPages());
+        model.addAttribute("podcastCurrentPage", podcastPage);
 
         return "/user/user_page";
     }

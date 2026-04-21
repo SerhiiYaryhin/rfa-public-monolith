@@ -126,6 +126,11 @@ public class PodcastService {
         return chanelRepository.findByClientdetail(cd.getUuid());
     }
 
+    public Page<PodcastChannel> GetPodcastPageByCd(Clientdetail cd, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return chanelRepository.findByClientdetailOrderByLastbuilddateDesc(cd.getUuid(), pageable);
+    }
+
     public PodcastItem GetEpisodeByUUID(String euuid) {
         return episodeRepository.getByUuid(euuid);
     }

@@ -6,60 +6,178 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока - Мій Кабінет</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-<!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <style>
+        .user-section { margin-bottom: 3rem; }
+        .section-header { border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .card-img-custom { height: 160px; object-fit: cover; }
+        .track-item:hover { background-color: #f8f9fa; }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<!--// User page container-->
-<div style="padding-top: 100px">
-        <div class="container-fluid">
-<!--            <div class="row">-->
-<!--                <div class="col-lg-12 col-sm-12">-->
-<!--                    <div th:insert="~{/fragments/user :: user_service}"> </div>-->
-<!--                </div>-->
-<!--            </div>-->
+<div class="container py-5" style="padding-top: 120px !important;">
+    
+    <!-- Привітання -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <h1 class="display-5 fw-bold">Вітаємо, <span sec:authentication="name">Користувач</span>!</h1>
+            <p class="lead text-muted">Ваш персональний простір для керування контентом на Толоці.</p>
+            <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+        </div>
+    </div>
 
-            <div class="row text-center" style="padding-top: 20px">
-                <div class="col align-center">
-                    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+    <!-- Основний контент -->
+    <div class="row">
+        <!-- Ліва широка колонка: Пости та Подкасти -->
+        <div class="col-lg-8">
+            
+            <!-- Секція 1: Пости -->
+            <div class="user-section">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="fas fa-newspaper text-primary me-2"></i>Ваші Пости</h2>
+                    <a href="/creater/editpost/0" class="btn btn-sm btn-outline-primary">+ Створити пост</a>
                 </div>
-            </div>
-
-            <div class="row" style="padding-top: 20px">
-                <!-- Колонка керування радіо-->
-                <div class="col-lg-9 col-sm-12">
-                    <div class="card" >
-                        <div class="card-header"><h3>Новини на Толоці</h3></div>
-                        <div class="card-body">
-                            <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${!postList.isEmpty()}">
+                    <div th:each="post : ${postList}" class="col">
+                        <div class="card h-100 shadow-sm">
+                            <img th:if="${post.coverstoreuuid}" th:src="'/store/content/'+${post.coverstoreuuid}" class="card-img-top card-img-custom" alt="Post Cover">
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate" th:text="${post.posttitle}">Назва</h5>
+                                <p class="card-text small text-muted" th:if="${post.postStatus}" th:text="${post.postStatus.label}"></p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                                <small class="text-muted" th:text="${#dates.format(post.createdate, 'dd.MM.yyyy')}"></small>
+                                <a th:href="'/creater/editpost/'+${post.uuid}" class="btn btn-sm btn-link">Редагувати</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- колонка медіа хаб-->
-                <div class="col-lg-3 col-sm-12">
-<!--                    Вставляємо останні завантажені треки-->
-                    <div th:insert="~{/fragments/mediahub :: lasttrecks}">  </div>
-<!--                    вставляем Медіа Хаб-->
-                    <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
-                </div>
+                <div th:if="${postList.isEmpty()}" class="alert alert-light border text-center">Ви ще не створювали постів.</div>
+
+                <!-- Пагінація Постів -->
+                <nav th:if="${postTotalPages > 1}" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item" th:classappend="${postCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage - 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}">Назад</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, postTotalPages - 1)}" th:classappend="${i == postCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${i}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${postCurrentPage == postTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage + 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}">Вперед</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
+
+            <!-- Секція 2: Подкасти -->
+            <div class="user-section">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="fas fa-microphone-alt text-success me-2"></i>Ваші Подкасти</h2>
+                    <a href="/podcast/pedit/0" class="btn btn-sm btn-outline-success">+ Новий подкаст</a>
+                </div>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${!podcastList.isEmpty()}">
+                    <div th:each="podcast : ${podcastList}" class="col">
+                        <div class="card h-100 shadow-sm border-start border-success border-4">
+                            <div class="row g-0 align-items-center">
+                                <div class="col-4 p-2 text-center">
+                                    <img th:if="${podcast.imagechanelstore}" th:src="'/store/content/'+${podcast.imagechanelstore.uuid}" class="img-fluid rounded" alt="Cover">
+                                    <i th:if="${!podcast.imagechanelstore}" class="fas fa-podcast fa-3x text-muted"></i>
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="card-title text-truncate mb-1" th:text="${podcast.title}"></h6>
+                                        <small class="text-muted d-block" th:text="${podcast.item.size()} + ' епізодів'"></small>
+                                        <a th:href="'/podcast/pedit/'+${podcast.uuid}" class="btn btn-sm btn-link p-0 text-success">Керувати</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${podcastList.isEmpty()}" class="alert alert-light border text-center">У вас ще немає власних подкастів.</div>
+
+                <!-- Пагінація Подкастів -->
+                <nav th:if="${podcastTotalPages > 1}" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item" th:classappend="${podcastCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage - 1})}">Назад</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, podcastTotalPages - 1)}" th:classappend="${i == podcastCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${podcastCurrentPage == podcastTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage + 1})}">Вперед</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
         </div>
+
+        <!-- Права колонка: Треки та Медіахаб -->
+        <div class="col-lg-4">
+            
+            <!-- Секція 3: Треки -->
+            <div class="user-section">
+                <div class="section-header">
+                    <h2 class="h4 mb-0"><i class="fas fa-music text-warning me-2"></i>Ваші Треки</h2>
+                </div>
+                
+                <div class="list-group shadow-sm mb-3" th:if="${!trackList.isEmpty()}">
+                    <div th:each="track : ${trackList}" class="list-group-item track-item d-flex justify-content-between align-items-center">
+                        <div class="text-truncate" style="max-width: 70%">
+                            <strong th:text="${track.name ?: 'Без назви'}"></strong><br>
+                            <small class="text-muted" th:text="${track.autor}"></small>
+                        </div>
+                        <a th:href="'/creater/edittrack/'+${track.uuid}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="fas fa-pen small"></i>
+                        </a>
+                    </div>
+                </div>
+                <div th:if="${trackList.isEmpty()}" class="alert alert-light border text-center small">Треків поки немає.</div>
+                
+                <a href="/creator/trackupload" class="btn btn-warning w-100 mb-4 shadow-sm">
+                    <i class="fas fa-cloud-upload-alt me-1"></i> Завантажити музику
+                </a>
+
+                <!-- Пагінація Треків -->
+                <nav th:if="${trackTotalPages > 1}" class="mb-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item" th:classappend="${trackCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage - 1}, podcastPage=${podcastCurrentPage})}"><i class="fas fa-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, trackTotalPages - 1)}" th:classappend="${i == trackCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${i}, podcastPage=${podcastCurrentPage})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${trackCurrentPage == trackTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage + 1}, podcastPage=${podcastCurrentPage})}"><i class="fas fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Медіахаб -->
+            <div class="card shadow-sm border-0 bg-dark text-white p-3 mb-4">
+                <h5><i class="fas fa-tools me-2 text-info"></i>Інструменти</h5>
+                <hr class="bg-light">
+                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 
+<div th:insert="~{/fragments/common :: footer}"></div>
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

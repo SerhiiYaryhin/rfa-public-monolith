@@ -13,6 +13,7 @@ import java.util.List;
 public interface ChanelRepository extends JpaRepository<PodcastChannel, Long>, PagingAndSortingRepository<PodcastChannel, Long> {
     List<PodcastChannel> findByClientdetail(Clientdetail cd);
     List<PodcastChannel> findByClientdetail(String uuid);
+    Page<PodcastChannel> findByClientdetailOrderByLastbuilddateDesc(String uuid, Pageable pageable);
 //    PodcastChannel getByStoreuuid(String storeUuid);
     PodcastChannel getByUuid(String ChanelUuid);
     PodcastChannel save(PodcastChannel chanel);
