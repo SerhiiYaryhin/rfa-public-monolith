@@ -258,6 +258,10 @@ public class PodcastService {
         return storeList;
     }
 
+    public List<Store> GetPicturesListByCd(Clientdetail cd) {
+        return storeService.GetPicturesListByClientDetail(cd);
+    }
+
 
     /**
      * Беремо з бази всі подкасти що схвалені для каруселі на головній сторінці

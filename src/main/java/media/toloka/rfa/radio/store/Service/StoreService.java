@@ -70,6 +70,11 @@ public class StoreService extends StoreFileImplementation {
         return storeRepositore.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
     }
 
+    public List<Store> GetPicturesListByClientDetail(Clientdetail cd) {
+        Pageable allPicturesPage = PageRequest.of(0, 100); // Беремо останні 100 картинок
+        return storeRepositore.findByStorelAllPictures(allPicturesPage, cd).getContent();
+    }
+
 
     public Page<Store> GetPagingStoreFilesByType(int page, int size, EStoreFileType fileType) {
         PageRequest pageable = PageRequest.of(page, size);
