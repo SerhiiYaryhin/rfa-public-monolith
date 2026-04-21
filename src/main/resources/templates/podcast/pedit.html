@@ -1,315 +1,289 @@
 <!DOCTYPE html>
-
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
-
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
+    <title>Толока - Редагування подкасту</title>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="podcastUUID" th:content="${podcast.uuid}"/>
-    <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
-    <!-- Font Awesome icons (free version)-->
-    <!--    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>-->
-    <!-- Google fonts-->
-    <!--    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />-->
-    <!--    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />-->
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <!-- Bootstrap icons-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet"/>
-
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <style>
+        .podcast-header { background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
+        .episode-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+        .nav-tabs .nav-link { color: #495057; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 <header>
-    <!-- Navigation-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
-<!-- Header для главной сторінки подкастов class="py-5" -->
-<header style="padding-top: 80px">
-    <div class="container-fluid">
-        <div class="bg-light rounded-3 text-center">
-            <!--            <div class="p-4 p-lg-5 bg-light rounded-3 text-center">-->
-            <div>
-                <!--                <div class="m-4 m-lg-5">-->
-                <h1 class="display-5 fw-bold" th:text="${podcast.title} "/>
-                <p>Завантажте файли з епізодами подкасту, додайте обкладинку епізоду та його опис.</p>
-                <div th:if="${podcast.uuid != null}">
-                    <a class="btn btn-primary btn-sm mx-auto" th:href="'/podcast/episodeupload/'+${podcast.uuid}">Завантажити
-                        епізод</a>
-                </div>
-                <div th:if="${podcast.imagechanelstore == null}">
-                    <a class="btn btn-primary btn-lg btn-sm mx-auto"
-                       th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">Завантажити обкладинку</a>
+<div class="container py-5" style="padding-top: 100px !important;">
+    
+    <!-- Заголовок подкасту -->
+    <div class="podcast-header shadow-sm border-0 position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-auto">
+                <div class="position-relative">
+                    <img th:if="${podcast.imagechanelstore != null}" 
+                         th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                         class="rounded shadow" style="width: 150px; height: 150px; object-fit: cover;">
+                    <div th:if="${podcast.imagechanelstore == null}" 
+                         class="bg-secondary rounded shadow d-flex align-items-center justify-content-center" 
+                         style="width: 150px; height: 150px;">
+                        <i class="fas fa-microphone-alt fa-3x text-white-50"></i>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</header>
-
-<!-- MessageBox -->
-<div class="row text-center" style="padding-top: 20px">
-    <div class="col align-center">
-        <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
-    </div>
-</div>
-
-<!-- Обкладинка альбому -->
-<div th:if="${podcast.imagechanelstore != null}" class="container px-lg-5 form-control-sm">
-    <div class="row" style="padding-top: 40px">
-        <div class="col">
-            <!-- Обкладинка альбому -->
-            <img th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                 th:id="${podcast.imagechanelstore.uuid}"/>
-            <br><span th:text="${podcast.imagechanelstore.filename}"/>
-            <br><a th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">
-            <span class="badge rounded-pill bg-primary">Змінити обкладинку</span>
-        </a>
-        </div>
-        <div class="col">
-            <!-- Опублікувати -->
-            <form th:action="@{/podcast/channelpublish}" th:object="${podcast}" method="post">
-                <div th:if="*{apruve}">
+            <div class="col-md">
+                <h1 class="display-6 fw-bold mb-1" th:text="${podcast.title ?: 'Новий подкаст'}">Назва</h1>
+                <p class="text-muted" th:text="${podcast.description != null ? #strings.abbreviate(podcast.description, 100) : 'Опис відсутній'}"></p>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-sm btn-outline-primary" th:href="'/podcast/coverpodcastupload/'+${podcast.uuid}">
+                        <i class="fas fa-image me-1"></i> Змінити обкладинку
+                    </a>
+                    <a th:if="${podcast.uuid != null}" class="btn btn-sm btn-primary" th:href="'/podcast/episodeupload/'+${podcast.uuid}">
+                        <i class="fas fa-plus me-1"></i> Додати епізод
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-auto text-end">
+                <form th:action="@{/podcast/channelpublish}" th:object="${podcast}" method="post">
                     <input type="hidden" th:field="*{uuid}"/>
-                    <!-- IF CUSTOMER IS ANONYMOUS -->
-                    <div th:if="*{publishing}">
-                        <button type="submit" class="btn btn-primary">Приховати</button>
-                        <div><span>Опубліковано</span><br>
-                            <span th:text="${#dates.format(podcast.datepublish, 'dd-MM-yyyy')}">Publish Date</span><br>
-                            <span th:text="${#dates.format(podcast.datepublish, 'hh:mm:ss')}">Publish Time</span>
+                    <div th:if="*{apruve}">
+                        <div th:if="*{publishing}" class="text-center">
+                            <span class="badge bg-success mb-2 d-block">Опубліковано</span>
+                            <button type="submit" class="btn btn-outline-dark btn-sm w-100">Приховати</button>
+                        </div>
+                        <div th:unless="*{publishing}">
+                            <button type="submit" class="btn btn-success btn-sm w-100">Опублікувати</button>
                         </div>
                     </div>
-                    <!-- ELSE -->
-                    <div th:unless="*{publishing}">
-                        <button type="submit" class="btn btn-primary">Опублікувати</button>
+                    <div th:unless="*{apruve}" class="alert alert-warning py-1 px-2 mb-0 small">
+                        <i class="fas fa-lock me-1"></i> Очікує модерації
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom-0">
+            <ul class="nav nav-tabs card-header-tabs" id="podcastTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Основна інформація</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-content" type="button" role="tab">Категорії iTunes</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="episodes-tab" data-bs-toggle="tab" data-bs-target="#episodes" type="button" role="tab">Епізоди (<span th:text="${itemslist.size()}">0</span>)</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-4">
+            <div class="tab-content" id="podcastTabsContent">
+                
+                <!-- Вкладка 1: Основне -->
+                <div class="tab-pane fade show active" id="details" role="tabpanel">
+                    <form th:action="@{/podcast/chanelsave}" th:object="${podcast}" method="post">
+                        <input type="hidden" th:field="*{uuid}"/>
+                        <input type="hidden" th:field="*{id}"/>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Назва подкасту</label>
+                            <input type="text" th:field="*{title}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Опис</label>
+                            <textarea th:field="*{description}" class="form-control" rows="5"></textarea>
+                        </div>
+                        <div class="row align-items-end">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Мова подкасту</label>
+                                <select th:field="*{language}" class="form-select">
+                                    <option th:each="lang: ${languages}" th:value="${lang}" th:text="${lang}"/>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3 text-end">
+                                <button type="submit" class="btn btn-primary px-4">Зберегти зміни</button>
+                                <a class="btn btn-outline-secondary" href="/podcast/home">Повернутися</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Вкладка 2: iTunes Категорії -->
+                <div class="tab-pane fade" id="categories-content" role="tabpanel">
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-exclamation-triangle me-1"></i> При збереженні нових категорій всі попередні будуть замінені.
+                    </div>
+                    
+                    <div class="row g-3 align-items-center mb-4 bg-light p-3 rounded">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Основна категорія</label>
+                            <select id="first" class="form-select" onChange="onChangeSelectItunesF(this)">
+                                <option value="">Оберіть...</option>
+                                <option th:each="item: ${itunesCategory}" th:value="${item['key']}" th:text="${item['key']}"/>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Підкатегорія</label>
+                            <select id="second" class="form-select" onChange="onChangeSelectItunesS(this)" disabled>
+                                <option value="">Спершу оберіть основну...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 pt-4">
+                            <button type="button" onclick="addCategory()" class="btn btn-outline-primary w-100 mt-2">Додати</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Вибрані категорії:</label>
+                        <textarea id="categories-list" class="form-control bg-light" rows="4" readonly></textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" onclick="saveCategory()" class="btn btn-primary">Зберегти категорії</button>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6>Поточні категорії в системі:</h6>
+                        <ul class="list-group list-group-flush">
+                            <li th:each="itemcat : *{itunescategory}" class="list-group-item bg-transparent px-0 py-1">
+                                <i class="fas fa-check text-success me-2"></i>
+                                <span th:text="${itemcat.firstlevel} + ' — '+ ${itemcat.secondlevel}"></span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                <div th:unless="*{apruve}">
-                    <span>Увага! Подкаст не схвалено адміністрвтором або заблоковано.</span>
+
+                <!-- Вкладка 3: Епізоди -->
+                <div class="tab-pane fade" id="episodes" role="tabpanel">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Епізод</th>
+                            <th scope="col">Статистика</th>
+                            <th scope="col" class="text-end">Дії</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${itemslist}">
+                            <td>
+                                <img th:if="${item.imagestoreitem != null}" 
+                                     th:src="'/store/content/' + ${item.imagestoreitem.uuid}" class="episode-img shadow-sm">
+                                <div th:if="${item.imagestoreitem == null}" class="episode-img bg-secondary d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-music text-white-50"></i>
+                                </div>
+                            </td>
+                            <td>
+                                <strong th:text="${item.title ?: 'Без назви'}">Назва</strong><br>
+                                <small class="text-muted" th:if="${item.enclosurestore}" th:text="${item.enclosurestore.filename}"></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark rounded-pill border">
+                                    <i class="fas fa-eye me-1"></i> <span th:text="${item.looked}">0</span>
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">
+                                    <i class="fas fa-edit"></i> Редагувати
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${itemslist.isEmpty()}">
+                            <td colspan="4" class="text-center py-4 text-muted">Епізодів поки немає. Завантажте свій перший випуск!</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <!--                    <button type="submit" class="btn btn-primary">Опублікувати</button>-->
-            </form>
+
+            </div>
         </div>
     </div>
 </div>
 
-<!-- редагуємо поля подкасту -->
-<section class="pt-4">
-    <div class="container-fluid px-lg-5 form-control-sm">
-        <form th:action="@{/podcast/chanelsave}" th:object="${podcast}" method="post">
-            <div>
-                <!-- itunesCategory -->
-                <span><u>Поточні категорії</u></span>
-                <p><b>
-                    <ul>
-                        <li th:each="itemcat : *{itunescategory}">
-                            <span th:text="${itemcat.firstlevel} + ' | '+ ${itemcat.secondlevel}">Default</span>
-                        </li>
-                    </ul>
-                </b></p>
-                <span style="color:red">Увага! При збереженні категорій, всі поточні категорії будуть видалені.</span>
-                <p></p>
+<!-- Scripts -->
+<script th:inline="javascript">
+    let categoryList = [];
+    var categoryElement = { first: '', second: '' };
 
-                <select id="first" onChange="onChangeSelectItunesF(this)">
-                    <option value="--------" text="--------------"/>
-                    <option th:each="item: ${itunesCategory}"
-                            th:value="${item['key']}"
-                            th:text="${item['key']}"/>
-                </select>
-                <select id="second" onChange="onChangeSelectItunesS(this)" hidden>
-                    <option value="--------" text="--------------"/>
-                    <option th:each="item: ${itunesCategory}"
-                            th:value="${item['key']}"
-                            th:text="${item['key']}"/>
-                </select>
-                <span onclick="addCategory()" class="badge rounded-pill bg-primary">Додати категорію</span>
-                <!--                    <p onclick="addCategory()">Додати категорію</p>-->
-                <br>
+    async function onChangeSelectItunesF(element) {
+        let firstLevel = element.options[element.selectedIndex].text;
+        categoryElement.first = firstLevel;
+        categoryElement.second = '';
 
-                <textarea id="categories" class="form-control" rows="6"></textarea>
-                <span onclick="saveCategory()" class="badge rounded-pill bg-primary">Зберегти категорії</span><br>
-                <hr>
-                <script>
-                    var checkChangeCategory = false;
-                    let firstLevel = '';
-                    let secondLevel = '';
-                    let categoryList = [];
-                    var categoryElement = {};
-                    async function saveCategory() {
-                        let tosite = {};
+        let secondSelect = document.getElementById("second");
+        secondSelect.innerHTML = '<option value="">Завантаження...</option>';
+        secondSelect.disabled = true;
 
-                            // https://stackoverflow.com/questions/50486314/how-to-solve-403-error-in-spring-boot-post-request
-                            let token = document.querySelector('meta[name="_csrf"]').getAttribute('content')
-                            let header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content')
+        const response = await fetch(`/api/1.0/itunes/getsecondcategory/${encodeURIComponent(firstLevel)}`);
+        const listsecond = await response.json();
 
-                        tosite.putCategories = categoryList;
-                        tosite.podcastUUID = document.querySelector('meta[name="podcastUUID"]').getAttribute('content');
+        secondSelect.innerHTML = '<option value="">Оберіть підкатегорію...</option>';
+        if (listsecond.length > 0) {
+            listsecond.forEach(item => {
+                let opt = document.createElement("option");
+                opt.text = item;
+                opt.value = item;
+                secondSelect.add(opt);
+            });
+            secondSelect.disabled = false;
+        } else {
+            categoryElement.second = '';
+            secondSelect.innerHTML = '<option value="">Немає підкатегорій</option>';
+            secondSelect.disabled = true;
+        }
+    }
 
-                        var encoded_url = encodeURI("/api/1.0/itunes/putcategory");
-                        const response = await fetch(encoded_url, {
-                            method: "POST",
-                                headers: {
-                                    [header]: token,
-                                    "charset": "UTF-8",
-                                    "Content-Type": "application/json"
-                                },
-                            body: JSON.stringify(tosite),
-                        }).then(res => console.log(res)).catch(err => console.log(err));
+    function onChangeSelectItunesS(element) {
+        categoryElement.second = element.options[element.selectedIndex].text;
+    }
 
+    function addCategory() {
+        if (!categoryElement.first) return;
+        
+        categoryList.push({ ...categoryElement });
+        let display = categoryList.map(c => `${c.first}${c.second ? ' | ' + c.second : ''}`).join('\n');
+        document.getElementById("categories-list").value = display;
+    }
 
-                    }
-                    //==============================================
-                    async function onChangeSelectItunesF(element) {
-                        firstLevel = element.options[element.selectedIndex].text;
-                        var encoded_url = encodeURI("/api/1.0/itunes/getsecondcategory/"+firstLevel);
-                        const response = await fetch(encoded_url);
-                        const listsecond = await response.json();
+    async function saveCategory() {
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        const podcastUuid = document.querySelector('meta[name="podcastUUID"]').getAttribute('content');
 
-                        categoryElement.first = firstLevel;
-                        categoryElement.second = '';
-                        var second = document.getElementById("second");
+        const response = await fetch("/api/1.0/itunes/putcategory", {
+            method: "POST",
+            headers: {
+                [header]: token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                putCategories: categoryList,
+                podcastUUID: podcastUuid
+            }),
+        });
 
-                        // clear option in second select
-                        var i, L = second.options.length - 1;
-                        for(i = L; i >= 0; i--) {
-                            second.remove(i);
-                        }
+        if (response.ok) {
+            alert("Категорії успішно збережено!");
+            location.reload();
+        } else {
+            alert("Помилка при збереженні категорій.");
+        }
+    }
+</script>
 
-                        if (listsecond.length > 0) {
-
-                            var second = document.getElementById("second");
-                            // додаємо option в другий селект
-                            var option = document.createElement("option");
-                                option.text = '';
-                                option.value = '';
-                                second.add(option);
-                            for (var i = 0; i < listsecond.length; i++) {
-                                var option = document.createElement("option");
-                                option.text = listsecond[i];
-                                option.value = listsecond[i];
-                                second.add(option);
-                            }
-
-                            document.getElementById("second").hidden = false;
-                        } else {
-                            categoryElement.second = '';
-                            document.getElementById("second").hidden = true;
-                            // clear option in second select
-                            var i, L = second.options.length - 1;
-                            for(i = L; i >= 0; i--) {
-                                second.remove(i);
-                            }
-                        }
-                    }
-
-                    function onChangeSelectItunesS(element) {
-                        secondLevel = element.options[element.selectedIndex].text;
-                        categoryElement.second = secondLevel;
-
-                    }
-
-                    function addCategory() {
-                        var txtArea;
-
-                        console.log("================");
-                        console.log(categoryList);
-                        console.log(categoryElement);
-
-                        checkChangeCategory = true;
-                        let ce = {};
-                        ce.first = categoryElement.first;
-                        ce.second = categoryElement.second;
-                        if(categoryElement.second === undefined) {
-                          console.log("Ще рано");
-                        } else {
-                            categoryList.push(ce);
-                        }
-                        txtArea = document.getElementById("categories");
-                        txtArea.value += categoryElement.first;
-
-                        if(categoryElement.second === undefined) {
-                          console.log("Ще рано");
-                        } else {
-                            let ttt = categoryElement.second;
-                            if (ttt.length > 0) {
-                                txtArea.value += " | " + categoryElement.second + '\r\n';
-                            } else {
-                                txtArea.value += '\r\n';
-                            }
-                        }
-                    }
-                </script>
-            </div>
-            <div class="mb-3">
-                <input type="hidden" th:field="*{uuid}"/>
-                <input type="hidden" th:field="*{id}"/>
-                <label for="title" class="form-label">Назва подкасту</label>
-                <input type="text" th:field="*{title}" class="form-control">
-                <!--                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
-            </div>
-            <div class="form-outline mb-4">
-                <label for="description" class="form-label">Опис подкасту</label>
-                <textarea th:field="*{description}" class="form-control" rows="6"></textarea>
-            </div>
-            <div class="form-outline mb-4">
-                <span>Оберіть мову подкасту</span>
-                <select th:field="*{language}">
-                    <option th:each="lang: ${languages}"
-                            th:value="${lang}"
-                            th:text="${lang}"/>
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Зберегти</button>
-            <a class="btn btn-primary" href="/podcast/home">Повернутися</a>
-        </form>
-    </div>
-</section>
-<!-- Episode list-->
-
-<section class="pt-4">
-    <div class="container-fluid px-lg-5">
-        <!-- Епізоди подкасту-->
-        <div class="row gx-lg-5">
-            <div th:each="item : ${podcast.item}" class="col-lg-6 col-xxl-4 mb-5">
-                <div class="card bg-light border-0 h-100">
-                    <div class="card-header">
-                        <a class="mx-auto" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">
-                            <span class="badge rounded-pill bg-primary">Редагувати</span>
-                        </a>
-                    </div>
-                    <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                        <img class="img-fluid" th:if="${item.imagestoreitem != null}"
-                             th:src="'/store/thrumbal/w/300/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
-                             th:id="${item.imagestoreitem.uuid}"/>
-                        <div th:if="${item.title != null}">
-                            <h2 class="fs-4 fw-bold" th:text="${item.title}"></h2>
-                        </div>
-                        <!--                            <div th:if="${item.description != null}">-->
-                        <!--                                <p  th:if="${item.description.length()>150}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
-                        <!--                                <p  th:if="${item.description.length()<150}" class="mb-0 fs-6" th:utext="${item.description}"></p>-->
-                        <!--                            </div>-->
-                        <p class="mb-0">Файл: <span th:if="${item.enclosurestore} != null"
-                                                    th:text="${item.enclosurestore.filename}"/></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Footer -->
 <div th:insert="~{/fragments/common :: footer}"></div>
-<div th:insert="~{/fragments/navbar :: bottomnavbar}"></div>
-
-<!-- різні скріпти -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
