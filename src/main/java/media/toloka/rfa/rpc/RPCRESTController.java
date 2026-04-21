@@ -91,25 +91,27 @@ public class RPCRESTController {
 //        logger.info(categoryFromSite.getPodcastUUID());
 
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(categoryFromSite.getPodcastUUID());
-//        List<PodcastItunesCategory> listCategory = podcastChannel.getItunescategory();
-        // Чистимо категорії в базі
-        for (PodcastItunesCategory toclear : podcastChannel.getItunescategory()) {
-            podcastService.ItunesCategoryClear(toclear);
-        }
+        if (podcastChannel == null) return "Error: Podcast not found";
+
+        // Очищуємо існуючі категорії
+        // Завдяки orphanRemoval = true та CascadeType.ALL, достатньо очистити список
         podcastChannel.getItunescategory().clear();
         podcastService.SavePodcast(podcastChannel);
 
 
         // записуємо новий перелік категорій
         for (PutCategory secondLevel : categoryFromSite.getPutCategories()) {
-//                logger.info("Category --- " + secondLevel.getFirst() + " | " + secondLevel.getSecond() );
             PodcastItunesCategory tpodcastItunesCategory = new PodcastItunesCategory();
             tpodcastItunesCategory.setFirstlevel(secondLevel.getFirst());
             tpodcastItunesCategory.setSecondlevel(secondLevel.getSecond());
             tpodcastItunesCategory.setChanel(podcastChannel);
-            podcastService.SaveItunesCategory(tpodcastItunesCategory);
+            
+            // Додаємо в колекцію для Hibernate
+            podcastChannel.getItunescategory().add(tpodcastItunesCategory);
         }
-//        podcastService.SavePodcast(podcastChannel);
+        
+        // Зберігаємо канал разом з новими категоріями
+        podcastService.SavePodcast(podcastChannel);
 
         return "OK";
     }
