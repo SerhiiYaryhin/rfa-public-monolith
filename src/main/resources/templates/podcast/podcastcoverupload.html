@@ -1,98 +1,112 @@
-<<!DOCTYPE HTML>
-<!--
-https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-area
--->
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
 <head>
-    <meta charset="UTF-8"/>
-    <title>Spring Boot Thymeleaf Application - Bootstrap Dropzone</title>
-
-    <link th:rel="stylesheet" th:href="@{/css/bootstrap.min.css} "/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - Обкладинка подкасту</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
     <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 </head>
-<body>
-
-<!-- Navigation -->
+<body class="bg-light">
 <header>
-<!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"/>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<div class="container">
-    <div class="row">
-        <div class="col-lg-8 mt-5">
-            <div th:if="${message}">
-                <h2 th:text="${message}"/>
-            </div>
-            <div id="dropzone">
-                <form th:action="'/podcast/podcastcoverupload/'+${podcast.uuid}" class="dropzone needsclick" id="demo-upload" method="post">
-                    <input type="hidden"
-                           th:name="${_csrf.parameterName}"
-                           th:value="${_csrf.token}" />
-                    <div class="dz-message needsclick">
-                        <button type="button" class="dz-button">Перенсіть файл сюди файл обкладинки або натисніть для вибору файла.</button>
-                        <br/>
-                    </div>
-                </form>
-            </div>
-            <div>
-                <a th:href="'/podcast/pedit/'+${podcast.uuid}" class="btn btn-primary">Повернутися додому</a>
-            </div>
-        </div>
-    </div>
+<div class="container py-5" style="padding-top: 120px !important;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{'/podcast/pedit/'+${podcast.uuid}}">Редагування подкасту</a></li>
+                    <li class="breadcrumb-item active">Завантаження обкладинки</li>
+                </ol>
+            </nav>
 
-    <!-- світимо всі обкладинки   -->
-    <div class="row">
-        <div class="col-lg-8 mt-5">
-            <!-- перелік всіх епізодів -->
-            <div class="row gx-lg-5">
-                <!-- початок циклу виводу подкастів -->
-                <div th:each="image : ${podcastImageList}" class="col-lg-6 col-xxl-4 mb-5">
-                    <div class="card bg-light border-0 h-100">
-                        <div class="card-header">
-                            <!-- посилання на додавання епізоду до подкасту -->
-                            <a class="mx-auto" th:href="'/podcast/addcover/'+${podcast.uuid}+'/'+${image.uuid}">
-                                <span class="badge rounded-pill bg-primary">Додати обкладинку</span>
-                            </a>
-                        </div>
-                        <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                            <!-- поточний подкаст -->
-                            <h3 class="fs-6" >Подкаст:</h3>
-                            <h3 class="fs-6" th:text="${podcast.title}"></h3>
-                            <hr>
-                            <!-- Файл -->
-                            <p class="mb-0" >Файл:<span th:text="' '+${image.filename}"/></p>
-                            <hr>
-                            <!-- Обкладинка альбому -->
-                            <img class="img-fluid"  th:src="'/store/thrumbal/w/300/' + ${image.uuid} + '/' + ${image.filename}"
-                                 th:id="${image.uuid}"/>
+            <div class="card border-primary shadow-sm mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-image me-2"></i>Крок 1: Завантажити нову обкладинку</h5>
+                </div>
+                <div class="card-body p-5">
+                    <div id="dropzone">
+                        <form action="/creater/storefileupload" class="dropzone needsclick" id="podcast-cover-upload" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="dz-message needsclick">
+                                <button type="button" class="dz-button">
+                                    <i class="fas fa-cloud-upload-alt fa-4x mb-3 text-primary"></i><br>
+                                    <span class="fs-5">Перетягніть ілюстрацію сюди або натисніть для вибору.</span><br>
+                                    <small class="text-muted text-uppercase">Обкладинка буде автоматично призначена після завантаження</small>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-dark shadow-sm mt-5">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>Крок 2: Або обрати з наявних</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-4">
+                        <div class="col" th:each="storeitem : ${storeList}">
+                            <div class="card h-100 shadow-sm">
+                                <img th:src="'/store/content/'+${storeitem.uuid}" class="card-img-top" alt="Preview" style="height: 120px; object-fit: cover;">
+                                <div class="card-body p-2 text-center">
+                                    <a class="btn btn-sm btn-primary w-100" th:href="@{'/podcast/addcover/'+${podcast.uuid}+'/'+${storeitem.uuid} }">
+                                        <i class="fas fa-check me-1"></i> Обрати
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- кінець циклу виводу обкладинок -->
+            </div>
+
+            <div class="mt-4 text-center">
+                <a th:href="@{'/podcast/pedit/'+${podcast.uuid}}" class="btn btn-secondary px-5">
+                    <i class="fas fa-arrow-left me-2"></i> Повернутися до редагування
+                </a>
             </div>
         </div>
     </div>
-
 </div>
 
+<div th:insert="~{/fragments/common :: footer}"></div>
 
 <script th:src="@{/js/jquery.min.js}"></script>
-<script th:src="@{/js/popper.js}"></script>
-<!--<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>-->
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 <script th:src="@{/js/dropzone.min.js}"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
 
-<script>
+<script th:inline="javascript">
     Dropzone.autoDiscover = false;
+    const podcastUuid = [[${podcast.uuid}]];
 
-    $("#demo-upload").dropzone({
-        success : function(file, response) {
-            toastr.success('File ' + file.name + ' uploaded successfully');
-        }
+    $(document).ready(function() {
+        $("#podcast-cover-upload").dropzone({
+            maxFiles: 1,
+            acceptedFiles: "image/*",
+            success : function(file, response) {
+                if (response && !response.startsWith("error")) {
+                    toastr.success('Обкладинку завантажено! Встановлюємо...');
+                    // Автоматично призначаємо завантажене зображення подкасту
+                    window.location.href = '/podcast/addcover/' + podcastUuid + '/' + response;
+                } else {
+                    toastr.error('Помилка завантаження: ' + response);
+                    this.removeFile(file);
+                }
+            },
+            error: function(file, message) {
+                toastr.error('Помилка: ' + message);
+                this.removeFile(file);
+            }
+        });
     });
 </script>
 
