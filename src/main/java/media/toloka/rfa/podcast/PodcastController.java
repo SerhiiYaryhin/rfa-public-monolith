@@ -74,23 +74,27 @@ public class PodcastController {
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
 //    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_USER')")
-    @GetMapping(value = "/podcast/home")
+    @GetMapping(value = {"/podcast/home", "/podcast/home/{page}"})
     public String podcastroot(
+            @PathVariable(required = false) Integer page,
             Model model) {
-//        logger.info("Зайшли на /podcast/home");
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
         if (cd == null) {
             return "redirect:/";
         }
 
-        List<PodcastChannel> podcastslist = podcastService.GetPodcastListByCd(cd);
+        int currentPage = (page == null) ? 0 : page;
+        Page<PodcastChannel> podcastsPage = podcastService.GetPodcastPageByCd(cd, currentPage, 12);
 
-        model.addAttribute("podcastslist", podcastslist);
-        if (podcastslist.isEmpty()) {
+        model.addAttribute("podcastslist", podcastsPage.getContent());
+        model.addAttribute("totalPages", podcastsPage.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
+
+        if (podcastsPage.isEmpty()) {
             model.addAttribute("warning", "Ви ще не маєте подкастів. Створіть свій перший подкаст!");
         }
 
