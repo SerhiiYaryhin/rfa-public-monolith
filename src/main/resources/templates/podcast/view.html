@@ -89,7 +89,7 @@
                                          th:text="${#strings.length(item.description) > 200 ? #strings.substring(item.description, 0, 200) + '...' : item.description}">
                                     </div>
                                     <div class="d-flex align-items-center gap-3 small text-muted">
-                                        <span><i class="far fa-calendar-alt me-1"></i> [[${#dates.format(item.pubdate, 'dd.MM.yyyy')}]]</span>
+                                        <span><i class="far fa-calendar-alt me-1"></i> [[${#dates.format(item.pubDate, 'dd.MM.yyyy')}]]</span>
                                         <span><i class="far fa-eye me-1"></i> [[${item.looked}]]</span>
                                         <span th:if="${item.itunesduration}"><i class="far fa-clock me-1"></i> [[${item.itunesduration}]]</span>
                                     </div>
