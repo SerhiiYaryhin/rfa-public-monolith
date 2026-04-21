@@ -62,13 +62,13 @@ public class PostController {
     private CommentService commentService;
 
 
-    @GetMapping(value = "/post/postview/{idPost}") // /post/postview/52
+    @GetMapping(value = "/post/postview/{uuidPost}")
     public String getViewPost(
-            @PathVariable Long idPost,
+            @PathVariable String uuidPost,
             @RequestParam (defaultValue = "0")  Integer page,
             @RequestParam (defaultValue = "5")  Integer size,
             Model model) {
-        Post post = postService.GetPostById(idPost);
+        Post post = postService.GetPostByUuid(uuidPost);
 
         if (post == null) {
             return "redirect:/";
@@ -76,92 +76,49 @@ public class PostController {
         post.setLooked(post.getLooked() + 1L);
         postService.SavePost(post);
 
-//        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
-
         model.addAttribute("post", post);
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
 
-
         // --- Завантаження коментарів ---
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> commentsPage = commentService.getPaginatedCommentsHierarchy(ECommentSourceType.COMMENT_POST, post.getUuid(), pageable);
-//        List<Comment> commentsList = commentService.getListCommentsHierarchy(ECommentSourceType.COMMENT_POST, post.getUuid());
 
-        // --- Передача даних у Model для Thymeleaf ---
         model.addAttribute("commentsPage", commentsPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", commentsPage.getTotalPages());
         if (commentService.getCurrentUserId() != null) {
             model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
         } else model.addAttribute("currentUserId", null);
-//        model.addAttribute("currentUserId", commentService.getCurrentUserId().getUuid());
         model.addAttribute("contentAuthorId", post.getClientdetail().getUuid() );
-//        model.addAttribute("contentAuthorId", commentService.getContentAuthorId(ECommentSourceType.COMMENT_POST, post.getUuid()));
         model.addAttribute("contentEntityType", ECommentSourceType.COMMENT_POST);
         model.addAttribute("contentEntityId", post.getUuid());
-        /*
-            @GetMapping("/{postId}")
-    public String viewPostDetail(@PathVariable String postId,
-                                 @RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "5") int size,
-                                 Model model) {
-        String contentEntityType = "POST";
-        String contentEntityId = postId;
-
-        // --- Деталі посту (заглушка) ---
-        String postTitle = "Мій Супер Пост Про Котиків";
-        String postAuthorId = "admin123";
-
-        // --- Завантаження коментарів ---
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Comment> commentsPage = commentService.getPaginatedCommentsHierarchy(contentEntityType, contentEntityId, pageable);
-
-        // --- Передача даних у Model для Thymeleaf ---
-        model.addAttribute("commentsPage", commentsPage);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", commentsPage.getTotalPages());
-        model.addAttribute("currentUserId", commentService.getCurrentUserId());
-        model.addAttribute("contentAuthorId", commentService.getContentAuthorId(contentEntityType, contentEntityId));
-        model.addAttribute("contentEntityType", contentEntityType);
-        model.addAttribute("contentEntityId", contentEntityId);
-
-        model.addAttribute("postTitle", postTitle); // Для відображення заголовка поста на сторінці
-
-        return "post-detail";
-    }
-         */
-
 
         return "/post/postview";
     }
 
-    @GetMapping(value = "/creater/editpost/{idPost}")
+    @GetMapping(value = "/creater/editpost/{uuidPost}")
     public String getCreaterEditPost(
-            @PathVariable Long idPost,
+            @PathVariable String uuidPost,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (idPost == 0L) {
-            logger.info("Створюємо новий пост");
-        }
-//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
         Post post;
-
-        if (idPost == 0L) {
+        if (uuidPost.equals("0")) {
+            logger.info("Створюємо новий пост");
             post = new Post();
-            post.setId(0L);
+            // ID залишається null для нового посту, UUID генерується в моделі
         } else {
-            post = postService.GetPostById(idPost);
+            post = postService.GetPostByUuid(uuidPost);
         }
+
+        if (post == null) return "redirect:/creater/home";
 
         List<EPostCategory> category = Arrays.asList(EPostCategory.values());
-        List<PostCategory> postcategory = new ArrayList<>(); // = postService.getPostCategory();
+        List<PostCategory> postcategory = new ArrayList<>();
         for (PostCategory pc : postService.getPostCategory()) {
             if (pc.getParent() == null) {
                 postcategory.add(pc);
@@ -176,19 +133,12 @@ public class PostController {
         return "/creater/editpost";
     }
 
-    @PostMapping(value = "/creater/editpost/{idPost}")
+    @PostMapping(value = "/creater/editpost/{uuidPost}")
     public String postCreaterEditPost(
-            @PathVariable Long idPost,
+            @PathVariable String uuidPost,
             @ModelAttribute Post fPost,
             HttpServletRequest request,
             Model model) {
-
-        // Виводимо дані, отримані до об'єкта `fPost`
-        String originalPosttitle = request.getParameter("posttitle");
-        System.out.println("posttitle from model attribute: " + fPost.getPosttitle());
-        System.out.println("Original posttitle from request: " + originalPosttitle);
-
-
 
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -196,19 +146,14 @@ public class PostController {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Post post;
-        if (idPost == 0L) {
-            logger.info("Створюємо новий пост");
+        if (uuidPost.equals("0")) {
             post = new Post();
             post.setPostStatus(POSTSTATUS_REDY);
-
         } else {
-            post = postService.GetPostById(idPost);
+            post = postService.GetPostByUuid(uuidPost);
         }
-        post.setPostbody(fPost.getPostbody());
-        post.setPosttitle(fPost.getPosttitle());
-        post.setCategory(fPost.getCategory());
-        post.setPostcategory(fPost.getPostcategory());
-        post.setClientdetail(cd);
+
+        if (post == null) return "redirect:/creater/home";
 
         // Валідація ілюстрації при запиті на публікацію
         if (fPost.getPostStatus() == POSTSTATUS_REQUEST && (post.getCoverstoreuuid() == null || post.getCoverstoreuuid().isEmpty())) {
@@ -224,104 +169,42 @@ public class PostController {
             return "/creater/editpost";
         }
         
+        post.setPostbody(fPost.getPostbody());
+        post.setPosttitle(fPost.getPosttitle());
+        post.setCategory(fPost.getCategory());
+        post.setPostcategory(fPost.getPostcategory());
+        post.setClientdetail(cd);
         post.setPostStatus(fPost.getPostStatus());
 
         postService.SavePost(post);
 
-
-        Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
-        List<Post> viewList = pageStore.stream().toList();
-
-        model.addAttribute("viewList", viewList);
-        model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
-        return "/creater/home";
+        return "redirect:/creater/home";
     }
 
-
-
-    @GetMapping(value = "/creater/posts/{cPage}")
-    public String postCreaterEditPost(
-            @PathVariable String cPage,
-//            @ModelAttribute Post fPost,
-            Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-
-//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
-
-        Integer curpage = Integer.parseInt(cPage);
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
-        List<Post> viewList = pageStore.stream().toList();
-
-        model.addAttribute("viewList", viewList);
-        model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
-
-        return "/creater/posts";
-    }
-
-    @GetMapping(value = "/creater/publishpost/{idPost}")
+    @GetMapping(value = "/creater/publishpost/{uuidPost}")
     public String postCreaterPublishPost(
-            @PathVariable Long idPost,
-//            @ModelAttribute Post fPost,
+            @PathVariable String uuidPost,
             Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        Post post = postService.GetPostById(idPost);
+        Post post = postService.GetPostByUuid(uuidPost);
         if (post != null) {
             post.setPostStatus(EPostStatus.POSTSTATUS_REQUEST);
             postService.SavePost(post);
         }
-
-
-//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
-
-        Integer curpage = 0;
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
-        List<Post> viewList = pageStore.stream().toList();
-
-        model.addAttribute("viewList", viewList);
-        model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
-
-
-        return "/creater/posts";
+        return "redirect:/creater/home";
     }
 
-    @GetMapping(value = "/creater/delpost/{idPost}")
+    @GetMapping(value = "/creater/delpost/{uuidPost}")
     public String postCreaterDelPost(
-            @PathVariable Long idPost,
-//            @ModelAttribute Post fPost,
+            @PathVariable String uuidPost,
             Model model) {
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-
-        Post post = postService.GetPostById(idPost);
+        Post post = postService.GetPostByUuid(uuidPost);
         if (post != null) {
             post.setPostStatus(EPostStatus.POSTSTATUS_DELETE);
             postService.SavePost(post);
         }
-
-//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
-
-        Integer curpage = 0;
-        Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
-        List<Post> viewList = pageStore.stream().toList();
-
-        model.addAttribute("viewList", viewList);
-        model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
-
-        return "/creater/posts";
+        return "redirect:/creater/home";
     }
 
-    // /post/setpostimage/'+${curpost.uuid}+'/'+${storeitem.uuid}
     @GetMapping(value = "/post/setpostimage/{uuidpost}/{storeitemuuid}")
     public String SetPostMainImage(
             @PathVariable String uuidpost,
@@ -332,27 +215,20 @@ public class PostController {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Post post = postService.GetByUiid(uuidpost);
+        Post post = postService.GetPostByUuid(uuidpost);
         if (post == null) {
             logger.error("Пост з UUID {} не знайдено", uuidpost);
             return "redirect:/creater/home";
         }
 
-        // Перевіряємо наявність об'єкта в сховищі перед призначенням
         Store store = storeService.GetStoreByUUID(storeitemuuid);
         if (store != null) {
             post.setCoverstoreuuid(store.getUuid());
             postService.SavePost(post);
             logger.info("Призначено ілюстрацію {} для посту {}", storeitemuuid, uuidpost);
-        } else {
-            logger.error("Файл з UUID {} не знайдено у сховищі", storeitemuuid);
-            // Навіть якщо об'єкт Store не знайдено в БД (можливо затримка запису), 
-            // ми все одно можемо зберегти UUID, якщо впевнені в ньому.
-            // Але краще просто залогувати помилку.
         }
 
-        return "redirect:/creater/editpost/" + post.getId();
+        return "redirect:/creater/editpost/" + post.getUuid();
     }
 
 

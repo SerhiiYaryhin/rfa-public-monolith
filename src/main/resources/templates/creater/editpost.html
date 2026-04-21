@@ -38,7 +38,7 @@
                         <h5 class="mb-0">Вміст посту</h5>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{'/creater/editpost/'+${post.id}}" method="post" th:object="${post}" id="post-form">
+                        <form th:action="@{'/creater/editpost/'+${post.uuid}}" method="post" th:object="${post}" id="post-form">
                             <input type="hidden" th:field="*{id}"/>
                             <input type="hidden" th:field="*{uuid}" id="post-uuid"/>
                             

@@ -64,12 +64,12 @@ public class AdminPosts {
     /**
      * Перемикання статусу публікації поста (схвалено/не схвалено)
      */
-    @GetMapping(value = "/admin/togglepost/{postId}")
-    public String togglePostPublish(@PathVariable Long postId) {
+    @GetMapping(value = "/admin/togglepost/{postUuid}")
+    public String togglePostPublish(@PathVariable String postUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
 
-        Post post = adminService.GetPostById(postId);
+        Post post = postService.GetPostByUuid(postUuid);
         if (post != null) {
             boolean newState = !post.getApruve();
             post.setApruve(newState);
@@ -88,16 +88,16 @@ public class AdminPosts {
         return "redirect:/admin/posts";
     }
 
-    @GetMapping(value = "/admin/publishpost/{postId}")
+    @GetMapping(value = "/admin/publishpost/{postUuid}")
     public String getAdminPublishPost(
-            @PathVariable Long postId,
+            @PathVariable String postUuid,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = postService.GetPostByUuid(postUuid);
         post.setPostStatus(POSTSTATUS_PUBLICATE);
         post.setApruve(true);
         post.setPublishdate(new Date());
@@ -109,16 +109,16 @@ public class AdminPosts {
         return "redirect:/admin/posts";
     }
 
-    @GetMapping(value = "/admin/delpost/{postId}")
+    @GetMapping(value = "/admin/delpost/{postUuid}")
     public String getAdminDeletePost(
-            @PathVariable Long postId,
+            @PathVariable String postUuid,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = postService.GetPostByUuid(postUuid);
         post.setPostStatus(POSTSTATUS_DELETE);
         post.setApruve(false);
 //        post.setPublishdate(new Date());
@@ -131,16 +131,16 @@ public class AdminPosts {
     }
 
 
-    @GetMapping(value = "/admin/rejectpost/{postId}")
+    @GetMapping(value = "/admin/rejectpost/{postUuid}")
     public String getAdminRejectPost(
-            @PathVariable Long postId,
+            @PathVariable String postUuid,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Post post = adminService.GetPostById(postId);
+        Post post = postService.GetPostByUuid(postUuid);
         post.setPostStatus(POSTSTATUS_REJECT);
         post.setApruve(false);
 //        post.setPublishdate(new Date());

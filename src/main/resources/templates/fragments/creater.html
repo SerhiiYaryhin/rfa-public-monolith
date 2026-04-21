@@ -182,13 +182,13 @@
             </td>
             <td class="text-end">
                 <div class="btn-group">
-                    <a th:if="${post.apruve != true}" class="btn btn-outline-success btn-sm" th:href="@{'/creater/publishpost/'+${post.id} }" title="Опублікувати">
+                    <a th:if="${post.apruve != true}" class="btn btn-outline-success btn-sm" th:href="@{'/creater/publishpost/'+${post.uuid} }" title="Опублікувати">
                         <i class="fas fa-upload"></i>
                     </a>
-                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.id} }" title="Редагувати">
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.uuid} }" title="Редагувати">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/creater/delpost/'+${post.id} }" 
+                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/creater/delpost/'+${post.uuid} }" 
                        onclick="return confirm('Видалити цей пост назавжди?')" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </a>

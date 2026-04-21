@@ -519,7 +519,7 @@
             <td class="text-center">
                 <label class="switch">
                     <input type="checkbox" th:checked="${post.apruve == true}" 
-                           th:onchange="'window.location.href=\'/admin/togglepost/' + ${post.id} + '\''">
+                           th:onchange="'window.location.href=\'/admin/togglepost/' + ${post.uuid} + '\''">
                     <span class="slider"></span>
                 </label>
             </td>
@@ -540,11 +540,11 @@
                         <i class="fas fa-envelope"></i>
                     </a>
                     <!-- Редагувати (через редактор творця) -->
-                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.id} }" title="Редагувати вміст">
+                    <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.uuid} }" title="Редагувати вміст">
                         <i class="fas fa-edit"></i>
                     </a>
                     <!-- Видалити -->
-                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/admin/delpost/'+${post.id} }" 
+                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/admin/delpost/'+${post.uuid} }" 
                        onclick="return confirm('Видалити цей пост назавжди?')" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </a>

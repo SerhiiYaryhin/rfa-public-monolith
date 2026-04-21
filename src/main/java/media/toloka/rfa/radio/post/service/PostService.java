@@ -50,15 +50,11 @@ public class PostService {
         postRepositore.save(post);
     }
 
-    public List<Post> GetListPostByApruve(Boolean apruve) {
-        return postRepositore.findByApruveOrderByCreatedateDesc(apruve);
-    }
-
     public List<Post> GetAllPosts() {
         return postRepositore.findAllByOrderByCreatedateDesc();
     }
 
-    public Post GetByUiid(String uuidpost) {
+    public Post GetPostByUuid(String uuidpost) {
         return postRepositore.getByUuid(uuidpost);
     }
 
