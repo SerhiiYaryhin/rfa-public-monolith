@@ -96,44 +96,39 @@ public class PodcastController {
         return "/podcast/home";
     }
 
-    @GetMapping(value = "/podcast/view/{puuid}")
+    @GetMapping(value = {"/podcast/view/{puuid}", "/podcast/view/{puuid}/{page}"})
     public String podcastview(
             @PathVariable String puuid,
+            @PathVariable(required = false) Integer page,
             Model model) {
-        logger.info("Зайшли на /podcast/view/{}", puuid);
+        int currentPage = (page == null) ? 0 : page;
+        logger.info("Зайшли на /podcast/view/{} сторінка {}", puuid, currentPage);
+        
         PodcastChannel podcastChannel = podcastService.GetChanelByUUID(puuid);
         if (podcastChannel == null) {
-            logger.info("Пробуємо знайти за Title: {}", puuid); //гугл часто лізе за назвою
             List<PodcastChannel> podcastChannelList = podcastService.GetChanelByTitle(puuid);
-            if (podcastChannelList != null) {
-                if (podcastChannelList.size() == 1) {
-                    podcastChannel = podcastChannelList.get(0);
-                } else {
-                    podcastChannel = null;
-                    if (podcastChannelList.size() > 1) {
-                        logger.info("Подкастів з такою назвою декілька: {}", puuid);
-                    } else {
-                        logger.info("Подкаст з назвою не знайдено: {}", puuid);
-                    }
-                }
+            if (podcastChannelList != null && podcastChannelList.size() == 1) {
+                podcastChannel = podcastChannelList.get(0);
             }
         }
 
         if (podcastChannel == null) {
-            logger.info("Хтось помилився посиланням на подкаст та/або знов довбляться на сайт.");
-            model.addAttribute("warning", "Такого подкасту не існує. Ви або помилилися посиланням, або він переміщений.");
-        } else {
-            if (podcastChannel.getImagechanelstore() != null) {
-                model.addAttribute("ogimage", podcastChannel.getImagechanelstore().getUuid());
-            } else {
-                // todo Вставити нормальне посилання на cover за замовчуванням
-                model.addAttribute("ogimage", "------------");
-            }
-            // рахуємо кількість заходів на подкаст
-            podcastChannel.setLooked(podcastChannel.getLooked()+1L);
-            podcastService.SavePodcast(podcastChannel);
+            model.addAttribute("warning", "Такого подкасту не існує.");
+            return "redirect:/podcast/all";
         }
+
+        // Отримуємо пагіновані епізоди
+        Page<PodcastItem> episodesPage = podcastService.GetEpisodesByChanelPage(podcastChannel, currentPage, 12);
+        
+        podcastChannel.setLooked(podcastChannel.getLooked() + 1L);
+        podcastService.SavePodcast(podcastChannel);
+
         model.addAttribute("podcast", podcastChannel);
+        model.addAttribute("episodes", episodesPage.getContent());
+        model.addAttribute("totalPages", episodesPage.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("ogimage", podcastChannel.getImagechanelstore() != null ? podcastChannel.getImagechanelstore().getUuid() : "");
+
         return "/podcast/view";
     }
 
@@ -159,12 +154,16 @@ public class PodcastController {
      * @param model
      * @return
      */
-    @GetMapping(value = "/podcast/all")
+    @GetMapping(value = {"/podcast/all", "/podcast/all/{page}"})
     public String podcastAllview(
+            @PathVariable(required = false) Integer page,
             Model model) {
-
-        List<PodcastChannel> podcastChList = podcastService.GetAllChanel();
-        model.addAttribute("podcastList", podcastChList);
+        int currentPage = (page == null) ? 0 : page;
+        Page<PodcastChannel> podcastPage = podcastService.GetAllApprovedChanelsPage(currentPage, 12);
+        
+        model.addAttribute("podcastList", podcastPage.getContent());
+        model.addAttribute("totalPages", podcastPage.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
 
         return "/guest/podcastall";
     }

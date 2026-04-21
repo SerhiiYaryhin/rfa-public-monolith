@@ -28,6 +28,9 @@ import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.util.ClassUtils;
@@ -267,6 +270,16 @@ public class PodcastService {
     public List<PodcastChannel> GetAllChanel() {
         List<PodcastChannel> listCh = chanelRepository.findAll();
         return listCh;
+    }
+
+    public Page<PodcastChannel> GetAllApprovedChanelsPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return chanelRepository.findByApruveTrueOrderByLastbuilddateDesc(pageable);
+    }
+
+    public Page<PodcastItem> GetEpisodesByChanelPage(PodcastChannel chanel, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return episodeRepository.findByChanelOrderByPubdateDesc(chanel, pageable);
     }
 
     public String GetEpisodeNumberComments(PodcastItem item) {

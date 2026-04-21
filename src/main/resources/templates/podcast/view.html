@@ -1,169 +1,134 @@
 <!DOCTYPE html>
-
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
-
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока - Подкаст: [[${podcast.title}]]</title>
+    <div th:insert="~{/fragments/common :: ogpodcast}"/>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
-    <div th:replace="~{/fragments/common :: ogpodcast}"/>
-
-    <!-- Bootstrap icons-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <style>
+        .podcast-hero { background: #fff; padding: 3rem 0; border-bottom: 1px solid #eee; margin-top: 80px; }
+        .podcast-cover-large { width: 100%; max-width: 300px; border-radius: 12px; box-shadow: 0 1rem 3rem rgba(0,0,0,.175); }
+        .episode-card { border: none; border-bottom: 1px solid #eee; transition: background 0.2s; }
+        .episode-card:hover { background: #f8f9fa; }
+        .play-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform 0.2s; }
+        .play-btn:hover { transform: scale(1.1); }
+        .rss-link { color: #f26522; font-weight: bold; text-decoration: none; }
+    </style>
 </head>
-<body>
-<script type="module" src="/js/audioplayer/rfapodcastplayer.js"></script>
-<div th:insert="~{/fragments/RFAPlayer :: rfaplayertemplate}"/>
-<header>
-    <!-- Navigation-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-</header>
+<body class="bg-light">
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
 
+    <!-- Плеєр -->
+    <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
 
-<!-- MessageBox -->
-<div style="padding-top: 80px" th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
-<!-- Header для главной сторінки подкастов -->
-<div th:if="${podcast != null}">
-    <section class="pt-4">
-        <div class="container px-lg-5">
-<!--            <div class="row">-->
-<!--                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].enclosurestore} != null"-->
-<!--                              th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>-->
-<!--            </div>-->
-
-            <div class="row" style="padding-top: 50px">
-                <!-- початок виводу подкастe -->
-                <div class="card bg-light border-0 h-100">
-                    <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
-                        <div class="row align-center ">
-<!--                            <div class="col-4 align-center">-->
-                                <h1 class=" display-1 fs-1 fw-bold text-center font-monospace" th:text="${podcast.title}"
-                                    style="padding-top: 30px"></h1>
-<!--                            </div>-->
-                        </div>
-                        <div class="row">
-                            <!-- картинка подкасту та RSS-->
-                            <div class="col-9 ">
-                                <img class="img-fluid align-center" style="padding-top: 20px"
-                                     th:if="${podcast.imagechanelstore != null}"
-                                     th:src="'/store/thrumbal/w/300/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                                     th:id="${podcast.imagechanelstore.uuid}"/>
-                            </div>
-                            <div class="col-3 text-center">
-                                <a th:href="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}">
-                                    <img class="img-fluid align-center" style="padding-top: 20px"
-                                         src="/pictures/podcast-rss-feed.webp" id="podcast-rss-feed.webp"/>
-                                    <br>
-                                </a>
-                                <input type="text"
-                                       th:value="'https://rfa.toloka.media/podcast/rss/'+${podcast.uuid}"
-                                       id="myRSSInput"
-                                       hidden>
-                                <button onclick="myRssLinkToClipboard()">Copy RSS link</button>
-                                <script>
-                                    function myRssLinkToClipboard() {
-                                      var copyText = document.getElementById("myRSSInput");
-                                      copyText.select();
-                                      copyText.setSelectionRange(0, 99999); // For mobile devices
-                                      navigator.clipboard.writeText(copyText.value);
-                                    }
-                                </script>
-                            </div>
-                        </div>
-<!--                        <h1 class="fs-4 fw-bold text-center" th:text="${podcast.title}" style="padding-top: 30px"></h1>-->
-                        <!-- назва подкасту -->
-                        <!-- зміст подкасту -->
-                        <div th:utext="${podcast.description}" class="mb-0 fs-6" style="padding-top: 30px"></div>
-                        <!-- зміст подкасту -->
+    <!-- Hero Section -->
+    <section class="podcast-hero shadow-sm">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <img th:if="${podcast.imagechanelstore != null}" 
+                         th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                         class="podcast-cover-large shadow" alt="Cover">
+                    <div th:if="${podcast.imagechanelstore == null}" 
+                         class="podcast-cover-large bg-secondary d-inline-flex align-items-center justify-content-center text-white-50 mx-auto" style="height: 300px; width: 300px;">
+                        <i class="fas fa-microphone-alt fa-6x"></i>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <audio-player id="rfapodcastlayer" th:if="${podcast.item[0].enclosurestore} != null"
-                              th:data-src="'/podcast/audio/'+${podcast.item[0].enclosurestore.uuid}+'/'+${podcast.item[0].enclosurestore.filename}"></audio-player>
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold" th:text="${podcast.title}">Назва</h1>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm" th:text="${podcast.language}">Мова</span>
+                        <a th:href="'/podcast/rss/'+${podcast.uuid}" class="rss-link shadow-sm p-1 rounded">
+                            <i class="fas fa-rss-square fa-2x"></i>
+                        </a>
+                        <small class="text-muted"><i class="fas fa-eye me-1"></i> <span th:text="${podcast.looked}">0</span> переглядів</small>
+                    </div>
+                    <p class="lead text-muted" th:utext="${podcast.description}">Опис</p>
+                    <hr>
+                    <div class="small text-muted">
+                        Категорії: 
+                        <span th:each="cat : ${podcast.itunescategory}" class="me-2 badge bg-light text-dark border">
+                            [[${cat.firstlevel}]] <span th:if="${cat.secondlevel}"> / [[${cat.secondlevel}]]</span>
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="pt-4">
-        <div class="container-fluid px-lg-5">
-            <!-- Епізоди подкасту-->
-            <script>
-                function setEpisodToPlayer(itemid,name,storeid,file) {
-                    document.getElementById('rfapodcastlayer').myChangeTrack(itemid,name,storeid,file);
-
-                    getEpisodeList();
-                }
-
-                let episodeArray = [];
-                function getPreparedEpisodeList() {
-                    return episodeArray;
-                }
-                function getEpisodeList () {
-                    if (episodeArray.length === 0) { // якщо масив заповнено - нічого не робимо
-                        var cusid_ele = document.getElementsByClassName('episodePlayer'); // витягуємо всі наші uuid треків в масив
-                        for (var i = 0; i < cusid_ele.length; ++i) {
-                           var item = cusid_ele[i];
-                           episodeArray.push(item.id);
-                        }
-                        document.getElementById('rfapodcastlayer').setEpisodeList(episodeArray);
-                    }
-                }
-            </script>
-            <!-- запускаємо програвач епізод-->
-            <div id="episodeList">
-                <div class="row gx-lg-5">
-                    <div th:each="item : ${podcast.item}" class="col-lg-6 col-xxl-4 mb-5">
-                        <div class="card bg-light border-0 h-100">
-                            <div class="card-header">
-                                <!-- запускаємо програвач на цей епізод-->
-                                <span th:if="${item.enclosurestore} != null" th:id="${item.uuid}"
-                                      class="badge rounded-pill bg-primary episodePlayer"
-                                      th:onclick="setEpisodToPlayer([[${item.uuid}]],[[${item.title}]],[[${item.enclosurestore.uuid}]],[[${item.enclosurestore.filename}]])">Слухати</span>
-                                <!-- запускаємо програвач на цей епізод-->
-                                <a class="mx-auto" th:href="'/podcast/episode/'+${item.uuid}">
-                                    <span class="badge rounded-pill bg-primary">Детальніше</span>
-                                </a>
-                            </div>
-                            <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
-                                <img class="img-fluid"
-                                     th:if="${item.imagestoreitem != null} AND ${podcast.imagechanelstore} != null"
-                                     th:src="'/store/thrumbal/w/400/' + ${item.imagestoreitem.uuid} + '/' + ${item.imagestoreitem.filename}"
-                                     th:id="${item.imagestoreitem.uuid}"/>
-                                <div th:if="${item.title != null}">
-                                    <h2 class="fs-4 fw-bold" style="padding-top: 10px" th:text="${item.title}"></h2>
+    <!-- Епізоди -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <h2 class="mb-4 fw-bold"><i class="fas fa-list-ul text-primary me-2"></i>Епізоди</h2>
+                
+                <div class="card shadow-sm border-0">
+                    <div class="list-group list-group-flush rounded">
+                        <div th:each="item : ${episodes}" class="list-group-item episode-card p-4">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <!-- Кнопка Play для нашого Custom Audio Player -->
+                                    <button th:if="${item.enclosurestore != null}" 
+                                            class="btn btn-primary play-btn shadow"
+                                            th:id="${item.enclosurestore.uuid}" 
+                                            th:onclick="onClickTrack(this,[[${item.title}]],[[${podcast.title}]])">
+                                        <i class="fas fa-play ms-1"></i>
+                                    </button>
                                 </div>
-<!--                                <div th:if="${item.description != null}">-->
-<!--                                    <p th:if="${item.description.length()>150}" style="padding-top: 10px"-->
-<!--                                       class="mb-0 fs-6"-->
-<!--                                       th:utext="${#strings.substring(item.description,0,150)+'...'}"></p>-->
-<!--                                    <p th:if="${item.description.length()<150}" style="padding-top: 10px"-->
-<!--                                       class="mb-0 fs-6"-->
-<!--                                       th:utext="${item.description}"></p>-->
-<!--                                </div>-->
+                                <div class="col">
+                                    <h5 class="mb-1 fw-bold" th:text="${item.title}">Назва епізоду</h5>
+                                    <div class="text-muted small mb-2" th:if="${item.description}" 
+                                         th:text="${#strings.length(item.description) > 200 ? #strings.substring(item.description, 0, 200) + '...' : item.description}">
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 small text-muted">
+                                        <span><i class="far fa-calendar-alt me-1"></i> [[${#dates.format(item.pubdate, 'dd.MM.yyyy')}]]</span>
+                                        <span><i class="far fa-eye me-1"></i> [[${item.looked}]]</span>
+                                        <span th:if="${item.itunesduration}"><i class="far fa-clock me-1"></i> [[${item.itunesduration}]]</span>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        <div th:if="${episodes.isEmpty()}" class="p-5 text-center text-muted">
+                            <p class="mb-0">Епізодів поки немає.</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Пагінація епізодів -->
+                <nav aria-label="Episodes Pagination" class="mt-5" th:if="${totalPages > 1}">
+                    <ul class="pagination justify-content-center shadow-sm">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${currentPage - 1}}"><i class="fas fa-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${i}}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${currentPage + 1}}"><i class="fas fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
-    </section>
+    </div>
 
-</div>
-
-<!-- Footer -->
-<div th:insert="~{/fragments/common :: footer}"></div>
-<div th:insert="~{/fragments/navbar :: bottomnavbar}"></div>
-
-<!-- різні скріпти -->
-<script src="/js/bootstrap.bundle.min.js"></script>
-
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    <script type="module" src="/js/audioplayer/audioplayer.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function onClickTrack(event,name,autor) {
+            document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
+            // Скрол до плеєра (опційно)
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>

@@ -6,62 +6,78 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <div th:replace="~{/fragments/common :: ogpodcastall}"/>
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока - Всі подкасти</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <style>
+        .podcast-card { transition: transform 0.2s; border: none; shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); height: 100%; }
+        .podcast-card:hover { transform: translateY(-5px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important; }
+        .podcast-cover { height: 220px; object-fit: cover; }
+        .card-title a { text-decoration: none; color: #212529; }
+        .card-title a:hover { color: #0d6efd; }
+    </style>
 </head>
-<body>
-<header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-</header>
-<div style="padding-top: 100px">
-    <div class="container-fluid">
-        <div class="row text-center" style="padding-top: 20px">
-            <div class="col align-center">
-                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
+<body class="bg-light">
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
+
+    <div class="container py-5" style="padding-top: 120px !important;">
+        <div class="row mb-5 text-center">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold">Подкасти на Толоці</h1>
+                <p class="lead text-muted">Слухайте цікаві історії, новини та музичні обзори від наших авторів.</p>
             </div>
         </div>
-        <div class="row" style="padding-top: 20px">
-            <!-- Колонка -->
-            <div class="col-lg-9 col-sm-12">
-                <div th:each="podcast : ${podcastList}">
-                    <div th:if="${podcast.publishing == true}" class="row">
-                        <div class="col-lg-2 col-sm-12"> <!-- колонка із зображенням подкасту -->
-                            <img th:src="'/store/thrumbal/w/150/' + ${podcast.imagechanelstore.uuid} + '/' + ${podcast.imagechanelstore.filename}"
-                                 th:id="${podcast.imagechanelstore.uuid}"/>
-                            <!--              <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-fluid avatar-xxl rounded-circle" alt="">-->
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            <div th:each="podcast : ${podcastList}" class="col">
+                <div class="card podcast-card shadow-sm">
+                    <a th:href="'/podcast/view/'+${podcast.uuid}">
+                        <img th:if="${podcast.imagechanelstore != null}" 
+                             th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                             class="card-img-top podcast-cover" alt="Podcast Cover">
+                        <div th:if="${podcast.imagechanelstore == null}" 
+                             class="card-img-top podcast-cover bg-secondary d-flex align-items-center justify-content-center text-white-50">
+                            <i class="fas fa-microphone-alt fa-4x"></i>
                         </div>
-                        <div class="col-lg-9 col-sm-12"> <!-- колонка з описом подкасту -->
-                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                                <h2><span th:text="${podcast.title}"></span></h2>
-                            </a>
-                            <div th:utext="${podcast.description}"></div>
-                        </div>
-                        <hr>
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-truncate">
+                            <a th:href="'/podcast/view/'+${podcast.uuid}" th:text="${podcast.title}">Назва</a>
+                        </h5>
+                        <p class="card-text text-muted small" th:if="${podcast.description}" 
+                           th:text="${#strings.length(podcast.description) > 100 ? #strings.substring(podcast.description, 0, 100) + '...' : podcast.description}">
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center pb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-list-ul me-1"></i> <span th:text="${podcast.item.size()}">0</span> еп.
+                        </small>
+                        <a th:href="'/podcast/view/'+${podcast.uuid}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">Слухати</a>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-sm-12">
-                <!-- Медіа Хаб-->
-                <!--                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>-->
-            </div>
         </div>
-    </div>
-</div>
-<!-- Footer -->
-<div th:insert="~{/fragments/common :: footer}"></div>
-<!--<div th:insert="~{/fragments/navbar :: bottomnavbar}">  </div>-->
 
-<!-- Bootstrap core JS-->
-<script src="/js/bootstrap.bundle.min.js"></script>
+        <!-- Пагінація -->
+        <nav aria-label="Pagination" class="mt-5" th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center shadow-sm">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{'/podcast/all/' + ${currentPage - 1}}"><i class="fas fa-chevron-left"></i></a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{'/podcast/all/' + ${i}}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{'/podcast/all/' + ${currentPage + 1}}"><i class="fas fa-chevron-right"></i></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
