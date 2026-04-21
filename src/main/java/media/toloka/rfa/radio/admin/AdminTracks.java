@@ -91,14 +91,14 @@ public class AdminTracks {
     }
 
     /** Перемикання статусу публікації треку (Toggle) */
-    @GetMapping(value = "/admin/toggletrack/{trackId}")
-    public String toggleTrackStatus(@PathVariable Long trackId) {
+    @GetMapping(value = "/admin/toggletrack/{trackUuid}")
+    public String toggleTrackStatus(@PathVariable String trackUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Track track = adminService.GetTrackById(trackId);
+        Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             boolean newState = !track.getApruve();
             track.setApruve(newState);
@@ -117,14 +117,14 @@ public class AdminTracks {
     }
 
     /** Схвалення треку для публікації */
-    @GetMapping(value = "/admin/publishtrack/{trackId}")
-    public String getAdminPublishTrack(@PathVariable Long trackId) {
+    @GetMapping(value = "/admin/publishtrack/{trackUuid}")
+    public String getAdminPublishTrack(@PathVariable String trackUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Track track = adminService.GetTrackById(trackId);
+        Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             track.setApruve(true);
             track.setPublishstatus(true);
@@ -141,14 +141,14 @@ public class AdminTracks {
     }
 
     /** Відхилення публікації треку */
-    @GetMapping(value = "/admin/rejecttrack/{trackId}")
-    public String getAdminRejectTrack(@PathVariable Long trackId) {
+    @GetMapping(value = "/admin/rejecttrack/{trackUuid}")
+    public String getAdminRejectTrack(@PathVariable String trackUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Track track = adminService.GetTrackById(trackId);
+        Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             track.setApruve(false);
             track.setPublishstatus(false);
@@ -160,14 +160,14 @@ public class AdminTracks {
     }
 
     /** Повне видалення треку (файл + записи в БД) */
-    @GetMapping(value = "/admin/deltrack/{trackId}")
-    public String getAdminDeleteTrack(@PathVariable Long trackId) {
+    @GetMapping(value = "/admin/deltrack/{trackUuid}")
+    public String getAdminDeleteTrack(@PathVariable String trackUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        Track track = adminService.GetTrackById(trackId);
+        Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             String trackName = track.getName();
             
@@ -175,7 +175,7 @@ public class AdminTracks {
             sendTrackStatusEmail(track, "DELETED");
             
             // Каскадне видалення через сервіс
-            adminService.DeleteTrack(trackId);
+            adminService.DeleteTrackByUuid(trackUuid);
             
             historyService.saveHistory(EHistoryType.History_PostDelete, 
                 "Admin deleted track: " + trackName, 

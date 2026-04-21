@@ -176,4 +176,14 @@ public class AdminService {
             createrService.DeleteTrack(track);
         }
     }
+
+    public void DeleteTrackByUuid(String trackUuid) {
+        Track track = createrService.GetTrackByUuid(trackUuid);
+        if (track != null) {
+            if (track.getStoreitem() != null) {
+                storeService.DeleteInStore(track.getStoreitem());
+            }
+            createrService.DeleteTrack(track);
+        }
+    }
 }

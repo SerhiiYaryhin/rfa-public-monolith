@@ -48,12 +48,14 @@
                 <form th:action="@{/creater/edittrack}" method="post" th:object="${track}" class="form-horizontal">
                     <fieldset>
                         <legend>Інформація про трек</legend>
-                        <input type="hidden" th:field="${track.id}"/>
+                        <input type="hidden" th:field="*{id}"/>
+                        <input type="hidden" th:field="*{uuid}"/>
 
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="filename">Файл</label>
                             <div class="col-md-5">
-                                <input th:field="${store.filename}" type="text" class="form-control input-md" disabled>
+                                <input th:if="${track.storeitem != null}" th:value="${track.storeitem.filename}" type="text" class="form-control input-md" disabled>
+                                <input th:if="${track.storeitem == null}" value="Файл відсутній" type="text" class="form-control input-md text-danger" disabled>
                             </div>
                         </div>
 

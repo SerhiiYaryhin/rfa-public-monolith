@@ -103,7 +103,6 @@ public class CreaterTrackController {
 
     @PostMapping(value = "/creater/edittrack")
     public String getCreaterEditTracks(
-//            @PathVariable Long idTrack,
             @ModelAttribute Track ftrack,
             Model model ) {
         Users user = clientService.GetCurrentUser();
@@ -112,14 +111,14 @@ public class CreaterTrackController {
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Track track = null;
-        if (ftrack.getId() != null) {
-            track = createrService.GetTrackById(ftrack.getId());
-        } else if (ftrack.getUuid() != null) {
+        
+        // Використовуємо UUID як основний ключ пошуку
+        if (ftrack.getUuid() != null && !ftrack.getUuid().isEmpty()) {
             track = createrService.GetTrackByUuid(ftrack.getUuid());
         }
         
         if (track == null) {
-            logger.info("З якогось дива не знайшли трек за ID або UUID");
+            logger.info("Не знайшли трек за UUID: {}", ftrack.getUuid());
             return "/creater/home";
         }
         track.setName(ftrack.getName());
@@ -140,31 +139,7 @@ public class CreaterTrackController {
 
         createrService.SaveTrack(track);
 
-        List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
-
-
-        List<Track> trackList = createrService.GetAllTracksByCreater(cd);
-//        model.addAttribute("trackList", trackList );
-        model.addAttribute("storetrackList", storetrackList );
-
-        // Пейджинг для сторінки
-//        Page pageStore = storeService.GetStorePageByClientDetail(curpage,10, cd);
-        //todo Зробити повернення на ту сторінку, з якої перейшли в редагування
-        Integer curpage = 0;
-
-        Page pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
-        List<Store> treckList = pageStore.stream().toList();
-
-        model.addAttribute("totalPages", pageStore.getTotalPages() );
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks/");
-
-        // Пейджинг для сторінки
-
-//        model.addAttribute("albums", albums );
-        model.addAttribute("viewList", treckList );
-
-        return "redirect:/creater/tracks/"+curpage.toString();
+        return "redirect:/creater/tracks/0";
     }
 // публікуємо трек
     @PostMapping(value = "/creater/publishtrack")
