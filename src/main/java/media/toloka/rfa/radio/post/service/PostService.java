@@ -50,6 +50,10 @@ public class PostService {
         postRepositore.save(post);
     }
 
+    public List<Post> GetListPostByApruve(Boolean apruve) {
+        return postRepositore.findByApruveOrderByCreatedateDesc(apruve);
+    }
+
     public List<Post> GetAllPosts() {
         return postRepositore.findAllByOrderByCreatedateDesc();
     }

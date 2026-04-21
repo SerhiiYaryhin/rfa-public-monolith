@@ -259,7 +259,7 @@ public class CommentService {
         Clientdetail cd;
         switch (contentEntityType) {
             case ECommentSourceType.COMMENT_POST:
-                cd = postService.GetByUiid(contentEntityId).getClientdetail();
+                cd = postService.GetPostByUuid(contentEntityId).getClientdetail();
                 break;
             case ECommentSourceType.COMMENT_TRACK:
                 cd = createrService.GetTrackByUuid(contentEntityId).getClientdetail();
