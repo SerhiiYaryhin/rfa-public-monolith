@@ -87,9 +87,9 @@ public class PodcastDropGetFileController {
                     +" Зверніться будь ласка до служби підтримки");
         }
 
-        List<Store> podcastImageList = podcastService.GetPodcastCoverListByCd(cd);
+        List<Store> storeList = podcastService.GetPicturesListByCd(cd);
 
-        model.addAttribute("podcastImageList",  podcastImageList);
+        model.addAttribute("storeList",  storeList);
         model.addAttribute("podcast",  podcast);
         model.addAttribute("episode",  episode);
         return "/podcast/podcastcoverepisodeupload";
@@ -108,11 +108,10 @@ public class PodcastDropGetFileController {
 
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
         if (podcast == null ) {
-            model.addAttribute("warning",  "Йой! Щось пішло не так - ми не знайшли Ваш Подкаст."
-                    +" Зверніться будь ласка до служби підтримки");
+            model.addAttribute("warning",  "Йой! Щось пішло не так - ми не знайшли Ваш Подкаст.");
         }
 
-        model.addAttribute("podcastImageList",  podcastService.GetPodcastCoverListByCd(cd));
+        model.addAttribute("storeList",  podcastService.GetPicturesListByCd(cd));
         model.addAttribute("podcast",  podcast);
         return "/podcast/podcastcoverupload";
     }
