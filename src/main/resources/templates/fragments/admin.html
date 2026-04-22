@@ -7,60 +7,73 @@
 <body>
 
 <div th:fragment="adminstoreсontrol">
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Клієнт</th>
-            <th scope="col">Тип</th>
-            <th scope="col">Файл</th>
-            <th scope="col">Mime</th>
-            <th scope="col">Дата</th>
-            <th scope="col">Дія</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="store, iStat : ${storeList}" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240)'">
-            <td>
-                <!-- Клієнт -->
-                <b>
-                <span th:if="${store.clientdetail.custname != null}"
-                      th:text="${store.clientdetail.custname}+' '"/>
-                    <span th:if="${store.clientdetail.custsurname != null}"
-                          th:text="${store.clientdetail.custsurname}+' '"/>
-                    <span th:if="${store.clientdetail.firmname != null}"
-                          th:text="${store.clientdetail.firmname}+' '"/>
-                </b><br>
-                <span th:text="${store.clientdetail.user.email} + ' '" style="color:blue"/>
-                <span th:text="${store.clientdetail.uuid}+' '"/>
-
-            </td>
-            <td>
-                <!-- Тип -->
-                <b><span th:text="${store.storefiletype}"></span></b>
-            </td>
-            <td>
-                <!-- Файл -->
-                <span th:text="${store.filename}"></span><br>
-                <span th:text="${store.uuid}"></span>
-            </td>
-            <td>
-                <!-- Mime  -->
-                <span th:text="${store.contentMimeType}"></span><br>
-            </td>
-            <td>
-                <!-- Дата  -->
-                <span th:text="${#dates.format(store.createdate, 'dd-MM-yy')}"></span><br>
-                <span th:text="${#dates.format(store.createdate, 'HH:mm:ss')}"></span>
-            </td>            <td>
-                <!-- Дія -->
-                <a th:href="@{/user/_startstation(id=${store.id})}" id="startStation" class="btn btn-primary"
-                   target="_blank">Видалити</a>
-                <a th:href="@{/user/_stopstation(id=${store.id})}" id="stopStation" class="btn btn-primary"
-                   target="_blank">Подивитися</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive shadow-sm rounded bg-white">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+            <tr>
+                <th class="ps-3">Тип</th>
+                <th>Клієнт / Власник</th>
+                <th>Файл / UUID</th>
+                <th>Система</th>
+                <th>Дата</th>
+                <th class="text-end pe-3">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="store, iStat : ${storeList}">
+                <td class="ps-3">
+                    <!-- Попередній перегляд для зображень -->
+                    <img th:if="${#strings.contains(store.contentMimeType, 'image')}" 
+                         th:src="'/store/content/'+${store.uuid}" 
+                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" class="border shadow-sm">
+                    <!-- Іконка для аудіо -->
+                    <i th:if="${#strings.contains(store.contentMimeType, 'audio')}" class="fas fa-file-audio text-primary fa-2x"></i>
+                    <!-- Іконка для інших -->
+                    <i th:if="${!#strings.contains(store.contentMimeType, 'image') && !#strings.contains(store.contentMimeType, 'audio')}" 
+                       class="fas fa-file text-secondary fa-2x"></i>
+                </td>
+                <td>
+                    <strong th:text="${store.clientdetail.custname} + ' ' + ${store.clientdetail.custsurname}"></strong><br>
+                    <small class="text-muted" th:text="${store.clientdetail.user.email}"></small><br>
+                    <small class="text-muted font-monospace" style="font-size: 0.7rem;" th:text="${store.clientdetail.uuid}"></small>
+                </td>
+                <td>
+                    <span th:text="${store.filename}"></span><br>
+                    <small class="text-primary cursor-pointer font-monospace" th:onclick="'copyToClipboard(\'' + ${store.uuid} + '\')'" title="Скопіювати UUID">
+                        <i class="far fa-copy me-1"></i> [[${store.uuid}]]
+                    </small>
+                </td>
+                <td>
+                    <span class="badge bg-light text-dark border small" th:text="${store.storefiletype}"></span><br>
+                    <small class="text-muted small" th:text="${store.contentMimeType}"></small>
+                </td>
+                <td>
+                    <span class="small" th:text="${#dates.format(store.createdate, 'dd-MM-yy')}"></span><br>
+                    <span class="small text-muted" th:text="${#dates.format(store.createdate, 'HH:mm')}"></span>
+                </td>
+                <td class="text-end pe-3">
+                    <div class="btn-group">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{'/store/content/og/'+${store.uuid}+'/'+ ${store.filename}}" download title="Завантажити">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${store.uuid}}" 
+                           onclick="return confirm('Видалити цей файл назавжди з сервера?')" title="Видалити">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('UUID скопійовано: ' + text);
+            });
+        }
+    </script>
 </div>
 
 <div th:fragment="liststationcontrol">
