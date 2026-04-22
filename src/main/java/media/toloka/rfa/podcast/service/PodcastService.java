@@ -215,6 +215,23 @@ public class PodcastService {
         episodeRepository.save(episode);
     }
 
+    /**
+     * Видалення епізоду подкасту
+     * @param episode Об'єкт епізоду
+     * @param deleteFile Якщо true - фізично видалити аудіофайл з диска
+     */
+    public void DeleteEpisode(PodcastItem episode, boolean deleteFile) {
+        if (deleteFile && episode.getEnclosurestore() != null) {
+            // Видаляємо фізичний файл та запис у Store
+            storeService.DeleteInStore(episode.getEnclosurestore());
+        }
+        episodeRepository.delete(episode);
+    }
+
+    public void DeletePodcast(PodcastChannel podcast) {
+        chanelRepository.delete(podcast);
+    }
+
     public void SaveCoverPodcastUploadfile(String storeUUID, PodcastChannel podcast, Clientdetail cd) {
         // змінив під нову структуру подкастів в базі. 250202
 //        PodcastImage podcastImage = new PodcastImage();

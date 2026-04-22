@@ -87,7 +87,6 @@ public class EpisodeEditController {
     }
 
     // Зберігаємо обкладинку для епізоду з форми завантаження та вибору обкладинки.
-    // це посилання в шапці картинки для додавання до епізоду в формі завантаження/вибору обкладинки
     @GetMapping(value = "/podcast/coverepisodeset/{euuid}/{iuuid}")
     public String CoverEpisodeUpload(
             @PathVariable String euuid, // uuid епізоду
@@ -98,30 +97,41 @@ public class EpisodeEditController {
             return "redirect:/";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (cd == null) { return "redirect:/"; }
-
         PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
-        Store podcastImage = podcastService.GetStoreByUUID(iuuid); // шукаємо запис у сховищі
-        if (podcastImage != null) {
+        Store podcastImage = podcastService.GetStoreByUUID(iuuid);
+        if (episode != null && podcastImage != null) {
             episode.setImagestoreitem(podcastImage);
+            podcastService.SaveEpisode(episode); // Зберігаємо саме епізод спочатку
+            
             logger.info("Призначили обкладинку {} для епізоду {}",
-                    podcastImage.getUuid(),episode.getUuid());
+                    podcastImage.getUuid(), episode.getUuid());
         }
-        // Навіщо це - поки незрозуміло
-//        // чистимо посилання на подкаст в епізоді та батьківському подкасті
-//            for (PodcastItem item : episode.getChanel().getItem()) {
-//                if (item.getId() == episode.getId() ) {
-//                    item.setStoreimage(podcastImage);
-//                    break;
-//                }
-//            }
-        podcastService.SavePodcast(episode.getChanel());
 
-        model.addAttribute("episode",  episode);
-        model.addAttribute("podcast",  episode.getChanel());
-        return "redirect:/podcast/episodeedit/"+episode.getChanel().getUuid()+'/'+episode.getUuid();
+        return "redirect:/podcast/episodeedit/" + episode.getChanel().getUuid() + "/" + episode.getUuid();
     }
 
+    /** Видалення епізоду подкасту */
+    @GetMapping(value = "/podcast/episodedel/{puuid}/{euuid}")
+    public String deleteEpisode(
+            @PathVariable String puuid, 
+            @PathVariable String euuid,
+            @RequestParam(defaultValue = "false") boolean deleteFile) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
 
+        PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
+        if (episode != null) {
+            // Перевіряємо власність через канал (uuid користувача у каналі)
+            PodcastChannel channel = episode.getChanel();
+            if (channel != null) {
+                // Видаляємо епізод з колекції каналу
+                channel.getItem().remove(episode);
+                podcastService.SavePodcast(channel);
+            }
+            // Видаляємо сам епізод (і опційно файл)
+            podcastService.DeleteEpisode(episode, deleteFile);
+            logger.info("Користувач видалив епізод: {}. Видалення файлу: {}", euuid, deleteFile);
+        }
+        return "redirect:/podcast/pedit/" + puuid;
+    }
 }

@@ -273,30 +273,34 @@ public class PodcastEditController {
 
     }
 
-    // http://localhost:3080/podcast/addcover/9fb3d97f-9080-4fea-ad81-c4eceaba8cac/2c76b4fe-861c-4eb9-a5b3-a168eb10acf5
-    @GetMapping(value = "/podcast/addcover/{puuid}/{iuuid}")
-    public String PodcastAddCover (
-            @PathVariable String iuuid,
+    // http://localhost:3080/podcast/localpodcastdel/9fb3d97f-9080-4fea-ad81-c4eceaba8cac
+    @GetMapping(value = "/podcast/localpodcastdel/{puuid}")
+    public String PodcastDelete(
             @PathVariable String puuid,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (cd == null) { return "redirect:/"; }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        // витягуємо епізод
-        Store image = podcastService.GetStoreByUUID(iuuid);
-        PodcastChannel podcastTarget = podcastService.GetChanelByUUID(puuid);
+        PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
+        if (podcast != null) {
+            // Перевірка власності
+            if (podcast.getClientdetail().equals(cd.getUuid())) {
+                // Видаляємо всі епізоди та їх файли (за бажанням)
+                // Для простоти поки що видаляємо сам канал
+                // (CascadeType.ALL видалить епізоди з БД)
+                
+                // Якщо потрібно видалити і обкладинку каналу з диска:
+                if (podcast.getImagechanelstore() != null) {
+                    storeService.DeleteInStore(podcast.getImagechanelstore());
+                }
+                
+                podcastService.DeletePodcast(podcast);
+                logger.info("Користувач видалив подкаст: {}", puuid);
+            }
+        }
 
-        podcastTarget.setImagechanelstore(image);
-
-        podcastService.SavePodcast(podcastTarget);
-        model.addAttribute("podcast",  podcastTarget);
-        model.addAttribute("itemslist",  podcastTarget.getItem());
-        return "redirect:/podcast/pedit/"+podcastTarget.getUuid();
-
+        return "redirect:/podcast/home";
     }
-
-}
