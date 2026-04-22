@@ -276,35 +276,4 @@ public class PodcastEditController {
 
     }
 
-    // http://localhost:3080/podcast/localpodcastdel/9fb3d97f-9080-4fea-ad81-c4eceaba8cac
-    @GetMapping(value = "/podcast/localpodcastdel/{puuid}")
-    public String PodcastDelete(
-            @PathVariable String puuid,
-            Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-
-        PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
-        if (podcast != null) {
-            // Перевірка власності
-            if (podcast.getClientdetail().equals(cd.getUuid())) {
-                // Видаляємо всі епізоди та їх файли (за бажанням)
-                // Для простоти поки що видаляємо сам канал
-                // (CascadeType.ALL видалить епізоди з БД)
-                
-                // Якщо потрібно видалити і обкладинку каналу з диска:
-                if (podcast.getImagechanelstore() != null) {
-                    storeService.DeleteInStore(podcast.getImagechanelstore());
-                }
-                
-                podcastService.DeletePodcast(podcast);
-                logger.info("Користувач видалив подкаст: {}", puuid);
-            }
-        }
-
-        return "redirect:/podcast/home";
-    }
 }
