@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class StoreService extends StoreFileImplementation {
     }
 
     public Page GetStorePage(int pageNumber, int pageCount) {
-        Pageable storePage = PageRequest.of(pageNumber, pageCount);
+        Pageable storePage = PageRequest.of(pageNumber, pageCount, Sort.by("createdate").descending());
         Page page = storeRepositore.findAll(storePage);
         return page;
     }
