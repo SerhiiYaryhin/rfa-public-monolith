@@ -85,7 +85,8 @@
                             </div>
                             <div>
                                 <div class="info-label">Розмір</div>
-                                <span th:text="${store.contentLength / 1024} + ' KB'">size</span>
+                                <span th:if="${store.filelength != null}" th:text="${store.filelength / 1024} + ' KB'">size</span>
+                                <span th:if="${store.filelength == null}">Невідомо</span>
                             </div>
                         </div>
                     </div>
