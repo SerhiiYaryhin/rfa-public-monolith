@@ -40,37 +40,38 @@ public class CreaterStoreController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping(value = "/creater/store/{pageNumber}",
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public String getStoreList(
-            @PathVariable int pageNumber,
-//            @PathVariable String fileName,
-//            @ModelAttribute Clientdetail fuserdetail,
+    @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}"})
+    public String getStorage(
+            @PathVariable(required = false) Integer pageNumber,
             Model model ) {
         Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-
+        if (user == null) return "redirect:/";
+        
+        int currentPage = (pageNumber == null) ? 0 : pageNumber;
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        Page pageStore = storeService.GetStorePageByClientDetail(pageNumber,10, cd);
-        List<Store> storeList = pageStore.stream().toList();
-
-//        model.addAttribute("trackList", trackList );
-        int privpage ;
-        int nextpage ;
-        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
-        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
-        // новий рядок навігації
-
-        model.addAttribute("totalPages", pageStore.getTotalPages() );
-        model.addAttribute("currentPage", pageNumber );
-        model.addAttribute("linkPage", "/creater/store/");
-        model.addAttribute("viewList", storeList );
-        model.addAttribute("pagetrack", pageStore );
+        Page<Store> pageStore = storeService.GetStorePageByClientDetail(currentPage, 15, cd);
+        
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("linkPage", "/creater/storage/");
+        model.addAttribute("viewList", pageStore.getContent());
+        model.addAttribute("pagetrack", pageStore);
 
         return "/store/mainstore";
+    }
+
+    @GetMapping(value = "/creater/store/delete/{uuid}")
+    public String deleteStoreItem(@PathVariable String uuid) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Store item = storeService.GetStoreByUUID(uuid);
+        if (item != null) {
+            storeService.DeleteInStore(item);
+            logger.info("Користувач видалив файл із сховища: {}", uuid);
+        }
+        return "redirect:/creater/storage/0";
     }
 
     @GetMapping(value = "/creater/setpostmainpicture/{postUuid}/{pageNumber}")
