@@ -40,7 +40,7 @@ public class CreaterStoreController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}"})
+    @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}", "/creater/store", "/creater/store/{pageNumber}"})
     public String getStorage(
             @PathVariable(required = false) Integer pageNumber,
             Model model ) {
