@@ -102,24 +102,22 @@ public class CreaterStoreController {
     @PostMapping(value = "/creater/store/delete-confirmed")
     public String confirmDeleteStoreItem(
             @RequestParam String uuid,
-            @RequestParam(required = false) String from) {
+            @RequestParam(required = false) String from,
+            @RequestParam(defaultValue = "false") boolean onlyDetach) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
 
         Store item = storeService.GetStoreByUUID(uuid);
         if (item != null) {
-            // Очищуємо всі посилання перед видаленням
-            // 1. Подкасти та епізоди
+            // Очищуємо посилання в будь-якому випадку (як для видалення, так і для від'єднання)
             podcastService.DetachStoreFromPodcasts(item);
 
-            // 2. Пости та Треки (через сервіс залежностей або репозиторії)
-            // Примітка: DetachStoreFromPodcasts вже робить частину роботи.
-            // Для Постів та Треків ми можемо додати аналогічні методи в їх сервіси,
-            // але поки що метод DetachStoreFromPodcasts покриває Подкасти.
-            // Я додам універсальне очищення для решти в PodcastService або тут.
-            
-            storeService.DeleteInStore(item);
-            logger.info("Файл видалено після підтвердження (із зануленням посилань): {}", uuid);
+            if (onlyDetach) {
+                logger.info("Посилання на файл {} було обнулено, файл залишено у сховищі", uuid);
+            } else {
+                storeService.DeleteInStore(item);
+                logger.info("Файл {} видалено після обнулення посилань", uuid);
+            }
         }
 
         return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";

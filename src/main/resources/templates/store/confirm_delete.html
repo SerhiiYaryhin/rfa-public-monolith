@@ -83,21 +83,37 @@
                     </ul>
 
                     <div class="alert alert-secondary py-3">
-                        <i class="fas fa-info-circle me-2"></i> Якщо ви підтвердите видалення, посилання на цей файл у вказаних вище об'єктах будуть <strong>автоматично обнулені</strong>.
+                        <i class="fas fa-info-circle me-2"></i> Виберіть дію: <strong>Обнулити посилання</strong> (файл залишиться) або <strong>Видалити файл</strong> (повне очищення).
                     </div>
 
-                    <form th:action="@{/creater/store/delete-confirmed}" method="post">
-                        <input type="hidden" name="uuid" th:value="${item.uuid}"/>
-                        <input type="hidden" name="from" th:value="${from}"/>
-                        <div class="d-flex justify-content-between">
-                            <a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'" class="btn btn-outline-secondary px-4">
-                                <i class="fas fa-times me-1"></i> Скасувати
-                            </a>
-                            <button type="submit" class="btn btn-danger px-5 shadow-sm">
-                                <i class="fas fa-trash-alt me-1"></i> Так, від'єднати та видалити
-                            </button>
+                    <div class="d-flex flex-wrap justify-content-between gap-3">
+                        <!-- Відмовитися -->
+                        <a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'" class="btn btn-outline-secondary px-4 order-1">
+                            <i class="fas fa-times me-1"></i> Відмовитися
+                        </a>
+
+                        <div class="d-flex gap-2 order-2">
+                            <!-- Обнулити посилання -->
+                            <form th:action="@{/creater/store/delete-confirmed}" method="post">
+                                <input type="hidden" name="uuid" th:value="${item.uuid}"/>
+                                <input type="hidden" name="from" th:value="${from}"/>
+                                <input type="hidden" name="onlyDetach" value="true"/>
+                                <button type="submit" class="btn btn-warning shadow-sm">
+                                    <i class="fas fa-unlink me-1"></i> Обнулити посилання
+                                </button>
+                            </form>
+
+                            <!-- Видалити -->
+                            <form th:action="@{/creater/store/delete-confirmed}" method="post">
+                                <input type="hidden" name="uuid" th:value="${item.uuid}"/>
+                                <input type="hidden" name="from" th:value="${from}"/>
+                                <input type="hidden" name="onlyDetach" value="false"/>
+                                <button type="submit" class="btn btn-danger shadow-sm">
+                                    <i class="fas fa-trash-alt me-1"></i> Видалити файл
+                                </button>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
