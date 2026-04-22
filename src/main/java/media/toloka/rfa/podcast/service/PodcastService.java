@@ -350,6 +350,31 @@ public class PodcastService {
      * @param title String назва епізоду
      * @return List<PodcastItem>
      */
+    /**
+     * Зануляє всі посилання на об'єкт Store у подкастах та епізодах.
+     * Використовується перед видаленням файла зі сховища.
+     */
+    public void DetachStoreFromPodcasts(Store store) {
+        // Очищаємо епізоди (аудіо та картинки)
+        List<PodcastItem> episodesAsAudio = episodeRepository.findByEnclosurestore(store);
+        for (PodcastItem ep : episodesAsAudio) {
+            ep.setEnclosurestore(null);
+            episodeRepository.save(ep);
+        }
+        List<PodcastItem> episodesAsImage = episodeRepository.findByImagestoreitem(store);
+        for (PodcastItem ep : episodesAsImage) {
+            ep.setImagestoreitem(null);
+            episodeRepository.save(ep);
+        }
+
+        // Очищаємо канали (обкладинки)
+        List<PodcastChannel> channels = chanelRepository.findByImagechanelstore(store);
+        for (PodcastChannel ch : channels) {
+            ch.setImagechanelstore(null);
+            chanelRepository.save(ch);
+        }
+    }
+
     public List<PodcastItem> GetListByTitle(String title) {
         return episodeRepository.findByTitle(title);
     }

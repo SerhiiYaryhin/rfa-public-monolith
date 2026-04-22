@@ -40,6 +40,9 @@ public class CreaterStoreController {
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private media.toloka.rfa.podcast.service.PodcastService podcastService;
+
     @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}", "/creater/store", "/creater/store/{pageNumber}"})
     public String getStorage(
             @PathVariable(required = false) Integer pageNumber,
@@ -68,6 +71,9 @@ public class CreaterStoreController {
 
         Store item = storeService.GetStoreByUUID(uuid);
         if (item != null) {
+            // Очищуємо посилання в подкастах перед видаленням файлу
+            podcastService.DetachStoreFromPodcasts(item);
+            
             storeService.DeleteInStore(item);
             logger.info("Користувач видалив файл із сховища: {}", uuid);
         }

@@ -15,7 +15,9 @@ public interface EpisodeRepository
         extends JpaRepository<PodcastItem, Long>, PagingAndSortingRepository<PodcastItem, Long> {
 //    List<PodcastItem> findByClientdetail(Clientdetail cd);
 //    PodcastChannel getByStoreuuid(String storeUuid);
-    PodcastItem getByUuid(String ItemUuid);
+    PodcastItem getByUuid(String episodeUuid);
+    List<PodcastItem> findByEnclosurestore(Store store);
+    List<PodcastItem> findByImagestoreitem(Store store);
     PodcastItem save(PodcastItem episode);
 
     Page<PodcastItem> findByChanelOrderByPubDateDesc(PodcastChannel chanel, Pageable pageable);
