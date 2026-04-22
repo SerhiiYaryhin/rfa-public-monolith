@@ -15,6 +15,7 @@ import media.toloka.rfa.podcast.model.PodcastChannel;
 //import media.toloka.rfa.podcast.model.PodcastImage;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.PodcastService;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
@@ -48,6 +49,8 @@ public class PodcastEditController {
     private PodcastService podcastService;
     @Autowired
     private ClientService clientService;
+    @Autowired
+    private StoreService storeService;
 
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
@@ -304,3 +307,4 @@ public class PodcastEditController {
 
         return "redirect:/podcast/home";
     }
+}
