@@ -42,20 +42,20 @@ public class StoreItemController {
 //    http://localhost:8080/creater/edititem/452
     @GetMapping(value = "/store/edititem/{storeItemUUID}")
     public String GetStoreItemEdit(
-//    public @ResponseBody String GetStoreItemEdit(
         @PathVariable String storeItemUUID,
+        @RequestParam(required = false) String from,
         Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) { return "redirect:/"; }
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-
         Store store = storeService.GetStoreByUUID(storeItemUUID);
 
         List<EStoreFileType> storeFileList = new ArrayList<>(EnumSet.allOf(EStoreFileType.class));
 
         model.addAttribute("store", store );
         model.addAttribute("cd", cd );
+        model.addAttribute("from", from);
         model.addAttribute("storefiletype", store.getStorefiletype() );
         model.addAttribute("storefilelist", storeFileList );
 
@@ -65,20 +65,21 @@ public class StoreItemController {
     @PostMapping(value = "/store/edititem/{storeItemUUID}")
     public String PostStoreItemEdit(
             @PathVariable String storeItemUUID,
+            @RequestParam(required = false) String from,
             @ModelAttribute Store fstore,
             Model model) {
 
         Users user = clientService.GetCurrentUser();
         if (user == null) { return "redirect:/"; }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
         Store store = storeService.GetStoreByUUID(storeItemUUID);
-        store.setComment(fstore.getComment());
-        store.setStorefiletype(fstore.getStorefiletype());
-        storeService.SaveStore(store);
+        if (store != null) {
+            store.setComment(fstore.getComment());
+            store.setStorefiletype(fstore.getStorefiletype());
+            storeService.SaveStore(store);
+        }
 
-        return "redirect:/creater/store/0";
-
+        return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
     }
 
 

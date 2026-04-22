@@ -96,6 +96,9 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
+                                <a class="btn btn-sm btn-outline-secondary" th:href="@{'/store/edititem/'+${storeitem.uuid} + '?from=user'}" title="Редагувати">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                                 <a class="btn btn-sm btn-outline-primary" th:href="@{'/store/content/og/'+${storeitem.uuid}+'/'+ ${storeitem.filename}}" download title="Завантажити">
                                     <i class="fas fa-download"></i>
                                 </a>

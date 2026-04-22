@@ -4,76 +4,143 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
+    <title>Толока - Редагування елемента сховища</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        .edit-container { margin-top: 120px; }
+        .preview-box { background: #f8f9fa; border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+        .preview-img { max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
+        .info-label { font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.25rem; }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 <header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
-<!--// User page container-->
-<div style="padding-top: 100px">
-<!--    <div class="container-fluid">-->
-<!--        <div class="row">-->
-<!--            <div class="col-lg-12 col-sm-12">-->
-<!--                <div th:insert="~{/fragments/creater :: service}"> </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-    <div class="container-fluid">
-        <div class="row" style="padding-top: 40px">
-            <div class="col-lg-12 col-sm-12">
-                <form th:action="@{'/store/edititem/'+${store.uuid} }" th:object="${store}" method="post">
-                    <input type="hidden" th:field="*{id}"/>
-                    <a class="btn btn-primary badge rounded-pill"
-                            th:href="@{'/stt/editstt/0/'+*{uuid} }">STT</a>
-                    <div class="form-group">
-                        <label for="createdate">Дата завантаження</label>
-                        <input th:field="*{createdate}" type="text"  class="form-control" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="filename">Назва файлу</label>
-                        <input th:field="*{filename}" type="text"  class="form-control" disabled>
-                    </div>
-                    <div>
-                        <label for="storefiletype">Тип Файлу</label>
-                        <select th:field="*{storefiletype}">
-                            <option th:each="ft : ${storefilelist}"
-                                    th:value="${ft}" th:text="${ft.label}"></option>
-                        </select>
-                    </div>
-
-
-                    <div class="form-group">
-                        <label for="comment">Опис</label>
-                        <textarea id="comment" th:field="*{comment}" class="form-control"></textarea>
-
-                    </div>
-                    <div class="form-group">
-                        <button name="submit" type="submit" class="btn btn-primary">Submit</button>
-                    </div>
-                </form>
+<div class="container edit-container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-0">Редагування файлу</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'">Сховище</a></li>
+                            <li class="breadcrumb-item active" th:text="${store.filename}">filename</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-group shadow-sm">
+                    <a th:href="@{'/store/content/og/'+${store.uuid}+'/'+ ${store.filename}}" class="btn btn-outline-primary" download>
+                        <i class="fas fa-download me-1"></i> Скачати
+                    </a>
+                    <a th:href="@{'/stt/editstt/0/'+${store.uuid}}" class="btn btn-outline-info" th:if="${#strings.contains(store.contentMimeType, 'audio')}">
+                        <i class="fas fa-closed-captioning me-1"></i> STT
+                    </a>
+                </div>
             </div>
+
+            <div class="row g-4">
+                <!-- Ліва колонка: Прев'ю -->
+                <div class="col-md-5">
+                    <div class="preview-box border">
+                        <div class="info-label">Прев'ю</div>
+                        
+                        <!-- Для зображень -->
+                        <div th:if="${#strings.contains(store.contentMimeType, 'image')}" class="mt-3">
+                            <img th:src="'/store/content/'+${store.uuid}" class="preview-img" alt="Preview">
+                        </div>
+
+                        <!-- Для аудіо -->
+                        <div th:if="${#strings.contains(store.contentMimeType, 'audio')}" class="mt-5 py-5">
+                            <i class="fas fa-file-audio fa-5x text-primary mb-4"></i>
+                            <audio controls class="w-100 mt-3">
+                                <source th:src="'/store/content/'+${store.uuid}" th:type="${store.contentMimeType}">
+                                Ваш браузер не підтримує аудіо-плеєр.
+                            </audio>
+                        </div>
+
+                        <!-- Для інших файлів -->
+                        <div th:if="${!#strings.contains(store.contentMimeType, 'image') && !#strings.contains(store.contentMimeType, 'audio')}" class="mt-5 py-5 text-muted">
+                            <i class="fas fa-file-alt fa-5x mb-3"></i><br>
+                            Попередній перегляд недоступний для цього типу файлу.
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="info-label">UUID файлу</div>
+                                <code class="text-primary small" th:text="${store.uuid}">uuid</code>
+                            </div>
+                            <div class="mb-3">
+                                <div class="info-label">MIME-тип</div>
+                                <span class="badge bg-light text-dark border" th:text="${store.contentMimeType}">mime</span>
+                            </div>
+                            <div>
+                                <div class="info-label">Розмір</div>
+                                <span th:text="${store.contentLength / 1024} + ' KB'">size</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Права колонка: Форма -->
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <form th:action="@{'/store/edititem/'+${store.uuid}}" th:object="${store}" method="post">
+                                <input type="hidden" name="from" th:value="${from}"/>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Назва файлу</label>
+                                    <input th:field="*{filename}" type="text" class="form-control form-control-lg bg-light" readonly>
+                                    <div class="form-text text-muted">Назва файлу на сервері (тільки для читання)</div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Дата завантаження</label>
+                                    <input th:value="${#dates.format(store.createdate, 'dd-MM-yyyy HH:mm:ss')}" type="text" class="form-control bg-light" readonly>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="storefiletype" class="form-label fw-bold">Тип контенту в системі</label>
+                                    <select th:field="*{storefiletype}" class="form-select">
+                                        <option th:each="ft : ${storefilelist}" th:value="${ft}" th:text="${ft.label}"></option>
+                                    </select>
+                                    <div class="form-text">Визначає, де файл з'являтиметься в списках вибору (обкладинки, треки тощо)</div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="comment" class="form-label fw-bold">Коментар / Опис</label>
+                                    <textarea th:field="*{comment}" class="form-control" rows="5" placeholder="Додайте опис файлу для зручного пошуку..."></textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                                    <a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'" class="btn btn-outline-secondary px-4">
+                                        <i class="fas fa-arrow-left me-1"></i> Скасувати
+                                    </a>
+                                    <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                                        <i class="fas fa-save me-1"></i> Зберегти зміни
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
-
-
-
+<div th:insert="~{/fragments/common :: footer}"></div>
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
