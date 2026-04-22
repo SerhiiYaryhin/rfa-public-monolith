@@ -83,7 +83,7 @@
                         </td>
                         <td>
                             <strong th:text="${storeitem.filename}">filename</strong><br>
-                            <span class="uuid-copy" th:onclick="'copyToClipboard(\'' + ${storeitem.uuid} + '\')'" 
+                            <span class="uuid-copy" th:data-uuid="${storeitem.uuid}" onclick="copyToClipboard(this.getAttribute('data-uuid'))" 
                                   th:title="'Натисніть щоб скопіювати UUID'">
                                 <i class="far fa-copy me-1"></i> <span th:text="${storeitem.uuid}">uuid</span>
                             </span>
