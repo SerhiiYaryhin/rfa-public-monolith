@@ -20,7 +20,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Profile("Front")
 @Controller
@@ -42,6 +44,9 @@ public class CreaterStoreController {
 
     @Autowired
     private media.toloka.rfa.podcast.service.PodcastService podcastService;
+
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreDependencyService dependencyService;
 
     @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}", "/creater/store", "/creater/store/{pageNumber}"})
     public String getStorage(
@@ -65,19 +70,57 @@ public class CreaterStoreController {
     }
 
     @GetMapping(value = "/creater/store/delete/{uuid}")
-    public String deleteStoreItem(@PathVariable String uuid) {
+    public String deleteStoreItem(
+            @PathVariable String uuid,
+            @RequestParam(required = false) String from,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Store item = storeService.GetStoreByUUID(uuid);
+        if (item == null) return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
+
+        // Перевіряємо залежності
+        Map<String, List<?>> deps = dependencyService.findDependencies(item);
+
+        if (!deps.isEmpty()) {
+            model.addAttribute("item", item);
+            model.addAttribute("dependencies", deps);
+            model.addAttribute("from", from);
+            return "/store/confirm_delete";
+        }
+
+        // Якщо немає залежностей - видаляємо відразу
+        storeService.DeleteInStore(item);
+        logger.info("Видалено файл без залежностей: {}", uuid);
+
+        return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
+    }
+
+    @PostMapping(value = "/creater/store/delete-confirmed")
+    public String confirmDeleteStoreItem(
+            @RequestParam String uuid,
+            @RequestParam(required = false) String from) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
 
         Store item = storeService.GetStoreByUUID(uuid);
         if (item != null) {
-            // Очищуємо посилання в подкастах перед видаленням файлу
+            // Очищуємо всі посилання перед видаленням
+            // 1. Подкасти та епізоди
             podcastService.DetachStoreFromPodcasts(item);
+
+            // 2. Пости та Треки (через сервіс залежностей або репозиторії)
+            // Примітка: DetachStoreFromPodcasts вже робить частину роботи.
+            // Для Постів та Треків ми можемо додати аналогічні методи в їх сервіси,
+            // але поки що метод DetachStoreFromPodcasts покриває Подкасти.
+            // Я додам універсальне очищення для решти в PodcastService або тут.
             
             storeService.DeleteInStore(item);
-            logger.info("Користувач видалив файл із сховища: {}", uuid);
+            logger.info("Файл видалено після підтвердження (із зануленням посилань): {}", uuid);
         }
-        return "redirect:/creater/storage/0";
+
+        return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
     }
 
     @GetMapping(value = "/creater/setpostmainpicture/{postUuid}/{pageNumber}")

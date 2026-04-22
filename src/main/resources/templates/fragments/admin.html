@@ -57,7 +57,7 @@
                         <a class="btn btn-sm btn-outline-primary" th:href="@{'/store/content/og/'+${store.uuid}+'/'+ ${store.filename}}" download title="Завантажити">
                             <i class="fas fa-download"></i>
                         </a>
-                        <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${store.uuid}}" 
+                        <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${store.uuid} + '?from=admin'}" 
                            onclick="return confirm('Видалити цей файл назавжди з сервера?')" title="Видалити">
                             <i class="fas fa-trash-alt"></i>
                         </a>

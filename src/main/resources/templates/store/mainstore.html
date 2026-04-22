@@ -99,7 +99,7 @@
                                 <a class="btn btn-sm btn-outline-primary" th:href="@{'/store/content/og/'+${storeitem.uuid}+'/'+ ${storeitem.filename}}" download title="Завантажити">
                                     <i class="fas fa-download"></i>
                                 </a>
-                                <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${storeitem.uuid}}" 
+                                <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${storeitem.uuid} + '?from=user'}" 
                                    onclick="return confirm('Видалити цей файл назавжди з сервера?')" title="Видалити">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>

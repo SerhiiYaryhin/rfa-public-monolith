@@ -26,6 +26,7 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 
     Track getById(Long id);
     Track getByStoreuuid(String storeUuid);
+    List<Track> findByStoreitem(Store storeitem);
 
     Page findAllByOrderByUploaddateDesc(Pageable storePage);
 

@@ -78,6 +78,12 @@ public class PodcastService {
     private StoreService storeService;
 
     @Autowired
+    private media.toloka.rfa.radio.post.repositore.PostRepositore postRepository;
+
+    @Autowired
+    private media.toloka.rfa.radio.creater.repository.TrackRepository trackRepository;
+
+    @Autowired
     private FilesService filesService;
 
     @Autowired
@@ -355,7 +361,7 @@ public class PodcastService {
      * Використовується перед видаленням файла зі сховища.
      */
     public void DetachStoreFromPodcasts(Store store) {
-        // Очищаємо епізоди (аудіо та картинки)
+        // 1. Очищаємо епізоди (аудіо та картинки)
         List<PodcastItem> episodesAsAudio = episodeRepository.findByEnclosurestore(store);
         for (PodcastItem ep : episodesAsAudio) {
             ep.setEnclosurestore(null);
@@ -367,11 +373,25 @@ public class PodcastService {
             episodeRepository.save(ep);
         }
 
-        // Очищаємо канали (обкладинки)
+        // 2. Очищаємо канали (обкладинки)
         List<PodcastChannel> channels = chanelRepository.findByImagechanelstore(store);
         for (PodcastChannel ch : channels) {
             ch.setImagechanelstore(null);
             chanelRepository.save(ch);
+        }
+
+        // 3. Очищаємо Пости (обкладинки по UUID)
+        List<media.toloka.rfa.radio.model.Post> posts = postRepository.findByCoverstoreuuid(store.getUuid());
+        for (media.toloka.rfa.radio.model.Post p : posts) {
+            p.setCoverstoreuuid(null);
+            postRepository.save(p);
+        }
+
+        // 4. Очищаємо Треки
+        List<media.toloka.rfa.radio.model.Track> tracks = trackRepository.findByStoreitem(store);
+        for (media.toloka.rfa.radio.model.Track t : tracks) {
+            t.setStoreitem(null);
+            trackRepository.save(t);
         }
     }
 

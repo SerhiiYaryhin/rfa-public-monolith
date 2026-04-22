@@ -29,6 +29,8 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
 
     Post getByUuid(String postUuid);
 
+    List<Post> findByCoverstoreuuid(String coverstoreuuid);
+
     List<Post> getByCategoryOrderByPublishdateDesc(EPostCategory postCategory);
 
     List<Post> getByPostcategoryOrderByPublishdateDesc(PostCategory postCategory);
