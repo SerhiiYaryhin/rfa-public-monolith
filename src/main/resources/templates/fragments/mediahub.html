@@ -399,8 +399,7 @@
                     <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
                         <div class="col-1 col-sm-1 col-lg-1 align-middle"
                              style="padding-left: 0px;padding-right: 0px; vertical-align: middle; display: flex; align-items: center;justify-content: center;"
-                             th:id="${track.storeitem != null ? track.storeitem.uuid : ''}"
-                             th:onclick="onClickTrack(this,[[${track.name}]],[[${track.autor}]])">
+                             th:onclick="${track.storeitem != null} ? 'onClickTrack(\'' + ${track.storeitem.uuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')' : ''">
                             <div class="fa-stack fa-1x align-middle">
                                 <i class="fas fa-circle fa-stack-2x text-primary"></i>
                                 <i class="fas fa-play fa-stack-1x fa-inverse"></i>
@@ -512,8 +511,7 @@
                     <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
                         <div class="col-1 col-sm-1 col-lg-1"
                              style="padding-left: 0px;padding-right: 0px; vertical-align: middle; display: flex; align-items: center;justify-content: center;"
-                             th:id="${track.storeitem != null ? track.storeitem.uuid : ''}"
-                             th:onclick="${track.storeitem != null} ? 'onClickTrack(this,\'' + ${track.name} + '\',\'' + ${track.autor} + '\')' : ''">
+                             th:onclick="${track.storeitem != null} ? 'onClickTrack(\'' + ${track.storeitem.uuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')' : ''">
                             <div th:if="${track.storeitem != null}" class="fa-stack fa-1x">
                                 <i class="fas fa-circle fa-stack-2x text-primary"></i>
                                 <i class="fas fa-play fa-stack-1x fa-inverse"></i>

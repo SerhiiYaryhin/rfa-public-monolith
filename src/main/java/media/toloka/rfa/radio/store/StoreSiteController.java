@@ -60,9 +60,10 @@ public class StoreSiteController  {
     private StoreService storeService;
 
 
-    @GetMapping(value = "/store/audio/{storeUUID}")
+    @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName}"})
     public ResponseEntity<org.springframework.core.io.Resource> getStoreAudioToStream(
-            @PathVariable("storeUUID") String storeUUID
+            @PathVariable("storeUUID") String storeUUID,
+            @PathVariable(required = false) String fileName
     ) {
         try {
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);

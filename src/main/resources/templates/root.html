@@ -95,8 +95,10 @@
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
     <script src="/js/banner/banner.js"></script>
     <script>
-        function onClickTrack(event,name,autor) {
-            document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
+        function onClickTrack(uuid, name, autor) {
+            if (uuid) {
+                document.getElementById('audio-player').myChangeTrack(uuid, name, autor);
+            }
         }
     </script>
     <!-- карусель -->
