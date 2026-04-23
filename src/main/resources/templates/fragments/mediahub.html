@@ -50,36 +50,18 @@
                         </div>
                         <!--  Example item end -->
                     </div>
-<!--                    <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselStation"-->
-<!--                            data-bs-slide="prev">-->
-<!--                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>-->
-<!--                        <span class="visually-hidden">Попередній</span>-->
-<!--                    </button>-->
-<!--                    <button class="carousel-control-next" type="button" data-bs-target="#theCarouselStation"-->
-<!--                            data-bs-slide="next">-->
-<!--                        <span class="carousel-control-next-icon" aria-hidden="true"></span>-->
-<!--                        <span class="visually-hidden">Наступний</span>-->
-<!--                    </button>-->
                 </div>
             </div>
         </div>
     </div>
     <script>
         var myCarousel = document.getElementById('theCarouselStaion')
-
-        myCarousel.addEventListener('slide.bs.carousel', function (ev) {
-
-        })
-
         async function getStatus() {
             let siteurl = "https://rfa.toloka.media/api/1.0/ps/"+stationId;
             const response = await fetch(siteurl);
             const data = await response.json();
-            stationstate = data["status"];
-            myspan = document.getElementById('spanstationstate');
             return data;
         }
-
     </script>
 </div>
 
@@ -88,57 +70,38 @@
     <div th:fragment="mainpodcastcarusel">
         <div class="row">
             <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>
-                            <a href="/podcast/all">Подкасти на Толоці</a>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h4 mb-0">
+                            <a href="/podcast/all" class="text-decoration-none text-dark"><i class="fas fa-podcast text-primary me-2"></i>Подкасти на Толоці</a>
                         </h2>
                     </div>
                     <div class="card-body">
                         <div class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
                             <div class="carousel-inner">
                                 <div th:each="podcast, iStat : ${podcastChannels}">
-                                    <!-- IF CUSTOMER IS ANONYMOUS -->
-                                    <div th:if="${iStat.first}">
-                                        <div class="carousel-item active" th:id="${podcast.uuid}">
-                                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                                                <h3><span th:text="${podcast.title}"></span></h3>
+                                    <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${podcast.uuid}">
+                                        <div class="p-3 text-center">
+                                            <a th:href="'/podcast/view/'+${podcast.uuid}" class="text-decoration-none">
+                                                <h3 class="h5 fw-bold text-primary mb-2" th:text="${podcast.title}"></h3>
                                             </a>
-                                            <div th:if="${podcast.description != null}">
-                                                <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
-                                                   th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
-                                                <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
-                                                   th:utext="${podcast.description}"></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- ELSE -->
-                                    <div th:unless="${iStat.first}">
-                                        <div class="carousel-item" th:id="${podcast.uuid}">
-                                            <a th:href="'/podcast/view/'+${podcast.uuid}" target="_blank">
-                                                <h2><span th:text="${podcast.title}"></span></h2>
-                                            </a>
-                                            <div th:if="${podcast.description != null}">
-                                                <p th:if="${podcast.description.length()>150}" class="mb-0 fs-6"
-                                                   th:utext="${#strings.substring(podcast.description,0,150)+'...'}"></p>
-                                                <p th:if="${podcast.description.length()<150}" class="mb-0 fs-6"
-                                                   th:utext="${podcast.description}"></p>
+                                            <div th:if="${podcast.description != null}" class="text-muted small px-lg-5">
+                                                <p th:text="${#strings.abbreviate(podcast.description, 200)}"></p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <!--  Example item end -->
                             </div>
-                            <a class="left carousel-control" href="#theCarouselPodcast" data-slide="prev"><i
-                                    class="glyphicon glyphicon-chevron-left"></i></a>
-                            <a class="right carousel-control" href="#theCarouselPodcast" data-slide="next"><i
-                                    class="glyphicon glyphicon-chevron-right"></i></a>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselPodcast" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#theCarouselPodcast" data-bs-slide="next">
+                                <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"></span>
+                            </button>
                         </div>
                     </div>
-                    <div class="card-footer text-muted">
-                        <a href="/podcast/all">Ми уважно слідкуємо за українським світом подкастів і оновлюємо наш
-                            перелік
-                            обираючи найцікавіші.<br>Тож, слідкуйте за новинками!</a>
+                    <div class="card-footer bg-light text-center small text-muted py-3">
+                        Ми обираємо найцікавіші подкасти для вас. Слідкуйте за новинками!
                     </div>
                 </div>
             </div>
@@ -146,46 +109,31 @@
     </div>
 </section>
 
-<!-- головна сторінка -->
-<section th:fragment="tolokanews" class="page-section" style="padding:1rem" id="news">
-    <!--    <div class="container-fluid">-->
-    <div class="row">
+<!-- головна сторінка новин -->
+<section th:fragment="tolokanews" class="page-section p-0" id="news">
+    <div class="row g-4">
         <div class="col-lg-9 col-sm-12">
-            <div class="card">
-                <div class="text-center card-header" style="padding-left: 0px; padding-right: 0px;">
-                    <a href="/guest/postall/0"><h3>Новини на Толоці</h3></a>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h3 class="h4 mb-0"><a href="/guest/postall/0" class="text-decoration-none text-dark"><i class="far fa-newspaper text-primary me-2"></i>Новини на Толоці</a></h3>
                 </div>
-                <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
+                <div class="card-body">
+                    <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
+                </div>
+                <div class="card-footer bg-white border-top-0 text-center">
+                    <a href="/guest/postall/0" class="btn btn-outline-primary btn-sm rounded-pill px-4">Подивитися всі новини</a>
+                </div>
             </div>
-            <div class="card-footer text-muted">
-                <a href="/guest/postall/0">Подивитися всі новини на Толоці</a>
-            </div>
-            <!--            <div class="card">-->
-            <!--            </div>-->
         </div>
-        <!-- колонка медіа хаб-->
+        <!-- колонка медіа хаб (сайдбар) -->
         <div class="col-lg-3 col-sm-12">
-            <!--                    Вставляємо останні завантажені треки-->
             <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
         </div>
     </div>
-
-    <!--    </div>-->
 </section>
-<!-- головна сторінка -->
-<!--  -->
+
 <template th:fragment="audiotemplate">
     <style>
-        button {
-            padding: 0;
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-            outline: none;
-            width: 20px;
-            height: 20px;
-            float: left;
-        }
         #audio-player-container {
             position: relative;
             margin: 0px 2.5% auto 2.5%;
@@ -209,152 +157,6 @@
             background: linear-gradient(to left, #007db5, #ff8a00);
             z-index: -1;
         }
-        p {
-            position: absolute;
-            top: -18px;
-            right: 5%;
-            padding: 0 5px;
-            margin: 0;
-            font-size: 0.8rem;
-            background: #fff;
-        }
-        #play-icon {
-            margin: 20px 2.5% 10px 2.5%;
-        }
-        path {
-            stroke: #007db5;
-        }
-        .time {
-            display: inline-block;
-            width: 37px;
-            text-align: center;
-            font-size: 12px;
-            margin: 20px 0 0px 0;
-            float: left;
-        }
-        output {
-            display: inline-block;
-            width: 20px;
-            text-align: center;
-            font-size: 12px;
-            margin: 0px 2.5% 0 5%;
-            float: left;
-            clear: left;
-        }
-        #volume-slider {
-            margin: 0px 2.5%;
-            width: 43%;
-        }
-        #volume-slider::-webkit-slider-runnable-track {
-            background: rgba(0, 125, 181, 0.6);
-        }
-        #volume-slider::-moz-range-track {
-            background: rgba(0, 125, 181, 0.6);
-        }
-        #volume-slider::-ms-fill-upper {
-            background: rgba(0, 125, 181, 0.6);
-        }
-        #volume-slider::before {
-            width: var(--volume-before-width);
-        }
-        #mute-icon {
-            margin: 0 2.5%;
-        }
-        input[type="range"] {
-            position: relative;
-            -webkit-appearance: none;
-            width: 38%;
-            margin: 0;
-            padding: 0;
-            height: 19px;
-            margin: 20px 2.5% 5px 2.5%;
-            float: left;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 3px;
-            cursor: pointer;
-            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
-        }
-        input[type="range"]::before {
-            position: absolute;
-            content: "";
-            top: 8px;
-            left: 0;
-            width: var(--seek-before-width);
-            height: 3px;
-            background-color: #007db5;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            position: relative;
-            -webkit-appearance: none;
-            box-sizing: content-box;
-            border: 1px solid #007db5;
-            height: 15px;
-            width: 15px;
-            border-radius: 40%;
-            background-color: #fff;
-            cursor: pointer;
-            margin: -7px 0 0 0;
-        }
-        input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1.2);
-            background: #007db5;
-        }
-        input[type="range"]::-moz-range-track {
-            width: 100%;
-            height: 3px;
-            cursor: pointer;
-            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
-        }
-        input[type="range"]::-moz-range-progress {
-            background-color: #007db5;
-        }
-        input[type="range"]::-moz-focus-outer {
-            border: 0;
-        }
-        input[type="range"]::-moz-range-thumb {
-            box-sizing: content-box;
-            border: 1px solid #007db5;
-            height: 15px;
-            width: 15px;
-            border-radius: 50%;
-            background-color: #fff;
-            cursor: pointer;
-        }
-        input[type="range"]:active::-moz-range-thumb {
-            transform: scale(1.2);
-            background: #007db5;
-        }
-        input[type="range"]::-ms-track {
-            width: 100%;
-            height: 3px;
-            cursor: pointer;
-            background: transparent;
-            border: solid transparent;
-            color: transparent;
-        }
-        input[type="range"]::-ms-fill-lower {
-            background-color: #007db5;
-        }
-        input[type="range"]::-ms-fill-upper {
-            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
-        }
-        input[type="range"]::-ms-thumb {
-            box-sizing: content-box;
-            border: 1px solid #007db5;
-            height: 15px;
-            width: 15px;
-            border-radius: 50%;
-            background-color: #fff;
-            cursor: pointer;
-        }
-        input[type="range"]:active::-ms-thumb {
-            transform: scale(1.2);
-            background: #007db5;
-        }
     </style>
     <div id="audio-player-container">
         <audio src="" preload="metadata" loop></audio>
@@ -369,231 +171,118 @@
     </div>
 </template>
 
-
-
 <!--Останні завантажені треки-->
-    <div th:fragment="lasttrecks">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3 text-center">
-                <h3 class="h5 fw-bold mb-0">Нові треки</h3>
-            </div>
-            <div class="align-middle p-4 " th:if="${trackList == null || trackList.isEmpty()}">
-                <div class="text-center text-muted py-3">
-                    <i class="fas fa-compact-disc fa-3x mb-3 opacity-25"></i>
-                    <p class="small mb-0">Нові треки очікують на публікацію</p>
-                </div>
-            </div>
-            <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body"
-                 style="padding-bottom: 35px;">
-                <audio-player th:if="${trackList[0].storeitem != null}" id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeitem.uuid}"/>
-            </div>
+<div th:fragment="lasttrecks">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 text-center">
+            <h3 class="h5 fw-bold mb-0">Нові треки</h3>
         </div>
-
-        <div class="rfa-banner rfa-banner-image mb-4"></div>
-
-        <div class="card shadow-sm border-0" th:if="${trackList != null && !trackList.isEmpty()}">
-            <ul class="list-group list-group-flush">
-                <div th:each="track, iStat : ${trackList}">
-                <li class="list-group-item">
-                    <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
-                        <div class="col-1 col-sm-1 col-lg-1 align-middle"
-                             style="padding-left: 0px;padding-right: 0px; vertical-align: middle; display: flex; align-items: center;justify-content: center;"
-                             th:onclick="${track.storeitem != null} ? 'onClickTrack(\'' + ${track.storeitem.uuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')' : ''">
-                            <div class="fa-stack fa-1x align-middle">
-                                <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                                <i class="fas fa-play fa-stack-1x fa-inverse"></i>
-                            </div>
-                        </div>
-                        <div class="col-11 col-lg-11 col-sm-11">
-                            <small>
-                                <a th:href="'/creater/profile/'+${track.clientdetail.uuid}"><span
-                                        th:text="${track.autor}"/></a><br>
-                                <a th:href="'/guest/viewtrack/'+${track.uuid}">
-                                    <span th:text="${track.name}"/><br>
-                                </a>
-                            </small>
-                        </div>
-                    </div>
-                </li>
-            </div>
-        </ul>
-        <div class="card-footer">
-            <a href="/guest/tracksall/0">Подивитися всі завантажені треки</a>
+        <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
+            <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"/>
         </div>
-        <div class="rfa-banner rfa-banner-video"></div>
-    </div>
-</div>
-<!--Останні завантажені треки-->
-
-<!-- колонка медіа хаб-->
-<div class="container" th:fragment="postallpage">
-    <div class="card">
-        <div class="card-header"><h3>Останні новини</h3></div>
-        <ul class="list-group list-group-flush">
-            <div th:each="post, iStat : ${postList}">
-                <li class="list-group-item">
-                    <div class="row row-cols-1 row-cols-md-3 g-4"
-                         th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
-                        <div class="col">
-                            <!--                            Тут розміщуємо нашу картку посту-->
-                            <div class="card ">
-                                <a href="#">
-                                    <img th:if="${post.coverstoreuuid == null}" class="card-img-top img-fluid"
-                                         th:src="'https://picsum.photos/400/300?random='+${post.id}"
-                                         alt="Card image cap">
-                                    <img th:if="${post.coverstoreuuid != null}" class="card-img-top img-fluid"
-                                         th:src="'/store/content/'+${post.coverstoreuuid}"
-                                         alt="Card image cap">
-                                    <!--            <img class="card-img-top img-fluid"  src="https://images.unsplash.com/photo-1535025639604-9a804c092faa?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6cb0ceb620f241feb2f859e273634393&auto=format&fit=crop&w=500&q=80" alt="Card image cap">-->
-                                    <div class="card-body">
-                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.uuid}"><span
-                                                th:text="${post.posttitle}"/></a></h5>
-                                        <!--                <p class="card-text">-->
-                                        <!--                  Тут можна розмістити уривок тексту -->
-                                        <!--                </p>-->
-                                        <p class="card-text">
-                                            <small class="text-muted">
-                                                <i class="fas fa-eye"></i>1000
-                                                <i class="far fa-user"></i><span
-                                                    th:text="${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/>
-                                                <i class="fas fa-calendar-alt"></i><span
-                                                    th:text="${#dates.format(post.publishdate, 'dd-MM-yyyy')}"/>
-                                            </small>
-                                        </p>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-
-                    </div>
-                </li>
+        <div th:if="${trackList == null || trackList.isEmpty()}" class="p-4 text-center text-muted">
+            <div class="py-3">
+                <i class="fas fa-compact-disc fa-3x mb-3 opacity-25"></i>
+                <p class="small mb-0">Треків поки немає</p>
             </div>
-        </ul>
-        <div class="card-footer">
-            <nav aria-label="Page navigation example">
-                <ul class="pagination">
-                    <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${privpage}">Попередня</a>
-                    </li>
-                    <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                        <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${lpage}"><span
-                                th:text="${lpage+1}">1</a></li>
-                    </div>
-                    <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${nextpage}">Наступна</a>
-                    </li>
-                </ul>
-            </nav>
         </div>
     </div>
-</div>
 
-<div th:fragment="usermediahub_old">
-    <div class="card">
-        <div class="card-header"><h3>Медіа Хаб</h3></div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">An item</li>
-            <li class="list-group-item">A second item</li>
-            <li class="list-group-item">A third item</li>
-        </ul>
-    </div>
-</div>
+    <div class="rfa-banner rfa-banner-image mb-4"></div>
 
-
-<div class="container" th:fragment="lasttrecksall">
-    <div class="card">
-        <div class="card-header">
-            <h3>Завантажені треки</h3>
-            <audio-player id="audio-player" style="padding:0" data-src=""/>
-        </div>
+    <div class="card shadow-sm border-0" th:if="${trackList != null && !trackList.isEmpty()}">
         <ul class="list-group list-group-flush">
             <div th:each="track, iStat : ${trackList}">
                 <li class="list-group-item">
-                    <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
-                        <div class="col-1 col-sm-1 col-lg-1"
-                             style="padding-left: 0px;padding-right: 0px; vertical-align: middle; display: flex; align-items: center;justify-content: center;"
-                             th:onclick="${track.storeitem != null} ? 'onClickTrack(\'' + ${track.storeitem.uuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')' : ''">
-                            <div th:if="${track.storeitem != null}" class="fa-stack fa-1x">
-                                <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                                <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                    <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.02)'">
+                        <div class="col-auto">
+                            <div class="cursor-pointer"
+                                 th:onclick="'onClickTrack(\'' + ${track.storeuuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')'">
+                                <div class="fa-stack text-primary">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-1 col-lg-1 col-sm-1">
-                            <a th:if="${track.storeitem != null}" th:href="'/store/content/' + ${track.storeitem.uuid}"
-                               th:download="${track.storeitem.filename}">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
-                        </div>
-                        <div class="col-10 col-lg-10 col-sm-10">
-                            <small>
-                                <a th:href="'/creater/profile/'+${track.clientdetail.uuid}"><span
-                                        th:text="${track.autor}"/></a><br>
-                                <a th:href="'/guest/viewtrack/'+${track.uuid}">
-                                    <span th:text="${track.name}"/><br>
-                                </a>
-                            </small>
+                        <div class="col">
+                            <div class="small fw-bold text-truncate" style="max-width: 150px;" th:text="${track.name}"></div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 150px;">
+                                <a th:href="'/creater/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-muted">[[${track.autor}]]</a>
+                            </div>
                         </div>
                     </div>
                 </li>
             </div>
         </ul>
-        <div class="card-footer">
-            <nav aria-label="navigation">
-                <ul class="pagination">
-                    <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${privpage}">Попередня</a>
+        <div class="card-footer bg-white border-top-0 text-center">
+            <a href="/guest/tracksall/0" class="btn btn-link btn-sm text-decoration-none">Всі треки</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" th:fragment="lasttrecksall">
+    <div class="card shadow-sm border-0 mt-5">
+        <div class="card-header bg-white py-3">
+            <h3 class="h4 fw-bold mb-0">Завантажені треки</h3>
+        </div>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+                <div th:if="${trackList == null || trackList.isEmpty()}" class="p-5 text-center text-muted">
+                    <p class="mb-0">Треків поки немає</p>
+                </div>
+                <div th:each="track, iStat : ${trackList}">
+                    <li class="list-group-item py-3">
+                        <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.01)'">
+                            <div class="col-auto ps-4">
+                                <div class="cursor-pointer"
+                                     th:onclick="'onClickTrack(\'' + ${track.storeuuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')'">
+                                    <div class="fa-stack fa-lg text-primary">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a th:if="${track.storeitem != null}" th:href="'/store/content/' + ${track.storeitem.uuid}"
+                                   th:download="${track.storeitem.filename}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                            </div>
+                            <div class="col px-3">
+                                <div class="fw-bold" th:text="${track.name}">Назва</div>
+                                <div class="small text-muted">
+                                    <a th:href="'/creater/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-secondary">
+                                        <i class="far fa-user me-1"></i>[[${track.autor}]]
+                                    </a>
+                                    <span class="ms-3"><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(track.uploaddate, 'dd.MM.yyyy')}]]</span>
+                                </div>
+                            </div>
+                            <div class="col-auto pe-4">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}" class="btn btn-sm btn-link text-decoration-none">
+                                    Детальніше <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
                     </li>
-                    <div th:each="lpage : ${#numbers.sequence(0, __${totalpage-1}__)}">
-                        <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${lpage}"><span
-                                th:text="${lpage+1}">1</a></li>
-                    </div>
-                    <li class="page-item"><a class="page-link" th:href="'/guest/tracksall/'+${nextpage}">Наступна</a>
+                </div>
+            </ul>
+        </div>
+        <div class="card-footer bg-white py-4" th:if="${totalPages > 1}">
+            <nav aria-label="navigation">
+                <ul class="pagination justify-content-center mb-0 shadow-sm">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${currentPage - 1}"><i class="fas fa-chevron-left"></i></a>
+                    </li>
+                    <li class="page-item" th:each="lpage : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${lpage == currentPage} ? 'active'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${currentPage + 1}"><i class="fas fa-chevron-right"></i></a>
                     </li>
                 </ul>
             </nav>
         </div>
     </div>
-</div>
-
-<div class="container" th:fragment="usermediahub">
-    <!--    https://mdbootstrap.com/docs/standard/components/cards/examples-and-customization/-->
-    <section class="mx-auto my-5" style="max-width: 23rem;">
-
-        <div class="card">
-            <div class="card-body d-flex flex-row">
-                <img src="https://mdbootstrap.com/img/Photos/Avatars/avatar-8.jpg" class="rounded-circle me-3"
-                     height="50px"
-                     width="50px" alt="avatar"/>
-                <div>
-                    <h5 class="card-title font-weight-bold mb-2">Музика з перцем</h5>
-                    <p class="card-text"><i class="far fa-clock pe-2"></i>01/28/2024</p>
-                </div>
-            </div>
-            <div class="bg-image hover-overlay ripple rounded-0" data-mdb-ripple-color="light">
-                <img class="img-fluid" src="https://mdbootstrap.com/img/Photos/Horizontal/Food/full page/2.jpg"
-                     alt="Card image cap"/>
-                <a href="#!">
-                    <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
-                </a>
-            </div>
-            <div class="card-body">
-                <p class="card-text collapse" id="collapseContent">
-                    Оглядаємо прем’єри від нових імен музичної хвилі. Хто вже залітає у тренди, хто має перспективу, а
-                    кого вже однозначно хочеться додавати в плейлист? Все, що гідне нашої-вашої уваги цього тижня в
-                    нашій десятці: Молода група "Перчинка" надала нам свый новий трек.
-                </p>
-                <div class="d-flex justify-content-between">
-                    <a class="btn btn-link link-danger p-md-1 my-1" data-mdb-toggle="collapse" href="#collapseContent"
-                       role="button" aria-expanded="false" aria-controls="collapseContent">Read more</a>
-                    <div>
-                        <i class="fas fa-share-alt text-muted p-md-1 my-1 me-2" data-mdb-toggle="tooltip"
-                           data-mdb-placement="top" title="Share this post"></i>
-                        <i class="fas fa-heart text-muted p-md-1 my-1 me-0" data-mdb-toggle="tooltip"
-                           data-mdb-placement="top"
-                           title="I like it"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </section>
 </div>
 
 </body>
