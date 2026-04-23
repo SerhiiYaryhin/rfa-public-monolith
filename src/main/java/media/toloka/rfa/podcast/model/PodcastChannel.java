@@ -15,7 +15,14 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = {@Index(columnList = "uuid"), @Index(columnList = "id"), @Index(columnList = "linktoimporturl")})
+@Table(indexes = {
+    @Index(columnList = "uuid"),
+    @Index(columnList = "id"),
+    @Index(columnList = "linktoimporturl"),
+    @Index(columnList = "apruve"),
+    @Index(columnList = "publishing"),
+    @Index(columnList = "lastbuilddate")
+})
 public class PodcastChannel {
     @Id
     @Expose

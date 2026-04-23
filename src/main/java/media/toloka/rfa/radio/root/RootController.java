@@ -75,35 +75,33 @@ public class RootController {
 
     @GetMapping(value = "/")
     public String index(Model model) {
-
-        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-
-        List<Track> trackList = createrService.GetLastUploadTracks();
+        long startTime = System.currentTimeMillis();
 
         List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
-        // витаскуємо подкасти для каруселі
+        // Подкасти для каруселі
         List<PodcastChannel> podcastChannels = podcastService.GetPodcastListForRootCarusel();
 
-        // Покращено: Беремо лише схвалені треки для публічної сторінки
+        // Схвалені треки (пагінація)
         Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
         
-        // Покращено: Беремо лише схвалені пости
+        // Схвалені пости (пагінація)
         Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
 
         model.addAttribute("podcastChannels", podcastChannels );
         model.addAttribute("trackList", pageTrack.getContent() );
         model.addAttribute("postList", pagePost.getContent() );
-        model.addAttribute("posts", posts );
         model.addAttribute("stationsonline", stationOnlineList );
 
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
 
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
-
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);
+
+        long endTime = System.currentTimeMillis();
+        logger.info("Root index loading time: {} ms", (endTime - startTime));
+        
         return "/root";
     }
 

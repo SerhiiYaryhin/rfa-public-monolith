@@ -13,7 +13,11 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = {
+    @Index(columnList = "uuid"),
+    @Index(columnList = "apruve"),
+    @Index(columnList = "publishstatus")
+})
 public class Track {
     @Id
     @GeneratedValue

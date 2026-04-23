@@ -16,7 +16,11 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = {
+    @Index(columnList = "uuid"),
+    @Index(columnList = "apruve"),
+    @Index(columnList = "publishdate")
+})
 public class Post {
     @Id
     @GeneratedValue

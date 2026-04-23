@@ -291,6 +291,12 @@ public class PodcastService {
      * Беремо з бази всі подкасти що схвалені для каруселі на головній сторінці
      * @return List<PodcastChannel>
      */
+    /** Отримати подкасти автора з пагінацією */
+    public Page<PodcastChannel> GetPodcastsByClientPage(String clientUuid, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("lastbuilddate").descending());
+        return chanelRepository.findByClientdetailOrderByLastbuilddateDesc(clientUuid, pageable);
+    }
+
     /** Отримати всі подкасти для адмінки з пагінацією */
     public Page<PodcastChannel> GetAllPodcastsPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("lastbuilddate").descending());
