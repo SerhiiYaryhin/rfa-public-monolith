@@ -40,17 +40,19 @@
                                     <div th:if="${post.coverstoreuuid} == null">
                                         <!--              post.coverstoreuuid == null-->
                                         <img class="card-img-top img-fluid"
-                                             th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                                             th:src="'  400/300?random='+${post.id}"
                                              alt="Card image cap">
                                     </div>
                                     <div th:if="${post.coverstoreuuid} != null">
                                         <!--              post.coverstoreuuid != null-->
-                                        <img class="card-img-top img-fluid"
-                                             th:src="'/store/content/'+${post.coverstoreuuid}"
-                                             alt="Card image cap">
+                                        <a th:href="'/post/postview/'+${post.uuid}">
+                                            <img class="card-img-top img-fluid"
+                                                th:src="'/store/content/'+${post.coverstoreuuid}"
+                                                alt="Card image cap">
+                                        </a>
                                     </div>
                                     <div class="card-body flex-grow-1 d-flex flex-column ">
-                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.id}"><span
+                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.uuid}"><span
                                                 th:text="${post.posttitle}"/></a></h5>
                                     </div>
                                     <div class="card-footer">

@@ -17,12 +17,14 @@
                              alt="Card image cap">
                     </div>
                     <div th:if="${post.coverstoreuuid} != null">
-                        <img class="card-img-top img-fluid"
-                             th:src="'/store/content/'+${post.coverstoreuuid}"
-                             alt="Card image cap">
+                        <a th:href="'/post/postview/'+${post.uuid}">
+                            <img class="card-img-top img-fluid"
+                                th:src="'/store/content/'+${post.coverstoreuuid}"
+                                alt="${post.posttitle}">
+                        </a>
                     </div>
                     <div class="card-body ">
-                        <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.id}"><span
+                        <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.uuid}"><span
                                 th:text="${post.posttitle}"/></a></h5>
                         <!--                <p class="card-text">-->
                         <!--                  Тут можна розмістити уривок тексту -->
