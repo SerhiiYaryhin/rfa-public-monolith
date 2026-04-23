@@ -381,7 +381,7 @@
         <div th:if="${trackList.size() > 0}" class="text-center card-header"
              style="padding-left: 0px; padding-right: 0px; padding-bottom: 35px;">
             <h3 style="padding-bottom: 15px;">Нові треки</h3>
-            <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeuuid}"/>
+            <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeitem.uuid}"/>
         </div>
     </div>
     <!-- баннер з ілюстрацією -->
@@ -448,7 +448,7 @@
                                          alt="Card image cap">
                                     <!--            <img class="card-img-top img-fluid"  src="https://images.unsplash.com/photo-1535025639604-9a804c092faa?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6cb0ceb620f241feb2f859e273634393&auto=format&fit=crop&w=500&q=80" alt="Card image cap">-->
                                     <div class="card-body">
-                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.id}"><span
+                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.uuid}"><span
                                                 th:text="${post.posttitle}"/></a></h5>
                                         <!--                <p class="card-text">-->
                                         <!--                  Тут можна розмістити уривок тексту -->
