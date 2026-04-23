@@ -55,12 +55,11 @@ public class RootController {
         List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
         List<Track> trackList = createrService.GetLastUploadTracks();
 
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page<Store> pageTrack = createrService.GetTrackPage(0,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
+        Page<Track> pageTrack = createrService.GetTrackPage(0,10);
+        List<Track> storeTrackList = pageTrack.getContent();
 
-        Page<Store> pagePost = createrService.GetPostPage(0,12);
-        List<Store> storePostList = pagePost.stream().toList();
+        Page<Post> pagePost = createrService.GetPostPage(0,12);
+        List<Post> storePostList = pagePost.getContent();
 
 
 //        model.addAttribute("trackList", trackList );
@@ -115,9 +114,8 @@ public class RootController {
         List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
         List<Track> trackList = createrService.GetLastUploadTracks();
 
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pageTrack = createrService.GetTrackPage(0,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
+        Page<Track> pageTrack = createrService.GetTrackPage(0,10);
+        List<Track> storeTrackList = pageTrack.getContent();
 
 //        model.addAttribute("trackList", trackList );
         model.addAttribute("trackList", storeTrackList );
