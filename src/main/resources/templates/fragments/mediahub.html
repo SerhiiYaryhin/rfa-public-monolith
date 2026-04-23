@@ -381,7 +381,7 @@
         <div th:if="${trackList.size() > 0}" class="text-center card-header"
              style="padding-left: 0px; padding-right: 0px; padding-bottom: 35px;">
             <h3 style="padding-bottom: 15px;">Нові треки</h3>
-            <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeitem.uuid}"/>
+            <audio-player th:if="${trackList[0].storeitem != null}" id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeitem.uuid}"/>
         </div>
     </div>
     <!-- баннер з ілюстрацією -->
@@ -399,7 +399,7 @@
                     <div class="row" th:style="${iStat.odd}? 'background-color: rgb(240,240, 240'">
                         <div class="col-1 col-sm-1 col-lg-1 align-middle"
                              style="padding-left: 0px;padding-right: 0px; vertical-align: middle; display: flex; align-items: center;justify-content: center;"
-                             th:id="${track.storeuuid}"
+                             th:id="${track.storeitem != null ? track.storeitem.uuid : ''}"
                              th:onclick="onClickTrack(this,[[${track.name}]],[[${track.autor}]])">
                             <div class="fa-stack fa-1x align-middle">
                                 <i class="fas fa-circle fa-stack-2x text-primary"></i>

@@ -69,16 +69,24 @@ public class StoreSiteController  {
             if (storeRecord == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
             File file = new File(storeRecord.getFilepatch());
-            if (!file.exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (!file.exists()) {
+                logger.error("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            String mimeType = storeRecord.getContentMimeType();
+            if (mimeType == null || mimeType.isEmpty()) {
+                mimeType = "audio/mpeg"; // за замовчуванням
+            }
 
             org.springframework.core.io.Resource resource = new org.springframework.core.io.FileSystemResource(file);
             
             return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                    .header(HttpHeaders.CONTENT_TYPE, storeRecord.getContentMimeType())
+                    .header(HttpHeaders.CONTENT_TYPE, mimeType)
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .body(resource);
         } catch (Exception e) {
-            logger.error("Помилка потокової передачі: {}", e.getMessage());
+            logger.error("Помилка потокової передачі для UUID {}: {}", storeUUID, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
