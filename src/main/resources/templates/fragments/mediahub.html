@@ -178,7 +178,10 @@
             <h3 class="h5 fw-bold mb-0">Нові треки</h3>
         </div>
         <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
-            <audio-player id="audio-player" style="padding:0" th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"/>
+
+            <audio-player id="audio-player" style="padding:0"
+                          th:data-src="@{/store/audio/{uuid}(uuid=${trackList[0].storeuuid})}"/>
+                          <!-- th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"/> -->
         </div>
         <div th:if="${trackList == null || trackList.isEmpty()}" class="p-4 text-center text-muted">
             <div class="py-3">
@@ -197,7 +200,13 @@
                     <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.02)'">
                         <div class="col-auto">
                             <div class="cursor-pointer"
+                                 th:data-uuid="${track.storeuuid}"
+                                 th:data-name="${track.name}"
+                                 th:data-autor="${track.autor}"
+                                 onclick="onClickTrack(this.dataset.uuid, this.dataset.name, this.dataset.autor)">
+                                 <!--
                                  th:onclick="'onClickTrack(\'' + ${track.storeuuid} + '\',\'' + ${#strings.escapeJavaScript(track.name)} + '\',\'' + ${#strings.escapeJavaScript(track.autor)} + '\')'">
+                                 -->
                                 <div class="fa-stack text-primary">
                                     <i class="fas fa-circle fa-stack-2x"></i>
                                     <i class="fas fa-play fa-stack-1x fa-inverse"></i>
