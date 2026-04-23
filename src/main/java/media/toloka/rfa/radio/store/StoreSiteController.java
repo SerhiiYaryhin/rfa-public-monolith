@@ -17,10 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -61,44 +61,55 @@ public class StoreSiteController  {
 
 
     @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName}"})
-    public ResponseEntity<org.springframework.core.io.Resource> getStoreAudioToStream(
+    public ResponseEntity<ResourceRegion> getStoreAudioToStream(
             @PathVariable("storeUUID") String storeUUID,
-            @PathVariable(required = false) String fileName
+            @PathVariable(required = false) String fileName,
+            @RequestHeader HttpHeaders headers
     ) {
         try {
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
             if (storeRecord == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
             File file = new File(storeRecord.getFilepatch());
-            if (!file.exists()) {
-                logger.error("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            if (!file.exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+            Resource resource = new FileSystemResource(file);
+            ResourceRegion region = resourceRegion(resource, headers);
 
             String mimeType = storeRecord.getContentMimeType();
-            if (mimeType == null || mimeType.isEmpty()) {
-                mimeType = "audio/mpeg"; // за замовчуванням
-            }
+            if (mimeType == null || mimeType.isEmpty()) mimeType = "audio/mpeg";
 
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.FileSystemResource(file);
-            
             return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                    .header(HttpHeaders.CONTENT_TYPE, mimeType)
-                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(resource);
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .body(region);
         } catch (Exception e) {
-            logger.error("Помилка потокової передачі для UUID {}: {}", storeUUID, e.getMessage());
+            logger.error("Streaming error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private ResourceRegion resourceRegion(Resource resource, HttpHeaders headers) throws IOException {
+        long contentLength = resource.contentLength();
+        HttpRange range = headers.getRange().isEmpty() ? null : headers.getRange().get(0);
+        if (range != null) {
+            long start = range.getRangeStart(contentLength);
+            long end = range.getRangeEnd(contentLength);
+            long rangeLength = Math.min(1024 * 1024L, end - start + 1); // 1MB chunks
+            return new ResourceRegion(resource, start, rangeLength);
+        } else {
+            long rangeLength = Math.min(1024 * 1024L, contentLength);
+            return new ResourceRegion(resource, 0, rangeLength);
         }
     }
 
     //тимчасово продублював для верифікації RSS XML подкасту
     @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName}")
-    public ResponseEntity<org.springframework.core.io.Resource> getStoreAudioToStreamWFN(
+    public ResponseEntity<ResourceRegion> getStoreAudioToStreamWFN(
             @PathVariable("storeUUID") String storeUUID,
-            @PathVariable String fileName
+            @PathVariable String fileName,
+            @RequestHeader HttpHeaders headers
     ) {
-        return getStoreAudioToStream(storeUUID);
+        return getStoreAudioToStream(storeUUID, fileName, headers);
     }
 
     @GetMapping(value = "/store/img/{clientUUID}/{fileName}",
