@@ -185,10 +185,10 @@ public class CreaterService {
         return trackRepository.findAllByOrderByUploaddateDesc(storePage);
     }
 
-    /** Отримати лише публічні треки (схвалені та опубліковані) */
+    /** Отримати лише публічні треки (схвалені) */
     public Page<Track> GetPublicTracksPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return trackRepository.findByApruveTrueAndPublishstatusTrueOrderByUploaddateDesc(pageable);
+        return trackRepository.findByApruveTrueOrderByUploaddateDesc(pageable);
     }
 
     /** Отримати лише публічні пости */

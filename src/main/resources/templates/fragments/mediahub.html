@@ -378,7 +378,7 @@
         <div class="align-middle p-4 ">
             <div class="rfa-banner rfa-banner-audio"></div>
         </div>
-        <div th:if="${trackList.size() > 0}" class="text-center card-header"
+        <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-header"
              style="padding-left: 0px; padding-right: 0px; padding-bottom: 35px;">
             <h3 style="padding-bottom: 15px;">Нові треки</h3>
             <audio-player th:if="${trackList[0].storeitem != null}" id="audio-player" style="padding:0" th:data-src="'/store/audio/'+${trackList[0].storeitem.uuid}"/>

@@ -84,12 +84,13 @@ public class RootController {
 
         // Схвалені треки (пагінація)
         Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
-        
+        List<Track> publicTracks = pageTrack.getContent();
+        logger.info("Found {} public tracks", publicTracks.size());
+
         // Схвалені пости (пагінація)
         Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
 
-        model.addAttribute("podcastChannels", podcastChannels );
-        model.addAttribute("trackList", pageTrack.getContent() );
+        model.addAttribute("trackList", publicTracks );
         model.addAttribute("postList", pagePost.getContent() );
         model.addAttribute("stationsonline", stationOnlineList );
 
