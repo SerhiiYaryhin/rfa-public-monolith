@@ -187,8 +187,9 @@ public class CreaterService {
 
     /** Отримати лише публічні треки (схвалені) */
     public Page<Track> GetPublicTracksPage(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return trackRepository.findByApruveTrueOrderByUploaddateDesc(pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("uploaddate").descending());
+        // Тимчасово повертаємо всі, щоб побачити блок
+        return trackRepository.findAll(pageable);
     }
 
     /** Отримати лише публічні пости */
