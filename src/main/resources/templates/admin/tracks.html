@@ -65,9 +65,10 @@
                     <td class="text-center">
                         <!-- Перемикач статусу публікації (AJAX-like поведінка через перезавантаження) -->
                         <label class="switch">
-                            <input type="checkbox" th:checked="${track.apruve == true}" 
-                                   th:onchange="'window.location.href=\'/admin/toggletrack/' + ${track.uuid} + '\''">
-                            <span class="slider"></span>
+                            <input type="checkbox"
+                                   th:checked="${track.apruve == true}"
+                                   th:data-url="@{'/admin/toggletrack/' + ${track.uuid}}"
+                                   onchange="window.location.href=this.getAttribute('data-url')">                            <span class="slider"></span>
                         </label>
                         <br>
                         <small th:text="${track.apruve == true} ? 'Так' : 'Ні'" 

@@ -61,7 +61,7 @@
                         <div th:if="${#strings.contains(store.contentMimeType, 'audio')}" class="mt-5 py-5">
                             <i class="fas fa-file-audio fa-5x text-primary mb-4"></i>
                             <audio controls class="w-100 mt-3">
-                                <source th:src="'/store/content/'+${store.uuid}" th:type="${store.contentMimeType}">
+                                <source th:src="'/store/audio/'+${store.uuid}" th:type="${store.contentMimeType}">
                                 Ваш браузер не підтримує аудіо-плеєр.
                             </audio>
                         </div>

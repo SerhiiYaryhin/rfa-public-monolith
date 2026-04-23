@@ -535,8 +535,10 @@
             </td>
             <td class="text-center">
                 <label class="switch">
-                    <input type="checkbox" th:checked="${post.apruve == true}" 
-                           th:onchange="'window.location.href=\'/admin/togglepost/' + ${post.uuid} + '\''">
+                    <input type="checkbox"
+                           th:checked="${post.apruve == true}"
+                           th:data-url="@{'/admin/togglepost/' + ${post.uuid}}"
+                           onchange="window.location.href=this.getAttribute('data-url')">
                     <span class="slider"></span>
                 </label>
             </td>
