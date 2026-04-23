@@ -29,6 +29,9 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
 
     Post getByUuid(String postUuid);
 
+    /** Отримати лише схвалені пости для публічного перегляду */
+    Page<Post> findByApruveTrueOrderByPublishdateDesc(Pageable pageable);
+
     List<Post> findByCoverstoreuuid(String coverstoreuuid);
 
     List<Post> getByCategoryOrderByPublishdateDesc(EPostCategory postCategory);

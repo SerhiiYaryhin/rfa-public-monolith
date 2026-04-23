@@ -24,40 +24,25 @@ public class PostListController {
     @Autowired
     private CreaterService createrService;
 
-    @GetMapping(value = "/guest/postall/{page}")
+    @GetMapping(value = {"/guest/postall", "/guest/postall/{page}"})
     public String getTracksAll(
-            @PathVariable int page,
-//            @PathVariable String fileName,
+            @PathVariable(required = false) Integer page,
             Model model) {
-        List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-        List<Track> trackList = createrService.GetLastUploadTracks();
+        
+        int currentPage = (page == null) ? 0 : page;
+        
+        // Отримуємо лише публічні пости
+        Page<Post> pagePost = createrService.GetPublicPostsPage(currentPage, 12);
 
-        Page pageTrack = createrService.GetTrackPage(0,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
-
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pagePost = createrService.GetPostPage(page,12);
-        List<Store> storePostsList = pagePost.stream().toList();
-
-        //        model.addAttribute("trackList", trackList );
-        int privpage ;
-        int nextpage ;
-        if (page == 0) {privpage = 0;} else {privpage = page - 1;};
-        if (page >= (pagePost.getTotalPages()-1) ) {nextpage = pagePost.getTotalPages()-1; } else {nextpage = page+1;} ;
-        model.addAttribute("nextpagepost", nextpage );
-        model.addAttribute("privpagepost", privpage );
-        model.addAttribute("totalpagepost", pagePost.getTotalPages() );
-        model.addAttribute("pagepost", pagePost );
-        model.addAttribute("currentpage", page );
-        model.addAttribute("postList", storePostsList );
-        model.addAttribute("trackList", storeTrackList );
-        model.addAttribute("posts", posts );
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        model.addAttribute("totalPages", pagePost.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("linkPage", "/guest/postall/");
+        model.addAttribute("postList", pagePost.getContent());
+        model.addAttribute("pagepost", pagePost);
+        
+        // Додаткові дані для сайдбару (якщо потрібно)
+        model.addAttribute("trackList", createrService.GetPublicTracksPage(0, 10).getContent());
 
         return "/guest/postall";
-
-
-
-
     }
 }

@@ -60,214 +60,36 @@ public class StoreSiteController  {
     private StoreService storeService;
 
 
-    @GetMapping(value = "/store/audio/{storeUUID}",
-            produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<StreamingResponseBody> getStoreAudioToStream(
-            @PathVariable("storeUUID") String storeUUID,
-            @RequestHeader(value = "Range", required = false) String rangeHeader
+    @GetMapping(value = "/store/audio/{storeUUID}")
+    public ResponseEntity<org.springframework.core.io.Resource> getStoreAudioToStream(
+            @PathVariable("storeUUID") String storeUUID
     ) {
-        // https://www.codeproject.com/Articles/5341970/Streaming-Media-Files-in-Spring-Boot-Web-Applicati
-        try
-        {
-            StreamingResponseBody responseStream;
+        try {
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-//            String filePathString = filesService.GetBaseClientDirectory(storeRecord.getClientdetail())
-//                    + "/upload/" + storeRecord.getFilename();
-            String filePathString = storeRecord.getFilepatch();
-//            String filePathString = "<Place your MP4 file full path here.>";
-            Path filePath = Paths.get(filePathString);
-            Long fileSize = Files.size(filePath);
-            byte[] buffer = new byte[1024];
-            final HttpHeaders responseHeaders = new HttpHeaders();
+            if (storeRecord == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-            if (rangeHeader == null)
-            {
-                responseHeaders.add("Content-Type", storeRecord.getContentMimeType());
-//                responseHeaders.add("Content-Length", fileSize.toString());
-                responseHeaders.add("Content-Length", storeRecord.getFilelength().toString());
-                responseStream = os -> {
-                    RandomAccessFile file = new RandomAccessFile(filePathString, "r");
-                    try (file)
-                    {
-                        long pos = 0;
-                        file.seek(pos);
-                        while (pos < fileSize - 1)
-                        {
-                            file.read(buffer);
-                            os.write(buffer);
-                            pos += buffer.length;
-                        }
-                        os.flush();
-                    } catch (Exception e) {
-                        // todo додати обробку
-                    }
-                };
+            File file = new File(storeRecord.getFilepatch());
+            if (!file.exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-                return new ResponseEntity<StreamingResponseBody>
-                        (responseStream, responseHeaders, HttpStatus.OK);
-            }
-
-            String[] ranges = rangeHeader.split("-");
-            Long rangeStart = Long.parseLong(ranges[0].substring(6));
-            Long rangeEnd;
-            if (ranges.length > 1)
-            {
-                rangeEnd = Long.parseLong(ranges[1]);
-            }
-            else
-            {
-                rangeEnd = fileSize - 1;
-            }
-
-            if (fileSize < rangeEnd)
-            {
-                rangeEnd = fileSize - 1;
-            }
-
-            String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
-            responseHeaders.add("Content-Type", storeRecord.getContentMimeType());
-            //responseHeaders.add("Content-Type", "video/mp4");
-            responseHeaders.add("Content-Length", contentLength);
-            responseHeaders.add("Accept-Ranges", "bytes");
-            responseHeaders.add("Content-Range", "bytes" + " " +
-                    rangeStart + "-" + rangeEnd + "/" + fileSize);
-            final Long _rangeEnd = rangeEnd;
-            responseStream = os -> {
-                RandomAccessFile file = new RandomAccessFile(filePathString, "r");
-                try (file)
-                {
-                    long pos = rangeStart;
-                    file.seek(pos);
-                    while (pos < _rangeEnd)
-                    {
-                        file.read(buffer);
-                        os.write(buffer);
-                        pos += buffer.length;
-                    }
-                    os.flush();
-                }
-                catch (Exception e) {
-                    // **ЛОГУЙТЕ ВИКЛЮЧЕННЯ!!!**
-                    System.err.println("Помилка під час потокової передачі файлу: " + e.getMessage());
-//                    e.printStackTrace(); // Для налагодження
-                }
-            };
-
-            return new ResponseEntity<StreamingResponseBody>
-                    (responseStream, responseHeaders, HttpStatus.PARTIAL_CONTENT);
-        }
-        catch (FileNotFoundException e)
-        {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        catch (IOException e)
-        {
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.FileSystemResource(file);
+            
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                    .header(HttpHeaders.CONTENT_TYPE, storeRecord.getContentMimeType())
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .body(resource);
+        } catch (Exception e) {
+            logger.error("Помилка потокової передачі: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     //тимчасово продублював для верифікації RSS XML подкасту
-    @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName}",
-            produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<StreamingResponseBody> getStoreAudioToStreamWFN(
+    @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName}")
+    public ResponseEntity<org.springframework.core.io.Resource> getStoreAudioToStreamWFN(
             @PathVariable("storeUUID") String storeUUID,
-            @PathVariable String fileName,
-            @RequestHeader(value = "Range", required = false) String rangeHeader
+            @PathVariable String fileName
     ) {
-        // https://www.codeproject.com/Articles/5341970/Streaming-Media-Files-in-Spring-Boot-Web-Applicati
-        try
-        {
-            StreamingResponseBody responseStream;
-            Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-//            String filePathString = filesService.GetBaseClientDirectory(storeRecord.getClientdetail())
-//                    + "/upload/" + storeRecord.getFilename();
-            String filePathString = storeRecord.getFilepatch();
-//            String filePathString = "<Place your MP4 file full path here.>";
-            Path filePath = Paths.get(filePathString);
-            Long fileSize = Files.size(filePath);
-            byte[] buffer = new byte[1024];
-            final HttpHeaders responseHeaders = new HttpHeaders();
-
-            if (rangeHeader == null)
-            {
-                responseHeaders.add("Content-Type", storeRecord.getContentMimeType());
-//                responseHeaders.add("Content-Length", fileSize.toString());
-                responseHeaders.add("Content-Length", storeRecord.getFilelength().toString());
-                responseStream = os -> {
-                    RandomAccessFile file = new RandomAccessFile(filePathString, "r");
-                    try (file)
-                    {
-                        long pos = 0;
-                        file.seek(pos);
-                        while (pos < fileSize - 1)
-                        {
-                            file.read(buffer);
-                            os.write(buffer);
-                            pos += buffer.length;
-                        }
-                        os.flush();
-                    } catch (Exception e) {
-                        // todo додати обробку
-                    }
-                };
-
-                return new ResponseEntity<StreamingResponseBody>
-                        (responseStream, responseHeaders, HttpStatus.OK);
-            }
-
-            String[] ranges = rangeHeader.split("-");
-            Long rangeStart = Long.parseLong(ranges[0].substring(6));
-            Long rangeEnd;
-            if (ranges.length > 1)
-            {
-                rangeEnd = Long.parseLong(ranges[1]);
-            }
-            else
-            {
-                rangeEnd = fileSize - 1;
-            }
-
-            if (fileSize < rangeEnd)
-            {
-                rangeEnd = fileSize - 1;
-            }
-
-            String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
-            responseHeaders.add("Content-Type", storeRecord.getContentMimeType());
-            //responseHeaders.add("Content-Type", "video/mp4");
-            responseHeaders.add("Content-Length", contentLength);
-            responseHeaders.add("Accept-Ranges", "bytes");
-            responseHeaders.add("Content-Range", "bytes" + " " +
-                    rangeStart + "-" + rangeEnd + "/" + fileSize);
-            final Long _rangeEnd = rangeEnd;
-            responseStream = os -> {
-                RandomAccessFile file = new RandomAccessFile(filePathString, "r");
-                try (file)
-                {
-                    long pos = rangeStart;
-                    file.seek(pos);
-                    while (pos < _rangeEnd)
-                    {
-                        file.read(buffer);
-                        os.write(buffer);
-                        pos += buffer.length;
-                    }
-                    os.flush();
-                }
-                catch (Exception e) {}
-            };
-
-            return new ResponseEntity<StreamingResponseBody>
-                    (responseStream, responseHeaders, HttpStatus.PARTIAL_CONTENT);
-        }
-        catch (FileNotFoundException e)
-        {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        catch (IOException e)
-        {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return getStoreAudioToStream(storeUUID);
     }
 
     @GetMapping(value = "/store/img/{clientUUID}/{fileName}",

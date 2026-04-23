@@ -77,15 +77,23 @@ public class AdminTracks {
     }
 
     /** Відображення списку всіх треків для адміністратора */
-    @GetMapping(value = "/admin/tracks")
-    public String getAdminTracks(Model model) {
+    @GetMapping(value = {"/admin/tracks", "/admin/tracks/{page}"})
+    public String getAdminTracks(
+            @PathVariable(required = false) Integer page,
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        List<Track> tracks = adminService.GetAllTracks();
-        model.addAttribute("trackList", tracks);
+        int currentPage = (page == null) ? 0 : page;
+        // Отримуємо пагінований список усіх треків
+        org.springframework.data.domain.Page<Track> trackPage = createrService.GetTrackPage(currentPage, 15);
+
+        model.addAttribute("trackList", trackPage.getContent());
+        model.addAttribute("totalPages", trackPage.getTotalPages());
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("linkPage", "/admin/tracks/");
 
         return "/admin/tracks";
     }

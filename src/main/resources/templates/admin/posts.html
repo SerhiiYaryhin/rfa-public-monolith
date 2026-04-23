@@ -1,52 +1,108 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
->
+<html lang="uk" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>Адмін - Керування постами</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <style>
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #28a745; }
-        input:checked + .slider:before { transform: translateX(20px); }
-        .post-unapproved { background-color: rgba(255, 193, 7, 0.05) !important; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #007bff; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .admin-container { margin-top: 100px; }
+        .post-unapproved { background-color: rgba(220, 53, 69, 0.03) !important; }
     </style>
 </head>
-<body>
-    <header>
-        <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-    </header>
+<body class="bg-light">
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
 
-    <!--// User page container-->
-    <div style="padding-top: 100px">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12 col-sm-12">
-                    <div th:insert="~{/fragments/admin :: listpostcontrol}"> </div>
-                </div>
-            </div>
+<div class="container admin-container py-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="h3 fw-bold mb-0"><i class="fas fa-newspaper text-primary me-2"></i>Керування постами</h1>
+            <p class="text-muted">Модерація статей та новин</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+             <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <div th:insert="~{/fragments/common :: footer}"></div>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div th:insert="~{/fragments/common :: pagingline}"/>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Прев'ю</th>
+                        <th>Заголовок / Автор</th>
+                        <th class="text-center">Схвалено</th>
+                        <th>Дата публікації</th>
+                        <th class="text-end pe-3">Дії</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="post : ${posts}" th:classappend="${post.apruve != true} ? 'post-unapproved'">
+                        <td class="ps-3">
+                            <img th:if="${post.coverstoreuuid != null}" th:src="'/store/content/' + ${post.coverstoreuuid}" 
+                                 style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" class="border shadow-sm">
+                            <div th:if="${post.coverstoreuuid == null}" class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 60px; height: 40px; border-radius: 4px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <strong th:text="${post.posttitle}">Заголовок</strong><br>
+                            <small class="text-muted" th:text="${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"></small>
+                        </td>
+                        <td class="text-center">
+                            <label class="switch">
+                                <input type="checkbox"
+                                       th:checked="${post.apruve == true}"
+                                       th:data-url="@{'/admin/togglepost/' + ${post.uuid}}"
+                                       onchange="window.location.href=this.getAttribute('data-url')">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td class="small">
+                            <span th:if="${post.publishdate != null}" th:text="${#dates.format(post.publishdate, 'dd.MM.yy HH:mm')}"></span>
+                            <span th:if="${post.publishdate == null}" class="text-danger">Не опубліковано</span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <div class="btn-group">
+                                <a class="btn btn-sm btn-outline-info" th:href="@{'/creater/postview/' + ${post.uuid}}" target="_blank" title="Переглянути">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a class="btn btn-sm btn-outline-primary" th:href="@{'/creater/editpost/' + ${post.uuid}}" title="Редагувати">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a class="btn btn-sm btn-outline-danger" th:href="@{'/admin/delpost/' + ${post.uuid}}" 
+                                   onclick="return confirm('Видалити цей пост?')" title="Видалити">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white py-3">
+            <div th:insert="~{/fragments/common :: pagingline}"/>
+        </div>
+    </div>
+</div>
 
+<div th:insert="~{/fragments/common :: footer}"></div>
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

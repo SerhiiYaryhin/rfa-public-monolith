@@ -180,10 +180,21 @@ public class CreaterService {
         //return trackRepository.findAllTop10ByOrderByUploaddateAsc();
     }
 
-    public Page<Store> GetTrackPage(int pageNumber, int pageCount) {
+    public Page<Track> GetTrackPage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page<Store> page = trackRepository.findAllByOrderByUploaddateDesc(storePage);
-        return page;
+        return trackRepository.findAllByOrderByUploaddateDesc(storePage);
+    }
+
+    /** Отримати лише публічні треки (схвалені та опубліковані) */
+    public Page<Track> GetPublicTracksPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return trackRepository.findByApruveTrueAndPublishstatusTrueOrderByUploaddateDesc(pageable);
+    }
+
+    /** Отримати лише публічні пости */
+    public Page<Post> GetPublicPostsPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return postRepositore.findByApruveTrueOrderByPublishdateDesc(pageable);
     }
 
     public Page GetPostPage(int pageNumber, int pageCount) {

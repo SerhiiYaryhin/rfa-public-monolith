@@ -81,22 +81,20 @@ public class RootController {
 
         List<Track> trackList = createrService.GetLastUploadTracks();
 
-//        List<Station> stationOnlineList = stationService.GetListStationByStatus(true);
         List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
         // витаскуємо подкасти для каруселі
         List<PodcastChannel> podcastChannels = podcastService.GetPodcastListForRootCarusel();
 
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pageTrack = createrService.GetTrackPage(0,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
-
-        Page pagePost = createrService.GetPostPage(0,9);
-        List<Store> storePostList = pagePost.stream().toList();
+        // Покращено: Беремо лише схвалені треки для публічної сторінки
+        Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
+        
+        // Покращено: Беремо лише схвалені пости
+        Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
 
         model.addAttribute("podcastChannels", podcastChannels );
-        model.addAttribute("trackList", storeTrackList );
-        model.addAttribute("postList", storePostList );
+        model.addAttribute("trackList", pageTrack.getContent() );
+        model.addAttribute("postList", pagePost.getContent() );
         model.addAttribute("posts", posts );
         model.addAttribute("stationsonline", stationOnlineList );
 

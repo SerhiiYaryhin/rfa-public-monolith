@@ -290,6 +290,18 @@ public class PodcastService {
      * Беремо з бази всі подкасти що схвалені для каруселі на головній сторінці
      * @return List<PodcastChannel>
      */
+    /** Отримати всі подкасти для адмінки з пагінацією */
+    public Page<PodcastChannel> GetAllPodcastsPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("lastbuilddate").descending());
+        return chanelRepository.findAll(pageable);
+    }
+
+    /** Отримати лише публічні подкасти */
+    public Page<PodcastChannel> GetPublicPodcastsPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("lastbuilddate").descending());
+        return chanelRepository.findByApruveTrueAndPublishingTrueOrderByLastbuilddateDesc(pageable);
+    }
+
     public List<PodcastChannel> GetPodcastListForRootCarusel() {
 //        List<PodcastChannel> jjj = chanelRepository.findByPublishing(true);
         return chanelRepository.findByPublishing(true);

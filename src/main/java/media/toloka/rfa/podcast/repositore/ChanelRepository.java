@@ -17,6 +17,10 @@ public interface ChanelRepository extends JpaRepository<PodcastChannel, Long>, P
     Page<PodcastChannel> findByClientdetailOrderByLastbuilddateDesc(String uuid, Pageable pageable);
 //    PodcastChannel getByStoreuuid(String storeUuid);
     PodcastChannel getByUuid(String ChanelUuid);
+
+    /** Отримати лише схвалені та опубліковані подкасти */
+    Page<PodcastChannel> findByApruveTrueAndPublishingTrueOrderByLastbuilddateDesc(Pageable pageable);
+
     List<PodcastChannel> findByImagechanelstore(Store store);
     PodcastChannel save(PodcastChannel chanel);
 
