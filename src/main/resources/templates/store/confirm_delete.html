@@ -8,6 +8,10 @@
     <title>Підтвердження видалення файлу</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        .dep-list { max-height: 300px; overflow-y: auto; }
+        .card { border-radius: 15px; overflow: hidden; }
+    </style>
 </head>
 <body class="bg-light">
 <div class="container py-5">
@@ -18,103 +22,114 @@
                     <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Файл використовується!</h4>
                 </div>
                 <div class="card-body p-4">
-                    <div class="alert alert-warning border-warning">
-                        Ви намагаєтеся видалити файл: <strong th:text="${item.filename}"></strong><br>
-                        <small class="font-monospace" th:text="${item.uuid}"></small>
+                    <div class="alert alert-warning border-warning shadow-sm">
+                        Ви намагаєтеся видалити файл: <strong th:text="${item != null ? item.filename : 'Невідомий файл'}"></strong><br>
+                        <small class="font-monospace text-muted" th:text="${item != null ? item.uuid : ''}"></small>
                     </div>
 
-                    <p class="lead">Цей файл пов'язаний з наступними об'єктами:</p>
+                    <p class="lead fw-bold">Цей файл пов'язаний з наступними об'єктами:</p>
                     
-                    <ul class="list-group mb-4 shadow-sm">
-                        <!-- Пости -->
-                        <li th:if="${dependencies.posts}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-newspaper text-primary me-2"></i> <strong>Пости (обкладинка):</strong>
-                                <div class="ms-4 small" th:each="post : ${dependencies.posts}">
-                                    <span th:text="${post.posttitle}"></span>
-                                    <a th:href="@{'/creater/editpost/' + ${post.uuid}}" class="ms-2 text-decoration-none" target="_blank">Редагувати <i class="fas fa-external-link-alt fa-xs"></i></a>
+                    <div class="dep-list mb-4 border rounded bg-white">
+                        <ul class="list-group list-group-flush">
+                            <!-- Пости -->
+                            <li th:if="${dependencies.posts != null}" class="list-group-item">
+                                <div class="fw-bold mb-1"><i class="fas fa-newspaper text-primary me-2"></i> Пости (як обкладинка):</div>
+                                <div class="ms-4 py-1 border-start ps-3" th:each="post : ${dependencies.posts}">
+                                    <span th:text="${post != null && post.posttitle != null ? post.posttitle : 'Пост без назви'}"></span>
+                                    <a th:if="${post != null && post.uuid != null}" th:href="@{'/creater/editpost/' + ${post.uuid}}" class="ms-2 badge bg-light text-primary text-decoration-none border" target="_blank">
+                                        Редагувати <i class="fas fa-external-link-alt fa-xs"></i>
+                                    </a>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
 
-                        <!-- Треки -->
-                        <li th:if="${dependencies.tracks}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-music text-warning me-2"></i> <strong>Треки:</strong>
-                                <div class="ms-4 small" th:each="track : ${dependencies.tracks}">
-                                    <span th:text="${track.name}"></span>
-                                    <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="ms-2 text-decoration-none" target="_blank">Редагувати <i class="fas fa-external-link-alt fa-xs"></i></a>
+                            <!-- Треки -->
+                            <li th:if="${dependencies.tracks != null}" class="list-group-item">
+                                <div class="fw-bold mb-1"><i class="fas fa-music text-warning me-2"></i> Треки:</div>
+                                <div class="ms-4 py-1 border-start ps-3" th:each="track : ${dependencies.tracks}">
+                                    <span th:text="${track != null && track.name != null ? track.name : 'Трек без назви'}"></span>
+                                    <a th:if="${track != null && track.uuid != null}" th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="ms-2 badge bg-light text-primary text-decoration-none border" target="_blank">
+                                        Редагувати <i class="fas fa-external-link-alt fa-xs"></i>
+                                    </a>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
 
-                        <!-- Канали -->
-                        <li th:if="${dependencies.channels}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-podcast text-success me-2"></i> <strong>Подкасти (обкладинка):</strong>
-                                <div class="ms-4 small" th:each="chan : ${dependencies.channels}">
-                                    <span th:text="${chan.title}"></span>
-                                    <a th:href="@{'/podcast/pedit/' + ${chan.uuid}}" class="ms-2 text-decoration-none" target="_blank">Керувати <i class="fas fa-external-link-alt fa-xs"></i></a>
+                            <!-- Канали подкастів -->
+                            <li th:if="${dependencies.channels != null}" class="list-group-item">
+                                <div class="fw-bold mb-1"><i class="fas fa-podcast text-success me-2"></i> Подкасти (як обкладинка каналу):</div>
+                                <div class="ms-4 py-1 border-start ps-3" th:each="chan : ${dependencies.channels}">
+                                    <span th:text="${chan != null && chan.title != null ? chan.title : 'Подкаст без назви'}"></span>
+                                    <a th:if="${chan != null && chan.uuid != null}" th:href="@{'/podcast/pedit/' + ${chan.uuid}}" class="ms-2 badge bg-light text-primary text-decoration-none border" target="_blank">
+                                        Керувати <i class="fas fa-external-link-alt fa-xs"></i>
+                                    </a>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
 
-                        <!-- Епізоди Аудіо -->
-                        <li th:if="${dependencies.episodesAudio}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-file-audio text-info me-2"></i> <strong>Епізоди (аудіофайл):</strong>
-                                <div class="ms-4 small" th:each="ep : ${dependencies.episodesAudio}">
-                                    <span th:text="${ep.title}"></span>
-                                    <a th:href="@{'/podcast/episodeedit/' + ${ep.chanel.uuid} + '/' + ${ep.uuid}}" class="ms-2 text-decoration-none" target="_blank">Редагувати <i class="fas fa-external-link-alt fa-xs"></i></a>
+                            <!-- Епізоди Аудіо -->
+                            <li th:if="${dependencies.episodesAudio != null}" class="list-group-item">
+                                <div class="fw-bold mb-1"><i class="fas fa-file-audio text-info me-2"></i> Епізоди (як основний аудіофайл):</div>
+                                <div class="ms-4 py-1 border-start ps-3" th:each="ep : ${dependencies.episodesAudio}">
+                                    <span th:text="${ep != null && ep.title != null ? ep.title : 'Епізод без назви'}"></span>
+                                    <a th:if="${ep != null && ep.uuid != null && ep.chanel != null}" th:href="@{'/podcast/episodeedit/' + ${ep.chanel.uuid} + '/' + ${ep.uuid}}" class="ms-2 badge bg-light text-primary text-decoration-none border" target="_blank">
+                                        Редагувати <i class="fas fa-external-link-alt fa-xs"></i>
+                                    </a>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
 
-                        <!-- Епізоди Картинки -->
-                        <li th:if="${dependencies.episodesImage}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-image text-danger me-2"></i> <strong>Епізоди (обкладинка):</strong>
-                                <div class="ms-4 small" th:each="ep : ${dependencies.episodesImage}">
-                                    <span th:text="${ep.title}"></span>
-                                    <a th:href="@{'/podcast/episodeedit/' + ${ep.chanel.uuid} + '/' + ${ep.uuid}}" class="ms-2 text-decoration-none" target="_blank">Редагувати <i class="fas fa-external-link-alt fa-xs"></i></a>
+                            <!-- Епізоди Картинки -->
+                            <li th:if="${dependencies.episodesImage != null}" class="list-group-item">
+                                <div class="fw-bold mb-1"><i class="fas fa-image text-danger me-2"></i> Епізоди (як обкладинка епізоду):</div>
+                                <div class="ms-4 py-1 border-start ps-3" th:each="ep : ${dependencies.episodesImage}">
+                                    <span th:text="${ep != null && ep.title != null ? ep.title : 'Епізод без назви'}"></span>
+                                    <a th:if="${ep != null && ep.uuid != null && ep.chanel != null}" th:href="@{'/podcast/episodeedit/' + ${ep.chanel.uuid} + '/' + ${ep.uuid}}" class="ms-2 badge bg-light text-primary text-decoration-none border" target="_blank">
+                                        Редагувати <i class="fas fa-external-link-alt fa-xs"></i>
+                                    </a>
                                 </div>
-                            </div>
-                        </li>
-                    </ul>
-
-                    <div class="alert alert-secondary py-3">
-                        <i class="fas fa-info-circle me-2"></i> Виберіть дію: <strong>Обнулити посилання</strong> (файл залишиться) або <strong>Видалити файл</strong> (повне очищення).
+                            </li>
+                        </ul>
                     </div>
 
-                    <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div class="alert alert-secondary py-3 border-0 bg-opacity-10 bg-dark">
+                        <i class="fas fa-info-circle me-2 text-primary"></i> Виберіть дію: 
+                        <ul>
+                            <li><strong>Обнулити посилання</strong> — файл залишиться у сховищі, але зникне з об'єктів вище.</li>
+                            <li><strong>Видалити файл</strong> — повне видалення з диска та бази даних.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Блок кнопок винесено окремо для надійності рендерингу -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
                         <!-- Відмовитися -->
-                        <a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'" class="btn btn-outline-secondary px-4 order-1">
+                        <a th:href="${from == 'admin'} ? '/admin/storage' : '/creater/storage/0'" class="btn btn-lg btn-outline-secondary px-4">
                             <i class="fas fa-times me-1"></i> Відмовитися
                         </a>
 
-                        <div class="d-flex gap-2 order-2">
+                        <div class="d-flex gap-2">
                             <!-- Обнулити посилання -->
-                            <form th:action="@{/creater/store/delete-confirmed}" method="post">
-                                <input type="hidden" name="uuid" th:value="${item.uuid}"/>
+                            <form th:action="@{/creater/store/delete-confirmed}" method="post" class="m-0">
+                                <input type="hidden" name="uuid" th:value="${item != null ? item.uuid : ''}"/>
                                 <input type="hidden" name="from" th:value="${from}"/>
                                 <input type="hidden" name="onlyDetach" value="true"/>
-                                <button type="submit" class="btn btn-warning shadow-sm">
-                                    <i class="fas fa-unlink me-1"></i> Обнулити посилання
+                                <button type="submit" class="btn btn-lg btn-warning shadow-sm fw-bold">
+                                    <i class="fas fa-unlink me-1"></i> Обнулити
                                 </button>
                             </form>
 
                             <!-- Видалити -->
-                            <form th:action="@{/creater/store/delete-confirmed}" method="post">
-                                <input type="hidden" name="uuid" th:value="${item.uuid}"/>
+                            <form th:action="@{/creater/store/delete-confirmed}" method="post" class="m-0">
+                                <input type="hidden" name="uuid" th:value="${item != null ? item.uuid : ''}"/>
                                 <input type="hidden" name="from" th:value="${from}"/>
                                 <input type="hidden" name="onlyDetach" value="false"/>
-                                <button type="submit" class="btn btn-danger shadow-sm">
-                                    <i class="fas fa-trash-alt me-1"></i> Видалити файл
+                                <button type="submit" class="btn btn-lg btn-danger shadow-sm fw-bold" onclick="return confirm('Ви впевнені? Це дію неможливо скасувати!')">
+                                    <i class="fas fa-trash-alt me-1"></i> Видалити
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <div class="text-center mt-4 text-muted small">
+                Система RFA &copy; 2026 | Безпечне керування ресурсами
             </div>
         </div>
     </div>
