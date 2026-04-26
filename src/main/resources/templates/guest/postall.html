@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
+    <title>Толока - новини</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons (free version)-->
@@ -16,113 +16,137 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
 <body>
 <!-- MessageBox -->
 <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
 <!-- Navigation-->
-<div th:insert="~{/fragments/navbar :: navbarUniverse}"
-<div style="padding-top: 100px"/>
-<div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
-<section class="page-section" id="news">
+<div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+<!-- Референсний аудіоплеєр -->
+<div th:insert="~{/fragments/RFAPlayer :: rfaplayertemplate}"/>
+<script>
+    (function() {
+        const template = document.querySelector('template');
+        if (template && template.content) {
+            const span = template.content.getElementById('trackName');
+            if (span) span.id = 'NameAutor';
+        }
+    })();
+</script>
+
+<div style="padding-top: 80px">
     <div class="container-fluid">
         <div class="row">
-            <!-- Колонка постів -->
-            <div class="col-lg-9 col-sm-12">
-                <div class="card">
-                    <div class="card-header"><h3>Новини на Толоці</h3></div>
-                    <div class="card-body">
-                        <div class="row row-cols-1 row-cols-md-4 g-4">
-                            <!--                                    <div th:each="post : ${postList}">-->
-                            <div th:each="post : ${postList}" class="col">
-                                <div class="card d-flex flex-column h-100">
-                                    <div th:if="${post.coverstoreuuid} == null">
-                                        <!--              post.coverstoreuuid == null-->
-                                        <img class="card-img-top img-fluid"
-                                             th:src="'  400/300?random='+${post.id}"
-                                             alt="Card image cap">
-                                    </div>
-                                    <div th:if="${post.coverstoreuuid} != null">
-                                        <!--              post.coverstoreuuid != null-->
-                                        <a th:href="'/post/postview/'+${post.uuid}">
-                                            <img class="card-img-top img-fluid"
-                                                th:src="'/store/content/'+${post.coverstoreuuid}"
-                                                alt="Card image cap">
-                                        </a>
-                                    </div>
-                                    <div class="card-body flex-grow-1 d-flex flex-column ">
-                                        <h5 class="card-title"><a th:href="'/post/postview/'+${post.uuid}"><span
-                                                th:text="${post.posttitle}"/></a></h5>
-                                    </div>
-                                    <div class="card-footer">
-                                        <p class="card-text">
-                                            <small class="text-muted">
+            <!-- Сайдбар з плеєром -->
+            <div class="col-lg-3 col-md-4 col-sm-12 order-lg-last">
+                <div class="sticky-top" style="top: 20px;">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-2 text-center">
+                            <audio-player id="audio-player" 
+                                          th:if="${trackList != null && !trackList.isEmpty()}" 
+                                          th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"
+                                          th:data-name="${trackList[0].name}"
+                                          th:data-autor="${trackList[0].autor}"></audio-player>
+                        </div>
+                    </div>
+                    <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
+                </div>
+            </div>
 
-                                                <i class="far fa-user"></i><a th:href="'/creater/profile/'+${post.clientdetail.uuid}"><span
-                                                    th:text="' '+${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}"/></a><br>
-                                                <i class="fas fa-eye"></i><span th:text="' '+${post.looked}+' '"/>
-                                                <i class="fas fa-calendar-alt"></i><span
-                                                    th:text="' ' + ${#dates.format(post.publishdate, 'dd-MM-yyyy')}"/>
-                                            </small>
-                                        </p>
+            <!-- Основний контент (Новини) -->
+            <div class="col-lg-9 col-md-8 col-sm-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 fw-bold mb-0">Новини на Толоці</h1>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                    <div th:each="post : ${postList}" class="col">
+                        <div class="card h-100 shadow-sm border-0 transition-hover">
+                            <!-- Обкладинка -->
+                            <div class="ratio ratio-16x9 overflow-hidden rounded-top">
+                                <a th:href="'/post/postview/'+${post.uuid}">
+                                    <img th:if="${post.coverstoreuuid != null}" 
+                                         th:src="'/store/content/'+${post.coverstoreuuid}" 
+                                         class="card-img-top object-fit-cover" alt="Post cover">
+                                    <img th:if="${post.coverstoreuuid == null}" 
+                                         th:src="'https://picsum.photos/400/300?random='+${post.uuid}" 
+                                         class="card-img-top object-fit-cover" alt="Placeholder">
+                                </a>
+                            </div>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">
+                                    <a th:href="'/post/postview/'+${post.uuid}" class="text-decoration-none text-dark" th:text="${post.posttitle}">Назва новини</a>
+                                </h5>
+                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(post.posttext, 100)}">Короткий текст...</p>
+                            </div>
+                            
+                            <div class="card-footer bg-white border-0 pb-3">
+                                <div class="d-flex align-items-center justify-content-between small text-muted">
+                                    <div>
+                                        <i class="far fa-user me-1"></i>
+                                        <a th:href="'/creater/profile/'+${post.clientdetail.uuid}" class="text-decoration-none text-muted"
+                                           th:text="${post.clientdetail.custname} + ' ' + ${post.clientdetail.custsurname}">Автор</a>
+                                    </div>
+                                    <div>
+                                        <span class="me-3"><i class="far fa-eye me-1"></i>[[${post.looked}]]</span>
+                                        <span><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(post.publishdate, 'dd.MM.yyyy')}]]</span>
                                     </div>
                                 </div>
                             </div>
-                            <!--                                    </div>-->
                         </div>
                     </div>
-                    <div class="card-footer text-muted">
-                        <nav aria-label="Page navigation example">
-                            <ul class="pagination">
-                                <li class="page-item"><a class="page-link" th:href="'/guest/postall/'+${privpagepost}">Попередня</a>
-                                </li>
-                                <div th:each="lpage : ${#numbers.sequence(0, __${totalpagepost-1}__)}">
-                                    <li class="page-item"><a class="page-link"
-                                                             th:href="'/guest/postall/'+${lpage}"><span
-                                            th:text="${lpage+1}">1</a></li>
-                                </div>
-                                <li class="page-item"><a class="page-link" th:href="'/guest/postall/'+${nextpagepost}">Наступна</a>
-                                </li>
-                            </ul>
-                        </nav>
+                </div>
 
-                    </div>
+                <!-- Пагінація -->
+                <div class="mt-5" th:if="${totalpage > 1}">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm justify-content-center">
+                            <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/0'"><i class="fas fa-angle-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentpage < 10} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/' + ${currentpage - 10 < 0 ? 0 : currentpage - 10}">-10</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/'+${privpage}"><i class="fas fa-chevron-left"></i></a>
+                            </li>
+                            
+                            <th:block th:with="start=${currentpage - 2 < 0 ? 0 : currentpage - 2}, end=${currentpage + 2 > totalpage - 1 ? totalpage - 1 : currentpage + 2}">
+                                <li class="page-item" th:each="lpage : ${#numbers.sequence(start, end)}" th:classappend="${lpage == currentpage} ? 'active'">
+                                    <a class="page-link" th:href="'/guest/postall/'+${lpage}" th:text="${lpage+1}">1</a>
+                                </li>
+                            </th:block>
+
+                            <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/'+${nextpage}"><i class="fas fa-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentpage > totalpage - 11} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/' + ${currentpage + 10 > totalpage - 1 ? totalpage - 1 : currentpage + 10}">+10</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                                <a class="page-link" th:href="'/guest/postall/' + ${totalpage - 1}"><i class="fas fa-angle-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
-            <!-- колонка медіа хаб-->
-            <div class="col-lg-3 col-sm-12">
-
-                <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
-            </div>
         </div>
-
     </div>
-</section>
+</div>
+
+<!-- Футер -->
+<div th:insert="~{/fragments/common :: footer}"></div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/js/audioplayer/audioplayer.js"></script>
 <script>
-    var myCarousel = document.getElementById('theCarouselStaion')
-
-    myCarousel.addEventListener('slide.bs.carousel', function (ev) {
-        // сделайте что-нибудь...
-        console.log(ev.relatedTarget.id);
-    })
-
-    async function getStatus() {
-        let siteurl = "https://rfa.toloka.media/api/1.0/ps/"+stationId;
-        const response = await fetch(siteurl);
-        const data = await response.json();
-        stationstate = data["status"];
-        myspan = document.getElementById('spanstationstate');
-        return data;
-    }
-
-    function onClickTrack(event,name,autor) {
-        document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
+    function onClickTrack(uuid, name, autor) {
+        if (uuid) {
+            document.getElementById('audio-player').myChangeTrack(uuid, name, autor);
+        }
     }
 </script>
-<!-- Bootstrap core JS-->
-<script src="/js/bootstrap.bundle.min.js"></script>
-<!-- audioplayer красивий -->
-<script type="module" src="/js/audioplayer/audioplayer.js"></script>
 </body>
 </html>
