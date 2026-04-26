@@ -93,6 +93,7 @@ public class RootController {
         model.addAttribute("trackList", publicTracks );
         model.addAttribute("postList", pagePost.getContent() );
         model.addAttribute("stationsonline", stationOnlineList );
+        model.addAttribute("podcastChannels", podcastChannels );
 
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );

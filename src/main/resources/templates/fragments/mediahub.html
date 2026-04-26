@@ -62,7 +62,7 @@
                         <a href="/podcast/all" class="btn btn-sm btn-outline-primary rounded-pill px-3">Всі подкасти</a>
                     </div>
                     <div class="card-body bg-light">
-                        <div class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
+                        <div th:if="${podcastChannels != null && !podcastChannels.isEmpty()}" class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
                             <div class="carousel-inner">
                                 <div th:each="podcast, iStat : ${podcastChannels}">
                                     <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${podcast.uuid}">
@@ -83,6 +83,10 @@
                             <button class="carousel-control-next" type="button" data-bs-target="#theCarouselPodcast" data-bs-slide="next">
                                 <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
                             </button>
+                        </div>
+                        <div th:if="${podcastChannels == null || podcastChannels.isEmpty()}" class="text-center py-5 text-muted">
+                            <i class="fas fa-podcast fa-3x mb-3 opacity-25"></i>
+                            <p>Зараз немає доступних подкастів</p>
                         </div>
                     </div>
                     <div class="card-footer bg-white text-center small text-muted py-3">
