@@ -434,17 +434,17 @@
                 </div>
             </ul>
         </div>
-        <div class="card-footer bg-white py-4" th:if="${totalPages > 1}">
+        <div class="card-footer bg-white py-4" th:if="${totalpage > 1}">
             <nav aria-label="navigation">
                 <ul class="pagination justify-content-center mb-0 shadow-sm">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/'+${currentPage - 1}"><i class="fas fa-chevron-left"></i></a>
+                    <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${privpage}"><i class="fas fa-chevron-left"></i></a>
                     </li>
-                    <li class="page-item" th:each="lpage : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${lpage == currentPage} ? 'active'">
+                    <li class="page-item" th:each="lpage : ${#numbers.sequence(0, totalpage - 1)}" th:classappend="${lpage == currentpage} ? 'active'">
                         <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
                     </li>
-                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/'+${currentPage + 1}"><i class="fas fa-chevron-right"></i></a>
+                    <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${nextpage}"><i class="fas fa-chevron-right"></i></a>
                     </li>
                 </ul>
             </nav>
