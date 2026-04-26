@@ -25,7 +25,16 @@
 
     </head>
     <body id="page-top">
-    <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
+    <div th:insert="~{/fragments/RFAPlayer :: rfaplayertemplate}"/>
+    <script>
+        (function() {
+            const template = document.querySelector('template');
+            if (template && template.content) {
+                const span = template.content.getElementById('trackName');
+                if (span) span.id = 'NameAutor';
+            }
+        })();
+    </script>
         <!-- Navigation-->
         <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
     <!-- MessageBox -->

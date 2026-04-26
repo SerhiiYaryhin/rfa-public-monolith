@@ -16,13 +16,21 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
 </head>
-<head>
-
+<body>
     <!-- Navigation-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-    <div th:insert="~{/fragments/mediahub :: audiotemplate}"/>
+    <div th:insert="~{/fragments/RFAPlayer :: rfaplayertemplate}"/>
+    <script>
+        (function() {
+            const template = document.querySelector('template');
+            if (template && template.content) {
+                const span = template.content.getElementById('trackName');
+                if (span) span.id = 'NameAutor';
+            }
+        })();
+    </script>
+
     <div style="padding-top: 60px">
         <div class="container-fluid">
             <div class="row text-center" style="padding-top: 20px">
@@ -31,28 +39,30 @@
                 </div>
             </div>
 
-            <div class="row" style="padding-top: 20px">
-                    <!--                    Вставляємо останні завантажені треки-->
-                    <div th:insert="~{/fragments/mediahub :: lasttrecksall}">  </div>
-                    <!--                    вставляем Медіа Хаб-->
-                    <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
+            <div class="row justify-content-center" style="padding-top: 20px">
+                <div class="col-lg-6 col-md-8 col-sm-12 text-center">
+                    <audio-player id="audio-player" th:if="${trackList != null && !trackList.isEmpty()}" th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"></audio-player>
                 </div>
+            </div>
+
+            <div class="row" style="padding-top: 20px">
+                <!-- Вставляємо останні завантажені треки-->
+                <div th:insert="~{/fragments/mediahub :: lasttrecksall}">  </div>
+                <!-- вставляем Медіа Хаб-->
+                <div th:insert="~{/fragments/mediahub :: usermediahub}">  </div>
             </div>
         </div>
     </div>
 
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
     <script>
-        function onClickTrack(event,name,autor) {
-            //document.getElementById('audio-player').setAudioSrc("/store/audio/"+event.id);
-            //console.log("======== name: "+name+"======= autor: "+autor);
-            document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
+        function onClickTrack(uuid, name, autor) {
+            if (uuid) {
+                document.getElementById('audio-player').myChangeTrack(uuid, name, autor);
+            }
         }
     </script>
 
     <script src="/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
-
 </body>
 </html>
