@@ -79,7 +79,7 @@
                                 <h5 class="card-title fw-bold">
                                     <a th:href="'/post/postview/'+${post.uuid}" class="text-decoration-none text-dark" th:text="${post.posttitle}">Назва новини</a>
                                 </h5>
-                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(post.posttext, 100)}">Короткий текст...</p>
+                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(post.postbody, 100)}">Короткий текст...</p>
                             </div>
                             
                             <div class="card-footer bg-white border-0 pb-3">
