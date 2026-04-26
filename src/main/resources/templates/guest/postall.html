@@ -63,15 +63,16 @@
                 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
                     <div th:each="post : ${postList}" class="col">
                         <div class="card h-100 shadow-sm border-0 transition-hover">
-                            <!-- Обкладинка -->
-                            <div class="ratio ratio-16x9 overflow-hidden rounded-top">
+                            <!-- Обкладинка як на головній -->
+                            <div th:if="${post.coverstoreuuid} == null">
+                                <img class="card-img-top img-fluid" th:src="'https://picsum.photos/400/300?random='+${post.id}"
+                                     alt="Card image cap">
+                            </div>
+                            <div th:if="${post.coverstoreuuid} != null">
                                 <a th:href="'/post/postview/'+${post.uuid}">
-                                    <img th:if="${post.coverstoreuuid != null}" 
-                                         th:src="'/store/content/'+${post.coverstoreuuid}" 
-                                         class="card-img-top object-fit-cover" alt="Post cover">
-                                    <img th:if="${post.coverstoreuuid == null}" 
-                                         th:src="'https://picsum.photos/400/300?random='+${post.uuid}" 
-                                         class="card-img-top object-fit-cover" alt="Placeholder">
+                                    <img class="card-img-top img-fluid"
+                                         th:src="'/store/content/'+${post.coverstoreuuid}"
+                                         th:alt="${post.posttitle}">
                                 </a>
                             </div>
                             
