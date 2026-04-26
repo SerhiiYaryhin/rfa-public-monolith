@@ -436,15 +436,38 @@
         </div>
         <div class="card-footer bg-white py-4" th:if="${totalpage > 1}">
             <nav aria-label="navigation">
-                <ul class="pagination justify-content-center mb-0 shadow-sm">
+                <ul class="pagination pagination-sm justify-content-center mb-0 shadow-sm">
+                    <!-- Початок / -10 -->
+                    <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/0'" title="Перша сторінка"><i class="fas fa-angle-double-left"></i></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentpage < 10} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${T(java.lang.Math).max(0, currentpage - 10)}" title="-10 сторінок">-10</a>
+                    </li>
+
+                    <!-- Попередня -->
                     <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
                         <a class="page-link" th:href="'/guest/tracksall/'+${privpage}"><i class="fas fa-chevron-left"></i></a>
                     </li>
-                    <li class="page-item" th:each="lpage : ${#numbers.sequence(0, totalpage - 1)}" th:classappend="${lpage == currentpage} ? 'active'">
-                        <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
-                    </li>
+
+                    <!-- Номери сторінок (обмежено поточна +- 2) -->
+                    <th:block th:each="lpage : ${#numbers.sequence(T(java.lang.Math).max(0, currentpage - 2), T(java.lang.Math).min(totalpage - 1, currentpage + 2))}">
+                        <li class="page-item" th:classappend="${lpage == currentpage} ? 'active'">
+                            <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
+                        </li>
+                    </th:block>
+
+                    <!-- Наступна -->
                     <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
                         <a class="page-link" th:href="'/guest/tracksall/'+${nextpage}"><i class="fas fa-chevron-right"></i></a>
+                    </li>
+
+                    <!-- +10 / Кінець -->
+                    <li class="page-item" th:classappend="${currentpage > totalpage - 11} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${T(java.lang.Math).min(totalpage - 1, currentpage + 10)}" title="+10 сторінок">+10</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${totalpage - 1}" title="Остання сторінка"><i class="fas fa-angle-double-right"></i></a>
                     </li>
                 </ul>
             </nav>
