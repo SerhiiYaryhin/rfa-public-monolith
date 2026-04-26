@@ -16,7 +16,7 @@
                 <div class="carousel-inner">
                     <div th:each="station, iStat : ${stationsonline}">
                         <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${station.uuid}" data-bs-interval="5000">
-                            <div class="d-flex align-items-center justify-content-between px-4 py-2">
+                            <div class="d-flex align-items-center justify-content-between py-2 mx-5">
                                 <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
                                     <h2 class="h4 mb-0 fw-bold" style="color:#FF8000;">
                                         <span th:text="${station.stationname}">Станція</span>
