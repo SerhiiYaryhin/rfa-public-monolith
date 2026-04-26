@@ -68,7 +68,7 @@
                                     <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${podcast.uuid}">
                                         <div class="p-4 text-center">
                                             <a th:href="'/podcast/view/'+${podcast.uuid}" class="text-decoration-none">
-                                                <h3 class="h5 fw-bold text-primary mb-3" th:text="${podcast.title}"></h3>
+                                                <h3 class="h4 fw-bold text-primary mb-3 text-uppercase" th:text="${podcast.title}"></h3>
                                             </a>
                                             <div th:if="${podcast.description != null}" class="text-muted small px-lg-5 mx-auto" style="max-width: 800px;">
                                                 <div th:utext="${#strings.length(podcast.description) > 300 ? #strings.substring(podcast.description,0,300) + '...' : podcast.description}"></div>
