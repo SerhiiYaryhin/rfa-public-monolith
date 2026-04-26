@@ -27,18 +27,12 @@
             transform: translateY(-10px); 
             box-shadow: 0 14px 28px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.08) !important; 
         }
-        .podcast-cover-wrapper {
-            position: relative;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            overflow: hidden;
-        }
         .podcast-cover { 
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
-            object-fit: cover; 
+            height: auto;
+            object-fit: contain; 
+            max-height: 300px;
+            background-color: #f8f9fa;
         }
         .card-title a { text-decoration: none; color: #212529; }
         .card-title a:hover { color: #0d6efd; }
@@ -72,17 +66,15 @@
             <div th:each="podcast : ${podcastList}" class="col">
                 <div class="card podcast-card shadow-sm">
                     <!-- Обкладинка -->
-                    <div class="podcast-cover-wrapper">
-                        <a th:href="'/podcast/view/'+${podcast.uuid}">
-                            <img th:if="${podcast.imagechanelstore != null}" 
-                                 th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
-                                 class="podcast-cover" alt="Podcast Cover">
-                            <div th:if="${podcast.imagechanelstore == null}" 
-                                 class="podcast-cover bg-dark d-flex align-items-center justify-content-center text-white-50">
-                                <i class="fas fa-microphone-alt fa-4x opacity-25"></i>
-                            </div>
-                        </a>
-                    </div>
+                    <a th:href="'/podcast/view/'+${podcast.uuid}">
+                        <img th:if="${podcast.imagechanelstore != null}" 
+                             th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                             class="podcast-cover" alt="Podcast Cover">
+                        <div th:if="${podcast.imagechanelstore == null}" 
+                             class="podcast-cover bg-dark d-flex align-items-center justify-content-center text-white-50" style="height: 220px;">
+                            <i class="fas fa-microphone-alt fa-4x opacity-25"></i>
+                        </div>
+                    </a>
                     
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title fw-bold mb-2">
