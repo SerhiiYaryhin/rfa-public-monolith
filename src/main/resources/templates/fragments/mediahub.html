@@ -334,10 +334,10 @@
             <h3 class="h5 fw-bold mb-0">Нові треки</h3>
         </div>
         <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
-
-            <audio-player id="audio-player" style="padding:0"
-                          th:data-src="@{/store/audio/{uuid}(uuid=${trackList[0].storeuuid})}"/>
-                          <!-- th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"/> -->
+            <audio-player id="audio-player" style="padding:0" 
+                          th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"
+                          th:data-name="${trackList[0].name}"
+                          th:data-autor="${trackList[0].autor}"/>
         </div>
         <div th:if="${trackList == null || trackList.isEmpty()}" class="p-4 text-center text-muted">
             <div class="py-3">

@@ -38,7 +38,11 @@ const everything = function(element) {
     const audio = shadow.querySelector('audio');
     element.myaudio = audio;
 
-    //}
+    const initialName = element.getAttribute('data-name');
+    const initialAutor = element.getAttribute('data-autor');
+    if (initialName) {
+        nameTop.innerHTML = initialName + (initialAutor ? ' - ' + initialAutor : '');
+    }
 
     const durationContainer = shadow.getElementById('duration');
     const currentTimeContainer = shadow.getElementById('current-time');
@@ -132,7 +136,7 @@ const everything = function(element) {
       // interface function
       const clickTrackPlay = function (id,name,autor) {
         //console.log("======== name: "+name+"======= autor: "+autor);
-        nameTop.innerHTML = name;
+        nameTop.innerHTML = name + (autor ? ' - ' + autor : '');
         if (id === currentStation) {
             changePlayState();
         } else {
