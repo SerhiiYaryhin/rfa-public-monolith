@@ -33,6 +33,7 @@ public class Clientdetail {
     @Expose
     private String firmname;
     @Expose
+    @Column(unique = true, nullable = false)
     private String uuid;
     @Expose
     private String telegramuser = null;
