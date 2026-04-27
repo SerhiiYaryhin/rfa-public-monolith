@@ -14,7 +14,8 @@ public enum ERole {
     ROLE_ADMIN("ROLE_ADMIN"),           // 5
     ROLE_TELEGRAM("ROLE_TELEGRAM"),     //6
     ROLE_NEWSTORADIO("ROLE_NEWSTORADIO"),
-    ROLE_ACCCHEAF("ROLE_NEWSTORADIO"); // 7
+    ROLE_ACCCHEAF("ROLE_ACCCHEAF"),    // 7
+    ROLE_AUTHOR("ROLE_AUTHOR");        // 8
 
     public final String label;
 
