@@ -36,6 +36,7 @@
         <div sec:authorize="!isAuthenticated()">
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ">
+                    <li class="nav-item"><a class="nav-link" href="/guest/authors">Автори</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#services">Що це?</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#portfolio">Для кого?</a></li>
@@ -126,6 +127,7 @@
                         <li><a class="dropdown-item" href="/admin/financeuser">Фінанси</a></li>
                         <li class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/admin/author/requests">Запити на авторство</a></li>
+                        <li><a class="dropdown-item" href="/admin/author/articles/pending">Модерація статей</a></li>
                     </ul>
                 </li>  <!-- admin -->
                 <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'Адмін')" class="nav-item dropdown">
@@ -188,6 +190,7 @@
         <div sec:authorize="!isAuthenticated()">
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ">
+                    <li class="nav-item"><a class="nav-link" href="/guest/authors">Автори</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#services">Що це?</a></li>
                     <li class="nav-item"><a class="nav-link" href="/#portfolio">Для кого?</a></li>
