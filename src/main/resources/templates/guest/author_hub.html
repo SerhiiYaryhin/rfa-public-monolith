@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Автори - Толока</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        .author-card { transition: transform 0.2s; border: none; border-radius: 20px; overflow: hidden; }
+        .author-card:hover { transform: translateY(-5px); }
+        .author-avatar { width: 100px; height: 100px; object-fit: cover; border: 4px solid #fff; }
+        .hub-header { background: #212529; color: #fff; padding: 100px 0 60px 0; margin-bottom: 60px; }
+    </style>
+</head>
+<body class="bg-light">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <header class="hub-header">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Наші Автори</h1>
+            <p class="lead text-white-50">Відкривайте нові погляди, аналітику та творчість у авторських колонках Толоки.</p>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div th:each="col : ${columns}" class="col">
+                <div class="card h-100 author-card shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <img th:if="${col.author.profilephoto != null}" 
+                             th:src="'/store/content/' + ${col.author.profilephoto.uuid}"
+                             class="rounded-circle author-avatar shadow mb-3" alt="Avatar">
+                        <img th:if="${col.author.profilephoto == null}" 
+                             src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                             class="rounded-circle author-avatar shadow mb-3" alt="Avatar">
+                        
+                        <h3 class="h5 fw-bold" th:text="${col.author.custname + ' ' + col.author.custsurname}">Ім'я Автора</h3>
+                        <p class="text-muted small mb-4" th:text="${col.title}">Назва колонки</p>
+                        <p class="card-text small text-secondary" th:text="${#strings.abbreviate(col.description, 120)}">Опис...</p>
+                        
+                        <div class="mt-4">
+                            <a th:href="'/guest/authors/' + ${col.slug}" class="btn btn-primary rounded-pill px-4">Читати колонку</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${columns.isEmpty()}" class="text-center py-5">
+            <p class="text-muted">Наразі немає активних авторських колонок.</p>
+        </div>
+    </div>
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -31,6 +31,23 @@ public class AuthorArticleService {
         return articleRepository.findByColumn(column, PageRequest.of(page, size, Sort.by("createdAt").descending()));
     }
 
+    public Page<AuthorArticle> getPublishedArticlesByColumn(AuthorColumn column, int page, int size) {
+        return articleRepository.findByColumnAndStatus(column, EAuthorArticleStatus.PUBLISHED, PageRequest.of(page, size, Sort.by("publishDate").descending()));
+    }
+
+    public List<AuthorColumn> getAllColumns() {
+        return columnRepository.findAll();
+    }
+
+    public Optional<AuthorColumn> getColumnBySlug(String slug) {
+        return columnRepository.findBySlug(slug);
+    }
+
+    public Optional<AuthorArticle> getPublishedArticleBySlug(String slug) {
+        return articleRepository.findBySlug(slug)
+                .filter(a -> a.getStatus() == EAuthorArticleStatus.PUBLISHED);
+    }
+
     public Page<AuthorArticle> getArticlesForModeration(int page, int size) {
         return articleRepository.findByStatus(EAuthorArticleStatus.PENDING, PageRequest.of(page, size, Sort.by("createdAt").ascending()));
     }

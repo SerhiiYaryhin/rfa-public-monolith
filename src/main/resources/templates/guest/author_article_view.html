@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${article.title} + ' - Толока'"></title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        .article-main { background: #fff; padding: 120px 0 100px 0; }
+        .article-body { max-width: 800px; margin: 0 auto; font-family: 'Georgia', serif; }
+        .article-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; line-height: 1.2; letter-spacing: -0.02em; }
+        .block-header { margin-top: 2.5rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
+        .block-paragraph { font-size: 1.25rem; line-height: 1.9; color: #2c3e50; margin-bottom: 2rem; }
+        .block-image { width: 100%; margin: 3rem 0; }
+        .block-image img { border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .block-quote { border-left: 6px solid #FF8000; padding: 1rem 0 1rem 2rem; font-style: italic; font-size: 1.5rem; margin: 3rem 0; background: #fff9f0; border-radius: 0 8px 8px 0; }
+        .author-box { border-top: 1px solid #eee; margin-top: 5rem; padding-top: 3rem; }
+        .cover-main { width: 100%; max-height: 500px; object-fit: cover; border-radius: 20px; margin-bottom: 4rem; }
+    </style>
+</head>
+<body class="bg-white">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <article class="article-main">
+        <div class="container">
+            <div class="article-body">
+                <!-- Категорія та дата -->
+                <div class="d-flex align-items-center gap-3 mb-3 small text-uppercase fw-bold text-primary">
+                    <span th:text="${#dates.format(article.publishDate, 'dd MMMM yyyy')}">Дата</span>
+                    <span class="text-muted">•</span>
+                    <span th:text="${article.column.title}">Колонка</span>
+                </div>
+
+                <h1 class="article-title" th:text="${article.title}">Заголовок статті</h1>
+
+                <!-- Обкладинка -->
+                <img th:if="${article.coverUuid != null}" th:src="'/store/content/' + ${article.coverUuid}" class="cover-main shadow-sm">
+
+                <!-- Контент (Editor.js Render) -->
+                <div id="renderTarget"></div>
+
+                <!-- Блок автора -->
+                <div class="author-box">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <img th:if="${article.column.author.profilephoto != null}" 
+                                 th:src="'/store/content/' + ${article.column.author.profilephoto.uuid}"
+                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col">
+                            <div class="text-muted small text-uppercase fw-bold">Автор</div>
+                            <h4 class="fw-bold mb-1">
+                                <a th:href="'/guest/authors/' + ${article.column.slug}" class="text-decoration-none text-dark"
+                                   th:text="${article.column.author.custname + ' ' + article.column.author.custsurname}">Ім'я</a>
+                            </h4>
+                            <p class="text-muted mb-0 small" th:text="${article.column.description}">Про автора...</p>
+                        </div>
+                        <div class="col-auto">
+                            <a th:href="'/guest/authors/' + ${article.column.slug}" class="btn btn-outline-primary btn-sm rounded-pill">Більше статей</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <a href="/guest/authors" class="btn btn-light rounded-pill px-4"><i class="fas fa-th me-2"></i>Всі автори</a>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+
+    <input type="hidden" id="articleData" th:value="${article.postbody}">
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const rawData = document.getElementById('articleData').value;
+            if (!rawData) return;
+            
+            try {
+                const data = JSON.parse(rawData);
+                const target = document.getElementById('renderTarget');
+                
+                data.blocks.forEach(block => {
+                    let html = '';
+                    switch(block.type) {
+                        case 'header':
+                            html = `<h${block.data.level} class="block-header h${block.data.level + 1}">${block.data.text}</h${block.data.level}>`;
+                            break;
+                        case 'paragraph':
+                            html = `<p class="block-paragraph">${block.data.text}</p>`;
+                            break;
+                        case 'list':
+                            const tag = block.data.style === 'ordered' ? 'ol' : 'ul';
+                            html = `<${tag} class="block-list mb-4 fs-5">` + 
+                                   block.data.items.map(item => `<li class="mb-2">${item}</li>`).join('') + 
+                                   `</${tag}>`;
+                            break;
+                        case 'image':
+                            html = `<figure class="block-image">
+                                        <img src="${block.data.file.url}" class="img-fluid w-100">
+                                        ${block.data.caption ? `<figcaption class="text-center text-muted small mt-3 italic">${block.data.caption}</figcaption>` : ''}
+                                    </figure>`;
+                            break;
+                        case 'quote':
+                            html = `<blockquote class="block-quote">
+                                        <p class="mb-2">${block.data.text}</p>
+                                        ${block.data.caption ? `<cite class="small text-muted">— ${block.data.caption}</cite>` : ''}
+                                    </blockquote>`;
+                            break;
+                        case 'embed':
+                            html = `<div class="block-embed ratio ratio-16x9 my-5 shadow-sm rounded overflow-hidden">
+                                        <iframe src="${block.data.embed}" frameborder="0" allowfullscreen></iframe>
+                                    </div>`;
+                            break;
+                    }
+                    target.insertAdjacentHTML('beforeend', html);
+                });
+            } catch (e) {
+                console.error("Error parsing article data", e);
+            }
+        });
+    </script>
+</body>
+</html>
