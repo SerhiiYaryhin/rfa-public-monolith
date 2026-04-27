@@ -31,6 +31,27 @@ public class AuthorArticleService {
         return articleRepository.findByColumn(column, PageRequest.of(page, size, Sort.by("createdAt").descending()));
     }
 
+    public Page<AuthorArticle> getArticlesForModeration(int page, int size) {
+        return articleRepository.findByStatus(EAuthorArticleStatus.PENDING, PageRequest.of(page, size, Sort.by("createdAt").ascending()));
+    }
+
+    @Transactional
+    public void publishArticle(String uuid) {
+        AuthorArticle article = articleRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
+        article.setStatus(EAuthorArticleStatus.PUBLISHED);
+        article.setPublishDate(new java.util.Date());
+        articleRepository.save(article);
+    }
+
+    @Transactional
+    public void rejectArticle(String uuid) {
+        AuthorArticle article = articleRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
+        article.setStatus(EAuthorArticleStatus.REJECTED);
+        articleRepository.save(article);
+    }
+
     public Optional<AuthorArticle> getArticleByUuid(String uuid) {
         return articleRepository.findByUuid(uuid);
     }
