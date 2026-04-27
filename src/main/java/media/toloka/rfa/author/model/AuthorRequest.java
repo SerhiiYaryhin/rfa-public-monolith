@@ -10,7 +10,8 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "author_requests")
+@Table(name = "author_requests",
+       uniqueConstraints = @UniqueConstraint(columnNames = "uuid"))
 public class AuthorRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

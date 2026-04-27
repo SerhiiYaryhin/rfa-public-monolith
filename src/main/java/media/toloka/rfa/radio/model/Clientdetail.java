@@ -20,7 +20,8 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(indexes = @Index(columnList = "uuid"))
+@Table(indexes = @Index(columnList = "uuid"),
+       uniqueConstraints = @UniqueConstraint(columnNames = "uuid"))
 public class Clientdetail {
     @Id
     @GeneratedValue
