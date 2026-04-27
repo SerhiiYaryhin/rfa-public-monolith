@@ -41,6 +41,6 @@ public class AuthorController {
         authorRequest.setClient(cd);
         
         authorService.saveRequest(authorRequest);
-        return "redirect:/user/profile?success=apply";
+        return "redirect:/user/user_page?success=apply";
     }
 }

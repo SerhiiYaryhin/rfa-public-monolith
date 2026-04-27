@@ -5,10 +5,10 @@ import media.toloka.rfa.author.model.AuthorRequest;
 import media.toloka.rfa.author.model.enumerate.EAuthorRequestStatus;
 import media.toloka.rfa.author.repository.AuthorColumnRepository;
 import media.toloka.rfa.author.repository.AuthorRequestRepository;
-import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Roles;
-import media.toloka.rfa.security.repository.RolesRepository;
+import media.toloka.rfa.security.model.Users;
+import media.toloka.rfa.security.repository.UserSecurityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,14 +27,13 @@ public class AuthorService {
     private AuthorColumnRepository columnRepository;
 
     @Autowired
-    private RolesRepository rolesRepository;
+    private UserSecurityRepository userRepository;
 
     public AuthorRequest saveRequest(AuthorRequest request) {
         return requestRepository.save(request);
     }
 
     public List<AuthorRequest> getAllPendingRequests() {
-        // У реальному проекті тут можна додати фільтрацію через репозиторій
         return requestRepository.findAll().stream()
                 .filter(r -> r.getStatus() == EAuthorRequestStatus.PENDING)
                 .toList();
@@ -61,8 +60,18 @@ public class AuthorService {
         columnRepository.save(column);
 
         // Оновлюємо роль користувача
-        // Тут потрібна логіка додавання ролі ROLE_AUTHOR до сутності Users
-        // Оскільки доступ до Users зазвичай через Clientdetail -> User
+        Users user = request.getClient().getUser();
+        if (user != null) {
+            boolean alreadyAuthor = user.getRoles().stream()
+                    .anyMatch(r -> r.getRole() == ERole.ROLE_AUTHOR);
+            
+            if (!alreadyAuthor) {
+                Roles authorRole = new Roles();
+                authorRole.setRole(ERole.ROLE_AUTHOR);
+                user.getRoles().add(authorRole);
+                userRepository.save(user);
+            }
+        }
     }
 
     @Transactional
@@ -78,6 +87,6 @@ public class AuthorService {
     private String generateSlug(String input) {
         return input.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", "")
-                .replaceAll("\\s+", "-") + "-" + System.currentTimeMillis() % 1000;
+                .replaceAll("\\s+", "-") + "-" + (System.currentTimeMillis() % 1000);
     }
 }
