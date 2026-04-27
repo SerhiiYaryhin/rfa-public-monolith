@@ -1,7 +1,5 @@
 package media.toloka.rfa.security.config;
 
-//https://stackoverflow.com/questions/74753700/cannot-resolve-method-antmatchers-in-authorizationmanagerrequestmatcherregis
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 
-//
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
@@ -34,29 +31,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-//                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**")) // Ігноруємо CSRF для API, якщо це потрібно для Editor.js
                 .authorizeHttpRequests(auth -> auth
-                        // 🌐 Доступ для всіх без авторизації (всі публічні шляхи в одному місці)
+                        // 🌐 Публічні ресурси
                         .requestMatchers(
-                                "/*","/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-                                "/post/**", "/rss/**", "/error/**", "/robots.txt","/api/**",
-                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",
-                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-                                "/podcast/**", "/sendmail", "/setUserPassword", "/savequestion", "/store/**",
-                                "/user/**","/creater/**","/newstoradio/**","/admin/**","/comments/**","/universalcomments/**"
+                                "/", "/home", "/register", "/saveUser", "/guest/**",
+                                "/post/**", "/rss/**", "/error/**", "/robots.txt", "/api/2.0/**",
+                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**"
+                        ).permitAll()
+                        
+                        // 🔐 Публічні ендпоїнти логіну та реєстрації
+                        .requestMatchers(
+                                "/login/**", "/login/route", "/logout", "/registerRadioUser", 
+                                "/restorePsw", "/chat", "/rfachat", "/sendmail", 
+                                "/setUserPassword", "/savequestion", "/store/**"
                         ).permitAll()
 
-                        // 👮 Доступи за ролями (від більш конкретних до загальних)
-                        .requestMatchers("/acc/**").hasAuthority("Admin")
-                        .requestMatchers("/admin/**").hasAuthority("Admin")
-                        .requestMatchers("/user/**").hasAnyAuthority("User", "Moderator", "Admin")
-                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
-                        .requestMatchers("/newstoradio/**").hasAnyAuthority("Creator", "User", "Moderator", "Admin")
-                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-                        .requestMatchers("/upload/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-
-                        // 🔒 Все інше — тільки для авторизованих (МАЄ БУТИ ОСТАННІМ!)
+                        // 👮 Доступи за ролями
+                        .requestMatchers("/acc/**").hasAnyRole("ADMIN", "ACCCHEAF")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        
+                        // Авторська колонка
+                        .requestMatchers("/creater/author/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers("/api/author/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers("/author/apply").authenticated() // Кожен авторизований може подати заявку
+                        
+                        .requestMatchers("/creater/**").hasAnyRole("CREATER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/user/**").hasAnyRole("USER", "CREATER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/newstoradio/**").hasAnyRole("CREATER", "USER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/editor/**").hasAnyRole("EDITOR", "ADMIN")
+                        .requestMatchers("/moderator/**").hasAnyRole("MODERATOR", "ADMIN")
+                        
+                        // 🔒 Все інше
                         .anyRequest().authenticated()
                 )
 
@@ -77,7 +83,6 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // 🛡️ Дозволити iframe (наприклад, для H2 console)
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 );
@@ -85,103 +90,28 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // старий
-
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//
-//        http
-//                .authorizeHttpRequests(auth -> auth
-//                        // 🌐 Доступ для всіх без авторизації
-////                                .anyRequest().permitAll()
-//
-//                        .requestMatchers(
-//                                "/home", "/register", "/saveUser", "/guest/**", "/process/**", "/seveform/**",
-//                                "/post/**", "/rss/**", "/error/**", "/robots.txt",
-//                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**", // статичні ресурси
-//                                "/login/**",  "/login/route", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-//                                "/podcast/**", // 🔐 Публічні ендпоїнти
-//                                "/sendmail", "/setUserPassword", "/savequestion", "/store/**", // 🔐 Публічні ендпоїнти
-////                        ).permitAll()
-////
-////                         🔐 Публічні ендпоїнти
-////                        .requestMatchers(
-//                                "/login/**", "/logout", "/registerRadioUser", "/restorePsw", "/chat", "/rfachat",
-//                                "/sendmail", "/setUserPassword", "/savequestion"
-//                        ).permitAll()
-//
-//                        // 👮 Доступи за ролями
-//                        .requestMatchers("/acc/**","/admin/**").hasAuthority("Admin")
-//                        .requestMatchers("/user/**").hasAnyAuthority("User", "Admin")
-//                        .requestMatchers("/creater/**").hasAnyAuthority("Creator", "Admin")
-//                        .requestMatchers("/editor/**").hasAnyAuthority("Editor", "Admin")
-//                        .requestMatchers("/moderator/**").hasAnyAuthority("Moderator", "Admin")
-//                        .requestMatchers("/upload/**", "/newstoradio/**").hasAnyAuthority("User", "Creator", "Admin", "Editor", "Moderator")
-//
-//                        // 🔒 Все інше — тільки для авторизованих
-//                        .anyRequest().authenticated()
-//                                .anyRequest().permitAll()
-//                )
-//
-//                // 🔐 Форма логіну
-//                .formLogin(fL -> fL
-//                        .loginPage("/login")
-//                        .loginProcessingUrl("/login")
-//                        .defaultSuccessUrl("/login/route",true)
-//                        .permitAll()
-//                )
-//
-//                // 🚪 Логаут
-//                .logout(logout -> logout
-//                        .invalidateHttpSession(true)
-//                        .clearAuthentication(true)
-//                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-//                        .logoutSuccessUrl("/")
-//                        .permitAll()
-//                )
-//
-//                // 🛡️ Дозволити iframe (наприклад, для H2 console)
-//                .headers(headers -> headers
-//                        .frameOptions(frame -> frame.sameOrigin())
-//                );
-//
-//        return http.build();
-//    }
-
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder.userDetailsService(uds).passwordEncoder(encoder);
         return authBuilder.build();
-        //        return http.getSharedObject(AuthenticationManagerBuilder.class)
-//                .userDetailsService(uds)
-//                .passwordEncoder(encoder)
-//                .and()
-//                .build();
     }
 
     @Bean
     public FilterRegistrationBean<HiddenHttpMethodFilter> hiddenHttpMethodFilter() {
         FilterRegistrationBean<HiddenHttpMethodFilter> filterRegistrationBean = new FilterRegistrationBean<>(new HiddenHttpMethodFilter());
-        // Встановлюємо порядок фільтра, щоб він виконувався дуже рано,
-        // перед більшістю фільтрів Spring Security.
-        // Ordered.HIGHEST_PRECEDENCE забезпечує виконання фільтра на максимально ранньому етапі.
         filterRegistrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return filterRegistrationBean;
     }
 
-    // --- Додайте цей Bean для CharacterEncodingFilter ---
     @Bean
     public FilterRegistrationBean<CharacterEncodingFilter> characterEncodingFilterRegistrationBean() {
         CharacterEncodingFilter filter = new CharacterEncodingFilter();
         filter.setEncoding("UTF-8");
-        filter.setForceEncoding(true); // Завжди примусово встановлювати UTF-8
-
+        filter.setForceEncoding(true);
         FilterRegistrationBean<CharacterEncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
-        registrationBean.addUrlPatterns("/*"); // Застосовувати до всіх URL
-        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1); // Встановлюємо порядок
+        registrationBean.addUrlPatterns("/*");
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
         return registrationBean;
     }
-
 }
