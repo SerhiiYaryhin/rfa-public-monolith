@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.Map;
 
+import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_POSTCOVER;
+
 @RestController
 @RequestMapping("/api/author")
 public class AuthorRestController {
@@ -63,13 +65,20 @@ public class AuthorRestController {
     public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
         try {
             Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-            Store store = storeService.storeFile(file, cd);
+            
+            // Використовуємо існуючий метод сервісу
+            String storeUUID = storeService.PutFileToStore(
+                    file.getInputStream(), 
+                    file.getOriginalFilename(), 
+                    cd, 
+                    STORE_POSTCOVER
+            );
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", 1);
             Map<String, String> fileData = new HashMap<>();
-            fileData.put("url", "/store/content/" + store.getUuid());
-            fileData.put("uuid", store.getUuid());
+            fileData.put("url", "/store/content/" + storeUUID);
+            fileData.put("uuid", storeUUID);
             response.put("file", fileData);
             
             return ResponseEntity.ok(response);
