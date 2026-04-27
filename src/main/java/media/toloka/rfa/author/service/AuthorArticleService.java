@@ -28,8 +28,7 @@ public class AuthorArticleService {
     }
 
     public Page<AuthorArticle> getAuthorArticles(AuthorColumn column, int page, int size) {
-        // Тут ми повертаємо всі статті автора (і чернетки, і опубліковані)
-        return articleRepository.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()));
+        return articleRepository.findByColumn(column, PageRequest.of(page, size, Sort.by("createdAt").descending()));
     }
 
     public Optional<AuthorArticle> getArticleByUuid(String uuid) {

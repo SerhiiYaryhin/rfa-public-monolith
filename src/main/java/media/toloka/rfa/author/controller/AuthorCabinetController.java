@@ -29,7 +29,7 @@ public class AuthorCabinetController {
     private ClientService clientService;
 
     @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(default = "0") int page, Model model) {
+    public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         Users user = clientService.GetCurrentUser();
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         

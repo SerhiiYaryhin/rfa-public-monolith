@@ -49,6 +49,7 @@ public class AuthorRestController {
         article.setTitle(articleData.getTitle());
         article.setPostbody(articleData.getPostbody());
         article.setCoverUuid(articleData.getCoverUuid());
+        article.setStatus(articleData.getStatus());
         
         AuthorArticle saved = articleService.saveArticle(article);
         

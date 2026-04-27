@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface AuthorArticleRepository extends JpaRepository<AuthorArticle, Long> {
     Optional<AuthorArticle> findByUuid(String uuid);
     Optional<AuthorArticle> findBySlug(String slug);
+    Page<AuthorArticle> findByColumn(AuthorColumn column, Pageable pageable);
     Page<AuthorArticle> findByColumnAndStatus(AuthorColumn column, EAuthorArticleStatus status, Pageable pageable);
     Page<AuthorArticle> findByStatus(EAuthorArticleStatus status, Pageable pageable);
 }
