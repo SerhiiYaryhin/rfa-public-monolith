@@ -31,10 +31,12 @@
                                         <span th:text="${clientdetail.firmname}"/>
                                     </h5>
                                     <div class="mt-4 d-grid" sec:authorize="isAuthenticated()">
-                                        <a th:if="${#authentication.principal.username == clientdetail.custemail}" 
-                                           href="/author/apply" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                            <i class="fas fa-pen-nib me-2"></i>Стати автором
-                                        </a>
+                                        <!-- Перевірка власника профілю -->
+                                        <th:block th:if="${#authentication.name == clientdetail.custemail}">
+                                            <a href="/author/apply" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                <i class="fas fa-pen-nib me-2"></i>Стати автором
+                                            </a>
+                                        </th:block>
                                     </div>
                                 </div>
                             </div><!-- end col -->

@@ -80,6 +80,8 @@
                         <li><a class="dropdown-item" href="/creater/podcasts/0">Подкасти</a></li>
                         <li><a class="dropdown-item" href="/creater/storage/0">Сховище</a></li>
                         <li><a class="dropdown-item" href="/podcast/home">Подкасти</a></li>
+                        <li sec:authorize="hasRole('ROLE_AUTHOR')"><a class="dropdown-item fw-bold text-primary" href="/creater/author/dashboard">Кабінет автора</a></li>
+                        <li sec:authorize="hasRole('ROLE_USER') and !hasRole('ROLE_AUTHOR')"><a class="dropdown-item" href="/author/apply">Стати автором</a></li>
                         <li><a class="dropdown-item" href="/banners">Баннери</a></li>
                     </ul>
                 </li>  <!-- Creater -->
@@ -122,6 +124,8 @@
                         <li><a class="dropdown-item" href="/admin/station">Станції</a></li>
                         <li><a class="dropdown-item" href="/admin/storage">Сховище</a></li>
                         <li><a class="dropdown-item" href="/admin/financeuser">Фінанси</a></li>
+                        <li class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/admin/author/requests">Запити на авторство</a></li>
                     </ul>
                 </li>  <!-- admin -->
                 <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'Адмін')" class="nav-item dropdown">
