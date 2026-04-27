@@ -1,0 +1,83 @@
+package media.toloka.rfa.author.service;
+
+import media.toloka.rfa.author.model.AuthorColumn;
+import media.toloka.rfa.author.model.AuthorRequest;
+import media.toloka.rfa.author.model.enumerate.EAuthorRequestStatus;
+import media.toloka.rfa.author.repository.AuthorColumnRepository;
+import media.toloka.rfa.author.repository.AuthorRequestRepository;
+import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.ERole;
+import media.toloka.rfa.security.model.Roles;
+import media.toloka.rfa.security.repository.RolesRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class AuthorService {
+
+    @Autowired
+    private AuthorRequestRepository requestRepository;
+
+    @Autowired
+    private AuthorColumnRepository columnRepository;
+
+    @Autowired
+    private RolesRepository rolesRepository;
+
+    public AuthorRequest saveRequest(AuthorRequest request) {
+        return requestRepository.save(request);
+    }
+
+    public List<AuthorRequest> getAllPendingRequests() {
+        // У реальному проекті тут можна додати фільтрацію через репозиторій
+        return requestRepository.findAll().stream()
+                .filter(r -> r.getStatus() == EAuthorRequestStatus.PENDING)
+                .toList();
+    }
+
+    public Optional<AuthorRequest> getRequestByUuid(String uuid) {
+        return requestRepository.findByUuid(uuid);
+    }
+
+    @Transactional
+    public void approveRequest(String uuid) {
+        AuthorRequest request = requestRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Заявку не знайдено"));
+
+        request.setStatus(EAuthorRequestStatus.APPROVED);
+        request.setProcessedAt(new Date());
+        requestRepository.save(request);
+
+        // Створюємо колонку для автора
+        AuthorColumn column = new AuthorColumn();
+        column.setAuthor(request.getClient());
+        column.setTitle("Авторська колонка: " + request.getClient().getCustname());
+        column.setSlug(generateSlug(request.getClient().getCustname() + "-" + request.getClient().getCustsurname()));
+        columnRepository.save(column);
+
+        // Оновлюємо роль користувача
+        // Тут потрібна логіка додавання ролі ROLE_AUTHOR до сутності Users
+        // Оскільки доступ до Users зазвичай через Clientdetail -> User
+    }
+
+    @Transactional
+    public void rejectRequest(String uuid) {
+        AuthorRequest request = requestRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Заявку не знайдено"));
+
+        request.setStatus(EAuthorRequestStatus.REJECTED);
+        request.setProcessedAt(new Date());
+        requestRepository.save(request);
+    }
+
+    private String generateSlug(String input) {
+        return input.toLowerCase()
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", "-") + "-" + System.currentTimeMillis() % 1000;
+    }
+}

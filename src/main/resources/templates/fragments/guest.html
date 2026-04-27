@@ -30,10 +30,19 @@
                                     <h5 class="text-muted font-size-13 mb-0">
                                         <span th:text="${clientdetail.firmname}"/>
                                     </h5>
+                                    <div class="mt-4 d-grid" sec:authorize="isAuthenticated()">
+                                        <a th:if="${#authentication.principal.username == clientdetail.custemail}" 
+                                           href="/author/apply" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="fas fa-pen-nib me-2"></i>Стати автором
+                                        </a>
+                                    </div>
                                 </div>
                             </div><!-- end col -->
                             <div class="col-md-9">
                                 <div class="ms-3">
+                                    <div th:if="${param.success}" class="alert alert-success py-2 small" role="alert">
+                                        <span th:if="${param.success[0] == 'apply'}">Заявку на авторство успішно надіслано!</span>
+                                    </div>
                                     <div th:utext="${clientdetail.comments}"></div>
                                 </div>
                             </div><!-- end col -->
@@ -94,7 +103,7 @@
                                         <table class="table">
                                             <tbody>
                                             <tr th:each="post : ${postList}">
-                                                <td><a th:href="'/post/postview/'+${post.id}"> <span th:text="${post.posttitle}"></span></a></td>
+                                                <td><a th:href="'/post/postview/'+${post.uuid}"> <span th:text="${post.posttitle}"></span></a></td>
 <!--                                                <td><span th:text="${post.autor}"></span></td>-->
                                             </tr>
                                             </tbody>
