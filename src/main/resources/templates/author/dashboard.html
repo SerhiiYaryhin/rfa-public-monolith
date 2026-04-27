@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Кабінет автора - Толока</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-light">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <div class="container py-5" style="margin-top: 100px;">
+        <div class="row mb-4 align-items-center">
+            <div class="col">
+                <h1 class="h3 fw-bold mb-0">Мої статті</h1>
+                <p class="text-muted small mb-0" th:text="${column.title}">Назва колонки</p>
+            </div>
+            <div class="col-auto">
+                <a href="/creater/author/article/new" class="btn btn-primary rounded-pill px-4">
+                    <i class="fas fa-plus me-2"></i>Нова стаття
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0" style="border-radius: 15px;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-white">
+                        <tr>
+                            <th class="ps-4 py-3">Заголовок</th>
+                            <th class="py-3">Статус</th>
+                            <th class="py-3">Створено</th>
+                            <th class="py-3">Перегляди</th>
+                            <th class="py-3 text-end pe-4">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="art : ${articles}">
+                            <td class="ps-4">
+                                <div class="fw-bold" th:text="${art.title}">Заголовок</div>
+                                <div class="small text-muted" th:text="${art.slug}">slug</div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill" 
+                                      th:classappend="${art.status.name() == 'PUBLISHED' ? 'bg-success' : (art.status.name() == 'PENDING' ? 'bg-warning' : 'bg-secondary')}"
+                                      th:text="${art.status}">Статус</span>
+                            </td>
+                            <td th:text="${#dates.format(art.createdAt, 'dd.MM.yyyy')}">Дата</td>
+                            <td th:text="${art.looked}">0</td>
+                            <td class="text-end pe-4">
+                                <a th:href="@{'/creater/author/article/edit/' + ${art.uuid}}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    Редагувати
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${articles.isEmpty()}">
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-edit fa-3x mb-3 opacity-25"></i>
+                                <p>Ви ще не створили жодної статті</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Редактор статті - Толока</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
+    <style>
+        .editor-container { background: #fff; border-radius: 15px; min-height: 600px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .ce-block__content, .ce-toolbar__content { max-width: 900px; }
+        .article-title-input { border: none; font-size: 2.5rem; font-weight: 800; width: 100%; margin-bottom: 30px; outline: none; }
+        .sticky-toolbar { position: sticky; top: 100px; z-index: 100; }
+    </style>
+</head>
+<body class="bg-light">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <div class="container py-5" style="margin-top: 100px;">
+        <div class="row">
+            <div class="col-lg-9 mx-auto">
+                <div class="d-flex justify-content-between align-items-center mb-4 sticky-toolbar bg-light py-2">
+                    <a href="/creater/author/dashboard" class="btn btn-light rounded-pill px-3"><i class="fas fa-arrow-left me-2"></i>До списку</a>
+                    <div>
+                        <button id="saveDraftBtn" class="btn btn-outline-primary rounded-pill px-4 me-2">Зберегти чернетку</button>
+                        <button id="publishBtn" class="btn btn-primary rounded-pill px-4">Опублікувати</button>
+                    </div>
+                </div>
+
+                <div class="editor-container">
+                    <input type="text" id="articleTitle" class="article-title-input" placeholder="Заголовок статті..." th:value="${article.title}">
+                    <div id="editorjs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="articleUuid" th:value="${article.uuid}">
+    <input type="hidden" id="initialData" th:value="${article.postbody}">
+
+    <script th:inline="javascript">
+        const articleUuid = document.getElementById('articleUuid').value;
+        const initialData = document.getElementById('initialData').value;
+
+        const editor = new EditorJS({
+            holder: 'editorjs',
+            placeholder: 'Почніть писати вашу історію...',
+            tools: {
+                header: Header,
+                list: List,
+                embed: Embed,
+                image: {
+                    class: ImageTool,
+                    config: {
+                        endpoints: {
+                            byFile: '/api/author/image/upload'
+                        }
+                    }
+                }
+            },
+            data: initialData ? JSON.parse(initialData) : {}
+        });
+
+        async function saveArticle(isPublish = false) {
+            try {
+                const outputData = await editor.save();
+                const title = document.getElementById('articleTitle').value;
+                
+                if (!title) {
+                    alert('Будь ласка, введіть заголовок');
+                    return;
+                }
+
+                const response = await fetch('/api/author/article/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uuid: articleUuid,
+                        title: title,
+                        postbody: JSON.stringify(outputData),
+                        status: isPublish ? 'PENDING' : 'DRAFT'
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/creater/author/dashboard?success=saved';
+                }
+            } catch (error) {
+                console.error('Saving failed', error);
+                alert('Помилка при збереженні');
+            }
+        }
+
+        document.getElementById('saveDraftBtn').addEventListener('click', () => saveArticle(false));
+        document.getElementById('publishBtn').addEventListener('click', () => saveArticle(true));
+    </script>
+</body>
+</html>
