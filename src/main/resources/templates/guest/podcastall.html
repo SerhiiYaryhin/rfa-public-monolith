@@ -61,7 +61,38 @@
                 <p class="lead text-muted">Слухайте цікаві історії, новини та музичні обзори від наших авторів у зручний для вас час.</p>
             </div>
         </div>
+        <!-- Пагінація (компактна та безпечна) -->
+        <div class="mt-5 pt-4 border-top" th:if="${totalPages > 1}">
+            <nav aria-label="Podcast navigation">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/0'" title="Початок"><i class="fas fa-angle-double-left"></i></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage < 10} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/' + ${currentPage - 10 < 0 ? 0 : currentPage - 10}">-10</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/' + ${currentPage - 1 < 0 ? 0 : currentPage - 1}"><i class="fas fa-chevron-left"></i></a>
+                    </li>
 
+                    <th:block th:with="start=${currentPage - 2 < 0 ? 0 : currentPage - 2}, end=${currentPage + 2 > totalPages - 1 ? totalPages - 1 : currentPage + 2}">
+                        <li class="page-item" th:each="lpage : ${#numbers.sequence(start, end)}" th:classappend="${lpage == currentPage} ? 'active'">
+                            <a class="page-link shadow-none" th:href="'/podcast/all/'+${lpage}" th:text="${lpage+1}">1</a>
+                        </li>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/' + ${currentPage + 1 >= totalPages ? totalPages - 1 : currentPage + 1}"><i class="fas fa-chevron-right"></i></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage > totalPages - 11} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/' + ${currentPage + 10 > totalPages - 1 ? totalPages - 1 : currentPage + 10}">+10</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link shadow-none" th:href="'/podcast/all/' + ${totalPages - 1}" title="Кінець"><i class="fas fa-angle-double-right"></i></a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
             <div th:each="podcast : ${podcastList}" class="col">
                 <div class="card podcast-card shadow-sm">

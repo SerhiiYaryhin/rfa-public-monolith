@@ -68,8 +68,32 @@
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-10 mx-auto">
+                <div th:if="${episodes != null && !episodes.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
+                    <audio-player id="audio-player" style="padding:0"
+                              th:data-src="'/store/audio/' + ${episodes[0].storeuuid}"
+                              th:data-name="${podcast.title}"
+                              th:data-autor="${episodes[0].title}"
+                    />
+                </div>
+            </div>
+            <div class="col-lg-10 mx-auto">
                 <h2 class="mb-4 fw-bold"><i class="fas fa-list-ul text-primary me-2"></i>Епізоди</h2>
-                
+                <!-- Пагінація епізодів -->
+                <nav aria-label="Episodes Pagination" class="mt-5" th:if="${totalPages > 1}">
+                    <ul class="pagination justify-content-center shadow-sm">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${currentPage - 1}}"><i class="fas fa-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${i}}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/podcast/view/' + ${podcast.uuid} + '/' + ${currentPage + 1}}"><i class="fas fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+
+
                 <div class="card shadow-sm border-0">
                     <div class="list-group list-group-flush rounded">
                         <div th:each="item : ${episodes}" class="list-group-item episode-card p-4">
@@ -78,8 +102,12 @@
                                     <!-- Кнопка Play для нашого Custom Audio Player -->
                                     <button th:if="${item.enclosurestore != null}" 
                                             class="btn btn-primary play-btn shadow"
-                                            th:id="${item.enclosurestore.uuid}" 
-                                            th:onclick="onClickTrack(this,[[${item.title}]],[[${podcast.title}]])">
+                                            th:id="${item.enclosurestore.uuid}"
+                                            th:data-src="${item.enclosurestore.uuid}"
+                                            th:data-name="${podcast.title}"
+                                            th:data-autor="${item.title}"
+                                            th:onclick="onClickTrack(this.dataset.src, this.dataset.name, this.dataset.autor)"/>
+<!--                                            th:onclick="onClickTrack(this,[[${item.title}]],[[${podcast.title}]])">-->
                                         <i class="fas fa-play ms-1"></i>
                                     </button>
                                 </div>
@@ -122,9 +150,14 @@
     <div th:insert="~{/fragments/common :: footer}"></div>
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
+<!--    <audio-player id="audio-player" style="padding:0"-->
+<!--                  th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"-->
+<!--                  th:data-name="${trackList[0].name}"-->
+<!--                  th:data-autor="${trackList[0].autor}"/>-->
     <script>
-        function onClickTrack(event,name,autor) {
-            document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
+        function onClickTrack(track,name,autor) {
+            document.getElementById('audio-player').myChangeTrack(track,name,autor);
+            // document.getElementById('audio-player').myChangeTrack(event.id,name,autor);
             // Скрол до плеєра (опційно)
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }

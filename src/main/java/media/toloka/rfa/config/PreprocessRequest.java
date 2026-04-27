@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class PreprocessRequest {
-    final Logger logger = LoggerFactory.getLogger(PreprocessRequest.class);
+   // final Logger logger = LoggerFactory.getLogger(PreprocessRequest.class);
 
 //    @Pointcut("within(@org.springframework.web.bind.annotation.RestController*)")
 //    public void restcontroller() {}

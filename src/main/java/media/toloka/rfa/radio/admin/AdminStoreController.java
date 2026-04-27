@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@Profile("Front")
+@Profile("Fro   nt")
 @Controller
 public class AdminStoreController {
 
