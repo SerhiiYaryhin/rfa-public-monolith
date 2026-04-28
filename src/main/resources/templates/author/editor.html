@@ -22,86 +22,44 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@latest"></script>
-
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@latest"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/text-variant-tune@latest"></script>
 
     <script src="/js/editor/PortalArticle.js"></script>
 
     <style>
         :root {
             --toloka-bg: #f8fafc;
-            --editor-white: #ffffff;
             --preview-paper: #fffcf5;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--toloka-bg); }
+        .editor-container { background: #fff; border-radius: 15px; min-height: 700px; padding: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-        /* Контейнер редактора */
-        .editor-container {
-            background: var(--editor-white);
-            border-radius: 15px;
-            min-height: 700px;
-            padding: 60px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        /* Заголовок */
+        .article-title-input { border: none; font-size: 2.8rem; font-weight: 800; width: 100%; margin-bottom: 30px; outline: none; }
 
-        /* Поле заголовка */
-        .article-title-input {
-            border: none;
-            font-size: 2.8rem;
-            font-weight: 800;
-            width: 100%;
-            margin-bottom: 30px;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            color: #0f172a;
-        }
-        .article-title-input::placeholder { color: #cbd5e1; }
-
-        /* Стилі самого Editor.js */
-        #editorjs { font-family: 'Lora', serif; font-size: 1.25rem; line-height: 1.6; }
-
-        /* Панель інструментів, що приліпає */
         .sticky-toolbar {
-            position: sticky;
-            top: 85px;
-            z-index: 1000;
-            border-radius: 50px;
+            position: sticky; top: 85px; z-index: 1000;
             background: rgba(255, 255, 255, 0.9) !important;
             backdrop-filter: blur(10px);
         }
 
-        /* Обмеження фото в редакторі (20%) */
-        .ce-block--type-image .ce-block__content,
-        .pa-preview img {
-            max-width: 20% !important;
-            margin: 0 auto;
+        /* Обмеження фото 20% тільки в режимі редагування */
+        #editorjs .ce-block--type-image .ce-block__content,
+        #editorjs .pa-preview img {
+            max-width: 20% !important; margin: 0 auto;
         }
-        .ce-block--type-image .ce-block__content--stretched {
+        #editorjs .ce-block--type-image .ce-block__content--stretched {
             max-width: 100% !important;
         }
 
-        /* Стилі для прев'ю в модальному вікні */
-        .preview-body { font-family: 'Lora', serif; font-size: 1.3rem; line-height: 1.8; color: #1a1a1a; }
-        .preview-title { font-family: 'Inter', sans-serif; font-size: 3.5rem; font-weight: 800; text-align: center; }
+        /* Стилі для Text Variant Tune */
+        .cdx-text-variant--italic { font-style: italic; }
+        .cdx-text-variant--gray { color: #64748b; }
 
-        blockquote {
-            border-left: 5px solid #2563eb;
-            padding: 15px 0 15px 30px;
-            font-style: italic;
-            font-size: 1.5rem;
-            color: #475569;
-            margin: 40px 0;
-        }
+        /* Стилі для прев'ю (читалки) */
+        #editor-preview { font-family: 'Lora', serif; font-size: 1.3rem; }
+        .preview-modal-content { background-color: var(--preview-paper); border-radius: 20px; border: none; }
     </style>
 </head>
 <body>
@@ -111,24 +69,18 @@
     <div class="row">
         <div class="col-lg-10 mx-auto">
 
-            <div class="d-flex justify-content-between align-items-center mb-4 sticky-toolbar bg-white shadow-sm p-3 border">
-                <a href="/creater/author/dashboard" class="btn btn-light rounded-pill px-3">
-                    <i class="fas fa-arrow-left me-2"></i>До списку
-                </a>
-
-                <div id="wordCounter" class="text-muted small fw-bold mx-auto">Слів: 0</div>
-
+            <div class="d-flex justify-content-between align-items-center mb-4 sticky-toolbar bg-white shadow-sm p-3 border rounded-pill">
+                <a href="/creater/author/dashboard" class="btn btn-light rounded-pill px-3"><i class="fas fa-arrow-left me-2"></i>До списку</a>
+                <div id="wordCounter" class="text-muted small fw-bold">Слів: 0</div>
                 <div class="d-flex gap-2">
-                    <button id="previewBtn" class="btn btn-light rounded-pill px-4 border">
-                        <i class="fas fa-eye me-2"></i>Перегляд
-                    </button>
+                    <button id="previewBtn" class="btn btn-light rounded-pill px-4 border"><i class="fas fa-eye me-2"></i>Перегляд</button>
                     <button id="saveDraftBtn" class="btn btn-outline-primary rounded-pill px-4">Зберегти чернетку</button>
                     <button id="publishBtn" class="btn btn-primary rounded-pill px-4">Опублікувати</button>
                 </div>
             </div>
 
             <div class="editor-container">
-                <input type="text" id="articleTitle" class="article-title-input" placeholder="Заголовок вашої історії..." th:value="${article.title}">
+                <input type="text" id="articleTitle" class="article-title-input" placeholder="Заголовок історії..." th:value="${article.title}">
                 <div id="editorjs"></div>
             </div>
         </div>
@@ -137,15 +89,12 @@
 
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content" style="background-color: var(--preview-paper); border-radius: 20px; border: none;">
+        <div class="modal-content preview-modal-content">
             <div class="modal-header border-0 px-5 pt-4">
-                <h5 class="text-muted small text-uppercase letter-spacing-1">Чернетка для перегляду</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-5 pb-5">
-                <h1 id="modalTitle" class="preview-title mb-5"></h1>
-                <div id="modalBody" class="preview-body">
-                </div>
+                <div id="editor-preview"></div>
             </div>
         </div>
     </div>
@@ -155,138 +104,99 @@
 <input type="hidden" id="initialData" th:value="${article.postbody}">
 
 <script th:inline="javascript">
-    const articleUuid = document.getElementById('articleUuid').value;
     const initialRaw = document.getElementById('initialData').value;
+    const AlignmentClass = window.AlignmentBlockTune || window.AlignmentTune;
 
-    // --- 1. ПІДРАХУНОК СЛІВ ---
-    function updateWordCount(data) {
-        let text = document.getElementById('articleTitle').value + " ";
-        data.blocks.forEach(block => {
-            if (block.data.text) text += block.data.text + " ";
-            if (block.data.items) {
-                const walk = (items) => items.forEach(i => { text += i.content + " "; if(i.items) walk(i.items); });
-                walk(block.data.items);
+    // 1. Конфігурація інструментів (однакова для обох редакторів)
+    const editorTools = {
+        alignTune: { class: AlignmentClass, config: { default: 'left' } },
+        textVariant: TextVariantTune,
+        header: {
+            class: Header,
+            inlineToolbar: true,
+            tunes: ['alignTune', 'textVariant'],
+            config: { levels: [2, 3], defaultLevel: 2 }
+        },
+        paragraph: { class: Paragraph, inlineToolbar: true, tunes: ['alignTune', 'textVariant'] },
+        list: { class: NestedList, inlineToolbar: true },
+        quote: { class: Quote, inlineToolbar: true, tunes: ['alignTune'] },
+        image: {
+            class: ImageTool,
+            config: { endpoints: { byFile: '/api/author/image/upload' } }
+        },
+        embed: { class: Embed, config: { services: { youtube: true, twitter: true, instagram: true } } },
+        table: { class: Table, inlineToolbar: true },
+        delimiter: Delimiter,
+        marker: Marker,
+        portalArticle: PortalArticle
+    };
+
+    // 2. Основний редактор
+    const editor = new EditorJS({
+        holder: 'editorjs',
+        tools: editorTools,
+        data: initialRaw ? JSON.parse(initialRaw) : {},
+        onChange: () => editor.save().then(updateWordCount)
+    });
+
+    // 3. Логіка Native Preview (ReadOnly)
+    let previewInstance = null;
+
+    async function showNativePreview() {
+        const outputData = await editor.save();
+        const currentTitle = document.getElementById('articleTitle').value;
+
+        // Відкриваємо модалку
+        const modalEl = document.getElementById('previewModal');
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+
+        // Очищуємо попередній екземпляр
+        if (previewInstance) {
+            await previewInstance.isReady;
+            previewInstance.destroy();
+        }
+
+        // Створюємо читалку
+        previewInstance = new EditorJS({
+            holder: 'editor-preview',
+            readOnly: true,
+            tools: editorTools,
+            data: {
+                blocks: [
+                    { type: "header", data: { text: currentTitle || "Без заголовка", level: 1 } },
+                    ...outputData.blocks
+                ]
             }
         });
+    }
+
+    // --- Допоміжні функції ---
+    function updateWordCount(data) {
+        let text = document.getElementById('articleTitle').value + " ";
+        data.blocks.forEach(b => { if(b.data.text) text += b.data.text + " "; });
         const count = text.trim() ? text.trim().split(/\s+/).length : 0;
         document.getElementById('wordCounter').innerText = `Слів: ${count}`;
     }
 
-    // --- 2. ІНІЦІАЛІЗАЦІЯ РЕДАКТОРА ---
-    const editor = new EditorJS({
-        holder: 'editorjs',
-        placeholder: 'Розкажіть про щось цікаве...',
-        tools: {
-            alignTune: { class: AlignmentBlockTune, config: { default: 'left' } },
-            header: {
-                class: Header,
-                inlineToolbar: true,
-                tunes: ['alignTune'],
-                config: { levels: [2, 3], defaultLevel: 2 }
-            },
-            paragraph: { class: Paragraph, inlineToolbar: true, tunes: ['alignTune'] },
-            list: { class: NestedList, inlineToolbar: true },
-            quote: { class: Quote, inlineToolbar: true, tunes: ['alignTune'] },
-            image: {
-                class: ImageTool,
-                config: {
-                    endpoints: { byFile: '/api/author/image/upload' }
-                }
-            },
-            embed: {
-                class: Embed,
-                config: { services: { youtube: true, twitter: true, instagram: true } }
-            },
-            table: { class: Table, inlineToolbar: true },
-            delimiter: Delimiter,
-            marker: Marker,
-            portalArticle: PortalArticle
-        },
-        data: initialRaw ? JSON.parse(initialRaw) : {},
-        onChange: () => {
-            editor.save().then(updateWordCount);
-        }
-    });
-
-    // --- 3. ЛОГІКА РЕНДЕРИНГУ ПРЕВ'Ю ---
-    function renderPreviewToModal(data) {
-        const modalBody = document.getElementById('modalBody');
-        document.getElementById('modalTitle').innerText = document.getElementById('articleTitle').value || 'Без назви';
-        modalBody.innerHTML = '';
-
-        data.blocks.forEach(block => {
-            const el = document.createElement('div');
-            const align = block.tunes?.alignTune?.alignment || 'left';
-            el.style.textAlign = align;
-            el.className = 'mb-4';
-
-            switch (block.type) {
-                case 'header': el.innerHTML = `<h${block.data.level} class="fw-bold mt-4">${block.data.text}</h${block.data.level}>`; break;
-                case 'paragraph': el.innerHTML = `<p>${block.data.text}</p>`; break;
-                case 'list':
-                    const tag = block.data.style === 'ordered' ? 'ol' : 'ul';
-                    const itemsHtml = (items) => items.map(i => `<li>${i.content}${i.items && i.items.length ? `<${tag}>${itemsHtml(i.items)}</${tag}>` : ''}</li>`).join('');
-                    el.innerHTML = `<${tag} class="ps-4">${itemsHtml(block.data.items)}</${tag}>`;
-                    break;
-                case 'image':
-                    el.innerHTML = `<div class="text-center my-4"><img src="${block.data.file.url}" class="img-fluid rounded shadow-sm"></div>`;
-                    break;
-                case 'quote':
-                    el.innerHTML = `<blockquote>${block.data.text}</blockquote>`;
-                    break;
-                case 'portalArticle':
-                    el.innerHTML = `
-                            <div class="card flex-row border-0 shadow-sm overflow-hidden my-4" style="background:#fff;">
-                                <img src="${block.data.image}" style="width:200px; height:150px; object-fit:cover;">
-                                <div class="card-body p-4"><h4 class="fw-bold">${block.data.title}</h4><p class="text-muted small">Автор: ${block.data.author}</p></div>
-                            </div>`;
-                    break;
-                case 'delimiter': el.innerHTML = `<div class="text-center h1 my-5 text-muted opacity-25">***</div>`; break;
-            }
-            modalBody.appendChild(el);
+    async function saveArticle(isPublish) {
+        const data = await editor.save();
+        const res = await fetch('/api/author/article/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                uuid: document.getElementById('articleUuid').value,
+                title: document.getElementById('articleTitle').value,
+                postbody: JSON.stringify(data),
+                status: isPublish ? 'PENDING' : 'DRAFT'
+            })
         });
-
-        const myModal = new bootstrap.Modal(document.getElementById('previewModal'));
-        myModal.show();
+        if(res.ok) window.location.href = '/creater/author/dashboard?success=saved';
     }
 
-    // --- 4. ЗБЕРЕЖЕННЯ ---
-    async function saveArticle(isPublish = false) {
-        try {
-            const outputData = await editor.save();
-            const title = document.getElementById('articleTitle').value;
-
-            if (!title) {
-                alert('Заголовок обов’язковий!');
-                return;
-            }
-
-            const response = await fetch('/api/author/article/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    uuid: articleUuid,
-                    title: title,
-                    postbody: JSON.stringify(outputData),
-                    status: isPublish ? 'PENDING' : 'DRAFT'
-                })
-            });
-
-            if (response.ok) {
-                window.location.href = '/creater/author/dashboard?success=saved';
-            }
-        } catch (error) {
-            alert('Помилка при збереженні');
-        }
-    }
-
-    // Обробники подій
-    document.getElementById('previewBtn').onclick = async () => renderPreviewToModal(await editor.save());
+    document.getElementById('previewBtn').onclick = showNativePreview;
     document.getElementById('saveDraftBtn').onclick = () => saveArticle(false);
     document.getElementById('publishBtn').onclick = () => saveArticle(true);
-
-    // Початковий запуск підрахунку
-    setTimeout(() => editor.save().then(updateWordCount), 1500);
 </script>
 </body>
 </html>
