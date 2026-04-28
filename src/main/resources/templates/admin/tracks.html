@@ -48,6 +48,7 @@
                         <th class="ps-3">Аудіо</th>
                         <th>Назва / Автор</th>
                         <th class="text-center">Схвалено</th>
+                        <th class="text-center">На порталі</th>
                         <th>Клієнт</th>
                         <th>Дата</th>
                         <th class="text-end pe-3">Дії</th>
@@ -62,8 +63,11 @@
                             <span th:if="${track.storeitem == null}" class="text-danger small">Файл відсутній</span>
                         </td>
                         <td>
-                            <strong th:text="${track.name}">Назва</strong><br>
-                            <span class="text-muted small" th:text="${track.autor}">Автор</span>
+                            <strong th:classappend="${track.name == null || track.name.isEmpty()} ? 'text-danger fw-normal italic'" 
+                                    th:text="${(track.name == null || track.name.isEmpty()) ? '[БЕЗ НАЗВИ]' : track.name}">Назва</strong><br>
+                            <span class="text-muted small" 
+                                  th:classappend="${track.autor == null || track.autor.isEmpty()} ? 'text-danger'"
+                                  th:text="${(track.autor == null || track.autor.isEmpty()) ? '[БЕЗ АВТОРА]' : track.autor}">Автор</span>
                         </td>
                         <td class="text-center">
                             <label class="switch">
@@ -73,6 +77,14 @@
                                        onchange="window.location.href=this.getAttribute('data-url')">
                                 <span class="slider"></span>
                             </label>
+                        </td>
+                        <td class="text-center">
+                            <a th:href="@{'/admin/togglepublish/' + ${track.uuid}}" 
+                               class="btn btn-sm" 
+                               th:classappend="${track.publishstatus == true} ? 'btn-success' : 'btn-outline-secondary'"
+                               th:title="${track.publishstatus == true} ? 'Публічно' : 'Приховано'">
+                                <i class="fas" th:classappend="${track.publishstatus == true} ? 'fa-eye' : 'fa-eye-slash'"></i>
+                            </a>
                         </td>
                         <td>
                             <span class="small" th:text="${track.clientdetail.custname} + ' ' + ${track.clientdetail.custsurname}">Клієнт</span><br>

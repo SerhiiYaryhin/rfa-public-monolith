@@ -98,6 +98,20 @@ public class AdminTracks {
         return "/admin/tracks";
     }
 
+    /** Перемикання лише статусу публікації на порталі */
+    @GetMapping(value = "/admin/togglepublish/{trackUuid}")
+    public String togglePublishStatus(@PathVariable String trackUuid) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Track track = createrService.GetTrackByUuid(trackUuid);
+        if (track != null) {
+            track.setPublishstatus(!track.getPublishstatus());
+            createrService.SaveTrack(track);
+        }
+        return "redirect:/admin/tracks";
+    }
+
     /** Перемикання статусу публікації треку (Toggle) */
     @GetMapping(value = "/admin/toggletrack/{trackUuid}")
     public String toggleTrackStatus(@PathVariable String trackUuid) {

@@ -22,7 +22,7 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
     List<Track> findAllByOrderByUploaddateAsc();
     List<Track> findAllTop10ByOrderByUploaddateAsc();
 //    List<Track> findTop10ByApruveTrueOrderByUploaddateAsc();
-    @Query("SELECT t FROM Track t WHERE t.apruve = true ORDER BY t.uploaddate ASC LIMIT 10")
+    @Query("SELECT t FROM Track t WHERE t.apruve = true AND t.publishstatus = true ORDER BY t.uploaddate DESC LIMIT 10")
     List<Track> findTop10Approved();
 
     Track getById(Long id);
