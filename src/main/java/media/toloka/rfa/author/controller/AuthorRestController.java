@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static media.toloka.rfa.radio.store.model.EStoreFileType.STORE_POSTCOVER;
 
@@ -41,11 +42,15 @@ public class AuthorRestController {
                 .orElseThrow(() -> new RuntimeException("Колонку не знайдено"));
 
         AuthorArticle article;
-        if (articleData.getUuid() != null && !articleData.getUuid().isEmpty()) {
-            article = articleService.getArticleByUuid(articleData.getUuid()).orElse(new AuthorArticle());
+        // Шукаємо за UUID, який прийшов з фронтенду
+        Optional<AuthorArticle> existingArticle = articleService.getArticleByUuid(articleData.getUuid());
+        
+        if (existingArticle.isPresent()) {
+            article = existingArticle.get();
         } else {
             article = new AuthorArticle();
-            article.setColumn(column);
+            article.setUuid(articleData.getUuid()); // Зберігаємо той самий UUID, що згенерував фронтенд
+            article.setColumn(column); // ОБОВ'ЯЗКОВО призначаємо колонку
         }
 
         article.setTitle(articleData.getTitle());
@@ -65,14 +70,7 @@ public class AuthorRestController {
     public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
         try {
             Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-            
-            // Використовуємо існуючий метод сервісу
-            String storeUUID = storeService.PutFileToStore(
-                    file.getInputStream(), 
-                    file.getOriginalFilename(), 
-                    cd, 
-                    STORE_POSTCOVER
-            );
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, STORE_POSTCOVER);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", 1);
