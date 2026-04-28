@@ -180,18 +180,53 @@
     }
 
     async function saveArticle(isPublish) {
-        const data = await editor.save();
-        const res = await fetch('/api/author/article/save', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                uuid: document.getElementById('articleUuid').value,
-                title: document.getElementById('articleTitle').value,
-                postbody: JSON.stringify(data),
-                status: isPublish ? 'PENDING' : 'DRAFT'
-            })
-        });
-        if(res.ok) window.location.href = '/creater/author/dashboard?success=saved';
+        const saveBtn = isPublish ? document.getElementById('publishBtn') : document.getElementById('saveDraftBtn');
+        const originalText = saveBtn.innerText;
+        
+        try {
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Збереження...';
+
+            const data = await editor.save();
+            const title = document.getElementById('articleTitle').value.trim();
+            
+            if (!title) {
+                alert('Будь ласка, введіть заголовок статті');
+                saveBtn.disabled = false;
+                saveBtn.innerText = originalText;
+                return;
+            }
+
+            // Автоматично шукаємо першу картинку для обкладинки
+            let firstImageUuid = null;
+            const imageBlock = data.blocks.find(b => b.type === 'image' && b.data.file && b.data.file.uuid);
+            if (imageBlock) {
+                firstImageUuid = imageBlock.data.file.uuid;
+            }
+
+            const res = await fetch('/api/author/article/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    uuid: document.getElementById('articleUuid').value,
+                    title: title,
+                    postbody: JSON.stringify(data),
+                    coverUuid: firstImageUuid, // Зберігаємо обкладинку
+                    status: isPublish ? 'PENDING' : 'DRAFT'
+                })
+            });
+
+            if (res.ok) {
+                window.location.href = '/creater/author/dashboard?success=saved';
+            } else {
+                throw new Error('Server error');
+            }
+        } catch (error) {
+            console.error('Saving failed', error);
+            alert('Помилка при збереженні статті. Спробуйте ще раз.');
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        }
     }
 
     document.getElementById('previewBtn').onclick = showNativePreview;
