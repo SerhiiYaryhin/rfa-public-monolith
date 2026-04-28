@@ -33,6 +33,7 @@ public class AuthorRequest {
     private String links;      // Посилання на роботи
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private EAuthorRequestStatus status = EAuthorRequestStatus.PENDING;
 
     private Date createdAt = new Date();

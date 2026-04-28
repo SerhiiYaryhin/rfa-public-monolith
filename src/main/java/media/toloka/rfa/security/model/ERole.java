@@ -1,21 +1,16 @@
 package media.toloka.rfa.security.model;
 
 public enum ERole {
-//    ROLE_USER("User"),
-//    ROLE_CREATOR("Creator"),
-//    ROLE_MODERATOR("Moderator"),
-//    ROLE_EDITOR("Editor"),
-//    ROLE_ADMIN("Admin");
     ROLE_UNKNOWN("ROLE_UNKNOWN"),       // 0
     ROLE_USER("ROLE_USER"),             // 1
     ROLE_CREATER("ROLE_CREATER"),       // 2
     ROLE_MODERATOR("ROLE_MODERATOR"),   // 3
     ROLE_EDITOR("ROLE_EDITOR"),         // 4
     ROLE_ADMIN("ROLE_ADMIN"),           // 5
-    ROLE_TELEGRAM("ROLE_TELEGRAM"),     //6
-    ROLE_NEWSTORADIO("ROLE_NEWSTORADIO"),
-    ROLE_ACCCHEAF("ROLE_ACCCHEAF"),    // 7
-    ROLE_AUTHOR("ROLE_AUTHOR");        // 8
+    ROLE_TELEGRAM("ROLE_TELEGRAM"),     // 6
+    ROLE_NEWSTORADIO("ROLE_NEWSTORADIO"), // 7
+    ROLE_ACCCHEAF("ROLE_ACCCHEAF"),      // 8
+    ROLE_AUTHOR("ROLE_AUTHOR");         // 9
 
     public final String label;
 

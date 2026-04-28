@@ -31,6 +31,7 @@ public class AuthorArticle {
     private String coverUuid;  // Головна ілюстрація
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private EAuthorArticleStatus status = EAuthorArticleStatus.DRAFT;
 
     private Long looked = 0L;
