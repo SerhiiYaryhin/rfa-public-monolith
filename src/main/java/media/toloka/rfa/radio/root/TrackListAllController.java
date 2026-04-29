@@ -1,9 +1,7 @@
 package media.toloka.rfa.radio.root;
 
-
-import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
-import media.toloka.rfa.radio.store.model.Store;
+import media.toloka.rfa.radio.model.Track;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+
 @Profile("Front")
 @Controller
 public class TrackListAllController {
@@ -22,37 +21,29 @@ public class TrackListAllController {
     final Logger logger = LoggerFactory.getLogger(TrackListAllController.class);
 
     @Autowired
-    private ClientService clientService;
-    @Autowired
     private CreaterService createrService;
 
-    @GetMapping(value = "/guest/tracksall/{page}")
+    @GetMapping(value = {"/guest/tracksall", "/guest/tracksall/{page}"})
     public String getTracksAll(
-            @PathVariable int page,
-//            @PathVariable String fileName,
+            @PathVariable(required = false) Integer page,
             Model model) {
-//        List<Post> posts = createrService.GetAllPostsByApruve(true);
-//        List<Track> trackList = createrService.GetLastUploadTracks();
+        
+        int currentPage = (page == null) ? 0 : page;
+        
+        // Отримуємо лише схвалені та опубліковані треки
+        Page<Track> pageTrack = createrService.GetPublicTracksPage(currentPage, 15);
+        List<Track> publicTracks = pageTrack.getContent();
 
-//        Page page = storeService.GetStorePageItemType(0,5, STORE_TRACK);
-        Page pageTrack = createrService.GetTrackPage(page,10);
-        List<Store> storeTrackList = pageTrack.stream().toList();
+        int privpage = (currentPage == 0) ? 0 : currentPage - 1;
+        int nextpage = (currentPage >= (pageTrack.getTotalPages() - 1)) ? Math.max(0, pageTrack.getTotalPages() - 1) : currentPage + 1;
 
-//        model.addAttribute("trackList", trackList );
-        int privpage ;
-        int nextpage ;
-        if (page == 0) {privpage = 0;} else {privpage = page - 1;};
-        if (page >= (pageTrack.getTotalPages()-1) ) {nextpage = pageTrack.getTotalPages()-1; } else {nextpage = page+1;} ;
-        model.addAttribute("nextpage", nextpage );
-        model.addAttribute("privpage", privpage );
-        model.addAttribute("totalpage", pageTrack.getTotalPages() );
-        model.addAttribute("pagetrack", pageTrack );
-        model.addAttribute("currentpage", page );
-        model.addAttribute("trackList", storeTrackList );
-//        model.addAttribute("posts", posts );
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
+        model.addAttribute("nextpage", nextpage);
+        model.addAttribute("privpage", privpage);
+        model.addAttribute("totalpage", pageTrack.getTotalPages());
+        model.addAttribute("currentpage", currentPage);
+        model.addAttribute("trackList", publicTracks);
+        model.addAttribute("pagetrack", pageTrack);
 
         return "/guest/tracksall";
     }
-
 }
