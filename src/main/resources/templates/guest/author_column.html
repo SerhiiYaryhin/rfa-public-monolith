@@ -40,8 +40,12 @@
             <div th:each="art : ${articles}" class="col-md-6 col-lg-4">
                 <div class="card h-100 article-card shadow-sm p-3">
                     <a th:href="'/guest/authors/article/' + ${art.slug}">
-                        <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="cover-img mb-3">
-                        <img th:if="${art.coverUuid == null}" src="https://picsum.photos/400/250?grayscale" class="cover-img mb-3">
+                        <div class="rounded-3 overflow-hidden bg-dark d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                            <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="img-fluid h-100" style="object-fit: contain;">
+                            <div th:if="${art.coverUuid == null}" class="text-white-50">
+                                <i class="fas fa-image fa-3x"></i>
+                            </div>
+                        </div>
                     </a>
                     <div class="card-body p-0">
                         <div class="small text-primary mb-2" th:text="${#dates.format(art.publishDate, 'dd MMMM yyyy')}">Дата</div>

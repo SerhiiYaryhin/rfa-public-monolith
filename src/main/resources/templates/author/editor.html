@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
-    <!-- Editor.js та плагіни -->
+    <!-- Переносимо бібліотеки в Head для стабільної ініціалізації -->
+    <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
@@ -35,13 +36,15 @@
         .sticky-toolbar { position: sticky; top: 20px; z-index: 1000; transition: all 0.3s; }
         .toolbar-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid #e2e8f0; padding: 10px 20px; }
         
-        .cover-preview-box { width: 100%; height: 250px; background: #f1f5f9; border-radius: 20px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 2rem; position: relative; cursor: pointer; transition: 0.2s; }
+        /* Змінено на object-fit: contain для повного відображення */
+        .cover-preview-box { width: 100%; height: 350px; background: #f1f5f9; border-radius: 20px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 2rem; position: relative; cursor: pointer; transition: 0.2s; }
         .cover-preview-box:hover { border-color: #007db5; background: #eef2ff; }
-        .cover-preview-img { width: 100%; height: 100%; object-fit: cover; }
-        .cover-actions { position: absolute; bottom: 15px; right: 15px; display: none; }
+        .cover-preview-img { width: 100%; height: 100%; object-fit: contain; background-color: #000; }
+        
+        .cover-actions { position: absolute; bottom: 15px; right: 15px; display: none; z-index: 10; }
         .cover-preview-box:hover .cover-actions { display: flex; }
         
-        .storage-img-item { height: 120px; object-fit: cover; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 3px solid transparent; }
+        .storage-img-item { height: 120px; object-fit: contain; background: #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 3px solid transparent; }
         .storage-img-item:hover { transform: scale(1.05); }
         .storage-img-item.selected { border-color: #007db5; }
     </style>
@@ -73,7 +76,7 @@
             <div class="col-lg-9 mx-auto">
                 <div class="editor-wrapper">
                     <!-- Обкладинка -->
-                    <div class="text-muted small fw-bold text-uppercase mb-2 ms-2">Головна ілюстрація</div>
+                    <div class="text-muted small fw-bold text-uppercase mb-2 ms-2">Головна ілюстрація (Поміщається повністю)</div>
                     <div id="coverBox" class="cover-preview-box shadow-sm" onclick="openStorageModal()">
                         <img id="coverImg" class="cover-preview-img d-none">
                         <div id="coverPlaceholder" class="text-center">
@@ -81,8 +84,8 @@
                             <p class="mb-0 text-muted small">Натисніть, щоб додати обкладинку</p>
                         </div>
                         <div class="cover-actions gap-2">
-                            <button class="btn btn-sm btn-light rounded-pill shadow-sm" onclick="event.stopPropagation(); openStorageModal()">Змінити</button>
-                            <button class="btn btn-sm btn-danger rounded-pill shadow-sm" onclick="event.stopPropagation(); removeCover()">Видалити</button>
+                            <button type="button" class="btn btn-sm btn-light rounded-pill shadow-sm" onclick="event.stopPropagation(); openStorageModal()">Змінити</button>
+                            <button type="button" class="btn btn-sm btn-danger rounded-pill shadow-sm" onclick="event.stopPropagation(); removeCover()">Видалити</button>
                         </div>
                     </div>
 
@@ -112,8 +115,7 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="tab-storage">
-                            <div id="storageGrid" class="row row-cols-3 row-cols-md-4 g-3 overflow-auto" style="max-height: 400px;">
-                                <!-- Сюди підтягнуться картинки -->
+                            <div id="storageGrid" class="row row-cols-2 row-cols-md-4 g-3 overflow-auto" style="max-height: 400px;">
                                 <div class="col text-center py-5 w-100 text-muted" id="storageLoader">
                                     <div class="spinner-border spinner-border-sm me-2" role="status"></div> Завантаження...
                                 </div>
@@ -122,10 +124,10 @@
                         <div class="tab-pane fade" id="tab-upload">
                             <div class="text-center py-5 border rounded-3 bg-light">
                                 <input type="file" id="coverFileInput" class="d-none" accept="image/*" onchange="uploadNewCover(this.files[0])">
-                                <button class="btn btn-outline-primary px-4 rounded-pill fw-bold" onclick="document.getElementById('coverFileInput').click()">
+                                <button type="button" class="btn btn-outline-primary px-4 rounded-pill fw-bold" onclick="document.getElementById('coverFileInput').click()">
                                     <i class="fas fa-cloud-upload-alt me-2"></i>Обрати файл на ПК
                                 </button>
-                                <p class="small text-muted mt-3 mb-0">Формати: JPG, PNG, WEBP. До 5 Мб.</p>
+                                <p class="small text-muted mt-3 mb-0">JPG, PNG, WEBP. До 5 Мб.</p>
                             </div>
                         </div>
                     </div>
@@ -139,32 +141,27 @@
     <input type="hidden" id="initialCover" th:value="${article.coverUuid}">
 
     <script th:inline="javascript">
+        // Використовуємо глобальну перевірку для безпеки
+        window.addEventListener('load', function() {
+            console.log("Bootstrap status:", typeof bootstrap !== 'undefined' ? 'Defined' : 'Undefined');
+        });
+
         const articleUuid = document.getElementById('articleUuid').value;
         const initialData = document.getElementById('initialData').value;
         let selectedCoverUuid = document.getElementById('initialCover').value;
 
-        // Ініціалізація існуючої обкладинки
         if (selectedCoverUuid) {
             setCoverPreview(selectedCoverUuid);
         }
 
-        // Безпечне визначення тюнів
         const AlignmentTune = window.AlignmentBlockTune || window.AlignmentTune;
         const tunesList = [];
         if (AlignmentTune) tunesList.push('alignTune');
         if (typeof TextVariantTune !== 'undefined') tunesList.push('textVariant');
 
         const editorTools = {
-            header: { 
-                class: Header, 
-                tunes: tunesList, 
-                config: { levels: [2, 3, 4], defaultLevel: 2 } 
-            },
-            paragraph: { 
-                class: Paragraph, 
-                tunes: tunesList, 
-                config: { preserveBlank: true } 
-            },
+            header: { class: Header, tunes: tunesList, config: { levels: [2, 3, 4], defaultLevel: 2 } },
+            paragraph: { class: Paragraph, tunes: tunesList, config: { preserveBlank: true } },
             list: { class: NestedList, inlineToolbar: true },
             image: {
                 class: ImageTool,
@@ -180,12 +177,8 @@
             marker: Marker
         };
 
-        if (AlignmentTune) {
-            editorTools.alignTune = { class: AlignmentTune, config: { default: 'left' } };
-        }
-        if (typeof TextVariantTune !== 'undefined') {
-            editorTools.textVariant = TextVariantTune;
-        }
+        if (AlignmentTune) editorTools.alignTune = { class: AlignmentTune, config: { default: 'left' } };
+        if (typeof TextVariantTune !== 'undefined') editorTools.textVariant = TextVariantTune;
 
         const editor = new EditorJS({
             holder: 'editorjs',
@@ -203,19 +196,18 @@
                 }
                 const count = text.trim() ? text.trim().split(/\s+/).length : 0;
                 document.getElementById('wordCounter').innerText = `Слів: ${count}`;
-            }).catch(e => console.warn("Save failed during word count", e));
+            }).catch(e => {});
         }
 
         function openStorageModal() {
-            try {
-                const modalEl = document.getElementById('storageModal');
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                modal.show();
-                loadUserStorage();
-            } catch (e) {
-                console.error("Bootstrap modal error", e);
-                alert("Помилка відкриття вікна. Спробуйте оновити сторінку.");
+            if (typeof bootstrap === 'undefined') {
+                alert("Помилка завантаження системних скриптів. Будь ласка, оновіть сторінку.");
+                return;
             }
+            const modalEl = document.getElementById('storageModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+            loadUserStorage();
         }
 
         async function loadUserStorage() {
@@ -236,7 +228,8 @@
         function selectStorageImage(uuid, url) {
             selectedCoverUuid = uuid;
             setCoverPreview(uuid);
-            bootstrap.Modal.getInstance(document.getElementById('storageModal')).hide();
+            const modalEl = document.getElementById('storageModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
         }
 
         async function uploadNewCover(file) {
@@ -278,53 +271,35 @@
             try {
                 saveBtn.disabled = true;
                 saveBtn.innerText = 'Збереження...';
-
                 const data = await editor.save();
                 const title = document.getElementById('articleTitle').value.trim();
-                
                 if (!title) {
                     alert('Будь ласка, введіть заголовок');
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = originalText;
+                    saveBtn.disabled = false; saveBtn.innerText = originalText;
                     return;
                 }
-
-                // Логіка обкладинки: пріоритет вибраній, інакше перша з тексту
                 let finalCover = selectedCoverUuid;
                 if (!finalCover) {
                     const imgBlock = data.blocks.find(b => b.type === 'image' && b.data.file && b.data.file.uuid);
                     if (imgBlock) finalCover = imgBlock.data.file.uuid;
                 }
-
                 const res = await fetch('/api/author/article/save', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '[[${_csrf.token}]]'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '[[${_csrf.token}]]' },
                     body: JSON.stringify({
-                        uuid: articleUuid,
-                        title: title,
-                        postbody: JSON.stringify(data),
-                        coverUuid: finalCover,
-                        status: isPublish ? 'PENDING' : 'DRAFT'
+                        uuid: articleUuid, title: title, postbody: JSON.stringify(data),
+                        coverUuid: finalCover, status: isPublish ? 'PENDING' : 'DRAFT'
                     })
                 });
-
                 if (res.ok) window.location.href = '/creater/author/dashboard?success=saved';
                 else throw new Error('Server error');
             } catch (error) {
                 alert('Помилка при збереженні');
-                saveBtn.disabled = false;
-                saveBtn.innerText = originalText;
+                saveBtn.disabled = false; saveBtn.innerText = originalText;
             }
         }
 
-        document.getElementById('previewBtn').onclick = () => {
-            const slug = "preview-" + Date.now(); // Тимчасовий слаг для прев'ю
-            // Можна відкрити Native Preview або просто змоделювати
-            alert('Прев’ю використовує фінальні стилі сайту. Збережіть чернетку та перегляньте її.');
-        };
+        document.getElementById('previewBtn').onclick = () => alert('Використовуйте фінальні стилі сайту після збереження.');
         document.getElementById('saveDraftBtn').onclick = () => saveArticle(false);
         document.getElementById('publishBtn').onclick = () => saveArticle(true);
     </script>
