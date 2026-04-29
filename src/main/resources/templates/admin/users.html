@@ -78,10 +78,6 @@
                                     <span th:each="role : ${user.roles}" class="badge bg-light text-primary border border-primary-subtle role-badge" th:text="${role.role}">ROLE</span>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge bg-success role-badge" th:if="${user.enabled}">Активний</span>
-                                <span class="badge bg-danger role-badge" th:unless="${user.enabled}">Заблокований</span>
-                            </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" 
                                         data-bs-toggle="modal" th:data-bs-target="'#editModal-' + ${user.id}">
