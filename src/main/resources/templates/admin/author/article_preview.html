@@ -28,11 +28,11 @@
                 <div class="article-content">
                     <h1 class="article-title" th:text="${article.title}">Заголовок</h1>
                     <div class="d-flex align-items-center mb-5 text-muted">
-                        <img th:if="${article.column.author.profilephoto != null}" 
+                        <img th:if="${article.column?.author?.profilephoto != null}" 
                              th:src="'/store/content/' + ${article.column.author.profilephoto.uuid}"
                              class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
                         <div>
-                            <div class="fw-bold" th:text="${article.column.author.custname + ' ' + article.column.author.custsurname}">Автор</div>
+                            <div class="fw-bold" th:text="${article.column?.author?.custname + ' ' + article.column?.author?.custsurname}">Автор</div>
                             <div class="small" th:text="${#dates.format(article.createdAt, 'dd MMMM yyyy')}">Дата</div>
                         </div>
                     </div>
