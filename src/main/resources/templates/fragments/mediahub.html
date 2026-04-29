@@ -11,14 +11,20 @@
         <div class="carousel-inner">
             <div th:each="art, iStat : ${authorArticles}" class="carousel-item" th:classappend="${iStat.first} ? 'active'">
                 <div class="position-relative" style="height: 400px;">
-                    <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.6);">
-                    <div th:if="${art.coverUuid == null}" class="d-block w-100 h-100 bg-dark" style="filter: brightness(0.6);"></div>
+                    <a th:href="'/guest/authors/article/' + ${art.slug}">
+                        <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.6);">
+                        <div th:if="${art.coverUuid == null}" class="d-block w-100 h-100 bg-dark" style="filter: brightness(0.6);"></div>
+                    </a>
                     <div class="carousel-caption text-start d-md-block px-4 pb-5">
                         <span class="badge bg-primary mb-3 text-uppercase px-3 py-2 rounded-pill">Авторська колонка</span>
-                        <h2 class="display-6 fw-bold mb-3" th:text="${art.title}">Заголовок статті</h2>
+                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-white">
+                            <h2 class="display-6 fw-bold mb-3" th:text="${art.title}">Заголовок статті</h2>
+                        </a>
                         <div class="d-flex align-items-center mb-4">
-                            <img th:if="${art.column.author.profilephoto != null}" th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
-                            <span class="small fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
+                            <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none text-white d-flex align-items-center">
+                                <img th:if="${art.column.author.profilephoto != null}" th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                <span class="small fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
+                            </a>
                         </div>
                         <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">Читати статтю</a>
                     </div>
