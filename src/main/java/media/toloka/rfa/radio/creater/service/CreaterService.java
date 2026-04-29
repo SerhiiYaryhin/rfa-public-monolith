@@ -186,6 +186,14 @@ public class CreaterService {
         return trackRepository.findAllByOrderByUploaddateDesc(storePage);
     }
 
+    @Autowired
+    private media.toloka.rfa.author.repository.AuthorArticleRepository authorArticleRepository;
+
+    public Page<media.toloka.rfa.author.model.AuthorArticle> GetPublicAuthorArticlesPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("publishDate").descending());
+        return authorArticleRepository.findByStatus(media.toloka.rfa.author.model.enumerate.EAuthorArticleStatus.PUBLISHED, pageable);
+    }
+
     /** Отримати лише публічні треки (схвалені та опубліковані) */
     public Page<Track> GetPublicTracksPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("uploaddate").descending());

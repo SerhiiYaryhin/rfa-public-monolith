@@ -82,6 +82,9 @@ public class RootController {
         // Подкасти для каруселі
         List<PodcastChannel> podcastChannels = podcastService.GetPodcastListForRootCarusel();
 
+        // Авторські статті для слайдера
+        Page<media.toloka.rfa.author.model.AuthorArticle> authorArticlePage = createrService.GetPublicAuthorArticlesPage(0, 5);
+
         // Схвалені треки (пагінація)
         Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
         List<Track> publicTracks = pageTrack.getContent();
@@ -94,6 +97,7 @@ public class RootController {
         model.addAttribute("postList", pagePost.getContent() );
         model.addAttribute("stationsonline", stationOnlineList );
         model.addAttribute("podcastChannels", podcastChannels );
+        model.addAttribute("authorArticles", authorArticlePage.getContent());
 
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );

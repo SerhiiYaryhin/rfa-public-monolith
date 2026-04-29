@@ -5,6 +5,35 @@
     <title>МедіаХаб</title>
 </head>
 <body>
+<!-- Слайдер авторських статей -->
+<div th:fragment="authorSlider" th:if="${authorArticles != null && !authorArticles.isEmpty()}" class="mb-5">
+    <div id="authorCarousel" class="carousel slide shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div th:each="art, iStat : ${authorArticles}" class="carousel-item" th:classappend="${iStat.first} ? 'active'">
+                <div class="position-relative" style="height: 400px;">
+                    <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.6);">
+                    <div th:if="${art.coverUuid == null}" class="d-block w-100 h-100 bg-dark" style="filter: brightness(0.6);"></div>
+                    <div class="carousel-caption text-start d-md-block px-4 pb-5">
+                        <span class="badge bg-primary mb-3 text-uppercase px-3 py-2 rounded-pill">Авторська колонка</span>
+                        <h2 class="display-6 fw-bold mb-3" th:text="${art.title}">Заголовок статті</h2>
+                        <div class="d-flex align-items-center mb-4">
+                            <img th:if="${art.column.author.profilephoto != null}" th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                            <span class="small fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
+                        </div>
+                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">Читати статтю</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+        </button>
+    </div>
+</div>
+
 <!-- карусель зі станціями -->
 <div th:fragment="radiocarusel">
     <div class="row align-items-center bg-light rounded-3 p-2 mx-0 shadow-sm mb-4">

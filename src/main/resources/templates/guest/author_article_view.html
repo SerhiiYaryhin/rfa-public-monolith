@@ -5,123 +5,121 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${article.title} + ' - Толока'"></title>
+    <title th:text="${article.title} + ' - Авторська колонка | Толока'"></title>
+    
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
+    <!-- Editor.js та плагіни для рендерингу -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/text-variant-tune@latest"></script>
+
     <style>
-        .article-main { background: #fff; padding: 120px 0 100px 0; }
-        .article-body { max-width: 800px; margin: 0 auto; font-family: 'Georgia', serif; }
-        .article-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; line-height: 1.2; letter-spacing: -0.02em; }
-        .block-header { margin-top: 2.5rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
-        .block-paragraph { font-size: 1.25rem; line-height: 1.9; color: #2c3e50; margin-bottom: 2rem; }
-        .block-image { width: 100%; margin: 3rem 0; }
-        .block-image img { border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .block-quote { border-left: 6px solid #FF8000; padding: 1rem 0 1rem 2rem; font-style: italic; font-size: 1.5rem; margin: 3rem 0; background: #fff9f0; border-radius: 0 8px 8px 0; }
-        .author-box { border-top: 1px solid #eee; margin-top: 5rem; padding-top: 3rem; }
-        .cover-main { width: 100%; max-height: 500px; object-fit: cover; border-radius: 20px; margin-bottom: 4rem; }
+        body { font-family: 'Inter', sans-serif; background-color: #fff; }
+        .article-header { padding: 120px 0 60px 0; background-color: #f8fafc; }
+        .article-main { max-width: 850px; margin: 0 auto; padding: 60px 20px; }
+        .article-title { font-size: 3.5rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: #0f172a; margin-bottom: 2rem; }
+        
+        /* Типографіка контенту */
+        #editorjs { font-family: 'Lora', serif; font-size: 1.35rem; line-height: 1.8; color: #334155; }
+        .ce-block__content, .ce-toolbar__content { max-width: 800px; }
+        
+        .cover-img-main { width: 100%; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); margin-bottom: 4rem; object-fit: cover; max-height: 600px; }
+        
+        .author-card-bottom { background: #f8fafc; border-radius: 24px; padding: 40px; margin-top: 6rem; border: 1px solid #e2e8f0; }
+        
+        /* Тюни тексту */
+        .cdx-text-variant--italic { font-style: italic; }
+        .cdx-text-variant--gray { color: #94a3b8; }
     </style>
 </head>
-<body class="bg-white">
+<body>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 
-    <article class="article-main">
-        <div class="container">
-            <div class="article-body">
-                <!-- Категорія та дата -->
-                <div class="d-flex align-items-center gap-3 mb-3 small text-uppercase fw-bold text-primary">
-                    <span th:text="${#dates.format(article.publishDate, 'dd MMMM yyyy')}">Дата</span>
-                    <span class="text-muted">•</span>
-                    <span th:text="${article.column.title}">Колонка</span>
+    <header class="article-header text-center">
+        <div class="container px-4">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb justify-content-center small fw-bold text-uppercase">
+                    <li class="breadcrumb-item"><a href="/guest/authors" class="text-decoration-none text-primary">Автори</a></li>
+                    <li class="breadcrumb-item"><a th:href="'/guest/authors/' + ${article.column.slug}" class="text-decoration-none text-muted" th:text="${article.column.title}">Колонка</a></li>
+                </ol>
+            </nav>
+            <h1 class="article-title mx-auto" style="max-width: 900px;" th:text="${article.title}">Заголовок</h1>
+            <div class="d-flex align-items-center justify-content-center gap-3 text-muted">
+                <span th:text="${#dates.format(article.publishDate, 'dd MMMM yyyy')}">Дата</span>
+                <span>•</span>
+                <span><i class="far fa-eye me-1"></i>[[${article.looked}]] переглядів</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="article-main">
+        <!-- Головне фото -->
+        <img th:if="${article.coverUuid != null}" th:src="'/store/content/' + ${article.coverUuid}" class="cover-img-main">
+
+        <!-- Рендеринг Editor.js -->
+        <div id="editorjs"></div>
+
+        <!-- Блок автора внизу -->
+        <div class="author-card-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-auto text-center mb-3 mb-md-0">
+                    <img th:if="${article.column.author.profilephoto != null}" 
+                         th:src="'/store/content/' + ${article.column.author.profilephoto.uuid}"
+                         class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid #fff;">
                 </div>
-
-                <h1 class="article-title" th:text="${article.title}">Заголовок статті</h1>
-
-                <!-- Обкладинка -->
-                <img th:if="${article.coverUuid != null}" th:src="'/store/content/' + ${article.coverUuid}" class="cover-main shadow-sm">
-
-                <!-- Контент (Editor.js Render) -->
-                <div id="renderTarget"></div>
-
-                <!-- Блок автора -->
-                <div class="author-box">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <img th:if="${article.column.author.profilephoto != null}" 
-                                 th:src="'/store/content/' + ${article.column.author.profilephoto.uuid}"
-                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
-                        </div>
-                        <div class="col">
-                            <div class="text-muted small text-uppercase fw-bold">Автор</div>
-                            <h4 class="fw-bold mb-1">
-                                <a th:href="'/guest/authors/' + ${article.column.slug}" class="text-decoration-none text-dark"
-                                   th:text="${article.column.author.custname + ' ' + article.column.author.custsurname}">Ім'я</a>
-                            </h4>
-                            <p class="text-muted mb-0 small" th:text="${article.column.description}">Про автора...</p>
-                        </div>
-                        <div class="col-auto">
-                            <a th:href="'/guest/authors/' + ${article.column.slug}" class="btn btn-outline-primary btn-sm rounded-pill">Більше статей</a>
-                        </div>
-                    </div>
+                <div class="col text-center text-md-start">
+                    <div class="text-primary small fw-bold text-uppercase mb-1">Про автора</div>
+                    <h4 class="fw-bold mb-2" th:text="${article.column.author.custname + ' ' + article.column.author.custsurname}">Ім'я</h4>
+                    <p class="text-muted mb-0" th:text="${article.column.description}">Біографія...</p>
                 </div>
-                
-                <div class="text-center mt-5">
-                    <a href="/guest/authors" class="btn btn-light rounded-pill px-4"><i class="fas fa-th me-2"></i>Всі автори</a>
+                <div class="col-md-auto text-center mt-3 mt-md-0">
+                    <a th:href="'/guest/authors/' + ${article.column.slug}" class="btn btn-primary rounded-pill px-4">Всі статті автора</a>
                 </div>
             </div>
         </div>
-    </article>
+    </main>
 
     <div th:insert="~{/fragments/common :: footer}"></div>
 
     <input type="hidden" id="articleData" th:value="${article.postbody}">
 
     <script th:inline="javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            const rawData = document.getElementById('articleData').value;
-            if (!rawData) return;
-            
-            try {
-                const data = JSON.parse(rawData);
-                const target = document.getElementById('renderTarget');
-                
-                data.blocks.forEach(block => {
-                    let html = '';
-                    switch(block.type) {
-                        case 'header':
-                            html = `<h${block.data.level} class="block-header h${block.data.level + 1}">${block.data.text}</h${block.data.level}>`;
-                            break;
-                        case 'paragraph':
-                            html = `<p class="block-paragraph">${block.data.text}</p>`;
-                            break;
-                        case 'list':
-                            const tag = block.data.style === 'ordered' ? 'ol' : 'ul';
-                            html = `<${tag} class="block-list mb-4 fs-5">` + 
-                                   block.data.items.map(item => `<li class="mb-2">${item}</li>`).join('') + 
-                                   `</${tag}>`;
-                            break;
-                        case 'image':
-                            html = `<figure class="block-image">
-                                        <img src="${block.data.file.url}" class="img-fluid w-100">
-                                        ${block.data.caption ? `<figcaption class="text-center text-muted small mt-3 italic">${block.data.caption}</figcaption>` : ''}
-                                    </figure>`;
-                            break;
-                        case 'quote':
-                            html = `<blockquote class="block-quote">
-                                        <p class="mb-2">${block.data.text}</p>
-                                        ${block.data.caption ? `<cite class="small text-muted">— ${block.data.caption}</cite>` : ''}
-                                    </blockquote>`;
-                            break;
-                        case 'embed':
-                            html = `<div class="block-embed ratio ratio-16x9 my-5 shadow-sm rounded overflow-hidden">
-                                        <iframe src="${block.data.embed}" frameborder="0" allowfullscreen></iframe>
-                                    </div>`;
-                            break;
-                    }
-                    target.insertAdjacentHTML('beforeend', html);
-                });
-            } catch (e) {
-                console.error("Error parsing article data", e);
-            }
+        const rawData = document.getElementById('articleData').value;
+        const AlignmentClass = window.AlignmentBlockTune || window.AlignmentTune;
+
+        const editor = new EditorJS({
+            holder: 'editorjs',
+            readOnly: true,
+            tools: {
+                alignTune: { class: AlignmentClass, config: { default: 'left' } },
+                textVariant: TextVariantTune,
+                header: {
+                    class: Header,
+                    tunes: ['alignTune', 'textVariant'],
+                    config: { levels: [2, 3], defaultLevel: 2 }
+                },
+                paragraph: { class: Paragraph, tunes: ['alignTune', 'textVariant'] },
+                list: { class: NestedList },
+                quote: { class: Quote, tunes: ['alignTune'] },
+                image: { class: ImageTool },
+                embed: { class: Embed },
+                table: { class: Table },
+                delimiter: Delimiter,
+                marker: Marker
+            },
+            data: rawData ? JSON.parse(rawData) : {}
         });
     </script>
 </body>
