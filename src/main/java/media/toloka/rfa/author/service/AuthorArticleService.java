@@ -70,6 +70,11 @@ public class AuthorArticleService {
         articleRepository.save(article);
     }
 
+    @Transactional
+    public void deleteArticle(String uuid) {
+        articleRepository.findByUuid(uuid).ifPresent(articleRepository::delete);
+    }
+
     public Optional<AuthorArticle> getArticleByUuid(String uuid) {
         return articleRepository.findByUuid(uuid);
     }

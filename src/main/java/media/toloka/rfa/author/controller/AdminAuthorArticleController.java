@@ -45,4 +45,10 @@ public class AdminAuthorArticleController {
         articleService.rejectArticle(uuid);
         return "redirect:/admin/author/articles/pending?success=rejected";
     }
+
+    @PostMapping("/delete/{uuid}")
+    public String delete(@PathVariable String uuid) {
+        articleService.deleteArticle(uuid);
+        return "redirect:/admin/author/articles/pending?success=deleted";
+    }
 }

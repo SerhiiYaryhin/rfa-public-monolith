@@ -17,9 +17,10 @@
             <h1 class="h3 fw-bold mb-0">Статті на модерації</h1>
         </div>
 
-        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <span th:if="${param.success[0] == 'published'}">Статтю успішно опубліковано!</span>
-            <span th:if="${param.success[0] == 'rejected'}">Статтю відхилено.</span>
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show mb-4 rounded-3 shadow-sm" role="alert">
+            <span th:if="${param.success[0] == 'published'}"><i class="fas fa-check-circle me-2"></i>Статтю успішно опубліковано!</span>
+            <span th:if="${param.success[0] == 'rejected'}"><i class="fas fa-info-circle me-2"></i>Статтю відхилено.</span>
+            <span th:if="${param.success[0] == 'deleted'}"><i class="fas fa-trash-alt me-2"></i>Статтю безповоротно видалено.</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
@@ -45,6 +46,9 @@
                             </td>
                             <td th:text="${#dates.format(art.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</td>
                             <td class="text-end pe-4">
+                                <a th:href="@{'/admin/email/tool?recipient=' + ${art.column?.author?.user?.email}}" class="btn btn-sm btn-outline-info rounded-pill px-3 me-2" title="Написати автору">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
                                 <a th:href="@{'/admin/author/articles/preview/' + ${art.uuid}}" class="btn btn-sm btn-primary rounded-pill px-3">
                                     Переглянути та опублікувати
                                 </a>
