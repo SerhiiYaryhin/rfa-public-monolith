@@ -1,5 +1,6 @@
 package media.toloka.rfa.author.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import media.toloka.rfa.author.model.AuthorArticle;
 import media.toloka.rfa.author.service.AuthorArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +51,22 @@ public class AdminAuthorArticleController {
     }
 
     @PostMapping("/reject/{uuid}")
-    public String reject(@PathVariable String uuid) {
+    public String reject(@PathVariable String uuid, HttpServletRequest request) {
         articleService.rejectArticle(uuid);
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/all")) {
+            return "redirect:/admin/author/articles/all?success=rejected";
+        }
         return "redirect:/admin/author/articles/pending?success=rejected";
     }
 
     @PostMapping("/delete/{uuid}")
-    public String delete(@PathVariable String uuid) {
+    public String delete(@PathVariable String uuid, HttpServletRequest request) {
         articleService.deleteArticle(uuid);
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/all")) {
+            return "redirect:/admin/author/articles/all?success=deleted";
+        }
         return "redirect:/admin/author/articles/pending?success=deleted";
     }
 }
