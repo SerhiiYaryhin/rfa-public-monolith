@@ -91,6 +91,17 @@ public class AdminService {
         return usersList;
     }
 
+    @Autowired
+    private media.toloka.rfa.radio.repository.UserRepository userRepository;
+
+    public org.springframework.data.domain.Page<Users> getUsersPage(int page, int size, String query) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        if (query == null || query.isEmpty()) {
+            return userRepository.findAll(pageable);
+        }
+        return userRepository.findUsersBySearchTemplate(query, pageable);
+    }
+
 
     public List<Documents> GetNotApruvedDocuments() {
         return documentService.GetUnApruvedDocumentsOrderLoaddate();

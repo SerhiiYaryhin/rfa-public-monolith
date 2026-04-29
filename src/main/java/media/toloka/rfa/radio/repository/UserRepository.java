@@ -17,6 +17,13 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     Users getUserByEmail(String email);
 
+    @Query("SELECT u FROM Users u LEFT JOIN u.clientdetail cd WHERE " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(cd.custname) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(cd.custsurname) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(cd.firmname) LIKE LOWER(CONCAT('%', :query, '%'))")
+    org.springframework.data.domain.Page<Users> findUsersBySearchTemplate(@Param("query") String query, org.springframework.data.domain.Pageable pageable);
+
     @Query(value = "SELECT a FROM Users a WHERE "  // a WHERE "
             + "LOWER(a.email) LIKE LOWER(CONCAT('%', ?1, '%'))")
     List<Users> findUsersByTemplateEmail(String Template);

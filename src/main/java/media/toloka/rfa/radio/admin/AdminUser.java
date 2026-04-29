@@ -1,15 +1,10 @@
 package media.toloka.rfa.radio.admin;
 
-
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import media.toloka.rfa.radio.admin.service.AdminService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Post;
-import media.toloka.rfa.rpc.service.RPCService;
 import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Roles;
 import media.toloka.rfa.security.model.Users;
@@ -17,22 +12,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_UserSendMailSetPassword;
-import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_UserSuspend;
-import static media.toloka.rfa.security.model.ERole.*;
+import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_DocumentChange;
 
 @Profile("Front")
 @Controller
+@RequestMapping("/admin/users")
 public class AdminUser {
 
     final Logger logger = LoggerFactory.getLogger(AdminUser.class);
-
 
     @Autowired
     private AdminService adminService;
@@ -41,182 +36,72 @@ public class AdminUser {
     @Autowired
     private HistoryService historyService;
 
-    @Data
-    public class SS {
-        private String searchString;
-//        public SS (String ggg) {
-//            this.searchString = ggg;
-//        }
-    }
+    @GetMapping
+    public String listUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String q,
+            Model model) {
+        
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
 
-    // Пошук по користувачам. Ключем виступає значення текстового поля
+        Page<Users> usersPage = adminService.getUsersPage(page, 20, q);
 
-    @PostMapping(value = "/admin/users")
-    public String GetSearchUserList(
-            @ModelAttribute("searchString") SS ss,
-            HttpServletRequest request,
-            HttpServletResponse response,
-//            @RequestParam(value = "searchString") String searchString,
-            Model model
-    ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
+        model.addAttribute("usersList", usersPage.getContent());
+        model.addAttribute("totalPages", usersPage.getTotalPages());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("query", q);
+        model.addAttribute("allRoles", ERole.values());
 
-        // витягуємо рядок для пошуку
-        // https://www.geeksforgeeks.org/spring-boot-build-a-dynamic-full-text-search-api-using-jpa-queries/
-        logger.info("Рядок для пошуку ="+ss.getSearchString());
-
-        model.addAttribute("ss", ss );
-        List<Users> usersList = adminService.GetSearchUsers(ss.getSearchString());
-        // todo тут додати сортування для роботи адміна з переліком клієнтів
-        model.addAttribute("usersList", usersList );
-//        return "redirect:/admin/users";
         return "/admin/users";
     }
 
-    // витягуємо перелік всіх користувачів.
-    @GetMapping(value = "/admin/users")
-    public String getAdmiUser(
-//            @ModelAttribute("ss") SS ss,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-//        Objects ma = model.getAttribute("ss");
-        SS ss = (SS) model.asMap().get("ss");
-        List<Users> usersList; // = (List<Users>) model.asMap().get("ss");
-        if (ss == null) {
-            ss = new SS();
-            ss.setSearchString("");
-            usersList = adminService.GetAllUsers();
-        } else {
-            usersList = adminService.GetSearchUsers(ss.getSearchString());
-        }
-        String searchString = new String();
-        // todo тут додати сортування для роботи адміна з переліком клієнтів
+    @PostMapping("/update")
+    public String updateUser(
+            @RequestParam Long userId,
+            @RequestParam String custname,
+            @RequestParam String custsurname,
+            @RequestParam String firmname,
+            @RequestParam(required = false) List<ERole> roles,
+            HttpServletRequest request) {
+        
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
 
-        model.addAttribute("usersList", usersList );
-        model.addAttribute("ss", ss );
-        return "/admin/users";
-    }
-
-    // намагаємося видалити користувача
-    @GetMapping(value = "/admin/userdel/{iduser}")
-    public String getAdminDelUser(
-            @PathVariable Long iduser,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        // todo перевірити на приналежність до групи адмінів.
-
-        Users curuser = adminService.GetUsersById(iduser);
-        List< Roles> rolesList = curuser.getRoles();
-        rolesList.clear();
-        // Обробка ClientDetail. Видаляємо всі списки
-
-        //
-//        clientService.SaveUser(curuser);
-//        clientService.DeleteUser(curuser);
-
-
-
-        List<Users> usersList = adminService.GetAllUsers();
-        model.addAttribute("usersList", usersList );
-        model.addAttribute("searchString", new String() );
-
-        return "redirect:/admin/users";
-    }
-
-//    http://localhost:8080/admin/enableuser/2
-    // витягуємо користувача для редагування
-    @GetMapping(value = "/admin/enableuser/{iduser}")
-    public String getAdminEnableUser(
-            @PathVariable Long iduser,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-
-        Users curuser = adminService.GetUsersById(iduser);
-        List< Roles> rolesList = curuser.getRoles();
-//        rolesList.clear();
-        // Обробка ClientDetail. Видаляємо всі списки
-
-        //
-        // clientService.SaveUser(curuser);
-//        clientService.DeleteUser(curuser);
-
-
-
-        List<Users> usersList = adminService.GetAllUsers();
-        model.addAttribute("usersList", usersList );
-        model.addAttribute("searchString", new String() );
-
-        return "redirect:/admin/users";
-    }
-
-    // Заготовка для адміністрування груп користувачів
-    @GetMapping(value = "/admin/useraddgroup/{iduser}/{idgroup}")
-    public String getAdminEnableUser(
-            @PathVariable Long iduser,
-            @PathVariable Integer idgroup,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-
-        Users curuser = adminService.GetUsersById(iduser);
-        if (clientService.checkRole (ROLE_ADMIN)) {
-            List<Roles> rolesList = curuser.getRoles();
-            Roles role = new Roles();
-            switch (idgroup) {
-                case 0:
-                    role.setRole(ROLE_UNKNOWN);
-                    curuser.getRoles().add(role);
-                    break;
-                case 1:
-                    role.setRole(ROLE_USER);
-                    curuser.getRoles().add(role);
-                    break;
-                case 2:
-                    role.setRole(ROLE_CREATER);
-                    curuser.getRoles().add(role);
-                    break;
-                case 3:
-                    role.setRole(ROLE_MODERATOR);
-                    curuser.getRoles().add(role);
-                    break;
-                case 4:
-                    role.setRole(ROLE_EDITOR);
-                    curuser.getRoles().add(role);
-                    break;
-                case 5:
-                    role.setRole(ROLE_ADMIN);
-                    curuser.getRoles().add(role);
-                    break;
-                default:
-                    curuser.getRoles().clear();
+        Users user = adminService.GetUsersById(userId);
+        if (user != null) {
+            Clientdetail cd = user.getClientdetail();
+            cd.setCustname(custname);
+            cd.setCustsurname(custsurname);
+            cd.setFirmname(firmname);
+            
+            // Оновлення ролей
+            if (roles != null && !roles.isEmpty()) {
+                // Забороняємо знімати роль адміна самому собі через цей інтерфейс для безпеки
+                if (user.getId().equals(admin.getId()) && !roles.contains(ERole.ROLE_ADMIN)) {
+                    roles.add(ERole.ROLE_ADMIN);
+                }
+                
+                user.getRoles().clear();
+                for (ERole r : roles) {
+                    Roles role = new Roles();
+                    role.setRole(r);
+                    user.getRoles().add(role);
+                }
             }
-        } else {
-            historyService.saveHistory(History_UserSuspend, "Спроба змінити групи користувача під лівим аккаунтом " , user);
-            // todo заморозити користувача, який спробував змінити групу іншому користувачу
-            //user.getClientdetail().
-            return "redirect:/logout";
+            
+            clientService.SaveUser(user);
+            historyService.saveHistory(History_DocumentChange, "Адміністратор " + admin.getEmail() + " оновив дані користувача " + user.getEmail(), admin);
         }
-        clientService.SaveUser(curuser);
 
-        List<Users> usersList = adminService.GetAllUsers();
-        model.addAttribute("usersList", usersList );
-        model.addAttribute("searchString", new String() );
-
-        return "redirect:/admin/users";
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
     }
 
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        // Поки що реалізуємо як заготовку (soft delete або блокування)
+        // Повне видалення користувача — небезпечна операція
+        return "redirect:/admin/users?error=not_implemented";
+    }
 }
