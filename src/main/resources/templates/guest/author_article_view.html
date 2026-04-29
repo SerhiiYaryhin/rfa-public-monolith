@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
-    <!-- Editor.js та плагіни для рендерингу -->
+    <!-- Editor.js та плагіни (ідентично до редактора) -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
@@ -26,22 +26,32 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/text-variant-tune@latest"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #fff; }
-        .article-header { padding: 120px 0 60px 0; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #fff; color: #1e293b; }
+        .article-header { padding: 140px 0 60px 0; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; }
         .article-main { max-width: 850px; margin: 0 auto; padding: 60px 20px; }
-        .article-title { font-size: 3.5rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: #0f172a; margin-bottom: 2rem; }
+        .article-title { font-size: 3.75rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: #0f172a; margin-bottom: 2.5rem; }
         
-        /* Типографіка контенту */
+        /* Типографіка контенту (Lora) */
         #editorjs { font-family: 'Lora', serif; font-size: 1.35rem; line-height: 1.8; color: #334155; }
         .ce-block__content, .ce-toolbar__content { max-width: 800px; }
         
-        .cover-img-main { width: 100%; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); margin-bottom: 4rem; object-fit: cover; max-height: 600px; }
+        /* Кастомізація блоків під стиль редактора */
+        .ce-header { font-family: 'Inter', sans-serif; font-weight: 800; color: #0f172a; margin-top: 2.5rem; }
+        .cdx-block { padding: 0.7rem 0; }
         
-        .author-card-bottom { background: #f8fafc; border-radius: 24px; padding: 40px; margin-top: 6rem; border: 1px solid #e2e8f0; }
+        .cdx-quote { border-left: 6px solid #FF8000; padding: 1rem 0 1rem 2rem; font-style: italic; background: #fff9f0; border-radius: 0 8px 8px 0; }
+        .cdx-quote__text { font-size: 1.5rem; line-height: 1.6; }
+        
+        .image-tool__caption { text-align: center; color: #64748b; font-style: italic; font-size: 0.9rem; margin-top: 1rem; }
+        .cover-img-main { width: 100%; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); margin-bottom: 4rem; object-fit: cover; max-height: 600px; }
         
         /* Тюни тексту */
         .cdx-text-variant--italic { font-style: italic; }
         .cdx-text-variant--gray { color: #94a3b8; }
+        
+        .author-card-bottom { background: #f8fafc; border-radius: 24px; padding: 40px; margin-top: 6rem; border: 1px solid #e2e8f0; }
+        .breadcrumb-item a { color: #FF8000; font-weight: 700; text-decoration: none; }
+        .breadcrumb-item.active { color: #64748b; }
     </style>
 </head>
 <body>
@@ -51,15 +61,16 @@
         <div class="container px-4">
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb justify-content-center small fw-bold text-uppercase">
-                    <li class="breadcrumb-item"><a href="/guest/authors" class="text-decoration-none text-primary">Автори</a></li>
-                    <li class="breadcrumb-item"><a th:href="'/guest/authors/' + ${article.column.slug}" class="text-decoration-none text-muted" th:text="${article.column.title}">Колонка</a></li>
+                    <li class="breadcrumb-item"><a href="/guest/authors">Автори</a></li>
+                    <li class="breadcrumb-item"><a th:href="'/guest/authors/' + ${article.column.slug}" th:text="${article.column.title}">Колонка</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Стаття</li>
                 </ol>
             </nav>
             <h1 class="article-title mx-auto" style="max-width: 900px;" th:text="${article.title}">Заголовок</h1>
             <div class="d-flex align-items-center justify-content-center gap-3 text-muted">
-                <span th:text="${#dates.format(article.publishDate, 'dd MMMM yyyy')}">Дата</span>
+                <span class="fw-bold text-dark">[[${#dates.format(article.publishDate, 'dd MMMM yyyy')}]]</span>
                 <span>•</span>
-                <span><i class="far fa-eye me-1"></i>[[${article.looked}]] переглядів</span>
+                <span><i class="far fa-eye me-1 text-primary"></i>[[${article.looked}]] переглядів</span>
             </div>
         </div>
     </header>
@@ -68,11 +79,11 @@
         <!-- Головне фото -->
         <img th:if="${article.coverUuid != null}" th:src="'/store/content/' + ${article.coverUuid}" class="cover-img-main">
 
-        <!-- Рендеринг Editor.js -->
+        <!-- Editor.js Read-Only Instance -->
         <div id="editorjs"></div>
 
-        <!-- Блок автора внизу -->
-        <div class="author-card-bottom">
+        <!-- Блок автора -->
+        <div class="author-card-bottom shadow-sm">
             <div class="row align-items-center">
                 <div class="col-md-auto text-center mb-3 mb-md-0">
                     <img th:if="${article.column.author.profilephoto != null}" 
@@ -80,12 +91,12 @@
                          class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid #fff;">
                 </div>
                 <div class="col text-center text-md-start">
-                    <div class="text-primary small fw-bold text-uppercase mb-1">Про автора</div>
+                    <div class="text-primary small fw-bold text-uppercase mb-1">Автор колонки</div>
                     <h4 class="fw-bold mb-2" th:text="${article.column.author.custname + ' ' + article.column.author.custsurname}">Ім'я</h4>
                     <p class="text-muted mb-0" th:text="${article.column.description}">Біографія...</p>
                 </div>
                 <div class="col-md-auto text-center mt-3 mt-md-0">
-                    <a th:href="'/guest/authors/' + ${article.column.slug}" class="btn btn-primary rounded-pill px-4">Всі статті автора</a>
+                    <a th:href="'/guest/authors/' + ${article.column.slug}" class="btn btn-primary rounded-pill px-4 fw-bold">Більше матеріалів</a>
                 </div>
             </div>
         </div>
