@@ -79,10 +79,19 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" 
-                                        data-bs-toggle="modal" th:data-bs-target="'#editModal-' + ${user.id}">
-                                    <i class="fas fa-edit me-1"></i> Редагувати
-                                </button>
+                                <div class="btn-group">
+                                    <a th:href="@{'/admin/email/tool?recipient=' + ${user.email}}" class="btn btn-sm btn-outline-info" title="Надіслати листа">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" th:data-bs-target="'#editModal-' + ${user.id}" title="Редагувати">
+                                        <i class="fas fa-user-edit"></i>
+                                    </button>
+                                    <a th:href="@{'/admin/users/delete/' + ${user.id}}" class="btn btn-sm btn-outline-danger" 
+                                       onclick="return confirm('Ви впевнені?')" title="Видалити/Заблокувати">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
                                 
                                 <!-- Modal -->
                                 <div class="modal fade" th:id="'editModal-' + ${user.id}" tabindex="-1" aria-hidden="true">

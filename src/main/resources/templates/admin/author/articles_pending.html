@@ -37,8 +37,8 @@
                     <tbody>
                         <tr th:each="art : ${articles}">
                             <td class="ps-4">
-                                <div class="fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Ім'я</div>
-                                <div class="small text-muted" th:text="${art.column.title}">Колонка</div>
+                                <div class="fw-bold" th:text="${art.column?.author?.custname + ' ' + art.column?.author?.custsurname}">Ім'я</div>
+                                <div class="small text-muted" th:text="${art.column?.title}">Колонка</div>
                             </td>
                             <td>
                                 <div class="fw-bold text-truncate" style="max-width: 400px;" th:text="${art.title}">Заголовок</div>
