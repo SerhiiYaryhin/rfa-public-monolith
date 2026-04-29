@@ -1,53 +1,57 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="uk" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>[[${status}]] - [[${title}]] | Толока</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/styles.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; }
+        .error-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-top: 80px; }
+        .error-card { border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; max-width: 600px; width: 100%; }
+        .error-header { background: linear-gradient(135deg, #007db5, #ff8a00); padding: 40px; color: white; text-align: center; }
+        .error-code { font-size: 6rem; font-weight: 900; line-height: 1; margin-bottom: 0; opacity: 0.8; }
+        .error-body { padding: 40px; text-align: center; background: white; }
+        .error-title { font-size: 1.5rem; font-weight: 700; color: #333; margin-bottom: 15px; }
+        .error-text { color: #666; line-height: 1.6; margin-bottom: 30px; }
+        .btn-home { background: #FF8000; border: none; color: white; padding: 12px 30px; border-radius: 50px; font-weight: 700; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .btn-home:hover { background: #e67300; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,128,0,0.3); color: white; }
+        .error-footer { padding: 20px; background: #f1f3f5; font-size: 0.85rem; color: #adb5bd; }
+    </style>
 </head>
 <body>
-<!-- Navigation-->
-<div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-<div class="section section-signup" style="background-image: url('/pictures/error.webp'); background-size: cover; background-position: top center; min-height: 700px;">
-    <section class="vh-100" >
-        <div class="container py-5 h-100">
-            <div class="row d-flex justify-content-center align-items-center h-100">
-                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                    <div class="card shadow-2-strong " style="border-radius: 1rem;">
-                        <div class="card-body p-5 text-center">
-                            <h3 class="mb-5">Щось пішло не так :(</h3>
-                            <div th:if="${msg}">
-                                <br><span th:text="${msg}"></span><br>
-                            </div>
-                            <div th:if="${detail}" >
-                                <br><span th:text="${detail}" style="color: red;"></span><br>
-                            </div>
-                            <div th:if="${path}" >
-                                <br><span th:text="${path}" style="color: gray;"></span><br>
-                            </div>
-                            <div>
-                                <a href="/" ><span style="color:red"> Перейдіть на головну сторінку.</span></a><br>
-                            </div>
+    <!-- Navigation-->
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 
-                        </div>
-                    </div>
+    <div class="error-container container">
+        <div class="error-card">
+            <div class="error-header">
+                <div class="error-code" th:text="${status}">500</div>
+                <div class="text-uppercase small fw-bold mt-2" th:text="${status == 404 ? 'Page Not Found' : (status == 403 ? 'Access Denied' : 'Server Error')}">Error</div>
+            </div>
+            <div class="error-body">
+                <h1 class="error-title" th:text="${title}">Щось пішло не так</h1>
+                <p class="error-text" th:text="${description}">Виникла помилка під час обробки вашого запиту.</p>
+                
+                <div th:if="${path != 'невідомо'}" class="mb-4 small text-muted">
+                    <code>Path: [[${path}]]</code>
                 </div>
+
+                <a href="/" class="btn-home shadow-sm">
+                    <i class="fas fa-home me-2"></i>Повернутися на головну
+                </a>
+            </div>
+            <div class="error-footer text-center">
+                <span th:text="${#dates.format(timestamp, 'dd.MM.yyyy HH:mm:ss')}"></span> | &copy; Студія Толока
             </div>
         </div>
-    </section>
-</div>
+    </div>
 
-<script src="js/bootstrap.bundle.min.js"></script>
+    <!-- Footer -->
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    
+    <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
