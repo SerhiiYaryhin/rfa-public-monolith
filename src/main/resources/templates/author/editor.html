@@ -148,28 +148,49 @@
             setCoverPreview(selectedCoverUuid);
         }
 
+        // Безпечне визначення тюнів
+        const AlignmentTune = window.AlignmentBlockTune || window.AlignmentTune;
+        const tunesList = [];
+        if (AlignmentTune) tunesList.push('alignTune');
+        if (typeof TextVariantTune !== 'undefined') tunesList.push('textVariant');
+
+        const editorTools = {
+            header: { 
+                class: Header, 
+                tunes: tunesList, 
+                config: { levels: [2, 3, 4], defaultLevel: 2 } 
+            },
+            paragraph: { 
+                class: Paragraph, 
+                tunes: tunesList, 
+                config: { preserveBlank: true } 
+            },
+            list: { class: NestedList, inlineToolbar: true },
+            image: {
+                class: ImageTool,
+                config: {
+                    endpoints: { byFile: '/api/author/image/upload' },
+                    additionalRequestHeaders: { 'X-CSRF-TOKEN': '[[${_csrf.token}]]' }
+                }
+            },
+            embed: { class: Embed, inlineToolbar: true },
+            quote: { class: Quote, inlineToolbar: true },
+            table: { class: Table, inlineToolbar: true },
+            delimiter: Delimiter,
+            marker: Marker
+        };
+
+        if (AlignmentTune) {
+            editorTools.alignTune = { class: AlignmentTune, config: { default: 'left' } };
+        }
+        if (typeof TextVariantTune !== 'undefined') {
+            editorTools.textVariant = TextVariantTune;
+        }
+
         const editor = new EditorJS({
             holder: 'editorjs',
             placeholder: 'Розкажіть вашу історію...',
-            tools: {
-                alignTune: { class: AlignmentBlockTune, config: { default: 'left' } },
-                textVariant: TextVariantTune,
-                header: { class: Header, tunes: ['alignTune', 'textVariant'], config: { levels: [2, 3, 4], defaultLevel: 2 } },
-                paragraph: { class: Paragraph, tunes: ['alignTune', 'textVariant'], config: { preserveBlank: true } },
-                list: { class: NestedList, inlineToolbar: true },
-                image: {
-                    class: ImageTool,
-                    config: {
-                        endpoints: { byFile: '/api/author/image/upload' },
-                        additionalRequestHeaders: { 'X-CSRF-TOKEN': '[[${_csrf.token}]]' }
-                    }
-                },
-                embed: { class: Embed, inlineToolbar: true },
-                quote: { class: Quote, inlineToolbar: true, tunes: ['alignTune'] },
-                table: { class: Table, inlineToolbar: true },
-                delimiter: Delimiter,
-                marker: Marker
-            },
+            tools: editorTools,
             data: initialData ? JSON.parse(initialData) : {},
             onChange: () => updateWordCount()
         });
@@ -177,16 +198,24 @@
         function updateWordCount() {
             editor.save().then(data => {
                 let text = "";
-                data.blocks.forEach(b => { if(b.data.text) text += b.data.text + " "; });
+                if (data.blocks) {
+                    data.blocks.forEach(b => { if(b.data && b.data.text) text += b.data.text + " "; });
+                }
                 const count = text.trim() ? text.trim().split(/\s+/).length : 0;
                 document.getElementById('wordCounter').innerText = `Слів: ${count}`;
-            });
+            }).catch(e => console.warn("Save failed during word count", e));
         }
 
         function openStorageModal() {
-            const modal = new bootstrap.Modal(document.getElementById('storageModal'));
-            modal.show();
-            loadUserStorage();
+            try {
+                const modalEl = document.getElementById('storageModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+                loadUserStorage();
+            } catch (e) {
+                console.error("Bootstrap modal error", e);
+                alert("Помилка відкриття вікна. Спробуйте оновити сторінку.");
+            }
         }
 
         async function loadUserStorage() {
