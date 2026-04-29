@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,15 +43,14 @@ public class AuthorRestController {
                 .orElseThrow(() -> new RuntimeException("Колонку не знайдено"));
 
         AuthorArticle article;
-        // Шукаємо за UUID, який прийшов з фронтенду
         Optional<AuthorArticle> existingArticle = articleService.getArticleByUuid(articleData.getUuid());
         
         if (existingArticle.isPresent()) {
             article = existingArticle.get();
         } else {
             article = new AuthorArticle();
-            article.setUuid(articleData.getUuid()); // Зберігаємо той самий UUID, що згенерував фронтенд
-            article.setColumn(column); // ОБОВ'ЯЗКОВО призначаємо колонку
+            article.setUuid(articleData.getUuid());
+            article.setColumn(column);
         }
 
         article.setTitle(articleData.getTitle());
@@ -85,5 +85,21 @@ public class AuthorRestController {
             response.put("success", 0);
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    @GetMapping("/images/my")
+    public ResponseEntity<?> getMyImages() {
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        List<Store> images = storeService.GetPicturesListByClientDetail(cd);
+        
+        List<Map<String, String>> result = images.stream().map(img -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("uuid", img.getUuid());
+            map.put("filename", img.getFilename());
+            map.put("url", "/store/content/" + img.getUuid());
+            return map;
+        }).toList();
+        
+        return ResponseEntity.ok(result);
     }
 }
