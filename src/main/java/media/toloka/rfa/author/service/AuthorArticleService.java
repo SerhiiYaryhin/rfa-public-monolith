@@ -53,6 +53,10 @@ public class AuthorArticleService {
         return articleRepository.findByStatus(EAuthorArticleStatus.PENDING, PageRequest.of(page, size, Sort.by("createdAt").ascending()));
     }
 
+    public Page<AuthorArticle> getAllArticlesForAdmin(int page, int size) {
+        return articleRepository.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()));
+    }
+
     @Transactional
     public void publishArticle(String uuid) {
         AuthorArticle article = articleRepository.findByUuid(uuid)

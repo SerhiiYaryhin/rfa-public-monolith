@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Всі авторські статті - Адмінпанель</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
+        .admin-container { margin-top: 100px; }
+        .status-badge { font-size: 0.75rem; font-weight: 600; padding: 0.35em 0.65em; border-radius: 50rem; }
+    </style>
+</head>
+<body class="bg-light">
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <div class="container-fluid admin-container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+            <div>
+                <h1 class="h3 fw-bold mb-0">Архів авторських статей</h1>
+                <p class="text-muted small mb-0">Повний перелік матеріалів усіх авторів</p>
+            </div>
+            <a href="/admin/author/articles/pending" class="btn btn-warning rounded-pill px-4 fw-bold">
+                <i class="fas fa-clock me-2"></i>На модерації
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm mx-3" style="border-radius: 15px; overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th class="ps-4 py-3">Заголовок</th>
+                            <th>Автор</th>
+                            <th class="text-center">Статус</th>
+                            <th class="text-center">Дата створення</th>
+                            <th class="text-center">Перегляди</th>
+                            <th class="text-end pe-4">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="art : ${articles}">
+                            <td class="ps-4">
+                                <div class="fw-bold text-truncate" style="max-width: 350px;" th:text="${art.title}">Заголовок</div>
+                                <div class="small text-muted" th:text="${art.slug}">slug</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="small fw-bold" th:text="${art.column?.author?.custname + ' ' + art.column?.author?.custsurname}">Автор</div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge status-badge" 
+                                      th:classappend="${art.status.name() == 'PUBLISHED' ? 'bg-success' : (art.status.name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                      th:text="${art.status}">Статус</span>
+                            </td>
+                            <td class="text-center small" th:text="${#dates.format(art.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">[[${art.looked}]]</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a th:href="@{'/admin/email/tool?recipient=' + ${art.column?.author?.user?.email}}" class="btn btn-sm btn-outline-info" title="Написати автору">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <a th:href="@{'/admin/author/articles/preview/' + ${art.uuid}}" class="btn btn-sm btn-outline-primary" title="Переглянути">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form th:action="@{'/admin/author/articles/delete/' + ${art.uuid}}" method="post" onsubmit="return confirm('Видалити статтю назавжди?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Видалити">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${articles.isEmpty()}">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                                <p>Статей поки немає</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Пагінація -->
+            <div class="card-footer bg-white py-4 border-top" th:if="${totalPages > 1}">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link shadow-none" th:href="@{/admin/author/articles/all(page=${currentPage - 1})}"><i class="fas fa-chevron-left"></i></a>
+                        </li>
+                        <th:block th:with="start=${currentPage - 2 < 0 ? 0 : currentPage - 2}, end=${currentPage + 2 > totalPages - 1 ? totalPages - 1 : currentPage + 2}">
+                            <li class="page-item" th:each="i : ${#numbers.sequence(start, end)}" th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link shadow-none" th:href="@{/admin/author/articles/all(page=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                        </th:block>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link shadow-none" th:href="@{/admin/author/articles/all(page=${currentPage + 1})}"><i class="fas fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

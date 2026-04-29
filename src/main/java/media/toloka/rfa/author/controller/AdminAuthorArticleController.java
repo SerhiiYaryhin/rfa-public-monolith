@@ -26,6 +26,15 @@ public class AdminAuthorArticleController {
         return "/admin/author/articles_pending";
     }
 
+    @GetMapping("/all")
+    public String listAll(@RequestParam(defaultValue = "0") int page, Model model) {
+        Page<AuthorArticle> articles = articleService.getAllArticlesForAdmin(page, 20);
+        model.addAttribute("articles", articles.getContent());
+        model.addAttribute("totalPages", articles.getTotalPages());
+        model.addAttribute("currentPage", page);
+        return "/admin/author/articles_all";
+    }
+
     @GetMapping("/preview/{uuid}")
     public String preview(@PathVariable String uuid, Model model) {
         AuthorArticle article = articleService.getArticleByUuid(uuid)
