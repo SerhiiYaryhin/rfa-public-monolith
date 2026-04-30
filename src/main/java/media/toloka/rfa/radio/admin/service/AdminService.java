@@ -94,8 +94,17 @@ public class AdminService {
     @Autowired
     private media.toloka.rfa.radio.repository.UserRepository userRepository;
 
-    public org.springframework.data.domain.Page<Users> getUsersPage(int page, int size, String query) {
+    public org.springframework.data.domain.Page<Users> getUsersPage(int page, int size, String query, String filter) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        
+        if (filter != null) {
+            if (filter.equals("pending_docs")) {
+                return userRepository.findUsersWithPendingDocuments(pageable);
+            } else if (filter.equals("pending_address")) {
+                return userRepository.findUsersWithPendingAddresses(pageable);
+            }
+        }
+        
         if (query == null || query.isEmpty()) {
             return userRepository.findAll(pageable);
         }

@@ -41,17 +41,19 @@ public class AdminUser {
     public String listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String filter,
             Model model) {
         
         Users admin = clientService.GetCurrentUser();
         if (admin == null) return "redirect:/login";
 
-        Page<Users> usersPage = adminService.getUsersPage(page, 20, q);
+        Page<Users> usersPage = adminService.getUsersPage(page, 20, q, filter);
 
         model.addAttribute("usersList", usersPage.getContent());
         model.addAttribute("totalPages", usersPage.getTotalPages());
         model.addAttribute("currentPage", page);
         model.addAttribute("query", q);
+        model.addAttribute("filter", filter);
         model.addAttribute("allRoles", ERole.values());
 
         return "/admin/users";

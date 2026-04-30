@@ -60,9 +60,33 @@
         </div>
         <div class="col-md-6">
             <form th:action="@{/admin/users}" method="get" class="d-flex">
+                <input th:if="${filter != null}" type="hidden" name="filter" th:value="${filter}">
                 <input type="text" name="q" th:value="${query}" class="form-control search-input me-2 shadow-sm" placeholder="Пошук за email, ім'ям або фірмою...">
                 <button type="submit" class="btn btn-primary search-btn shadow-sm">Пошук</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Фільтри -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex gap-2 overflow-auto pb-2">
+                <a th:href="@{/admin/users(q=${query})}" 
+                   class="btn btn-sm rounded-pill px-3 shadow-sm" 
+                   th:classappend="${filter == null} ? 'btn-primary' : 'btn-white border text-muted'">Всі користувачі</a>
+                
+                <a th:href="@{/admin/users(filter='pending_docs', q=${query})}" 
+                   class="btn btn-sm rounded-pill px-3 shadow-sm" 
+                   th:classappend="${filter == 'pending_docs'} ? 'btn-warning text-dark' : 'btn-white border text-muted'">
+                   <i class="fas fa-file-contract me-1"></i> Очікують документи
+                </a>
+                
+                <a th:href="@{/admin/users(filter='pending_address', q=${query})}" 
+                   class="btn btn-sm rounded-pill px-3 shadow-sm" 
+                   th:classappend="${filter == 'pending_address'} ? 'btn-success' : 'btn-white border text-muted'">
+                   <i class="fas fa-map-marker-alt me-1"></i> Непідтверджені адреси
+                </a>
+            </div>
         </div>
     </div>
 
@@ -112,6 +136,17 @@
                                     </div>
                                     <div th:if="${!user.clientdetail.confirminfo}" class="text-warning small fw-bold">
                                         <i class="fas fa-clock me-1"></i>Очікує
+                                    </div>
+                                    <!-- Нові бейджі -->
+                                    <div class="mt-1 d-flex gap-1">
+                                        <span th:if="${#lists.toList(user.clientdetail.documentslist.![status.name()]).contains('STATUS_LOADED') || #lists.toList(user.clientdetail.documentslist.![status.name()]).contains('STATUS_REVIEW')}" 
+                                              class="badge bg-warning text-dark p-1" title="Є нові документи">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </span>
+                                        <span th:if="${not #lists.isEmpty(user.clientdetail.clientaddressList.?[!apruve])}" 
+                                              class="badge bg-success p-1" title="Є нові адреси">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="text-end pe-4">
@@ -344,14 +379,14 @@
                     <ul class="pagination pagination-sm mb-0">
                         <!-- На початок -->
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link shadow-none" th:href="@{/admin/users(page=0, q=${query})}" title="На початок">
+                            <a class="page-link shadow-none" th:href="@{/admin/users(page=0, q=${query}, filter=${filter})}" title="На початок">
                                 <i class="fas fa-angles-left"></i>
                             </a>
                         </li>
                         
                         <!-- Попередня -->
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${currentPage - 1}, q=${query})}" title="Попередня">
+                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${currentPage - 1}, q=${query}, filter=${filter})}" title="Попередня">
                                 <i class="fas fa-chevron-left"></i>
                             </a>
                         </li>
@@ -359,20 +394,20 @@
                         <!-- Номери сторінок (з обмеженням видимості) -->
                         <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                             <li class="page-item" th:if="${i >= currentPage - 2 && i <= currentPage + 2}" th:classappend="${i == currentPage} ? 'active'">
-                                <a class="page-link shadow-none" th:href="@{/admin/users(page=${i}, q=${query})}" th:text="${i + 1}">1</a>
+                                <a class="page-link shadow-none" th:href="@{/admin/users(page=${i}, q=${query}, filter=${filter})}" th:text="${i + 1}">1</a>
                             </li>
                         </th:block>
 
                         <!-- Наступна -->
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${currentPage + 1}, q=${query})}" title="Наступна">
+                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${currentPage + 1}, q=${query}, filter=${filter})}" title="Наступна">
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>
                         
                         <!-- В кінець -->
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${totalPages - 1}, q=${query})}" title="В кінець">
+                            <a class="page-link shadow-none" th:href="@{/admin/users(page=${totalPages - 1}, q=${query}, filter=${filter})}" title="В кінець">
                                 <i class="fas fa-angles-right"></i>
                             </a>
                         </li>

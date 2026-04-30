@@ -6,52 +6,184 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Адмін-панель - Толока</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
+        .admin-container { margin-top: 100px; }
+        .stat-card {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .bg-users { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+        .bg-addr { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+        .bg-docs { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+        .bg-posts { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+        
+        .action-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .welcome-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
     </header>
 
-    <!--// User page container-->
-    <div style="padding-top: 100px">
-        <div sec:authorize="hasRole('Адмін')" >
-            <span>Таки адміністратор</span>
-        </div>
-        <span th:each="role, iStat : ${curuser.roles}">
-            <span th:if="${iStat.first}" th:utext="'Роль:<b> '+${role.role.label}+'</b>'"/>
-            <span th:if="!${iStat.first}"  th:utext="', <b>'+${role.role.label}+'</b>'"/>
-        </span>
-<!--        <div class="container-fluid">-->
-<!--            <div class="row">-->
-<!--                <div class="col-lg-12 col-sm-12">-->
-<!--                    <div th:insert="~{/fragments/creater :: service}"> </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12 col-sm-12">
-                    <h1>До опрацювання</h1>
-                    <h2>Користувачі : <span th:text="${usersList}"/></h2>
-                    <h2>Адреси      : <span th:text="${addressesList}"/></h2>
-                    <h2>Документи   : <span th:text="${qDocuments}"/></h2>
-                    <h2>Пости       :  <span th:text="${posts}"/></h2>
+    <div class="container admin-container py-4">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold mb-2">Вітаємо, Адміністраторе!</h1>
+                    <p class="lead mb-0 opacity-75">Сьогодні чудовий день, щоб зробити Толоку ще кращою.</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                    <div class="d-inline-block text-start">
+                        <div class="small opacity-75">Ваша роль:</div>
+                        <div class="fw-bold">
+                            <span th:each="role, iStat : ${curuser.roles}">
+                                <span th:text="${role.role.label}"></span><span th:if="!${iStat.last}">, </span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                Обробка довжини
+        </div>
 
+        <h3 class="fw-bold mb-4">Огляд системи</h3>
+        
+        <div class="row g-4">
+            <!-- Користувачі -->
+            <div class="col-md-6 col-lg-3">
+                <a href="/admin/users" class="action-link">
+                    <div class="card stat-card h-100 p-4">
+                        <div class="icon-box bg-users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Користувачі</h6>
+                        <div class="d-flex align-items-end">
+                            <h2 class="mb-0 fw-bold" th:text="${usersList}">0</h2>
+                            <span class="ms-2 text-muted small pb-1">всього</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Адреси -->
+            <div class="col-md-6 col-lg-3">
+                <a href="/admin/users?filter=pending_address" class="action-link">
+                    <div class="card stat-card h-100 p-4">
+                        <div class="icon-box bg-addr">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Нові адреси</h6>
+                        <div class="d-flex align-items-end">
+                            <h2 class="mb-0 fw-bold" th:text="${addressesList}">0</h2>
+                            <span class="ms-2 text-muted small pb-1 text-danger fw-bold" th:if="${addressesList > 0}">Потребують дії</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Документи -->
+            <div class="col-md-6 col-lg-3">
+                <a href="/admin/users?filter=pending_docs" class="action-link">
+                    <div class="card stat-card h-100 p-4">
+                        <div class="icon-box bg-docs">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Документи</h6>
+                        <div class="d-flex align-items-end">
+                            <h2 class="mb-0 fw-bold" th:text="${qDocuments}">0</h2>
+                            <span class="ms-2 text-muted small pb-1 text-danger fw-bold" th:if="${qDocuments > 0}">Очікують</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Пости -->
+            <div class="col-md-6 col-lg-3">
+                <a href="/admin/posts" class="action-link">
+                    <div class="card stat-card h-100 p-4">
+                        <div class="icon-box bg-posts">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Пости</h6>
+                        <div class="d-flex align-items-end">
+                            <h2 class="mb-0 fw-bold" th:text="${posts}">0</h2>
+                            <span class="ms-2 text-muted small pb-1">на модерації</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity Placeholder -->
+        <div class="row mt-5">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm p-4" style="border-radius: 20px;">
+                    <h5 class="fw-bold mb-4">Швидкі посилання</h5>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <a href="/admin/users" class="btn btn-outline-primary w-100 text-start py-3 px-4 rounded-3 border-light-subtle shadow-sm bg-white">
+                                <i class="fas fa-user-plus me-2"></i> Керувати ролями
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="/admin/station" class="btn btn-outline-primary w-100 text-start py-3 px-4 rounded-3 border-light-subtle shadow-sm bg-white">
+                                <i class="fas fa-server me-2"></i> Станції та сервери
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="/admin/storage" class="btn btn-outline-primary w-100 text-start py-3 px-4 rounded-3 border-light-subtle shadow-sm bg-white">
+                                <i class="fas fa-hdd me-2"></i> Сховище файлів
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="/admin/finance" class="btn btn-outline-primary w-100 text-start py-3 px-4 rounded-3 border-light-subtle shadow-sm bg-white">
+                                <i class="fas fa-wallet me-2"></i> Фінансова звітність
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm p-4 h-100 text-center" style="border-radius: 20px; background-color: #f8f9fa;">
+                    <div class="my-auto">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3 opacity-25"></i>
+                        <h6>Системні сповіщення</h6>
+                        <p class="text-muted small">Наразі критичних повідомлень немає. Вся система працює стабільно.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -32,4 +32,10 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     List<Users> findAllByOrderByIdAsc();
 
     List<Users> findAllByOrderByIdDesc();
+
+    @Query("SELECT DISTINCT u FROM Users u JOIN u.clientdetail cd JOIN cd.documentslist d WHERE d.status IN (media.toloka.rfa.radio.model.enumerate.EDocumentStatus.STATUS_LOADED, media.toloka.rfa.radio.model.enumerate.EDocumentStatus.STATUS_REVIEW)")
+    org.springframework.data.domain.Page<Users> findUsersWithPendingDocuments(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT DISTINCT u FROM Users u JOIN u.clientdetail cd JOIN cd.clientaddressList a WHERE a.apruve = false")
+    org.springframework.data.domain.Page<Users> findUsersWithPendingAddresses(org.springframework.data.domain.Pageable pageable);
 }
