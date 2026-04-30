@@ -5,6 +5,36 @@
     <title>МедіаХаб</title>
 </head>
 <body>
+<!-- Блок останніх авторських статей у сайдбарі -->
+<div th:fragment="lastAuthorArticles" class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 15px;">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-feather-alt text-warning me-2"></i>Авторські колонки</h5>
+    </div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            <li th:each="art : ${authorArticles}" class="list-group-item p-3 border-bottom-0 transition-hover" style="border-bottom: 1px solid #f1f5f9 !important;">
+                <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none d-block">
+                    <div class="fw-bold text-dark mb-1 small line-clamp-2" th:text="${art.title}">Заголовок статті</div>
+                </a>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none x-small fw-bold text-primary">
+                        <i class="far fa-user me-1"></i>[[${art.column.author.custname}]]
+                    </a>
+                    <span class="x-small text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yy')}">Дата</span>
+                </div>
+            </li>
+            <li th:if="${authorArticles == null || authorArticles.isEmpty()}" class="list-group-item p-4 text-center text-muted small">
+                Статей поки немає
+            </li>
+        </ul>
+    </div>
+    <div class="card-footer bg-light border-0 text-center py-3">
+        <a href="/guest/authors/articles-all" class="btn btn-sm btn-link text-decoration-none fw-bold small">
+            Всі статті <i class="fas fa-chevron-right ms-1"></i>
+        </a>
+    </div>
+</div>
+
 <!-- Слайдер авторських статей -->
 <div th:fragment="authorSlider" th:if="${authorArticles != null && !authorArticles.isEmpty()}" class="mb-5">
     <div class="card shadow-sm border-0">
@@ -174,6 +204,7 @@
         <!-- колонка медіа хаб (сайдбар) -->
         <div class="col-lg-3 col-sm-12">
             <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
+            <div th:insert="~{/fragments/mediahub :: lastAuthorArticles}"></div>
         </div>
     </div>
 </section>

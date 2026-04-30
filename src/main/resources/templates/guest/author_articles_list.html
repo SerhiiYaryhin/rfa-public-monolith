@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Всі авторські статті - Толока</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .page-header { padding: 120px 0 60px 0; background-color: #fff; border-bottom: 1px solid #e2e8f0; }
+        .article-card { border: none; border-radius: 20px; transition: all 0.3s; height: 100%; overflow: hidden; }
+        .article-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.07) !important; }
+        .cover-box { height: 220px; background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .cover-img { width: 100%; height: 100%; object-fit: contain; }
+        .card-title a { text-decoration: none; color: #0f172a; transition: color 0.2s; }
+        .card-title a:hover { color: #FF8000; }
+        .author-link { color: #FF8000; font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+
+    <header class="page-header text-center mb-5">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-0">Архів статей</h1>
+            <p class="text-muted lead mt-2">Мудрість, аналітика та творчість наших авторів</p>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            <div th:each="art : ${articles}" class="col">
+                <div class="card article-card shadow-sm">
+                    <a th:href="'/guest/authors/article/' + ${art.slug}">
+                        <div class="cover-box">
+                            <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="cover-img">
+                            <div th:if="${art.coverUuid == null}" class="text-white-50"><i class="fas fa-feather-alt fa-3x"></i></div>
+                        </div>
+                    </a>
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="small mb-2">
+                            <span class="text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}">Дата</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3 flex-grow-1">
+                            <a th:href="'/guest/authors/article/' + ${art.slug}" th:text="${art.title}">Назва</a>
+                        </h5>
+                        <div class="mt-auto pt-3 border-top">
+                            <a th:href="'/guest/authors/' + ${art.column.slug}" class="author-link small">
+                                <i class="far fa-user me-1"></i>[[${art.column.author.custname + ' ' + art.column.author.custsurname}]]
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Пагінація -->
+        <nav th:if="${totalPages > 1}" class="mt-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/guest/authors/articles-all(page=${currentPage - 1})}">Попередня</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/guest/authors/articles-all(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/guest/authors/articles-all(page=${currentPage + 1})}">Наступна</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

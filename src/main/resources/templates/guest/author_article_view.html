@@ -97,6 +97,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Коментарі -->
+        <div class="mt-5 pt-5 border-top" id="comments">
+            <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
+                        commentsPage=${commentsPage},
+                        currentPage=${currentCommentsPage},
+                        totalPages=${totalCommentsPages},
+                        totalElements=${totalComments},
+                        contentEntityId=${article.uuid})}">
+            </div>
+        </div>
     </main>
 
     <div th:insert="~{/fragments/common :: footer}"></div>

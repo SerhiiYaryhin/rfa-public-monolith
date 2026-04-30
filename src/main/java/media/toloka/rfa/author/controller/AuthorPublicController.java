@@ -42,8 +42,22 @@ public class AuthorPublicController {
         return "/guest/author_column";
     }
 
+    @GetMapping("/articles-all")
+    public String allArticles(@RequestParam(defaultValue = "0") int page, Model model) {
+        Page<AuthorArticle> articlesPage = articleService.getArticlesForMainPage(page, 16);
+        model.addAttribute("articles", articlesPage.getContent());
+        model.addAttribute("totalPages", articlesPage.getTotalPages());
+        model.addAttribute("currentPage", page);
+        return "/guest/author_articles_list";
+    }
+
+    @Autowired
+    private media.toloka.rfa.comments.service.CommentService commentService;
+
     @GetMapping("/article/{articleSlug}")
-    public String viewArticle(@PathVariable String articleSlug, Model model) {
+    public String viewArticle(@PathVariable String articleSlug, 
+                              @RequestParam(defaultValue = "0") int commentPage,
+                              Model model) {
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
                 .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
         
@@ -51,6 +65,13 @@ public class AuthorPublicController {
         article.setLooked(article.getLooked() + 1);
         articleService.saveArticle(article);
         
+        // Завантажуємо коментарі
+        var comments = commentService.getCommentsPage(article.getUuid(), commentPage, 10);
+        model.addAttribute("commentsPage", comments.getContent());
+        model.addAttribute("currentCommentsPage", commentPage);
+        model.addAttribute("totalCommentsPages", comments.getTotalPages());
+        model.addAttribute("totalComments", comments.getTotalElements());
+
         model.addAttribute("article", article);
         return "/guest/author_article_view";
     }

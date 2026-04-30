@@ -49,6 +49,10 @@ public class AuthorArticleService {
                 .filter(a -> a.getStatus() == EAuthorArticleStatus.PUBLISHED);
     }
 
+    public Page<AuthorArticle> getArticlesForMainPage(int page, int size) {
+        return articleRepository.findByStatus(EAuthorArticleStatus.PUBLISHED, PageRequest.of(page, size, Sort.by("publishDate").descending()));
+    }
+
     public Page<AuthorArticle> getArticlesForModeration(int page, int size) {
         return articleRepository.findByStatus(EAuthorArticleStatus.PENDING, PageRequest.of(page, size, Sort.by("createdAt").ascending()));
     }
