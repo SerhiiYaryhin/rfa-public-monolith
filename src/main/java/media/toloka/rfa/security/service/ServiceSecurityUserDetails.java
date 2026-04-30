@@ -45,8 +45,12 @@ public class ServiceSecurityUserDetails implements UserDetailsService {
             Users user = opt.get();
             List<Roles> roles = user.getRoles();
             Set<GrantedAuthority> ga = new HashSet<>();
-            for(Roles role:roles) {
-                ga.add(new SimpleGrantedAuthority(role.getRole().label));
+            for(Roles role : roles) {
+                String roleName = role.getRole().label;
+                if (!roleName.startsWith("ROLE_")) {
+                    roleName = "ROLE_" + roleName.toUpperCase();
+                }
+                ga.add(new SimpleGrantedAuthority(roleName));
             }
             springUser = new org.springframework.security.core.userdetails.User(
                     email,

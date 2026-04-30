@@ -21,7 +21,6 @@ import java.util.List;
 
 @Profile("Front")
 @Controller
-@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     @Autowired
