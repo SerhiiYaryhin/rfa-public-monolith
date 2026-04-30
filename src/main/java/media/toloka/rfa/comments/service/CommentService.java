@@ -1,5 +1,7 @@
 package media.toloka.rfa.comments.service;
 
+import media.toloka.rfa.author.model.AuthorArticle;
+import media.toloka.rfa.author.service.AuthorArticleService;
 import media.toloka.rfa.comments.dto.AuthorDTO;
 import media.toloka.rfa.comments.dto.CommentDTO;
 import media.toloka.rfa.comments.model.Comment;
@@ -12,6 +14,7 @@ import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,9 @@ public class CommentService {
 
     @Autowired
     private CreaterService createrService;
+
+    @Autowired
+    private AuthorArticleService authorArticleService;
 
 
     private final CommentRepository commentRepository;
@@ -74,6 +80,11 @@ public class CommentService {
 
         // Мапуємо Entity на DTO всередині Page
         return rootCommentsPage.map(this::mapToCommentDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CommentDTO> getCommentsPage(String contentEntityId, int page, int size) {
+        return getPaginatedCommentsHierarchyDTO(ECommentSourceType.COMMENT_ARTICLE, contentEntityId, PageRequest.of(page, size));
     }
 
     // --- НОВІ МЕТОДИ МАПІНГУ ENTITY НА DTO ---
@@ -263,6 +274,11 @@ public class CommentService {
                 break;
             case ECommentSourceType.COMMENT_TRACK:
                 cd = createrService.GetTrackByUuid(contentEntityId).getClientdetail();
+                break;
+            case ECommentSourceType.COMMENT_ARTICLE:
+                cd = authorArticleService.getArticleByUuid(contentEntityId)
+                        .map(article -> article.getColumn().getAuthor())
+                        .orElse(null);
                 break;
 
             default:

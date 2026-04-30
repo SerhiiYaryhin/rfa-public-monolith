@@ -3,6 +3,7 @@ package media.toloka.rfa.author.controller;
 import media.toloka.rfa.author.model.AuthorArticle;
 import media.toloka.rfa.author.model.AuthorColumn;
 import media.toloka.rfa.author.service.AuthorArticleService;
+import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -67,10 +68,15 @@ public class AuthorPublicController {
         
         // Завантажуємо коментарі
         var comments = commentService.getCommentsPage(article.getUuid(), commentPage, 10);
-        model.addAttribute("commentsPage", comments.getContent());
+        model.addAttribute("commentsPage", comments);
         model.addAttribute("currentCommentsPage", commentPage);
         model.addAttribute("totalCommentsPages", comments.getTotalPages());
         model.addAttribute("totalComments", comments.getTotalElements());
+
+        model.addAttribute("contentEntityType", ECommentSourceType.COMMENT_ARTICLE);
+        model.addAttribute("contentEntityId", article.getUuid());
+        model.addAttribute("contentAuthorId", article.getColumn().getAuthor().getUuid());
+        model.addAttribute("currentUserId", commentService.getCurrentUserId() != null ? commentService.getCurrentUserId().getUuid() : null);
 
         model.addAttribute("article", article);
         return "/guest/author_article_view";
