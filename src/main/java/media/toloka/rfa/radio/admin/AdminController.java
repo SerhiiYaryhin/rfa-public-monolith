@@ -21,6 +21,7 @@ import java.util.List;
 
 @Profile("Front")
 @Controller
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     @Autowired
@@ -49,6 +50,8 @@ public class AdminController {
         if (user == null) {
             return "redirect:/";
         }
+        
+        logger.info("Admin home access attempt by user: {} with roles: {}", user.getEmail(), user.getRoles());
 
 //        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
 //        List<Post> posts = adminService.GetNotApruvePosts();

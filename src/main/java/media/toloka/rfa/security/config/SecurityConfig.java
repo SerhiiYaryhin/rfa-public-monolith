@@ -49,7 +49,7 @@ public class SecurityConfig {
 
                         // 👮 Доступи за ролями
                         .requestMatchers("/acc/**").hasAnyRole("ADMIN", "ACCCHEAF")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "Admin")
                         
                         // Авторська колонка
                         .requestMatchers("/creater/author/**").hasAnyRole("AUTHOR", "ADMIN")
