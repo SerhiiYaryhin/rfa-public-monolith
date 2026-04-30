@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_DocumentChange;
@@ -98,10 +99,75 @@ public class AdminUser {
         return "redirect:" + (referer != null ? referer : "/admin/users");
     }
 
+    @GetMapping("/enable/{id}")
+    public String enableUser(@PathVariable Long id, HttpServletRequest request) {
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
+        
+        Users user = adminService.GetUsersById(id);
+        if (user != null) {
+            user.getClientdetail().setConfirminfo(true);
+            user.getClientdetail().setConfirmDate(new java.util.Date());
+            clientService.SaveUser(user);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
+    }
+
+    @GetMapping("/reject/{id}")
+    public String rejectUser(@PathVariable Long id, HttpServletRequest request) {
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
+        
+        Users user = adminService.GetUsersById(id);
+        if (user != null) {
+            user.getClientdetail().setConfirminfo(false);
+            clientService.SaveUser(user);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
+    }
+
+    @GetMapping("/apruveinfo/{id}")
+    public String apruveInfo(@PathVariable Long id, HttpServletRequest request) {
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
+        
+        Users user = adminService.GetUsersById(id);
+        if (user != null) {
+            user.getClientdetail().setConfirminfo(true);
+            user.getClientdetail().setConfirmDate(new java.util.Date());
+            clientService.SaveUser(user);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
+    }
+
+    @GetMapping("/lock/{id}")
+    public String lockUser(@PathVariable Long id, HttpServletRequest request) {
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
+        
+        Users user = adminService.GetUsersById(id);
+        if (user != null) {
+            user.getRoles().clear();
+            clientService.SaveUser(user);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
+    }
+
     @GetMapping("/delete/{id}")
-    public String deleteUser(@PathVariable Long id) {
-        // Поки що реалізуємо як заготовку (soft delete або блокування)
-        // Повне видалення користувача — небезпечна операція
-        return "redirect:/admin/users?error=not_implemented";
+    public String deleteUser(@PathVariable Long id, HttpServletRequest request) {
+        Users admin = clientService.GetCurrentUser();
+        if (admin == null) return "redirect:/login";
+
+        Users user = adminService.GetUsersById(id);
+        if (user != null) {
+            user.getRoles().clear();
+            clientService.SaveUser(user);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/users");
     }
 }

@@ -59,89 +59,243 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="user : ${usersList}">
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-circle me-3" th:text="${#strings.substring(user.clientdetail.custname,0,1)}">U</div>
-                                    <div>
-                                        <div class="fw-bold" th:text="${user.clientdetail.custname + ' ' + user.clientdetail.custsurname}">Ім'я</div>
-                                        <div class="small text-muted" th:text="${user.email}">email</div>
+                        <th:block th:each="user : ${usersList}">
+                            <tr class="user-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3" th:text="${#strings.length(user.clientdetail.custname) > 0 ? #strings.substring(user.clientdetail.custname,0,1) : 'U'}">U</div>
+                                        <div>
+                                            <div class="fw-bold" th:text="${user.clientdetail.custname + ' ' + user.clientdetail.custsurname}">Ім'я</div>
+                                            <div class="small text-muted" th:text="${user.email}">email</div>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div th:text="${user.clientdetail.firmname}">Фірма</div>
-                                <div class="small text-muted" th:text="${user.clientdetail.uuid}">UUID</div>
-                            </td>
-                            <td>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span th:each="role : ${user.roles}" class="badge bg-light text-primary border border-primary-subtle role-badge" th:text="${role.role}">ROLE</span>
-                                </div>
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="btn-group">
-                                    <a th:href="@{'/admin/email/tool?recipient=' + ${user.email}}" class="btn btn-sm btn-outline-info" title="Надіслати листа">
-                                        <i class="fas fa-envelope"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" 
-                                            data-bs-toggle="modal" th:data-bs-target="'#editModal-' + ${user.id}" title="Редагувати">
-                                        <i class="fas fa-user-edit"></i>
-                                    </button>
-                                    <a th:href="@{'/admin/users/delete/' + ${user.id}}" class="btn btn-sm btn-outline-danger" 
-                                       onclick="return confirm('Ви впевнені?')" title="Видалити/Заблокувати">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </div>
-                                
-                                <!-- Modal -->
-                                <div class="modal fade" th:id="'editModal-' + ${user.id}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
-                                            <form th:action="@{/admin/users/update}" method="post">
-                                                <input type="hidden" name="userId" th:value="${user.id}">
-                                                <div class="modal-header border-0 px-4 pt-4">
-                                                    <h5 class="modal-title fw-bold">Редагування користувача</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body text-start px-4">
-                                                    <div class="row g-3">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold">Ім'я</label>
-                                                            <input type="text" name="custname" th:value="${user.clientdetail.custname}" class="form-control rounded-3" required>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold">Прізвище</label>
-                                                            <input type="text" name="custsurname" th:value="${user.clientdetail.custsurname}" class="form-control rounded-3" required>
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <label class="form-label small fw-bold">Назва фірми / Студії</label>
-                                                            <input type="text" name="firmname" th:value="${user.clientdetail.firmname}" class="form-control rounded-3">
-                                                        </div>
-                                                        <div class="col-12 mt-4">
-                                                            <label class="form-label small fw-bold mb-3 d-block">Ролі користувача</label>
-                                                            <div class="row row-cols-2 g-2">
-                                                                <div th:each="r : ${allRoles}" class="col">
-                                                                    <div class="form-check">
-                                                                        <input class="form-check-input" type="checkbox" name="roles" 
-                                                                               th:value="${r}" th:id="'role-' + ${user.id} + '-' + ${r}"
-                                                                               th:checked="${#lists.toList(user.roles.![role]).contains(r)}">
-                                                                        <label class="form-check-label small" th:for="'role-' + ${user.id} + '-' + ${r}" th:text="${r.label}">Роль</label>
+                                </td>
+                                <td>
+                                    <div th:text="${user.clientdetail.firmname}">Фірма</div>
+                                    <div class="small text-muted" th:text="${user.clientdetail.uuid}">UUID</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span th:each="role : ${user.roles}" class="badge bg-light text-primary border border-primary-subtle role-badge" th:text="${role.role}">ROLE</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div th:if="${user.clientdetail.confirminfo}" class="text-success small fw-bold">
+                                        <i class="fas fa-check-circle me-1"></i>Підтверджено
+                                        <div class="small text-muted fw-normal" th:if="${user.clientdetail.confirmDate != null}" th:text="${#dates.format(user.clientdetail.confirmDate, 'dd.MM.yy')}"></div>
+                                    </div>
+                                    <div th:if="${!user.clientdetail.confirminfo}" class="text-warning small fw-bold">
+                                        <i class="fas fa-clock me-1"></i>Очікує
+                                    </div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                                data-bs-toggle="collapse" th:data-bs-target="'#details-' + ${user.id}" 
+                                                title="Деталі (документи, адреси...)">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <a th:if="${!user.clientdetail.confirminfo}" th:href="@{'/admin/users/enable/' + ${user.id}}" class="btn btn-sm btn-outline-success" title="Дозволити / Підтвердити">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a th:if="${user.clientdetail.confirminfo}" th:href="@{'/admin/users/reject/' + ${user.id}}" class="btn btn-sm btn-outline-warning" title="Відхилити">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                        <a th:href="@{'/admin/email/tool?recipient=' + ${user.email}}" class="btn btn-sm btn-outline-info" title="Надіслати листа">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                data-bs-toggle="modal" th:data-bs-target="'#editModal-' + ${user.id}" title="Редагувати">
+                                            <i class="fas fa-user-edit"></i>
+                                        </button>
+                                        <a th:href="@{'/admin/users/lock/' + ${user.id}}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Заблокувати користувача?')" title="Блокувати">
+                                            <i class="fas fa-lock"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Collapsible Details Row -->
+                            <tr class="collapse-row">
+                                <td colspan="5" class="p-0 border-0">
+                                    <div class="collapse" th:id="'details-' + ${user.id}">
+                                        <div class="p-4 bg-light border-bottom">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="accordion accordion-flush details-accordion shadow-sm rounded-3 overflow-hidden" th:id="'accordion-' + ${user.id}">
+                                                        
+                                                        <!-- Документи -->
+                                                        <div class="accordion-item" th:if="${not #lists.isEmpty(user.clientdetail.documentslist)}">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" th:data-bs-target="'#docs-' + ${user.id}">
+                                                                    <i class="fas fa-file-contract me-2 text-primary"></i> Документи (<span th:text="${#lists.size(user.clientdetail.documentslist)}">0</span>)
+                                                                </button>
+                                                            </h2>
+                                                            <div th:id="'docs-' + ${user.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordion-' + ${user.id}">
+                                                                <div class="accordion-body">
+                                                                    <div th:each="doc : ${user.clientdetail.documentslist}" class="mb-3 p-2 border-bottom">
+                                                                        <div class="d-flex justify-content-between align-items-start">
+                                                                            <div>
+                                                                                <div class="fw-bold" th:text="${doc.store.filename}">файл</div>
+                                                                                <div class="small text-muted">Тип: <span th:text="${doc.documenttype}"></span> | Статус: <span th:text="${doc.status.label}"></span></div>
+                                                                                <div class="small mt-1" th:if="${doc.userComment != null}" th:text="'Коментар: ' + ${doc.userComment}"></div>
+                                                                            </div>
+                                                                            <div class="btn-group">
+                                                                                <a th:href="@{/store/document/{suuid} (suuid=${doc.store.uuid})}" class="btn btn-sm btn-link" target="_blank">Завантажити</a>
+                                                                                <a th:href="'/admin/documentedit/'+${doc.id}" class="btn btn-sm btn-link" target="_blank">Редагувати</a>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Адреси -->
+                                                        <div class="accordion-item" th:if="${not #lists.isEmpty(user.clientdetail.clientaddressList)}">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" th:data-bs-target="'#addr-' + ${user.id}">
+                                                                    <i class="fas fa-map-marker-alt me-2 text-danger"></i> Адреси (<span th:text="${#lists.size(user.clientdetail.clientaddressList)}">0</span>)
+                                                                </button>
+                                                            </h2>
+                                                            <div th:id="'addr-' + ${user.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordion-' + ${user.id}">
+                                                                <div class="accordion-body">
+                                                                    <div th:each="adr : ${user.clientdetail.clientaddressList}" class="mb-3 p-2 border-bottom">
+                                                                        <div class="d-flex justify-content-between">
+                                                                            <div>
+                                                                                <div class="fw-bold" th:text="${adr.shortaddress}">Назва</div>
+                                                                                <div class="small">
+                                                                                    <span th:text="${adr.country}"></span>, <span th:text="${adr.cityname}"></span>, 
+                                                                                    вул. <span th:text="${adr.street}"></span>, буд. <span th:text="${adr.buildnumber}"></span>
+                                                                                    <span th:if="${adr.appartment != null}" th:text="', кв. ' + ${adr.appartment}"></span>
+                                                                                </div>
+                                                                                <div class="small text-muted" th:text="'Тип: ' + ${adr.userAddressType} + ' | Тел: ' + ${adr.phone}"></div>
+                                                                            </div>
+                                                                            <div>
+                                                                                <span th:if="${adr.apruve}" class="badge bg-success">Підтверджено</span>
+                                                                                <span th:if="${!adr.apruve}" class="badge bg-warning text-dark">Очікує</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Контракти -->
+                                                        <div class="accordion-item" th:if="${not #lists.isEmpty(user.clientdetail.contractList)}">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" th:data-bs-target="'#contracts-' + ${user.id}">
+                                                                    <i class="fas fa-briefcase me-2 text-warning"></i> Контракти (<span th:text="${#lists.size(user.clientdetail.contractList)}">0</span>)
+                                                                </button>
+                                                            </h2>
+                                                            <div th:id="'contracts-' + ${user.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordion-' + ${user.id}">
+                                                                <div class="accordion-body">
+                                                                    <div th:each="contract : ${user.clientdetail.contractList}" class="mb-3 p-2 border-bottom">
+                                                                        <div class="fw-bold text-primary" th:text="${contract.contractname}">Контракт</div>
+                                                                        <div class="small">Статус: <span class="badge bg-secondary" th:text="${contract.contractStatus.label}"></span></div>
+                                                                        <div class="small text-muted" th:text="'Створено: ' + ${#dates.format(contract.createDate, 'dd.MM.yyyy')}"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Станції -->
+                                                        <div class="accordion-item" th:if="${not #lists.isEmpty(user.clientdetail.stationList)}">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" th:data-bs-target="'#stations-' + ${user.id}">
+                                                                    <i class="fas fa-broadcast-tower me-2 text-info"></i> Станції (<span th:text="${#lists.size(user.clientdetail.stationList)}">0</span>)
+                                                                </button>
+                                                            </h2>
+                                                            <div th:id="'stations-' + ${user.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordion-' + ${user.id}">
+                                                                <div class="accordion-body">
+                                                                    <div th:each="station : ${user.clientdetail.stationList}" class="mb-3 p-2 border-bottom">
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <div class="fw-bold">
+                                                                                    <a th:href="@{https://{dbname}.rfa.toloka.media (dbname=${station.dbname})}" target="_blank" th:text="${station.name}">Станція</a>
+                                                                                </div>
+                                                                                <div class="small text-muted" th:text="'БД: ' + ${station.dbname} + ' | Сервер: ' + ${station.guiserver}"></div>
+                                                                            </div>
+                                                                            <span th:if="${station.enable}" class="badge bg-success">Активна</span>
+                                                                            <span th:if="${!station.enable}" class="badge bg-warning text-dark">Очікує</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Альбоми -->
+                                                        <div class="accordion-item" th:if="${not #lists.isEmpty(user.clientdetail.albumList)}">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" th:data-bs-target="'#albums-' + ${user.id}">
+                                                                    <i class="fas fa-compact-disc me-2 text-secondary"></i> Альбоми (<span th:text="${#lists.size(user.clientdetail.albumList)}">0</span>)
+                                                                </button>
+                                                            </h2>
+                                                            <div th:id="'albums-' + ${user.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordion-' + ${user.id}">
+                                                                <div class="accordion-body">
+                                                                    <div th:each="album : ${user.clientdetail.albumList}" class="mb-2">
+                                                                        <div class="fw-bold" th:text="${album.name}">Альбом</div>
+                                                                        <div class="small text-muted" th:text="'Треків: ' + ${#lists.size(album.track)}"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Edit Modal -->
+                            <div class="modal fade" th:id="'editModal-' + ${user.id}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                                        <form th:action="@{/admin/users/update}" method="post">
+                                            <input type="hidden" name="userId" th:value="${user.id}">
+                                            <div class="modal-header border-0 px-4 pt-4">
+                                                <h5 class="modal-title fw-bold">Редагування користувача</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start px-4">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold">Ім'я</label>
+                                                        <input type="text" name="custname" th:value="${user.clientdetail.custname}" class="form-control rounded-3" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold">Прізвище</label>
+                                                        <input type="text" name="custsurname" th:value="${user.clientdetail.custsurname}" class="form-control rounded-3" required>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <label class="form-label small fw-bold">Назва фірми / Студії</label>
+                                                        <input type="text" name="firmname" th:value="${user.clientdetail.firmname}" class="form-control rounded-3">
+                                                    </div>
+                                                    <div class="col-12 mt-4">
+                                                        <label class="form-label small fw-bold mb-3 d-block">Ролі користувача</label>
+                                                        <div class="row row-cols-2 g-2">
+                                                            <div th:each="r : ${allRoles}" class="col">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="roles" 
+                                                                           th:value="${r}" th:id="'role-' + ${user.id} + '-' + ${r}"
+                                                                           th:checked="${#lists.toList(user.roles.![role]).contains(r)}">
+                                                                    <label class="form-check-label small" th:for="'role-' + ${user.id} + '-' + ${r}" th:text="${r.label}">Роль</label>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer border-0 px-4 pb-4 mt-3">
-                                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Скасувати</button>
-                                                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Зберегти зміни</button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            </div>
+                                            <div class="modal-footer border-0 px-4 pb-4 mt-3">
+                                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Скасувати</button>
+                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Зберегти зміни</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
+                            </div>
+                        </th:block>
                         <tr th:if="${usersList.isEmpty()}">
                             <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="fas fa-user-slash fa-3x mb-3 opacity-25"></i>
