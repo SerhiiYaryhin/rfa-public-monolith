@@ -116,6 +116,10 @@
 
     <input type="hidden" id="articleData" th:value="${article.postbody}">
 
+    <!-- jQuery та Bootstrap JS (необхідні для роботи меню) -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
     <script th:inline="javascript">
         const rawData = document.getElementById('articleData').value;
         const AlignmentClass = window.AlignmentBlockTune || window.AlignmentTune;
