@@ -36,7 +36,7 @@ public class SecurityConfig {
                         // 🌐 Публічні ресурси
                         .requestMatchers(
                                 "/", "/home", "/register", "/saveUser", "/guest/**",
-                                "/post/**", "/rss/**", "/error/**", "/robots.txt", "/api/2.0/**",
+                                "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/api/2.0/**",
                                 "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**"
                         ).permitAll()
                         
