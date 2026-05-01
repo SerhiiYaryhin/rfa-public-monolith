@@ -112,9 +112,12 @@ public class UserLoginController {
         if (remoteAddr == null || "".equals(remoteAddr)) {
             remoteAddr = request.getRemoteAddr();
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
-//        String remip = request.getRemoteAddr();
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        if (cd != null) {
+            logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
+        } else {
+            logger.info("IP={} Користувач {} (no details)", remoteAddr, user.getEmail());
+        }
 
         if (clientService.checkRole(ROLE_ADMIN)) {
             return "redirect:/admin/home";
@@ -136,8 +139,8 @@ public class UserLoginController {
             }
         } else if (clientService.checkRole(ROLE_NEWSTORADIO)) {
             return "redirect:/newstoradio/home/0";
-        };
-        // Йой! Щлсь пішло не так
+        }
+        // Йой! Щось пішло не так
         logger.info("============ redirect to Logout page");
         return "redirect:/logout";
     }
@@ -439,14 +442,5 @@ public class UserLoginController {
     @GetMapping(value = "/login")
     public String login() {
         return "/login/login";
-    }
-
-    @PostMapping("/login")
-    public String loginUser(
-            @ModelAttribute Users user,
-            Model model
-    ) {
-        System.out.println("========================== Login");
-        return "redirect:/user/user";
     }
 }
