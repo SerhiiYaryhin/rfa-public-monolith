@@ -48,6 +48,12 @@ public class ClientHomeController {
     @Autowired
     private media.toloka.rfa.podcast.service.PodcastService podcastService;
 
+    @Autowired
+    private media.toloka.rfa.author.service.AuthorArticleService articleService;
+
+    @Autowired
+    private media.toloka.rfa.author.repository.AuthorColumnRepository columnRepository;
+
     final Logger logger = LoggerFactory.getLogger(ClientHomeController.class);
 
     @GetMapping(value = "/user/user_page")
@@ -55,6 +61,7 @@ public class ClientHomeController {
             @RequestParam(defaultValue = "0") Integer postPage,
             @RequestParam(defaultValue = "0") Integer trackPage,
             @RequestParam(defaultValue = "0") Integer podcastPage,
+            @RequestParam(defaultValue = "0") Integer articlePage,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -79,6 +86,15 @@ public class ClientHomeController {
         model.addAttribute("podcastList", podcasts.getContent());
         model.addAttribute("podcastTotalPages", podcasts.getTotalPages());
         model.addAttribute("podcastCurrentPage", podcastPage);
+
+        // 4. Авторські статті (якщо є колонка)
+        columnRepository.findByAuthorUuid(cd.getUuid()).ifPresent(column -> {
+            Page<media.toloka.rfa.author.model.AuthorArticle> articles = articleService.getAuthorArticles(column, articlePage, 6);
+            model.addAttribute("articleList", articles.getContent());
+            model.addAttribute("articleTotalPages", articles.getTotalPages());
+            model.addAttribute("articleCurrentPage", articlePage);
+            model.addAttribute("authorColumn", column);
+        });
 
         return "/user/user_page";
     }

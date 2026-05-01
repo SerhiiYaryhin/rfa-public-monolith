@@ -66,13 +66,13 @@
                 <nav th:if="${postTotalPages > 1}" class="mt-4">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" th:classappend="${postCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage - 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}">Назад</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage - 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}">Назад</a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, postTotalPages - 1)}" th:classappend="${i == postCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${i}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}" th:text="${i + 1}">1</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${i}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${postCurrentPage == postTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage + 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage})}">Вперед</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage + 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}">Вперед</a>
                         </li>
                     </ul>
                 </nav>
@@ -110,13 +110,56 @@
                 <nav th:if="${podcastTotalPages > 1}" class="mt-4">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" th:classappend="${podcastCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage - 1})}">Назад</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage - 1}, articlePage=${articleCurrentPage})}">Назад</a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, podcastTotalPages - 1)}" th:classappend="${i == podcastCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${i})}" th:text="${i + 1}">1</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${i}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${podcastCurrentPage == podcastTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage + 1})}">Вперед</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage + 1}, articlePage=${articleCurrentPage})}">Вперед</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Секція 4: Авторські статті (тільки для авторів) -->
+            <div class="user-section" th:if="${authorColumn != null}">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="fas fa-pen-nib text-info me-2"></i>Ваші Авторські Статті</h2>
+                    <a href="/creater/author/editor" class="btn btn-sm btn-outline-info">+ Написати статтю</a>
+                </div>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${articleList != null && !articleList.isEmpty()}">
+                    <div th:each="article : ${articleList}" class="col">
+                        <div class="card h-100 shadow-sm border-top border-info border-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate" th:text="${article.title}">Назва статті</h5>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge" 
+                                          th:classappend="${article.status.name() == 'PUBLISHED' ? 'bg-success' : (article.status.name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                          th:text="${article.status.name()}">Статус</span>
+                                    <small class="text-muted" th:text="${#dates.format(article.createdAt, 'dd.MM.yyyy')}"></small>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 d-flex justify-content-end">
+                                <a th:href="'/creater/author/editor?uuid=' + ${article.uuid}" class="btn btn-sm btn-link text-info">Редагувати</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${articleList == null || articleList.isEmpty()}" class="alert alert-light border text-center">Ви ще не опублікували жодної статті у своїй колонці.</div>
+
+                <!-- Пагінація Статей -->
+                <nav th:if="${articleTotalPages > 1}" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item" th:classappend="${articleCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${articleCurrentPage - 1})}">Назад</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, articleTotalPages - 1)}" th:classappend="${i == articleCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${articleCurrentPage == articleTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${articleCurrentPage + 1})}">Вперед</a>
                         </li>
                     </ul>
                 </nav>
@@ -154,13 +197,13 @@
                 <nav th:if="${trackTotalPages > 1}" class="mb-4">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" th:classappend="${trackCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage - 1}, podcastPage=${podcastCurrentPage})}"><i class="fas fa-chevron-left"></i></a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage - 1}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}"><i class="fas fa-chevron-left"></i></a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, trackTotalPages - 1)}" th:classappend="${i == trackCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${i}, podcastPage=${podcastCurrentPage})}" th:text="${i + 1}">1</a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${i}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${trackCurrentPage == trackTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage + 1}, podcastPage=${podcastCurrentPage})}"><i class="fas fa-chevron-right"></i></a>
+                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage + 1}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}"><i class="fas fa-chevron-right"></i></a>
                         </li>
                     </ul>
                 </nav>
