@@ -55,7 +55,15 @@ public class AuthorService {
         // Створюємо колонку для автора
         AuthorColumn column = new AuthorColumn();
         column.setAuthor(request.getClient());
-        column.setTitle("Авторська колонка: " + request.getClient().getCustname());
+        
+        // Переносимо дані із запиту в колонку
+        if (request.getTopic() != null && !request.getTopic().isBlank()) {
+            column.setTitle(request.getTopic());
+        } else {
+            column.setTitle("Авторська колонка: " + request.getClient().getCustname());
+        }
+        column.setDescription(request.getResume());
+        
         column.setSlug(generateSlug(request.getClient().getCustname() + "-" + request.getClient().getCustsurname()));
         columnRepository.save(column);
 
