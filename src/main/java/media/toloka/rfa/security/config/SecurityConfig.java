@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/author/**").hasAnyRole("AUTHOR", "ADMIN", "Автор", "Адмін")
                         .requestMatchers("/author/apply").authenticated() // Кожен авторизований може подати заявку
                         
+                        .requestMatchers("/creater/picprofileupload").authenticated()
                         .requestMatchers("/creater/**").hasAnyRole("CREATER", "MODERATOR", "ADMIN", "Творець", "Модератор", "Адмін")
                         .requestMatchers("/user/**").hasAnyRole("USER", "CREATER", "MODERATOR", "ADMIN", "Користувач", "Творець", "Модератор", "Адмін")
                         .requestMatchers("/newstoradio/**").hasAnyRole("CREATER", "USER", "MODERATOR", "ADMIN", "Користувач", "Адмін")

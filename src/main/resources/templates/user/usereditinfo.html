@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
+    <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 </head>
 <body>
 <header>
@@ -30,8 +32,9 @@
     </div>
 
     <!--                    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>-->
-    <form th:action="@{/user/infosave}"  method="post">
-        <div class="col-md-7 mb-4">
+    <div class="col-md-1"></div>
+    <form th:action="@{/user/infosave}"  method="post" class="col-md-7">
+        <div class="mb-4">
             <div class="card">
                     <div class="card-header py-3">
                         <h5 class="mb-0">Ваша Інформація</h5>
@@ -103,12 +106,59 @@
     </form>
 <!--    =========================================-->
     <div class="col-md-3 mb-3">
+        <div class="card mb-4">
+            <div class="card-header py-3 text-center">
+                <h5 class="mb-0">Ваше Фото</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img th:if="${userdetail.profilephoto != null}" th:src="'/store/content/' + ${userdetail.profilephoto.uuid}" 
+                         class="img-fluid rounded-circle border shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
+                    <img th:if="${userdetail.profilephoto == null}" src="https://bootdey.com/img/Content/avatar/avatar1.png" 
+                         class="img-fluid rounded-circle border shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
+                </div>
+                <hr>
+                <h6>Змінити фото</h6>
+                <div id="dropzone">
+                    <form action="/creater/picprofileupload" class="dropzone needsclick border-dashed rounded" id="demo-upload" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="dz-message needsclick py-3">
+                            <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i><br>
+                            <span class="small">Перетягніть фото або натисніть</span>
+                        </div>
+                    </form>
+                </div>
+                <div class="mt-2 small text-muted">
+                    Після завантаження оновіть сторінку.
+                </div>
+            </div>
+        </div>
 <!--        <div th:insert="~{/fragments/user :: userrecentactions}">  </div>-->
     </div>
 </div>
 
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dropzone.min.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+
+<script>
+    Dropzone.options.demoUpload = {
+        maxFiles: 1,
+        acceptedFiles: 'image/*',
+        init: function() {
+            this.on("success", function(file, response) {
+                toastr.success('Фото завантажено успішно! Оновіть сторінку.');
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            });
+            this.on("error", function(file, response) {
+                toastr.error('Помилка при завантаженні фото.');
+            });
+        }
+    };
+</script>
 
 </body>
 </html>
