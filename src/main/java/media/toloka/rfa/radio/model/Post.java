@@ -34,6 +34,9 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String postbody;  // тіло посту
     @Expose
+    @Column(columnDefinition = "TEXT")
+    private String lead;      // короткий опис (лід)
+    @Expose
     private Date createdate = new Date();  // дата створення посту
     @Expose
     private Date publishdate;  // дата публікації посту

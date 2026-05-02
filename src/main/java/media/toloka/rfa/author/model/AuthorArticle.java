@@ -28,6 +28,9 @@ public class AuthorArticle {
     @Column(columnDefinition = "TEXT")
     private String postbody;   // JSON дані від Editor.js
 
+    @Column(columnDefinition = "TEXT")
+    private String lead;       // короткий опис (лід)
+
     private String coverUuid;  // Головна ілюстрація
 
     @Enumerated(EnumType.STRING)

@@ -80,7 +80,8 @@
                                 <h5 class="card-title fw-bold">
                                     <a th:href="'/post/postview/'+${post.uuid}" class="text-decoration-none text-dark" th:text="${post.posttitle}">Назва новини</a>
                                 </h5>
-                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(post.postbody, 100)}">Короткий текст...</p>
+                                <p th:if="${post.lead != null && !post.lead.isEmpty()}" class="card-text text-muted small line-clamp-3" th:text="${post.lead}">Лід...</p>
+                                <p th:if="${post.lead == null || post.lead.isEmpty()}" class="card-text text-muted small line-clamp-3" th:text="${#strings.abbreviate(#strings.stripTags(post.postbody), 150)}">Короткий текст...</p>
                             </div>
                             
                             <div class="card-footer bg-white border-0 pb-3">

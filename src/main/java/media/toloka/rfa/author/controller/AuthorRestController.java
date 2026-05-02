@@ -55,6 +55,7 @@ public class AuthorRestController {
 
         article.setTitle(articleData.getTitle());
         article.setPostbody(articleData.getPostbody());
+        article.setLead(articleData.getLead());
         article.setCoverUuid(articleData.getCoverUuid());
         article.setStatus(articleData.getStatus());
         

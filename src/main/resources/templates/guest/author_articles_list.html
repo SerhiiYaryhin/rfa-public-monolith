@@ -42,9 +42,10 @@
                         <div class="small mb-2">
                             <span class="text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}">Дата</span>
                         </div>
-                        <h5 class="card-title fw-bold mb-3 flex-grow-1">
+                        <h5 class="card-title fw-bold mb-3">
                             <a th:href="'/guest/authors/article/' + ${art.slug}" th:text="${art.title}">Назва</a>
                         </h5>
+                        <p th:if="${art.lead != null && !art.lead.isEmpty()}" class="card-text small text-muted line-clamp-3 mb-3" th:text="${art.lead}">Лід статті</p>
                         <div class="mt-auto pt-3 border-top">
                             <a th:href="'/guest/authors/' + ${art.column.slug}" class="author-link small">
                                 <i class="far fa-user me-1"></i>[[${art.column.author.custname + ' ' + art.column.author.custsurname}]]

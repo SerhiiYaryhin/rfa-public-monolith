@@ -47,6 +47,12 @@
                                 <input th:field="*{posttitle}" type="text" class="form-control form-control-lg" placeholder="Введіть заголовок..." required />
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="lead">Лід (короткий опис)</label>
+                                <textarea th:field="*{lead}" class="form-control" rows="3" placeholder="Стислий виклад змісту для головної сторінки..."></textarea>
+                                <div class="form-text text-muted">Цей текст буде відображатися в картці новини на головній сторінці.</div>
+                            </div>
+
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Тип контенту</label>

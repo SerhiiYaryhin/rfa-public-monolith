@@ -65,6 +65,7 @@
                                         <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark">
                                             <h3 class="h4 fw-bold mb-2" th:text="${art.title}">Заголовок статті</h3>
                                         </a>
+                                        <p th:if="${art.lead != null && !art.lead.isEmpty()}" class="small text-muted mb-3 line-clamp-2" th:text="${art.lead}">Лід статті</p>
                                         <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-3">
                                             <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none text-muted d-flex align-items-center">
                                                 <img th:if="${art.column.author.profilephoto != null}" th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}" class="rounded-circle me-2" style="width: 25px; height: 25px; object-fit: cover;">

@@ -90,6 +90,14 @@
                     </div>
 
                     <input type="text" id="articleTitle" class="article-title-input" placeholder="Заголовок історії..." th:value="${article.title}">
+                    
+                    <div class="mb-4">
+                        <textarea id="articleLead" class="form-control border-0 bg-light p-3" 
+                                  placeholder="Короткий лід (вступ) для анонсу на головній сторінці..." 
+                                  style="border-radius: 12px; resize: none; font-size: 1.1rem;" 
+                                  rows="3" th:text="${article.lead}"></textarea>
+                    </div>
+
                     <div id="editorjs"></div>
                 </div>
             </div>
@@ -288,6 +296,7 @@
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '[[${_csrf.token}]]' },
                     body: JSON.stringify({
                         uuid: articleUuid, title: title, postbody: JSON.stringify(data),
+                        lead: document.getElementById('articleLead').value.trim(),
                         coverUuid: finalCover, status: isPublish ? 'PENDING' : 'DRAFT'
                     })
                 });

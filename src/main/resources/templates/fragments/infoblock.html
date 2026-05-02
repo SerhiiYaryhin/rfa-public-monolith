@@ -24,14 +24,14 @@
                         </a>
                     </div>
                     <div class="card-body ">
-                        <h5 class="card-title" style="font-size: 1rem;"><a th:href="'/post/postview/'+${post.uuid}"><span
-                                th:text="${post.posttitle}"/></a></h5>
-                        <!--                <p class="card-text">-->
-                        <!--                  Тут можна розмістити уривок тексту -->
-<!--                        <div class="mt-auto text-truncate" style="max-height: 3em;">-->
-<!--                            <span th:text="${#strings.unescapeHtml(#strings.stripTags(post.postbody))}"></span>-->
-<!--                        </div>-->
-                        <!--                </p>-->
+                        <h5 class="card-title" style="font-size: 1.1rem; font-weight: bold;">
+                            <a th:href="'/post/postview/'+${post.uuid}" class="text-decoration-none text-dark">
+                                <span th:text="${post.posttitle}"/>
+                            </a>
+                        </h5>
+                        <p th:if="${post.lead != null && !post.lead.isEmpty()}" class="card-text small text-muted line-clamp-3">
+                            <span th:text="${post.lead}"></span>
+                        </p>
                     </div>
                     <div class="card-footer">
                         <p class="card-text">

@@ -171,6 +171,7 @@ public class PostController {
         
         post.setPostbody(fPost.getPostbody());
         post.setPosttitle(fPost.getPosttitle());
+        post.setLead(fPost.getLead());
         post.setCategory(fPost.getCategory());
         post.setPostcategory(fPost.getPostcategory());
         post.setClientdetail(cd);
