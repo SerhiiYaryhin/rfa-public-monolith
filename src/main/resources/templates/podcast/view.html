@@ -7,7 +7,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Толока - Подкаст: [[${podcast.title}]]</title>
-    <div th:insert="~{/fragments/common :: ogpodcast}"/>
+    <div th:replace="~{/fragments/common :: ogpodcast}" th:with="ogimage=${podcast.imagechanelstore != null ? podcast.imagechanelstore.uuid : null}"/>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!-- Font Awesome icons -->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>

@@ -8,7 +8,13 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
+    <div th:replace="~{/fragments/common :: metadata(
+        title=${podcastItem.title}, 
+        description=${podcastItem.description != null ? #strings.abbreviate(#strings.stripTags(podcastItem.description), 200) : 'Епізод подкасту на Толоці'}, 
+        image=${podcastItem.imagestoreitem != null ? podcastItem.imagestoreitem.uuid : null}, 
+        url='/podcast/episode/' + ${podcastItem.uuid},
+        type='music.song')}"/>
+    <title th:text="${podcastItem.title} + ' | Толока'"></title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
     <!--  <div th:replace="~{/fragments/common :: ogpodcast}"/>-->

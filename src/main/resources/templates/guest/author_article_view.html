@@ -5,6 +5,12 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div th:replace="~{/fragments/common :: metadata(
+        title=${article.title}, 
+        description=${article.lead != null ? article.lead : 'Стаття на Толоці'}, 
+        image=${article.coverUuid}, 
+        url='/guest/authors/article/' + ${article.slug},
+        type='article')}"/>
     <title th:text="${article.title} + ' - Авторська колонка | Толока'"></title>
     
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
