@@ -103,8 +103,7 @@ public class UserLoginController {
     ) {
         logger.info("============ ROUTE to Group page ");
 
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
+        if (request.getUserPrincipal() == null) {
             return "redirect:/";
         }
 
@@ -112,36 +111,41 @@ public class UserLoginController {
         if (remoteAddr == null || "".equals(remoteAddr)) {
             remoteAddr = request.getRemoteAddr();
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        if (cd != null) {
-            logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
-        } else {
-            logger.info("IP={} Користувач {} (no details)", remoteAddr, user.getEmail());
+        
+        Users user = clientService.GetCurrentUser();
+        if (user != null) {
+            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            if (cd != null) {
+                logger.info("IP={} Користувач {} {} company: {}", remoteAddr, cd.getCustname(), cd.getCustsurname(), cd.getFirmname());
+            } else {
+                logger.info("IP={} Користувач {} (no details)", remoteAddr, user.getEmail());
+            }
         }
 
-        if (clientService.checkRole(ROLE_ADMIN)) {
+        if (request.isUserInRole("ADMIN")) {
             return "redirect:/admin/home";
-        } else if (clientService.checkRole(ROLE_MODERATOR)) {
+        } else if (request.isUserInRole("MODERATOR")) {
             return "redirect:/moderator/home";
-        } else if (clientService.checkRole(ROLE_EDITOR)) {
+        } else if (request.isUserInRole("EDITOR")) {
             return "redirect:/editor/home";
-        } else if (clientService.checkRole(ROLE_CREATER)) {
+        } else if (request.isUserInRole("AUTHOR")) {
+            return "redirect:/creater/author/dashboard";
+        } else if (request.isUserInRole("CREATER")) {
             return "redirect:/creater/home";
-        } else if (clientService.checkRole(ROLE_USER)) {
+        } else if (request.isUserInRole("USER")) {
             return "redirect:/user/user_page";
-        } else if (clientService.checkRole(ROLE_UNKNOWN)) {
+        } else if (request.isUserInRole("UNKNOWN")) {
             return "redirect:/messenger";
-        } else if (clientService.checkRole(ROLE_TELEGRAM)) {
-            if (user.getRoles().size() == 1) {
-                // Тільки одна роль для Телеграму у списку
-                // Тож, потрібно зробити вибір між ROLE_CREATER та ROLE_USER
+        } else if (request.isUserInRole("TELEGRAM")) {
+            if (user != null && user.getRoles().size() == 1) {
                 return "redirect:/login/setrole";
             }
-        } else if (clientService.checkRole(ROLE_NEWSTORADIO)) {
+        } else if (request.isUserInRole("NEWSTORADIO")) {
             return "redirect:/newstoradio/home/0";
         }
+        
         // Йой! Щось пішло не так
-        logger.info("============ redirect to Logout page");
+        logger.info("============ redirect to Logout page (no recognized roles)");
         return "redirect:/logout";
     }
 

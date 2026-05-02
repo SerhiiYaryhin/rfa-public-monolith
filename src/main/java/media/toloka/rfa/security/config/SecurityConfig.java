@@ -48,20 +48,20 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 👮 Доступи за ролями
-                        .requestMatchers("/acc/**").hasAnyRole("ADMIN", "ACCCHEAF", "Адмін", "ACC_CHEAF")
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "Адмін")
-                        
-                        // Авторська колонка
-                        .requestMatchers("/creater/author/**").hasAnyRole("AUTHOR", "ADMIN", "Автор", "Адмін")
-                        .requestMatchers("/api/author/**").hasAnyRole("AUTHOR", "ADMIN", "Автор", "Адмін")
-                        .requestMatchers("/author/apply").authenticated() // Кожен авторизований може подати заявку
-                        
+                        .requestMatchers("/acc/**").hasAnyRole("ADMIN", "ACCCHEAF")
+                        // 👮 Доступи за ролями
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/creater/author/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers("/api/author/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers("/author/apply").authenticated()
+
                         .requestMatchers("/creater/picprofileupload").authenticated()
-                        .requestMatchers("/creater/**").hasAnyRole("CREATER", "MODERATOR", "ADMIN", "Творець", "Модератор", "Адмін")
-                        .requestMatchers("/user/**").hasAnyRole("USER", "CREATER", "MODERATOR", "ADMIN", "Користувач", "Творець", "Модератор", "Адмін")
-                        .requestMatchers("/newstoradio/**").hasAnyRole("CREATER", "USER", "MODERATOR", "ADMIN", "Користувач", "Адмін")
-                        .requestMatchers("/editor/**").hasAnyRole("EDITOR", "ADMIN", "Редактор", "Адмін")
-                        .requestMatchers("/moderator/**").hasAnyRole("MODERATOR", "ADMIN", "Модератор", "Адмін")
+                        .requestMatchers("/creater/**").hasAnyRole("CREATER", "MODERATOR", "ADMIN")
+
+                        .requestMatchers("/user/**").hasAnyRole("USER", "CREATER", "MODERATOR", "ADMIN", "NEWSTORADIO")
+                        .requestMatchers("/newstoradio/**").hasAnyRole("NEWSTORADIO", "CREATER", "USER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/editor/**").hasAnyRole("EDITOR", "ADMIN")
+                        .requestMatchers("/moderator/**").hasAnyRole("MODERATOR", "ADMIN")
                         
                         // 🔒 Все інше
                         .anyRequest().authenticated()
