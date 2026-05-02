@@ -18,6 +18,15 @@
 <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 <!-- MessageBox -->
 <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+<div class="container" th:if="${param.error}">
+    <div class="alert alert-danger text-center" role="alert">
+        <span th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}" 
+              th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}"></span>
+        <span th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+            Неправильний логін або пароль.
+        </span>
+    </div>
+</div>
 <!--<div class="section section-signup" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/now-ui-kit/master/assets/img/bg4.jpg'); background-size: cover; background-position: top center; min-height: 700px;">-->
 <div class="section section-signup" style="background-image: url('/assets/img/LoginBG.jpg');
 background-size: cover; background-position: top center; min-height: 1200px;">

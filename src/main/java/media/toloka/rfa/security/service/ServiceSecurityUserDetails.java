@@ -5,6 +5,7 @@ import media.toloka.rfa.security.model.Users;
 import media.toloka.rfa.security.repository.UserSecurityRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,23 +18,31 @@ import java.util.*;
 
 @Service
 public class ServiceSecurityUserDetails implements UserDetailsService {
-//public class ServiceSecurityUserDetails implements ServiceSecurityUsers, UserDetailsService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
     private UserSecurityRepository repoUsers;
-//    @Override
-//    public Long saveUser(@NotNull Users user) { // TODO Видалити. Без використання
-//        String passwd= user.getPassword();
-//        String encodedPasswod = passwordEncoder.encode(passwd);
-//        user.setPassword(encodedPasswod);
-//        user = repoUsers.save(user);
-//        return user.getId();
-//    }
+    
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+    
+    @Autowired
+    private jakarta.servlet.http.HttpServletRequest request;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        String xf = request.getHeader("X-Forwarded-For");
+        String ip = (xf == null) ? request.getRemoteAddr() : xf.split(",")[0];
+        
+        if (loginAttemptService.isBlocked(ip)) {
+            throw new LockedException("IP заблоковано через забагато невдалих спроб входу. Спробуйте через 10 хвилин.");
+        }
+        
+        if (loginAttemptService.isBlocked(email)) {
+            throw new LockedException("Акаунт тимчасово заблоковано через забагато невдалих спроб входу. Спробуйте через 10 хвилин.");
+        }
+
         org.springframework.security.core.userdetails.User springUser=null;
 
         Optional<Users> opt = repoUsers.findUserByEmail(email);
