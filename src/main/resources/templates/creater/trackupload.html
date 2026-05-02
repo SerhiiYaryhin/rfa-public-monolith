@@ -56,22 +56,22 @@
                     </div>
                     <div class="card-body">
                         <form id="track-details-form" th:action="@{/creater/edittrack}" method="post" th:object="${track}">
-                            <input type="hidden" id="track-uuid" th:field="*{uuid}"/>
+                            <input type="hidden" id="track-uuid" name="uuid" th:value="*{uuid}"/>
                             
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <label for="autor">Виконавець <span class="mandatory-star">*</span></label>
-                                    <input type="text" th:field="*{autor}" id="autor" class="form-control" placeholder="Ім'я автора або гурту" required>
+                                    <input type="text" th:field="*{autor}" class="form-control" placeholder="Ім'я автора або гурту" required>
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label for="name">Назва треку <span class="mandatory-star">*</span></label>
-                                    <input type="text" th:field="*{name}" id="name" class="form-control" placeholder="Назва пісні" required>
+                                    <input type="text" th:field="*{name}" class="form-control" placeholder="Назва пісні" required>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="style">Стиль / Жанр</label>
-                                <input type="text" th:field="*{style}" id="style" class="form-control" placeholder="Наприклад: Рок, Поп, Джаз">
+                                <input type="text" th:field="*{style}" class="form-control" placeholder="Наприклад: Рок, Поп, Джаз">
                             </div>
 
                             <div class="form-group">
@@ -83,7 +83,7 @@
                                 <div class="col-md-6 form-group">
                                     <label for="album">Альбом</label>
                                     <select th:field="*{album}" class="form-select">
-                                        <option value="" selected>Поза альбомом (Single)</option>
+                                        <option value="0" selected>Поза альбомом (Single)</option>
                                         <option th:each="al : ${albumList}" th:value="${al.id}" th:text="${al.name}"></option>
                                     </select>
                                 </div>

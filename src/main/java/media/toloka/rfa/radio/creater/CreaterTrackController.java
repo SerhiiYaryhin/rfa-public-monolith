@@ -103,7 +103,7 @@ public class CreaterTrackController {
 
     @PostMapping(value = "/creater/edittrack")
     public String getCreaterEditTracks(
-            @ModelAttribute Track ftrack,
+            @ModelAttribute("track") Track ftrack,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -119,19 +119,23 @@ public class CreaterTrackController {
         
         if (track == null) {
             logger.info("Не знайшли трек за UUID: {}", ftrack.getUuid());
-            return "/creater/home";
+            return "redirect:/creater/home";
         }
-        track.setName(ftrack.getName());
-        track.setDescription(ftrack.getDescription());
+        
+        // Оновлюємо поля
+        if (ftrack.getName() != null) track.setName(ftrack.getName());
+        if (ftrack.getAutor() != null) track.setAutor(ftrack.getAutor());
+        if (ftrack.getDescription() != null) track.setDescription(ftrack.getDescription());
+        if (ftrack.getStyle() != null) track.setStyle(ftrack.getStyle());
+        
         track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
-        track.setStyle(ftrack.getStyle());
-        track.setAutor(ftrack.getAutor());
+        
         if (track.getTochat() != ftrack.getTochat()) {
             track.setTochat(ftrack.getTochat());
-
             createrService.PublicTrackToChat(track, cd );
         }
-        if (ftrack.getAlbum() != null) {
+        
+        if (ftrack.getAlbum() != null && ftrack.getAlbum().getId() != null && ftrack.getAlbum().getId() != 0) {
             track.setAlbum(ftrack.getAlbum());
         } else {
             track.setAlbum(null);

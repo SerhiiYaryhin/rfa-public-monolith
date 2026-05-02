@@ -33,7 +33,7 @@ public class AuthorController {
     }
 
     @PostMapping("/apply")
-    public String processApply(@ModelAttribute AuthorRequest authorRequest) {
+    public String processApply(@ModelAttribute("authorRequest") AuthorRequest authorRequest) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/login";
 
