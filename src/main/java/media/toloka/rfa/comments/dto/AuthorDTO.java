@@ -9,6 +9,10 @@ public class AuthorDTO {
     private String uuid;
     @Expose
     private String username; // Припустимо, у Clientdetail є поле username
+    @Expose
+    private String custname;
+    @Expose
+    private String custsurname;
     // Додайте інші поля Clientdetail, які ви хочете виставити через API
     // наприклад, @Expose private String avatarUrl;
 }

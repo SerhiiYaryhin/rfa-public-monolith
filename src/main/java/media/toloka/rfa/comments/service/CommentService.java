@@ -133,15 +133,9 @@ public class CommentService {
         }
         AuthorDTO authorDTO = new AuthorDTO();
         authorDTO.setUuid(clientdetail.getUuid());
-        // Припустимо, у Clientdetail є поле username
-        // if (clientdetail.getUsername() != null) {
-        //     authorDTO.setUsername(clientdetail.getUsername());
-        // } else {
-        authorDTO.setUsername(
-                clientdetail.getCustname()+" "+clientdetail.getCustsurname()
-        ); // Заглушка, якщо username немає
-        // }
-        // Додайте інші поля, які ви хочете передавати про автора
+        authorDTO.setCustname(clientdetail.getCustname());
+        authorDTO.setCustsurname(clientdetail.getCustsurname());
+        authorDTO.setUsername(clientdetail.getCustname() + " " + clientdetail.getCustsurname());
         return authorDTO;
     }
 
@@ -269,13 +263,13 @@ public class CommentService {
         // Для демонстрації, повертаємо фіксований ID
         Clientdetail cd;
         switch (contentEntityType) {
-            case ECommentSourceType.COMMENT_POST:
+            case COMMENT_POST:
                 cd = postService.GetPostByUuid(contentEntityId).getClientdetail();
                 break;
-            case ECommentSourceType.COMMENT_TRACK:
+            case COMMENT_TRACK:
                 cd = createrService.GetTrackByUuid(contentEntityId).getClientdetail();
                 break;
-            case ECommentSourceType.COMMENT_ARTICLE:
+            case COMMENT_ARTICLE:
                 cd = authorArticleService.getArticleByUuid(contentEntityId)
                         .map(article -> article.getColumn().getAuthor())
                         .orElse(null);

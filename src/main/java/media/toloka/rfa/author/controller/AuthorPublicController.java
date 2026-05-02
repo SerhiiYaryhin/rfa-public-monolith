@@ -67,7 +67,7 @@ public class AuthorPublicController {
         articleService.saveArticle(article);
         
         // Завантажуємо коментарі
-        var comments = commentService.getCommentsPage(article.getUuid(), commentPage, 10);
+        var comments = commentService.getPaginatedCommentsHierarchy(ECommentSourceType.COMMENT_ARTICLE, article.getUuid(), org.springframework.data.domain.PageRequest.of(commentPage, 10));
         model.addAttribute("commentsPage", comments);
         model.addAttribute("currentCommentsPage", commentPage);
         model.addAttribute("totalCommentsPages", comments.getTotalPages());
