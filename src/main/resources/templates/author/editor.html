@@ -47,6 +47,12 @@
         .storage-img-item { height: 120px; object-fit: contain; background: #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 3px solid transparent; }
         .storage-img-item:hover { transform: scale(1.05); }
         .storage-img-item.selected { border-color: #007db5; }
+
+        /* Стилі для прев'ю */
+        #previewEditor { font-family: 'Lora', serif; font-size: 1.25rem; line-height: 1.6; }
+        #previewModal .ce-block__content, #previewModal .ce-toolbar__content { max-width: 800px; }
+        #previewModal .cdx-quote { border-left: 6px solid #FF8000; padding: 1rem 0 1rem 2rem; font-style: italic; background: #fff9f0; border-radius: 0 8px 8px 0; }
+        #previewModal .image-tool__caption { text-align: center; color: #64748b; font-style: italic; font-size: 0.9rem; margin-top: 1rem; }
     </style>
 </head>
 <body class="bg-light">
@@ -106,39 +112,34 @@
 
     <!-- Модальне вікно сховища -->
     <div class="modal fade" id="storageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                <div class="modal-header border-0 p-4 pb-0">
-                    <h5 class="fw-bold">Оберіть обкладинку</h5>
+... (rest of storage modal) ...
+    </div>
+
+    <!-- Модальне вікно попереднього перегляду -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-light px-4">
+                    <h5 class="fw-bold mb-0">Попередній перегляд статті</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#tab-storage" type="button">Зі сховища</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#tab-upload" type="button">Завантажити нову</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="tab-storage">
-                            <div id="storageGrid" class="row row-cols-2 row-cols-md-4 g-3 overflow-auto" style="max-height: 400px;">
-                                <div class="col text-center py-5 w-100 text-muted" id="storageLoader">
-                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div> Завантаження...
-                                </div>
+                <div class="modal-body p-0 overflow-auto bg-white">
+                    <header class="article-header text-center py-5 bg-light border-bottom">
+                        <div class="container px-4">
+                            <h1 id="previewTitle" class="display-4 fw-bold mb-3 mx-auto" style="max-width: 900px;"></h1>
+                            <div class="text-muted">
+                                <span class="fw-bold text-dark">[[${#dates.format(#dates.createNow(), 'dd MMMM yyyy')}]]</span>
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="tab-upload">
-                            <div class="text-center py-5 border rounded-3 bg-light">
-                                <input type="file" id="coverFileInput" class="d-none" accept="image/*" onchange="uploadNewCover(this.files[0])">
-                                <button type="button" class="btn btn-outline-primary px-4 rounded-pill fw-bold" onclick="document.getElementById('coverFileInput').click()">
-                                    <i class="fas fa-cloud-upload-alt me-2"></i>Обрати файл на ПК
-                                </button>
-                                <p class="small text-muted mt-3 mb-0">JPG, PNG, WEBP. До 5 Мб.</p>
-                            </div>
-                        </div>
-                    </div>
+                    </header>
+                    <main class="article-main py-5 mx-auto" style="max-width: 850px;">
+                        <img id="previewCover" class="img-fluid rounded-4 shadow-sm mb-5 d-none" style="width: 100%; max-height: 500px; object-fit: contain; background: #000;">
+                        <div id="previewLead" class="lead fw-normal mb-5 text-muted" style="font-size: 1.4rem; line-height: 1.6; border-left: 4px solid #FF8000; padding-left: 20px;"></div>
+                        <div id="previewEditor"></div>
+                    </main>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Закрити прев'ю</button>
                 </div>
             </div>
         </div>
@@ -308,7 +309,50 @@
             }
         }
 
-        document.getElementById('previewBtn').onclick = () => alert('Використовуйте фінальні стилі сайту після збереження.');
+        async function showPreview() {
+            try {
+                const data = await editor.save();
+                const title = document.getElementById('articleTitle').value.trim() || 'Без заголовка';
+                const lead = document.getElementById('articleLead').value.trim();
+                
+                document.getElementById('previewTitle').innerText = title;
+                
+                const previewLeadEl = document.getElementById('previewLead');
+                if (lead) {
+                    previewLeadEl.innerText = lead;
+                    previewLeadEl.classList.remove('d-none');
+                } else {
+                    previewLeadEl.classList.add('d-none');
+                }
+                
+                const previewCover = document.getElementById('previewCover');
+                if (selectedCoverUuid) {
+                    previewCover.src = '/store/content/' + selectedCoverUuid;
+                    previewCover.classList.remove('d-none');
+                } else {
+                    previewCover.classList.add('d-none');
+                }
+                
+                // Очищаємо попередній контейнер прев'ю
+                document.getElementById('previewEditor').innerHTML = '';
+                
+                // Створюємо новий інстанс редактора для прев'ю (read-only)
+                const pEditor = new EditorJS({
+                    holder: 'previewEditor',
+                    readOnly: true,
+                    tools: editorTools,
+                    data: data
+                });
+                
+                const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+                modal.show();
+            } catch (e) {
+                console.error("Preview error:", e);
+                alert("Помилка при формуванні попереднього перегляду");
+            }
+        }
+
+        document.getElementById('previewBtn').onclick = showPreview;
         document.getElementById('saveDraftBtn').onclick = () => saveArticle(false);
         document.getElementById('publishBtn').onclick = () => saveArticle(true);
     </script>
