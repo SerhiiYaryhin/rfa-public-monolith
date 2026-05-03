@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
-import org.springframework.web.context.request.RequestContextListener;
+import org.springframework.web.filter.RequestContextFilter;
 
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -30,8 +30,11 @@ public class SecurityConfig {
     private BCryptPasswordEncoder encoder;
 
     @Bean
-    public RequestContextListener requestContextListener() {
-        return new RequestContextListener();
+    public FilterRegistrationBean<RequestContextFilter> requestContextFilterRegistration() {
+        RequestContextFilter filter = new RequestContextFilter();
+        FilterRegistrationBean<RequestContextFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registration;
     }
 
     @Bean
