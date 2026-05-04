@@ -75,6 +75,7 @@ public class EpisodeEditController {
         if (tepisode != null) {
             // Заповнюємо поля знайденого епізоду з форми.
             tepisode.setTitle(episode.getTitle());
+            tepisode.setLead(episode.getLead());
             tepisode.setDescription(episode.getDescription());
 
             podcastService.SaveEpisode(tepisode);

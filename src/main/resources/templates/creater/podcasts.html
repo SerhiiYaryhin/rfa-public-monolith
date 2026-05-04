@@ -57,12 +57,13 @@
                     <tr th:each="podcast : ${podcastList}">
                         <td class="ps-3">
                             <img th:if="${podcast.imagechanelstore != null}" th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}" 
-                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" class="border">
+                                 style="width: 50px; height: 50px; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px;" class="border">
                             <i th:if="${podcast.imagechanelstore == null}" class="fas fa-podcast fa-2x text-muted"></i>
                         </td>
                         <td>
                             <strong th:text="${podcast.title}">Назва</strong><br>
-                            <small class="text-muted" th:text="${#strings.abbreviate(podcast.description, 60)}"></small>
+                            <small class="text-muted" th:if="${podcast.lead}" th:text="${#strings.abbreviate(podcast.lead, 60)}"></small>
+                            <small class="text-muted" th:if="${!podcast.lead && podcast.description}" th:text="${#strings.abbreviate(podcast.description, 60)}"></small>
                         </td>
                         <td class="text-center">
                             <span th:if="${podcast.apruve}" class="badge bg-success">Схвалено</span>

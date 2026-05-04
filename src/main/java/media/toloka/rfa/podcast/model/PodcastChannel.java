@@ -38,6 +38,9 @@ public class PodcastChannel {
     private String title; // Назва подкасту
     @Expose
     @Column(columnDefinition = "TEXT")
+    private String lead; // лід (короткий опис) подкасту
+    @Expose
+    @Column(columnDefinition = "TEXT")
     private String description; // опис подкасту
     @Expose
     private String link; // Напевно, посилання на RSS подкасту на іншому ресурсі

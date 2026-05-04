@@ -55,16 +55,18 @@
                     <div class="card-body p-4 p-lg-5 pt-0 pt-lg-0">
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
-                            <div class="col">
-                                <img class="img-fluid align-center" style="padding-top: 20px"
+                            <div class="col text-center">
+                                <img class="img-fluid rounded shadow-sm" 
+                                     style="padding-top: 20px; aspect-ratio: 1/1; object-fit: cover; max-width: 300px;"
                                      th:if="${podcastItem.imagestoreitem != null}"
-                                     th:src="'/store/thrumbal/w/300/' + ${podcastItem.imagestoreitem.uuid} + '/' + ${podcastItem.imagestoreitem.filename}"
+                                     th:src="'/store/content/' + ${podcastItem.imagestoreitem.uuid}"
                                      th:id="${podcastItem.imagestoreitem.uuid}"/>
                             </div>
                         </div>
                         <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}"
                             style="padding-top: 10px"></h1> <!-- назва подкасту -->
                         <!-- зміст подкасту -->
+                        <div th:if="${podcastItem.lead}" th:text="${podcastItem.lead}" class="fw-bold text-center mb-3"></div>
                         <div th:utext="${podcastItem.description}" class="mb-0 fs-6" style="padding-top: 10px"></div>
                         <!-- зміст подкасту -->
                     </div>

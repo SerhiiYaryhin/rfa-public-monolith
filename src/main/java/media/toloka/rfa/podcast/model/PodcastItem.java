@@ -29,6 +29,9 @@ public class PodcastItem {
     @Expose
     private String title;
     @Expose
+    @Column(columnDefinition = "TEXT")
+    private String lead;
+    @Expose
     private String link;
     @Expose
     private String pubDate;

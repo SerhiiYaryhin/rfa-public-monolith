@@ -161,6 +161,7 @@ public class PodcastEditController {
         PodcastChannel tpodcast = podcastService.GetChanelByUUID(podcast.getUuid());
         if (tpodcast != null) {
             tpodcast.setTitle(podcast.getTitle());
+            tpodcast.setLead(podcast.getLead());
             tpodcast.setDescription(podcast.getDescription());
             tpodcast.setLastbuilddate(new Date());
             tpodcast.setClientdetail(cd.getUuid());

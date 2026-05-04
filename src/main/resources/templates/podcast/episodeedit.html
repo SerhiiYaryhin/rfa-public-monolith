@@ -68,7 +68,12 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label fw-bold">Опис епізоду</label>
+                <label class="form-label fw-bold">Лід (короткий опис)</label>
+                <textarea th:field="*{lead}" class="form-control" rows="3" placeholder="Короткий вступ до цього випуску..."></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Повний опис епізоду</label>
                 <textarea th:field="*{description}" class="form-control" rows="8" placeholder="Опишіть, про що цей випуск..."></textarea>
             </div>
 

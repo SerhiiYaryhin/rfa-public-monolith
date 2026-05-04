@@ -102,7 +102,11 @@
                             <input type="text" th:field="*{title}" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Опис</label>
+                            <label class="form-label fw-bold">Лід (короткий опис)</label>
+                            <textarea th:field="*{lead}" class="form-control" rows="2" placeholder="Короткий вступ, що відображатиметься в списках..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Повний опис</label>
                             <textarea th:field="*{description}" class="form-control" rows="5"></textarea>
                         </div>
                         <div class="row align-items-end">

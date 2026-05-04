@@ -100,9 +100,9 @@
                     <a th:href="'/podcast/view/'+${podcast.uuid}">
                         <img th:if="${podcast.imagechanelstore != null}" 
                              th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
-                             class="podcast-cover" alt="Podcast Cover">
+                             class="podcast-cover" style="aspect-ratio: 1/1; object-fit: cover;" alt="Podcast Cover">
                         <div th:if="${podcast.imagechanelstore == null}" 
-                             class="podcast-cover bg-dark d-flex align-items-center justify-content-center text-white-50" style="height: 220px;">
+                             class="podcast-cover bg-dark d-flex align-items-center justify-content-center text-white-50" style="aspect-ratio: 1/1;">
                             <i class="fas fa-microphone-alt fa-4x opacity-25"></i>
                         </div>
                     </a>
@@ -111,8 +111,9 @@
                         <h5 class="card-title fw-bold mb-2">
                             <a th:href="'/podcast/view/'+${podcast.uuid}" th:text="${podcast.title}">Назва подкасту</a>
                         </h5>
-                        <div class="card-text text-muted small mb-4 flex-grow-1" th:if="${podcast.description}">
-                            <div th:utext="${#strings.length(podcast.description) > 120 ? #strings.substring(podcast.description, 0, 120) + '...' : podcast.description}"></div>
+                        <div class="card-text text-muted small mb-4 flex-grow-1">
+                            <div th:if="${podcast.lead}" th:text="${podcast.lead}">Лід</div>
+                            <div th:if="${!podcast.lead && podcast.description}" th:utext="${#strings.length(podcast.description) > 120 ? #strings.substring(podcast.description, 0, 120) + '...' : podcast.description}"></div>
                         </div>
                         
                         <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">

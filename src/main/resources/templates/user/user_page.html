@@ -83,12 +83,15 @@
                         <div class="card h-100 shadow-sm border-start border-success border-4">
                             <div class="row g-0 align-items-center">
                                 <div class="col-4 p-2 text-center">
-                                    <img th:if="${podcast.imagechanelstore != null}" th:src="'/store/content/'+${podcast.imagechanelstore.uuid}" class="img-fluid rounded" alt="Cover">
+                                    <img th:if="${podcast.imagechanelstore != null}" 
+                                         th:src="'/store/content/'+${podcast.imagechanelstore.uuid}" 
+                                         class="img-fluid rounded shadow-sm" style="aspect-ratio: 1/1; object-fit: cover;" alt="Cover">
                                     <i th:if="${podcast.imagechanelstore == null}" class="fas fa-podcast fa-3x text-muted"></i>
                                 </div>
                                 <div class="col-8">
                                     <div class="card-body py-2 px-3">
                                         <h6 class="card-title text-truncate mb-1" th:text="${podcast.title}"></h6>
+                                        <small class="text-muted d-block" th:if="${podcast.lead}" th:text="${#strings.abbreviate(podcast.lead, 40)}"></small>
                                         <small class="text-muted d-block" th:text="${podcast.item.size()} + ' епізодів'"></small>
                                         <a th:href="'/podcast/pedit/'+${podcast.uuid}" class="btn btn-sm btn-link p-0 text-success">Керувати</a>
                                     </div>
