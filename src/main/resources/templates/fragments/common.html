@@ -86,7 +86,8 @@
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${post.posttitle}">
-    <meta name="twitter:description" th:content="${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}">
+    <meta name="twitter:description" th:content="${post.lead ?: ''}" />
+<!--    <meta name="twitter:description" th:content="${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}">-->
     <meta name="twitter:image" th:attr="content=${post.coverstoreuuid==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ post.coverstoreuuid }">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
