@@ -63,19 +63,12 @@
                 <div th:if="${postList.isEmpty()}" class="alert alert-light border text-center">Ви ще не створювали постів.</div>
 
                 <!-- Пагінація Постів -->
-                <nav th:if="${postTotalPages > 1}" class="mt-4">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        <li class="page-item" th:classappend="${postCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage - 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}">Назад</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, postTotalPages - 1)}" th:classappend="${i == postCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${i}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${postCurrentPage == postTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage + 1}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}">Вперед</a>
-                        </li>
-                    </ul>
-                </nav>
+                <div th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${postTotalPages}, 
+                    currentPage=${postCurrentPage}, 
+                    linkPage='/user/user_page?trackPage='+${trackCurrentPage}+'&podcastPage='+${podcastCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                    pageParam='postPage'
+                )}"></div>
             </div>
 
             <!-- Секція 2: Подкасти -->
@@ -107,19 +100,12 @@
                 <div th:if="${podcastList.isEmpty()}" class="alert alert-light border text-center">У вас ще немає власних подкастів.</div>
 
                 <!-- Пагінація Подкастів -->
-                <nav th:if="${podcastTotalPages > 1}" class="mt-4">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        <li class="page-item" th:classappend="${podcastCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage - 1}, articlePage=${articleCurrentPage})}">Назад</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, podcastTotalPages - 1)}" th:classappend="${i == podcastCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${i}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${podcastCurrentPage == podcastTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage}, podcastPage=${podcastCurrentPage + 1}, articlePage=${articleCurrentPage})}">Вперед</a>
-                        </li>
-                    </ul>
-                </nav>
+                <div th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${podcastTotalPages}, 
+                    currentPage=${podcastCurrentPage}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&trackPage='+${trackCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                    pageParam='podcastPage'
+                )}"></div>
             </div>
 
             <!-- Секція 4: Авторські статті (тільки для авторів) -->
@@ -150,19 +136,12 @@
                 <div th:if="${articleList == null || articleList.isEmpty()}" class="alert alert-light border text-center">Ви ще не опублікували жодної статті у своїй колонці.</div>
 
                 <!-- Пагінація Статей -->
-                <nav th:if="${articleTotalPages > 1}" class="mt-4">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        <li class="page-item" th:classappend="${articleCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${articleCurrentPage - 1})}">Назад</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, articleTotalPages - 1)}" th:classappend="${i == articleCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${articleCurrentPage == articleTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postPage}, trackPage=${trackPage}, podcastPage=${podcastPage}, articlePage=${articleCurrentPage + 1})}">Вперед</a>
-                        </li>
-                    </ul>
-                </nav>
+                <div th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${articleTotalPages}, 
+                    currentPage=${articleCurrentPage}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&trackPage='+${trackCurrentPage}+'&podcastPage='+${podcastCurrentPage}, 
+                    pageParam='articlePage'
+                )}"></div>
             </div>
 
         </div>
@@ -194,19 +173,12 @@
                 </a>
 
                 <!-- Пагінація Треків -->
-                <nav th:if="${trackTotalPages > 1}" class="mb-4">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        <li class="page-item" th:classappend="${trackCurrentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage - 1}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}"><i class="fas fa-chevron-left"></i></a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, trackTotalPages - 1)}" th:classappend="${i == trackCurrentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${i}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${trackCurrentPage == trackTotalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/user/user_page(postPage=${postCurrentPage}, trackPage=${trackCurrentPage + 1}, podcastPage=${podcastCurrentPage}, articlePage=${articleCurrentPage})}"><i class="fas fa-chevron-right"></i></a>
-                        </li>
-                    </ul>
-                </nav>
+                <div th:insert="~{/fragments/common :: pagingcompact(
+                    totalPages=${trackTotalPages}, 
+                    currentPage=${trackCurrentPage}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&podcastPage='+${podcastCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                    pageParam='trackPage'
+                )}"></div>
             </div>
 
             <!-- Медіахаб -->
