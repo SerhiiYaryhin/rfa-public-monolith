@@ -79,7 +79,8 @@
     <meta property="og:image" th:attr="content=${post.coverstoreuuid==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ post.coverstoreuuid }"/>
     <meta property="og:url" th:attr="content=${'https://rfa.toloka.media/post/postview/'+post.uuid}" />
     <meta property="og:title" th:attr="content=${post.posttitle}" />
-    <meta property="og:description" th:attr="content=${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}" />
+<!--    <meta property="og:description" th:attr="content=${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}" />-->
+    <meta property="og:description" th:content="${post.lead != null ? post.lead : ''}" />
     <meta property="og:type" content="article"/>
     <meta property="og:locale" content="uk" />
     
