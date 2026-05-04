@@ -159,32 +159,51 @@ model.addAttribute("linkPage","/creater/tracks/");
     <tr th:each="item : ${viewList}">
 
 <!--*/-->
-<nav th:fragment="pagingline" aria-label="Pagination" th:if="${totalPages > 0}">
-    <ul class="pagination justify-content-center">
+<nav th:fragment="pagingline" aria-label="Навігація сторінками" th:if="${totalPages > 1}">
+    <ul class="pagination justify-content-center shadow-sm">
+        <!-- Перша сторінка -->
         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-            <a th:replace="~{/fragments/common :: paging(${linkPage},0, '<<', 'Перша')}"></a>
+            <a class="page-link" th:href="@{${linkPage} + '0'}" title="Перша сторінка">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
         </li>
-        <li class="page-item font-weight-bold" th:classappend="${currentPage == 0} ? 'disabled'">
-            <a th:replace="~{/fragments/common :: paging(${linkPage},${currentPage - 1}, 'Попер.', 'Попередня')}"></a>
-        </li>
-
-        <li class="page-item disabled" th:if="${currentPage - 3 > 1}">
-            <a class="page-link" href="#">...</a>
-        </li>
-
-        <li class="page-item" th:classappend="${page == currentPage+1} ? 'active'"
-            th:each="page : ${#numbers.sequence(currentPage > 3 ? currentPage - 3 : 1, currentPage + 3 < totalPages ? currentPage + 3 : totalPages)}">
-            <a th:replace="~{/fragments/common :: paging(${linkPage},${page-1}, ${page}, 'Page ' + ${page})}"></a>
-        </li>
-        <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
-            <a class="page-link" href="#">...</a>
-        </li>
-        <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
-            <a th:replace="~{/fragments/common :: paging(${linkPage},${currentPage + 1},'Наст.', 'Наступна')}"></a>
+        
+        <!-- Попередня сторінка -->
+        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link" th:href="@{${linkPage} + ${currentPage - 1}}" title="Попередня сторінка">
+                <i class="fas fa-angle-left"></i>
+            </a>
         </li>
 
-        <li class="page-item" th:classappend="${currentPage == totalPages-1} ? 'disabled'">
-            <a th:replace="~{/fragments/common :: paging(${linkPage},${totalPages-1}, '>>', 'Остання')}"></a>
+        <!-- Пропуск зліва -->
+        <li class="page-item disabled" th:if="${currentPage > 3}">
+            <span class="page-link">...</span>
+        </li>
+
+        <!-- Номери сторінок -->
+        <li class="page-item" 
+            th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 0, (currentPage + 2 < totalPages) ? currentPage + 2 : totalPages - 1)}"
+            th:classappend="${page == currentPage} ? 'active shadow'">
+            <a class="page-link fw-bold" th:href="@{${linkPage} + ${page}}" th:text="${page + 1}">1</a>
+        </li>
+
+        <!-- Пропуск справа -->
+        <li class="page-item disabled" th:if="${currentPage + 3 < totalPages}">
+            <span class="page-link">...</span>
+        </li>
+
+        <!-- Наступна сторінка -->
+        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+            <a class="page-link" th:href="@{${linkPage} + ${currentPage + 1}}" title="Наступна сторінка">
+                <i class="fas fa-angle-right"></i>
+            </a>
+        </li>
+
+        <!-- Остання сторінка -->
+        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+            <a class="page-link" th:href="@{${linkPage} + ${totalPages - 1}}" title="Остання сторінка">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
         </li>
     </ul>
 </nav>
