@@ -77,7 +77,7 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold" th:text="${podcast.title}">Назва подкасту</h5>
                         <p class="card-text text-muted small" th:if="${podcast.lead}" th:text="${podcast.lead}"></p>
-                        <p class="card-text text-muted small" th:if="${!podcast.lead && podcast.description}" 
+                        <p class="card-text text-muted small" th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description}" 
                            th:text="${#strings.length(podcast.description) > 120 ? #strings.substring(podcast.description, 0, 120) + '...' : podcast.description}">
                            Опис подкасту
                         </p>

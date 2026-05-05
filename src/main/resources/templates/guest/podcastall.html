@@ -113,7 +113,7 @@
                         </h5>
                         <div class="card-text text-muted small mb-4 flex-grow-1">
                             <div th:if="${podcast.lead}" th:text="${podcast.lead}">Лід</div>
-                            <div th:if="${!podcast.lead && podcast.description}" th:utext="${#strings.length(podcast.description) > 120 ? #strings.substring(podcast.description, 0, 120) + '...' : podcast.description}"></div>
+                            <div th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description}" th:utext="${#strings.length(podcast.description) > 120 ? #strings.substring(podcast.description, 0, 120) + '...' : podcast.description}"></div>
                         </div>
                         
                         <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
