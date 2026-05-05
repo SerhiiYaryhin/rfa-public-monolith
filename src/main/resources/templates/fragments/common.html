@@ -75,48 +75,46 @@
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="ogpost">
-    <meta property="og:image" th:attr="content=${post.coverstoreuuid==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ post.coverstoreuuid }"/>
-    <meta property="og:url" th:attr="content=${'https://rfa.toloka.media/post/postview/'+post.uuid}" />
-    <meta property="og:title" th:attr="content=${post.posttitle}" />
-<!--    <meta property="og:description" th:attr="content=${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}" />-->
-    <meta property="og:description" th:content="${post.lead != null ? post.lead : ''}" />
+<th:block th:fragment="ogpost(post)">
+    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + post.coverstoreuuid}"/>
+    <meta property="og:url" th:content="${'https://rfa.toloka.media/post/postview/' + post?.uuid}" />
+    <meta property="og:title" th:content="${post?.posttitle}" />
+    <meta property="og:description" th:content="${post?.lead ?: ''}" />
     <meta property="og:type" content="article"/>
     <meta property="og:locale" content="uk" />
     
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" th:content="${post.posttitle}">
-    <meta name="twitter:description" th:content="${post.lead ?: ''}" />
-<!--    <meta name="twitter:description" th:content="${post.lead != null ? post.lead : #strings.abbreviate(#strings.stripTags(post.postbody), 200)}">-->
-    <meta name="twitter:image" th:attr="content=${post.coverstoreuuid==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ post.coverstoreuuid }">
+    <meta name="twitter:title" th:content="${post?.posttitle}">
+    <meta name="twitter:description" th:content="${post?.lead ?: ''}" />
+    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + post.coverstoreuuid}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="ogalbum">
-    <meta property="og:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ ogimage }"/>
-    <meta property="og:url" th:attr="content=${'https://rfa.toloka.media/creater/album/'+album.uuid}" />
-    <meta property="og:title" th:attr="content=${album.albumname}" />
+<th:block th:fragment="ogalbum(album, ogimage)">
+    <meta property="og:image" th:content="${ogimage == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + ogimage}"/>
+    <meta property="og:url" th:content="${'https://rfa.toloka.media/creater/album/' + album?.uuid}" />
+    <meta property="og:title" th:content="${album?.albumname}" />
     <meta property="og:type" content="article"/>
     <meta property="og:locale" content="uk" />
     
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" th:content="${album.albumname}">
-    <meta name="twitter:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/'+ ogimage }">
+    <meta name="twitter:title" th:content="${album?.albumname}">
+    <meta name="twitter:image" th:content="${ogimage == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + ogimage}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="ogtrack">
-    <meta property="og:image" th:attr="content=${track.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}"/>
-    <meta property="og:url" th:attr="content=${'https://rfa.toloka.media/guest/viewtrack/'+track.uuid}" />
-    <meta property="og:title" th:attr="content=${track.name + ' - ' + track.autor}" />
+<th:block th:fragment="ogtrack(track)">
+    <meta property="og:image" th:content="${track?.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}"/>
+    <meta property="og:url" th:content="${'https://rfa.toloka.media/guest/viewtrack/' + track?.uuid}" />
+    <meta property="og:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}" />
     <meta property="og:type" content="article"/>
     <meta property="og:locale" content="uk" />
     
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" th:content="${track.name + ' - ' + track.autor}">
-    <meta name="twitter:image" th:attr="content=${track.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}">
+    <meta name="twitter:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}">
+    <meta name="twitter:image" th:content="${track?.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
