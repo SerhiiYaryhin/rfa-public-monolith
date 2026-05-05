@@ -163,7 +163,7 @@ model.addAttribute("linkPage","/creater/tracks/");
 <nav th:fragment="pagingline" aria-label="Навігація сторінками" th:if="${totalPages != null && totalPages > 1}">
     <ul class="pagination justify-content-center shadow-sm">
         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-            <a class="page-link" th:href="@{${linkPage}(${pageParam ?: 'page'}=0)}" th:attr="onclick=${ajax ? 'return loadPage(0)' : ''}" title="Перша сторінка">
+            <a class="page-link" th:href="@{${linkPage}(${pageParam ?: 'page'}=0)}" th:attr="onclick=${ajax != null && ajax ? 'return loadPage(0)' : ''}" title="Перша сторінка">
                 <i class="fas fa-angle-double-left"></i>
             </a>
         </li>
