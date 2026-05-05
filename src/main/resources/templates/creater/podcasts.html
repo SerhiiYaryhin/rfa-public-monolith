@@ -63,7 +63,7 @@
                         <td>
                             <strong th:text="${podcast.title}">Назва</strong><br>
                             <small class="text-muted" th:if="${podcast.lead}" th:text="${#strings.abbreviate(podcast.lead, 60)}"></small>
-                            <small class="text-muted" th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description}" th:text="${#strings.abbreviate(podcast.description, 60)}"></small>
+                            <small class="text-muted" th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description != null}" th:text="${#strings.abbreviate(podcast.description, 60)}"></small>
                         </td>
                         <td class="text-center">
                             <span th:if="${podcast.apruve}" class="badge bg-success">Схвалено</span>
