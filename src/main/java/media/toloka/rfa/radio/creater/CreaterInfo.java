@@ -102,7 +102,7 @@ public class CreaterInfo {
     }
 
     // Музичний Бот e2f9b0e6-73b5-4fcf-b249-f1e82d42a689
-    @GetMapping(value = "/creater/profile/{uuidCreater}")
+    @GetMapping(value = "/guest/profile/{uuidCreater}")
     public String getProfile(
             @PathVariable String uuidCreater,
             Model model ) {
@@ -129,6 +129,11 @@ public class CreaterInfo {
 
 
         return "/guest/profile";
+    }
+
+    @GetMapping(value = "/creater/profile/{uuidCreater}")
+    public String getProfileOld(@PathVariable String uuidCreater) {
+        return "redirect:/guest/profile/" + uuidCreater;
     }
 
 }

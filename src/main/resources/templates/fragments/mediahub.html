@@ -449,10 +449,12 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="small fw-bold text-truncate" style="max-width: 150px;" 
-                                 th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></div>
+                            <div class="small fw-bold text-truncate" style="max-width: 150px;">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}" class="text-decoration-none text-dark"
+                                   th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></a>
+                            </div>
                             <div class="x-small text-muted text-truncate" style="max-width: 150px;">
-                                <a th:href="'/creater/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-muted"
+                                <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-muted"
                                    th:text="${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}"></a>
                             </div>
                         </div>
@@ -497,9 +499,12 @@
                                 </a>
                             </div>
                             <div class="col px-3">
-                                <div class="fw-bold" th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}">Назва</div>
+                                <div class="fw-bold">
+                                    <a th:href="'/guest/viewtrack/'+${track.uuid}" class="text-decoration-none text-dark"
+                                       th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}">Назва</a>
+                                </div>
                                 <div class="small text-muted">
-                                    <a th:href="'/creater/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-secondary">
+                                    <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-secondary">
                                         <i class="far fa-user me-1"></i>[[${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}]]
                                     </a>
                                     <span class="ms-3"><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(track.uploaddate, 'dd.MM.yyyy')}]]</span>
