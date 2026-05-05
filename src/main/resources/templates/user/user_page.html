@@ -9,191 +9,176 @@
     <title>Толока - Мій Кабінет</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <style>
-        .user-section { margin-bottom: 3rem; }
-        .section-header { border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
-        .card-img-custom { height: 160px; object-fit: cover; }
-        .track-item:hover { background-color: #f8f9fa; }
-    </style>
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body class="bg-light">
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<div class="container py-5" style="padding-top: 120px !important;">
+<main class="container py-5 mt-5">
     
     <!-- Привітання -->
-    <div class="row mb-5">
-        <div class="col-lg-12">
-            <h1 class="display-5 fw-bold">Вітаємо, <span sec:authentication="name">Користувач</span>!</h1>
-            <p class="lead text-muted">Ваш персональний простір для керування контентом на Толоці.</p>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold">Вітаємо, <span sec:authentication="name">Користувач</span>!</h1>
+            <p class="text-muted">Ваш персональний кабінет для керування контентом.</p>
             <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
         </div>
     </div>
 
-    <!-- Основний контент -->
-    <div class="row">
-        <!-- Ліва широка колонка: Пости та Подкасти -->
+    <!-- Основна сітка -->
+    <div class="row g-4">
+        
+        <!-- Ліва колонка: Пости, Подкасти, Статті -->
         <div class="col-lg-8">
             
-            <!-- Секція 1: Пости -->
-            <div class="user-section">
-                <div class="section-header d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0"><i class="fas fa-newspaper text-primary me-2"></i>Ваші Пости</h2>
-                    <a href="/creater/editpost/0" class="btn btn-sm btn-outline-primary">+ Створити пост</a>
+            <!-- Секція Пости -->
+            <section class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0 text-primary"><i class="fas fa-newspaper me-2"></i>Ваші Пости</h2>
+                    <a href="/creater/editpost/0" class="btn btn-sm btn-outline-primary">+ Створити</a>
                 </div>
                 
-                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${!postList.isEmpty()}">
+                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${postList != null && !postList.isEmpty()}">
                     <div th:each="post : ${postList}" class="col">
-                        <div class="card h-100 shadow-sm">
-                            <img th:if="${post.coverstoreuuid}" th:src="'/store/content/'+${post.coverstoreuuid}" class="card-img-top card-img-custom" alt="Post Cover">
+                        <div class="card h-100 shadow-sm border-0">
+                            <img th:if="${post.coverstoreuuid}" th:src="'/store/content/'+${post.coverstoreuuid}" class="card-img-top" style="height: 140px; object-fit: cover;" alt="Cover">
                             <div class="card-body">
-                                <h5 class="card-title text-truncate" th:text="${post.posttitle}">Назва</h5>
+                                <h6 class="card-title text-truncate" th:text="${post.posttitle}">Назва</h6>
                                 <p class="card-text small text-muted" th:if="${post.postStatus}" th:text="${post.postStatus.label}"></p>
                             </div>
-                            <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                            <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
                                 <small class="text-muted" th:text="${#dates.format(post.createdate, 'dd.MM.yyyy')}"></small>
-                                <a th:href="'/creater/editpost/'+${post.uuid}" class="btn btn-sm btn-link">Редагувати</a>
+                                <a th:href="'/creater/editpost/'+${post.uuid}" class="btn btn-sm btn-link text-decoration-none">Редагувати</a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div th:if="${postList.isEmpty()}" class="alert alert-light border text-center">Ви ще не створювали постів.</div>
+                <div th:if="${postList == null || postList.isEmpty()}" class="p-4 bg-white rounded border text-center text-muted">Ви ще не створювали постів.</div>
 
-                <!-- Пагінація Постів -->
-                <div th:insert="~{/fragments/common :: pagingline(
-                    totalPages=${postTotalPages}, 
-                    currentPage=${postCurrentPage}, 
-                    linkPage='/user/user_page?trackPage='+${trackCurrentPage}+'&podcastPage='+${podcastCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                <div class="mt-3" th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${postTotalPages ?: 0}, 
+                    currentPage=${postCurrentPage ?: 0}, 
+                    linkPage='/user/user_page?trackPage='+${trackCurrentPage ?: 0}+'&podcastPage='+${podcastCurrentPage ?: 0}+'&articlePage='+${articleCurrentPage ?: 0}, 
                     pageParam='postPage'
                 )}"></div>
-            </div>
+            </section>
 
-            <!-- Секція 2: Подкасти -->
-            <div class="user-section">
-                <div class="section-header d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0"><i class="fas fa-microphone-alt text-success me-2"></i>Ваші Подкасти</h2>
-                    <a href="/podcast/pedit/0" class="btn btn-sm btn-outline-success">+ Новий подкаст</a>
+            <!-- Секція Подкасти -->
+            <section class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0 text-success"><i class="fas fa-microphone-alt me-2"></i>Ваші Подкасти</h2>
+                    <a href="/podcast/pedit/0" class="btn btn-sm btn-outline-success">+ Новий</a>
                 </div>
                 
-                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${!podcastList.isEmpty()}">
+                <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${podcastList != null && !podcastList.isEmpty()}">
                     <div th:each="podcast : ${podcastList}" class="col">
-                        <div class="card h-100 shadow-sm border-start border-success border-4">
-                            <div class="row g-0 align-items-center">
-                                <div class="col-4 p-2 text-center">
+                        <div class="card h-100 shadow-sm border-0 border-start border-success border-4">
+                            <div class="card-body d-flex align-items-center p-2">
+                                <div class="flex-shrink-0" style="width: 60px;">
                                     <img th:if="${podcast.imagechanelstore != null}" 
                                          th:src="'/store/content/'+${podcast.imagechanelstore.uuid}" 
-                                         class="img-fluid rounded shadow-sm" style="aspect-ratio: 1/1; object-fit: cover;" alt="Cover">
-                                    <i th:if="${podcast.imagechanelstore == null}" class="fas fa-podcast fa-3x text-muted"></i>
+                                         class="img-fluid rounded" style="aspect-ratio: 1/1; object-fit: cover;" alt="Cover">
+                                    <i th:if="${podcast.imagechanelstore == null}" class="fas fa-podcast fa-2x text-muted ps-2"></i>
                                 </div>
-                                <div class="col-8">
-                                    <div class="card-body py-2 px-3">
-                                        <h6 class="card-title text-truncate mb-1" th:text="${podcast.title}"></h6>
-                                        <small class="text-muted d-block" th:if="${podcast.lead}" th:text="${#strings.abbreviate(podcast.lead, 40)}"></small>
-                                        <small class="text-muted d-block" th:text="${podcast.item.size()} + ' епізодів'"></small>
-                                        <a th:href="'/podcast/pedit/'+${podcast.uuid}" class="btn btn-sm btn-link p-0 text-success">Керувати</a>
-                                    </div>
+                                <div class="flex-grow-1 ms-3 overflow-hidden">
+                                    <h6 class="text-truncate mb-0" th:text="${podcast.title}"></h6>
+                                    <small class="text-muted" th:text="${podcast.item != null ? podcast.item.size() : 0} + ' епізодів'"></small>
+                                    <a th:href="'/podcast/pedit/'+${podcast.uuid}" class="d-block small text-success text-decoration-none">Керувати</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div th:if="${podcastList.isEmpty()}" class="alert alert-light border text-center">У вас ще немає власних подкастів.</div>
+                <div th:if="${podcastList == null || podcastList.isEmpty()}" class="p-4 bg-white rounded border text-center text-muted">У вас ще немає подкастів.</div>
 
-                <!-- Пагінація Подкастів -->
-                <div th:insert="~{/fragments/common :: pagingline(
-                    totalPages=${podcastTotalPages}, 
-                    currentPage=${podcastCurrentPage}, 
-                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&trackPage='+${trackCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                <div class="mt-3" th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${podcastTotalPages ?: 0}, 
+                    currentPage=${podcastCurrentPage ?: 0}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage ?: 0}+'&trackPage='+${trackCurrentPage ?: 0}+'&articlePage='+${articleCurrentPage ?: 0}, 
                     pageParam='podcastPage'
                 )}"></div>
-            </div>
+            </section>
 
-            <!-- Секція 4: Авторські статті (тільки для авторів) -->
-            <div class="user-section" th:if="${authorColumn != null}">
-                <div class="section-header d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0"><i class="fas fa-pen-nib text-info me-2"></i>Ваші Авторські Статті</h2>
-                    <a href="/creater/author/editor" class="btn btn-sm btn-outline-info">+ Написати статтю</a>
+            <!-- Секція Статті -->
+            <section class="mb-5" th:if="${authorColumn != null}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0 text-info"><i class="fas fa-pen-nib me-2"></i>Авторські Статті</h2>
+                    <a href="/creater/author/article/new" class="btn btn-sm btn-outline-info">+ Написати</a>
                 </div>
                 
                 <div class="row row-cols-1 row-cols-md-2 g-3" th:if="${articleList != null && !articleList.isEmpty()}">
                     <div th:each="article : ${articleList}" class="col">
-                        <div class="card h-100 shadow-sm border-top border-info border-4">
+                        <div class="card h-100 shadow-sm border-0 border-top border-info border-4">
                             <div class="card-body">
-                                <h5 class="card-title text-truncate" th:text="${article.title}">Назва статті</h5>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <span class="badge" 
-                                          th:classappend="${article.status.name() == 'PUBLISHED' ? 'bg-success' : (article.status.name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-secondary')}"
-                                          th:text="${article.status.name()}">Статус</span>
+                                <h6 class="card-title text-truncate" th:text="${article.title}">Назва</h6>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="badge rounded-pill" 
+                                          th:classappend="${article.status != null && article.status.name() == 'PUBLISHED' ? 'bg-success' : (article.status != null && article.status.name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                          th:text="${article.status}">Статус</span>
                                     <small class="text-muted" th:text="${#dates.format(article.createdAt, 'dd.MM.yyyy')}"></small>
                                 </div>
                             </div>
-                            <div class="card-footer bg-white border-top-0 d-flex justify-content-end">
-                                <a th:href="'/creater/author/editor?uuid=' + ${article.uuid}" class="btn btn-sm btn-link text-info">Редагувати</a>
+                            <div class="card-footer bg-transparent border-0 text-end">
+                                <a th:href="'/creater/author/article/edit/' + ${article.uuid}" class="btn btn-sm btn-link text-info text-decoration-none">Редагувати</a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div th:if="${articleList == null || articleList.isEmpty()}" class="alert alert-light border text-center">Ви ще не опублікували жодної статті у своїй колонці.</div>
+                <div th:if="${articleList == null || articleList.isEmpty()}" class="p-4 bg-white rounded border text-center text-muted">Ви ще не опублікували жодної статті.</div>
 
-                <!-- Пагінація Статей -->
-                <div th:insert="~{/fragments/common :: pagingline(
-                    totalPages=${articleTotalPages}, 
-                    currentPage=${articleCurrentPage}, 
-                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&trackPage='+${trackCurrentPage}+'&podcastPage='+${podcastCurrentPage}, 
+                <div class="mt-3" th:insert="~{/fragments/common :: pagingline(
+                    totalPages=${articleTotalPages ?: 0}, 
+                    currentPage=${articleCurrentPage ?: 0}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage ?: 0}+'&trackPage='+${trackCurrentPage ?: 0}+'&podcastPage='+${podcastCurrentPage ?: 0}, 
                     pageParam='articlePage'
                 )}"></div>
-            </div>
+            </section>
 
         </div>
 
-        <!-- Права колонка: Треки та Медіахаб -->
+        <!-- Права колонка: Треки та Інструменти -->
         <div class="col-lg-4">
             
-            <!-- Секція 3: Треки -->
-            <div class="user-section">
-                <div class="section-header">
-                    <h2 class="h4 mb-0"><i class="fas fa-music text-warning me-2"></i>Ваші Треки</h2>
-                </div>
+            <section class="mb-4">
+                <h2 class="h4 mb-3 text-warning"><i class="fas fa-music me-2"></i>Ваші Треки</h2>
                 
-                <div class="list-group shadow-sm mb-3" th:if="${!trackList.isEmpty()}">
-                    <div th:each="track : ${trackList}" class="list-group-item track-item d-flex justify-content-between align-items-center">
-                        <div class="text-truncate" style="max-width: 70%">
-                            <strong th:text="${track.name ?: 'Без назви'}"></strong><br>
-                            <small class="text-muted" th:text="${track.autor}"></small>
+                <div class="list-group list-group-flush shadow-sm rounded mb-3" th:if="${trackList != null && !trackList.isEmpty()}">
+                    <div th:each="track : ${trackList}" class="list-group-item d-flex justify-content-between align-items-center bg-white">
+                        <div class="text-truncate me-2" style="max-width: 80%">
+                            <div class="fw-bold text-truncate small" th:text="${track.name ?: 'Без назви'}"></div>
+                            <div class="text-muted x-small" th:text="${track.autor}"></div>
                         </div>
-                        <a th:href="'/creater/edittrack/'+${track.uuid}" class="btn btn-sm btn-outline-secondary rounded-pill">
-                            <i class="fas fa-pen small"></i>
+                        <a th:href="'/creater/edittrack/'+${track.uuid}" class="btn btn-sm btn-outline-secondary border-0">
+                            <i class="fas fa-pen fa-xs"></i>
                         </a>
                     </div>
                 </div>
-                <div th:if="${trackList.isEmpty()}" class="alert alert-light border text-center small">Треків поки немає.</div>
+                <div th:if="${trackList == null || trackList.isEmpty()}" class="p-4 bg-white rounded border text-center text-muted mb-3 small">Треків поки немає.</div>
                 
-                <a href="/creator/trackupload" class="btn btn-warning w-100 mb-4 shadow-sm">
-                    <i class="fas fa-cloud-upload-alt me-1"></i> Завантажити музику
+                <a href="/creator/trackupload" class="btn btn-warning w-100 mb-4 fw-bold shadow-sm">
+                    <i class="fas fa-cloud-upload-alt me-2"></i> Завантажити музику
                 </a>
 
-                <!-- Пагінація Треків -->
                 <div th:insert="~{/fragments/common :: pagingcompact(
-                    totalPages=${trackTotalPages}, 
-                    currentPage=${trackCurrentPage}, 
-                    linkPage='/user/user_page?postPage='+${postCurrentPage}+'&podcastPage='+${podcastCurrentPage}+'&articlePage='+${articleCurrentPage ?: 0}, 
+                    totalPages=${trackTotalPages ?: 0}, 
+                    currentPage=${trackCurrentPage ?: 0}, 
+                    linkPage='/user/user_page?postPage='+${postCurrentPage ?: 0}+'&podcastPage='+${podcastCurrentPage ?: 0}+'&articlePage='+${articleCurrentPage ?: 0}, 
                     pageParam='trackPage'
                 )}"></div>
-            </div>
+            </section>
 
-            <!-- Медіахаб -->
+            <!-- Інструменти -->
             <div class="card shadow-sm border-0 bg-dark text-white p-3 mb-4">
-                <h5><i class="fas fa-tools me-2 text-info"></i>Інструменти</h5>
-                <hr class="bg-light">
+                <h5 class="mb-3"><i class="fas fa-tools me-2 text-info"></i>Медіа Хаб</h5>
+                <hr class="bg-secondary opacity-50">
                 <div th:insert="~{/fragments/mediahub :: lasttrecks}">  </div>
             </div>
 
         </div>
     </div>
-</div>
+</main>
 
 <div th:insert="~{/fragments/common :: footer}"></div>
 <script src="/js/bootstrap.bundle.min.js"></script>

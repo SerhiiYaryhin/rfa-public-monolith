@@ -68,6 +68,9 @@ public class ClientHomeController {
             return "redirect:/";
         }
         media.toloka.rfa.radio.model.Clientdetail cd = clientService.GetClientDetailByUser(user);
+        if (cd == null) {
+            return "redirect:/user/usereditinfo"; // Перенаправляємо на заповнення профайлу, якщо немає деталей
+        }
 
         // 1. Пости користувача
         Page<Post> posts = createrService.GetPostPageByClientDetail(postPage, 6, cd);

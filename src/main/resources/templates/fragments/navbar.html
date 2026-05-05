@@ -168,7 +168,7 @@
 <!--                </li>  &lt;!&ndash; admin &ndash;&gt;-->
                 <li class="nav-item"><a class="nav-link" href="/creater/storage/0">Сховище</a></li>
                     <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.7em; font-weight: bold;"/>
                     </a></li>
                     <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
@@ -210,7 +210,7 @@
                 <li class="nav-item"><a class="nav-link" href="/podcast/home">Подкаст</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
@@ -231,7 +231,7 @@
                         <li class="nav-item"><a class="nav-link" href="/user/home/managestations">Станції</a></li>
                     </ul>
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                    <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                    <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
                           style="color:red;font-size: 0.7em; font-weight: bold;"/>
                 </a>
                 </li>
@@ -252,7 +252,7 @@
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.75em; font-weight: bold;"/></a>
                 </li>
 
@@ -264,7 +264,7 @@
                 <li class="nav-item"><a class="nav-link" href="/moderator/home">Головна</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage gt 0} " th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
@@ -277,7 +277,7 @@
                 <li class="nav-item"><a class="nav-link" href="/creater/tracks/0">Треки</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <!--                        <span th:if="${quantitynewmessage gt 0} " th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/>-->
+                        <!--                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'Нові: '+ ${quantitynewmessage}" style="color:red;font-size: 0.75em; font-weight: bold;"/>-->
                     </a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
