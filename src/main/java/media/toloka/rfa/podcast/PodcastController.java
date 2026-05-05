@@ -244,15 +244,15 @@ public class PodcastController {
     }
 
     /** Список подкастів поточного автора з пагінацією */
-    @GetMapping(value = {"/creater/podcasts", "/creater/podcasts/{page}"})
+    @GetMapping(value = "/creater/podcasts")
     public String getCreatorPodcasts(
-            @PathVariable(required = false) Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
         
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        int currentPage = (page == null) ? 0 : page;
+        int currentPage = page;
         
         // Отримуємо пагіновані подкасти конкретного автора
         Page<PodcastChannel> podcastPage = podcastService.GetPodcastsByClientPage(cd.getUuid(), currentPage, 10);
@@ -260,9 +260,14 @@ public class PodcastController {
         model.addAttribute("podcastList", podcastPage.getContent());
         model.addAttribute("totalPages", podcastPage.getTotalPages());
         model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/creater/podcasts/");
+        model.addAttribute("linkPage", "/creater/podcasts");
 
         return "/creater/podcasts";
+    }
+
+    @GetMapping(value = "/creater/podcasts/{page}")
+    public String getCreatorPodcastsOld(@PathVariable Integer page) {
+        return "redirect:/creater/podcasts?page=" + page;
     }
 
     /* Працюємо із завантаженням подкасту з RSS URL */

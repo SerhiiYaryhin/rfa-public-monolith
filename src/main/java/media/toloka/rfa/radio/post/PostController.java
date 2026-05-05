@@ -182,25 +182,30 @@ public class PostController {
         return "redirect:/creater/home";
     }
 
-    @GetMapping(value = "/creater/posts/{cPage}")
+    @GetMapping(value = "/creater/posts")
     public String getCreaterPosts(
-            @PathVariable String cPage,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
         
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        Integer curpage = Integer.parseInt(cPage);
+        Integer curpage = page;
         Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.getContent();
 
         model.addAttribute("viewList", viewList);
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", curpage);
-        model.addAttribute("linkPage", "/creater/posts/");
+        model.addAttribute("linkPage", "/creater/posts");
 
         return "/creater/posts";
+    }
+
+    @GetMapping(value = "/creater/posts/{cPage}")
+    public String getCreaterPostsOld(@PathVariable String cPage) {
+        return "redirect:/creater/posts?page=" + cPage;
     }
 
     @GetMapping(value = "/creater/publishpost/{uuidPost}")

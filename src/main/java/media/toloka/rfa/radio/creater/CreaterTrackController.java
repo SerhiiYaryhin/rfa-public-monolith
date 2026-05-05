@@ -42,15 +42,15 @@ public class CreaterTrackController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping(value = "/creater/tracks/{cPage}")
+    @GetMapping(value = "/creater/tracks")
     public String getCreaterTracks(
-            @PathVariable String cPage,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
-        Integer curpage = Integer.parseInt(cPage);
+        Integer curpage = page;
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         List<Store> storetrackList = createrService.storeListTrackByClientDetail(cd);
         List<Album> albums = createrService.GetAllAlbumsByCreater(cd);
@@ -66,7 +66,7 @@ public class CreaterTrackController {
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
         model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks/");
+        model.addAttribute("linkPage","/creater/tracks");
 
         // Пейджинг для сторінки
 
@@ -74,6 +74,12 @@ public class CreaterTrackController {
         model.addAttribute("viewList", treckList );
 //        model.addAttribute("storetrackList", storetrackList );
         return "/creater/tracks";
+    }
+
+    // Додаємо сумісність для старих посилань
+    @GetMapping(value = "/creater/tracks/{cPage}")
+    public String getCreaterTracksOld(@PathVariable String cPage) {
+        return "redirect:/creater/tracks?page=" + cPage;
     }
 
     // /creater/edittrack/'+${track.id}
