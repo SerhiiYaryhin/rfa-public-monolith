@@ -230,18 +230,18 @@ public class PodcastController {
         if (podcastItem == null) {
             podcastItem = podcastService.GetEpisodeByTitle(euuid);
         }
+        
         if (podcastItem != null) {
             // рахуємо заходи на епізод
-            podcastItem.setLooked(podcastItem.getLooked()+1L);
+            podcastItem.setLooked(podcastItem.getLooked() + 1L);
             podcastService.SaveEpisode(podcastItem);
 
             model.addAttribute("podcastItem", podcastItem);
             return "/podcast/episode";
         } else {
-            model.addAttribute("danger", "Щось пішло не так. Такий епізод не існує або, його переміщено .");
             logger.warn("Отримали UUID епізоду, який не існує: {}", euuid);
+            return "redirect:/podcast/all"; // Перенаправляємо на загальний список, якщо епізод не знайдено
         }
-        return "/podcast/episode";
     }
 
     /** Список подкастів поточного автора з пагінацією */
