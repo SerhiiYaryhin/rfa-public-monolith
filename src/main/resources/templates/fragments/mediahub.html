@@ -40,6 +40,80 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h2 class="h4 mb-0">
+                <a href="/guest/authors" class="text-decoration-none text-dark">
+                    <i class="fas fa-feather-alt text-warning me-2"></i>Авторські колонки
+                </a>
+            </h2>
+            <a href="/guest/authors" class="btn btn-sm btn-outline-warning rounded-pill px-3">Всі автори</a>
+        </div>
+        <div class="card-body bg-light p-0">
+            <div id="authorCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div th:each="art, iStat : ${authorArticles}" class="carousel-item" th:classappend="${iStat.first} ? 'active'" data-bs-interval="7000">
+                        <div class="px-md-5 py-4">
+                            <div class="container">
+                                <div class="row align-items-center justify-content-center">
+                                    <!-- Секція з ілюстрацією: прибрали col-md-4, додали автоматичну ширину -->
+                                    <div class="col-md-auto text-center mb-3 mb-md-0">
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}">
+                                            <!-- Плашка: колір змінено на темно-сірий (або ваш варіант), ширина підлаштовується під контент -->
+                                            <div class="rounded-3 shadow-sm overflow-hidden d-flex align-items-center justify-content-center p-2"
+                                                 style="background-color: #2c3034; width: fit-content; margin: 0 auto;">
+
+                                                <!-- Головна ілюстрація: обмежена висота, пропорції зберігаються -->
+                                                <img th:if="${art.coverUuid != null}"
+                                                     th:src="'/store/content/' + ${art.coverUuid}"
+                                                     class="img-fluid rounded"
+                                                     style="max-height: 200px; width: auto; display: block;">
+
+                                                <!-- Заглушка, якщо фото немає -->
+                                                <div th:if="${art.coverUuid == null}" class="p-5 text-white-50">
+                                                    <i class="fas fa-image fa-3x"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <!-- Текстова секція: займає решту простору -->
+                                    <div class="col-md text-center text-md-start">
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark">
+                                            <h3 class="h4 fw-bold mb-2" th:text="${art.title}">Заголовок статті</h3>
+                                        </a>
+                                        <p th:if="${art.lead != null && !art.lead.isEmpty()}" class="small text-muted mb-3 line-clamp-2" th:text="${art.lead}">Лід статті</p>
+
+                                        <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-3">
+                                            <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none text-muted d-flex align-items-center">
+                                                <img th:if="${art.column.author.profilephoto != null}"
+                                                     th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}"
+                                                     class="rounded-circle me-2"
+                                                     style="width: 25px; height: 25px; object-fit: cover;">
+                                                <span class="small fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
+                                            </a>
+                                            <span class="mx-2 text-muted small">•</span>
+                                            <span class="small text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}">Дата</span>
+                                        </div>
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-sm btn-primary rounded-pill px-4">Читати статтю</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Кнопки навігації -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel" data-bs-slide="prev" style="width: 5%;">
+                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel" data-bs-slide="next" style="width: 5%;">
+                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:fragment="authorSlider_gemini_old" th:if="${authorArticles != null && !authorArticles.isEmpty()}" class="mb-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">
                 <a href="/guest/authors" class="text-decoration-none text-dark"><i class="fas fa-feather-alt text-warning me-2"></i>Авторські колонки</a>
             </h2>
             <a href="/guest/authors" class="btn btn-sm btn-outline-warning rounded-pill px-3">Всі автори</a>
