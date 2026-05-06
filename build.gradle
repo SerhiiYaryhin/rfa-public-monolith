@@ -53,6 +53,11 @@ dependencies {
 //	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
 //	implementation 'org.telegram:telegrambots-client:7.10.0'
 //	implementation 'org.telegram:telegrambots-abilities:7.10.0'
+// Тільки ці дві необхідні для конвертера
+	implementation 'org.jsoup:jsoup:1.17.2'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
 	implementation 'javax.mail:javax.mail-api:1.6.2'
 	implementation 'org.springframework.boot:spring-boot-starter'

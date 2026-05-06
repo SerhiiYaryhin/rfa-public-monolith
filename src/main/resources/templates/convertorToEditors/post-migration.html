@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Migration Lab | Толока</title>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=Lora:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
+    <!-- Editor.js Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .lab-container { padding-top: 30px; margin-bottom: 50px; }
+        .editor-card { background: #fff; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); min-height: 700px; }
+        .raw-html-panel { background: #1e293b; color: #94a3b8; font-family: monospace; font-size: 12px; border-radius: 12px; padding: 15px; height: 300px; overflow-y: auto; white-space: pre-wrap; }
+        #editorjs { font-family: 'Lora', serif; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 20px; }
+        .status-badge { font-size: 11px; padding: 5px 12px; border-radius: 20px; }
+    </style>
+</head>
+</head>
+<body>
+<div class="container-fluid lab-container">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px; border-radius: 15px;">
+                <div class="card-body">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-3">Управління міграцією</h6>
+                    <div class="mb-3">
+                        <label class="small text-muted">UUID Поста</label>
+                        <input type="text" id="postUuid" class="form-control form-control-sm" th:value="${post.uuid}" readonly>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button id="loadRawBtn" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="fas fa-sync me-2"></i> Завантажити оригінал
+                        </button>
+                        <button id="convertBtn" class="btn btn-warning btn-sm rounded-pill fw-bold">
+                            <i class="fas fa-magic me-2"></i> Конвертувати (Java)
+                        </button>
+                        <hr>
+                        <button id="saveBtn" class="btn btn-success btn-sm rounded-pill">
+                            <i class="fas fa-save me-2"></i> Зберегти в БД
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="small fw-bold text-muted mb-2 d-block">Original HTML (Raw):</label>
+                        <div id="rawHtmlView" class="raw-html-panel">Натисніть "Завантажити"...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Lab Area -->
+        <div class="col-lg-9">
+            <div class="editor-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 id="postTitle" class="fw-800 mb-1" th:text="${post.posttitle}">Заголовок</h2>
+                        <p class="text-muted small mb-0">Візуальний контроль блоків Editor.js</p>
+                    </div>
+                    <span id="formatStatus" class="badge bg-secondary status-badge">Unknown</span>
+                </div>
+
+                <!-- Контейнер Editor.js -->
+                <div id="editorjs"></div>
+
+                <div class="mt-5">
+                    <h6 class="text-muted small fw-bold text-uppercase">Result JSON (Technical):</h6>
+                    <pre id="jsonOutput" class="bg-light p-3 rounded small" style="max-height: 250px; overflow: auto; border: 1px solid #e2e8f0;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let editor;
+    const uuid = document.getElementById('postUuid').value;
+
+    // Конфігурація інструментів
+    const editorTools = {
+        header: Header,
+        paragraph: { class: Paragraph, inlineToolbar: true },
+        list: NestedList,
+        quote: Quote,
+        table: Table,
+        delimiter: Delimiter
+    };
+
+    // Ініціалізація редактора
+    function initEditor(data = {}) {
+        if (editor && typeof editor.destroy === 'function') {
+            editor.destroy();
+        }
+
+        editor = new EditorJS({
+            holder: 'editorjs',
+            tools: editorTools,
+            data: data,
+            placeholder: 'Результат конвертації з’явиться тут...',
+            onChange: () => {
+                editor.save().then(output => {
+                    document.getElementById('jsonOutput').innerText = JSON.stringify(output, null, 2);
+                });
+            }
+        });
+    }
+
+    // 1. Завантаження даних поста
+    document.getElementById('loadRawBtn').onclick = async () => {
+        const res = await fetch(`/api/admin/posts/get-by-uuid/${uuid}`);
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('postTitle').innerText = data.posttitle;
+            document.getElementById('rawHtmlView').innerText = data.postbody;
+            // ... далі ваша логіка з ініціалізацією редактора
+        }
+    };
+
+    // 2. Конвертація БЕЗ збереження (тільки перегляд)
+    document.getElementById('convertBtn').onclick = async () => {
+        const btn = document.getElementById('convertBtn');
+        btn.disabled = true;
+        btn.innerText = "Обробка...";
+
+        try {
+            const res = await fetch(`/api/admin/posts/convert-by-uuid/${uuid}`, { method: 'POST' });
+            const result = await res.json();
+
+            if (res.ok) {
+                await initEditor(result.data);
+                document.getElementById('formatStatus').innerText = "Converted (Preview)";
+                document.getElementById('formatStatus').className = "badge bg-success status-badge";
+                document.getElementById('jsonOutput').innerText = JSON.stringify(result.data, null, 2);
+            } else {
+                alert("Помилка: " + result);
+            }
+        } catch (e) {
+            alert("Помилка зв'язку з сервером");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Конвертувати (Java)";
+        }
+    };
+
+    // 3. Збереження (якщо все виглядає добре)
+    document.getElementById('saveBtn').onclick = async () => {
+        const content = await editor.save();
+        const res = await fetch(`/api/admin/posts/content-by-uuid/${uuid}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(content)
+        });
+
+        if (res.ok) alert("Збережено в базу даних!");
+        else alert("Помилка збереження");
+    };
+
+    // Перша ініціалізація порожнього редактора
+    initEditor();
+</script>
+</body>
+</html>
