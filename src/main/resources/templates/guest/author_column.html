@@ -11,81 +11,110 @@
         .author-header { background: #fff; padding: 120px 0 60px 0; border-bottom: 1px solid #e2e8f0; }
         .article-card { border: none; border-radius: 20px; transition: all 0.3s; height: 100%; overflow: hidden; }
         .article-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.07) !important; }
-        .cover-box { height: 200px; background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .cover-img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* ЗМІНА: Оновили фон на світлий та додали рамку знизу */
+        .cover-box {
+            height: 200px;
+            background-color: #f1f5f9; /* Світлий нейтральний фон */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* ЗМІНА: Оптимізували відображення картинки */
+        .cover-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Картинка вписується, не розтягуючись "в мило" */
+            transition: transform 0.4s ease;
+        }
+
+        .article-card:hover .cover-img {
+            transform: scale(1.05); /* Легкий зум при наведенні */
+        }
+
         .author-avatar { width: 120px; height: 120px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+<div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 
-    <header class="author-header shadow-sm">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-2 text-center text-md-start mb-4 mb-md-0">
-                    <img th:if="${column.author.profilephoto != null}" 
-                         th:src="'/store/content/' + ${column.author.profilephoto.uuid}"
-                         class="rounded-circle author-avatar">
-                    <div th:if="${column.author.profilephoto == null}" 
-                         class="rounded-circle author-avatar bg-secondary d-flex align-items-center justify-content-center text-white">
-                        <i class="fas fa-user fa-3x"></i>
-                    </div>
-                </div>
-                <div class="col-md-10">
-                    <h1 class="fw-bold mb-2" th:text="${column.title}">Назва колонки</h1>
-                    <h2 class="h5 text-primary mb-3" th:text="${column.author.custname + ' ' + column.author.custsurname}">Автор</h2>
-                    <p class="text-muted lead" th:text="${column.description}">Опис...</p>
+<header class="author-header shadow-sm">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center text-md-start mb-4 mb-md-0">
+                <img th:if="${column.author.profilephoto != null}"
+                     th:src="'/store/content/' + ${column.author.profilephoto.uuid}"
+                     class="rounded-circle author-avatar">
+                <div th:if="${column.author.profilephoto == null}"
+                     class="rounded-circle author-avatar bg-secondary d-flex align-items-center justify-content-center text-white">
+                    <i class="fas fa-user fa-3x"></i>
                 </div>
             </div>
+            <div class="col-md-10">
+                <h1 class="fw-bold mb-2" th:text="${column.title}">Назва колонки</h1>
+                <h2 class="h5 text-primary mb-3" th:text="${column.author.custname + ' ' + column.author.custsurname}">Автор</h2>
+                <p class="text-muted lead" th:text="${column.description}">Опис...</p>
+            </div>
         </div>
-    </header>
+    </div>
+</header>
 
-    <div class="container py-5">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div th:each="art : ${articles}" class="col">
-                <div class="card article-card shadow-sm">
-                    <a th:href="'/guest/authors/article/' + ${art.slug}">
-                        <div class="cover-box">
-                            <img th:if="${art.coverUuid != null}" th:src="'/store/content/' + ${art.coverUuid}" class="cover-img">
-                            <div th:if="${art.coverUuid == null}" class="text-white-50"><i class="fas fa-feather-alt fa-3x"></i></div>
+<div class="container py-5">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div th:each="art : ${articles}" class="col">
+            <div class="card article-card shadow-sm">
+                <a th:href="'/guest/authors/article/' + ${art.slug}">
+                    <div class="cover-box">
+                        <!-- ЗМІНА: Додали клас img-fluid для гнучкості -->
+                        <img th:if="${art.coverUuid != null}"
+                             th:src="'/store/content/' + ${art.coverUuid}"
+                             class="cover-img img-fluid">
+
+                        <!-- ЗМІНА: Змінили колір іконки-заглушки на темніший для світлого фону -->
+                        <div th:if="${art.coverUuid == null}" class="text-muted opacity-50">
+                            <i class="fas fa-feather-alt fa-3x"></i>
                         </div>
-                    </a>
-                    <div class="card-body d-flex flex-column p-4">
-                        <div class="small text-primary mb-2" th:text="${#dates.format(art.publishDate, 'dd MMMM yyyy')}">Дата</div>
-                        <h3 class="h5 fw-bold mb-3 flex-grow-1">
-                            <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark" th:text="${art.title}">Заголовок</a>
-                        </h3>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="small text-muted"><i class="far fa-eye me-1"></i>[[${art.looked}]]</span>
-                            <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold">Читати <i class="fas fa-arrow-right ms-1"></i></a>
-                        </div>
+                    </div>
+                </a>
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="small text-primary mb-2" th:text="${#dates.format(art.publishDate, 'dd MMMM yyyy')}">Дата</div>
+                    <h3 class="h5 fw-bold mb-3 flex-grow-1">
+                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark" th:text="${art.title}">Заголовок</a>
+                    </h3>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="small text-muted"><i class="far fa-eye me-1"></i>[[${art.looked}]]</span>
+                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold">Читати <i class="fas fa-arrow-right ms-1"></i></a>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Пагінація -->
-        <nav th:if="${totalPages > 1}" class="mt-5">
-            <ul class="pagination justify-content-center">
-                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${currentPage - 1}}">Попередня</a>
-                </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${i}}" th:text="${i + 1}">1</a>
-                </li>
-                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${currentPage + 1}}">Наступна</a>
-                </li>
-            </ul>
-        </nav>
-        
-        <div th:if="${articles.isEmpty()}" class="text-center py-5">
-            <i class="fas fa-feather fa-3x mb-3 opacity-25"></i>
-            <p class="text-muted">У цій колонці поки немає опублікованих статей.</p>
         </div>
     </div>
 
-    <div th:insert="~{/fragments/common :: footer}"></div>
-    <script src="/js/bootstrap.bundle.min.js"></script>
+    <!-- Пагінація -->
+    <nav th:if="${totalPages > 1}" class="mt-5">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${currentPage - 1}}">Попередня</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${i}}" th:text="${i + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{'/guest/authors/' + ${column.slug} + '?page=' + ${currentPage + 1}}">Наступна</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div th:if="${articles.isEmpty()}" class="text-center py-5">
+        <i class="fas fa-feather fa-3x mb-3 opacity-25"></i>
+        <p class="text-muted">У цій колонці поки немає опублікованих статей.</p>
+    </div>
+</div>
+
+<div th:insert="~{/fragments/common :: footer}"></div>
+<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
