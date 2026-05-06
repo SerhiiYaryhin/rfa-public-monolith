@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.convertor.EditorJsConverter;
-import media.toloka.rfa.convertor.EditorJsData;
+import media.toloka.rfa.convertor.dto.EditorJsData;
 import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import org.springframework.http.ResponseEntity;

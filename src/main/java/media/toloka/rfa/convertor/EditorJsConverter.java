@@ -6,6 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import media.toloka.rfa.convertor.dto.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
