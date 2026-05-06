@@ -6,7 +6,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
+    <div th:replace="~{/fragments/common :: ogprofile(cd=${clientdetail}, ogimage=null)}"/>
+    <title th:text="${clientdetail.custname + ' ' + clientdetail.custsurname + ' | Толока'}"></title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <!-- Font Awesome icons (free version)-->
