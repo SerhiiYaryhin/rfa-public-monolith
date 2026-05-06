@@ -1,2 +1,8 @@
 User-agent: *
 Disallow: /admin
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
