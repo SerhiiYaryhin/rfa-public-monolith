@@ -12,17 +12,17 @@
 
 <th:block th:fragment="og">
     <!-- Open Graph -->
-    <meta property="og:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/rfaog.png':'https://rfa.toloka.media/store/content/'+ ogimage }"/>
-    <meta property="og:url" content='https://rfa.toloka.media/' />
-    <meta property="og:title" content='Радіо для всіх!' />
-    <meta property="og:description" content='Кожен може створити інтернет радіостанцію і його почує весь світ!'/>
-    <meta property="og:type" content='website' />
-    <meta property="og:locale" content='uk' />
+    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/' + ogimage}" />
+    <meta property="og:url" th:content="${siteUrl + '/'}" />
+    <meta property="og:title" content="Радіо для всіх!" />
+    <meta property="og:description" content="Кожен може створити інтернет радіостанцію і його почує весь світ!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk" />
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Радіо для всіх!">
     <meta name="twitter:description" content="Кожен може створити інтернет радіостанцію і його почує весь світ!">
-    <meta name="twitter:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/rfaog.png':'https://rfa.toloka.media/store/content/'+ ogimage }">
+    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/' + ogimage}">
     
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
@@ -31,8 +31,8 @@
     <!-- Open Graph -->
     <meta property="og:title" th:content="${title}" />
     <meta property="og:description" th:content="${description}" />
-    <meta property="og:image" th:content="${image != null ? 'https://rfa.toloka.media/store/content/' + image : 'https://rfa.toloka.media/pictures/rfaog.png'}" />
-    <meta property="og:url" th:content="${'https://rfa.toloka.media' + url}" />
+    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/content/' + image : siteUrl + '/pictures/rfaog.png'}" />
+    <meta property="og:url" th:content="${url.startsWith('http') ? url : siteUrl + url}" />
     <meta property="og:type" th:content="${type != null ? type : 'article'}" />
     <meta property="og:locale" content="uk" />
     
@@ -40,92 +40,181 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${title}">
     <meta name="twitter:description" th:content="${description}">
-    <meta name="twitter:image" th:content="${image != null ? 'https://rfa.toloka.media/store/content/' + image : 'https://rfa.toloka.media/pictures/rfaog.png'}">
+    <meta name="twitter:image" th:content="${image != null ? siteUrl + '/store/content/' + image : siteUrl + '/pictures/rfaog.png'}">
 </th:block>
 
 <th:block th:fragment="ogpodcast">
-    <meta property="og:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpodcast.png':'https://rfa.toloka.media/store/content/'+ ogimage }"/>
-    <meta th:if="${podcast != null}" property="og:url" th:attr="content=${'https://rfa.toloka.media/podcast/view/'+podcast.uuid }" />
-    <meta th:if="${podcast != null}" property="og:title" th:attr="content=${podcast.title}" />
-    <meta th:if="${podcast != null}" property="og:description" th:attr="content=${podcast.description}"/>
-    <meta property="og:type" content="article"/>
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/' + ogimage}" />
+    <meta property="og:url" th:content="${podcast != null ? siteUrl + '/podcast/view/' + podcast.uuid : siteUrl + '/podcast/all'}" />
+    <meta property="og:title" th:content="${podcast != null ? podcast.title : 'Подкасти на Толоці'}" />
+    <meta property="og:description" th:content="${podcast != null ? (podcast.lead ?: (podcast.description != null ? #strings.abbreviate(podcast.description, 200) : 'Подкасти на Толоці')) : 'Слухайте цікаві подкасти на нашому порталі.'}" />
+    <meta property="og:type" content="article" />
     <meta property="og:locale" content="uk" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta th:if="${podcast != null}" name="twitter:title" th:content="${podcast.title}">
-    <meta th:if="${podcast != null}" name="twitter:description" th:content="${podcast.description}">
-    <meta name="twitter:image" th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpodcast.png':'https://rfa.toloka.media/store/content/'+ ogimage }">
+    <meta name="twitter:title" th:content="${podcast != null ? podcast.title : 'Подкасти на Толоці'}">
+    <meta name="twitter:description" th:content="${podcast != null ? (podcast.lead ?: (podcast.description != null ? #strings.abbreviate(podcast.description, 200) : 'Подкасти на Толоці')) : 'Слухайте цікаві подкасти на нашому порталі.'}">
+    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/' + ogimage}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogpodcastall">
-    <meta property="og:image" content="https://rfa.toloka.media/pictures/ogpodcastall.png"/>
-    <meta property="og:url" content='https://rfa.toloka.media/podcast/all' />
-    <meta property="og:title" content='Подкасти на Толоці - Вас слухає весь світ!' />
-    <meta property="og:description" content='Тут Ви зможете знайти подкасть на будь-яку тему. Також, Ви можете розмістити свій подкаст і він потрапить в ефір мережі радіостанцій.'/>
-    <meta property="og:type" content="article"/>
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${siteUrl + '/pictures/ogpodcastall.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/podcast/all'}" />
+    <meta property="og:title" content="Подкасти на Толоці - Вас слухає весь світ!" />
+    <meta property="og:description" content="Тут Ви зможете знайти подкасти на будь-яку тему. Також, Ви можете розмістити свій подкаст і він потрапить в ефір мережі радіостанцій." />
+    <meta property="og:type" content="website" />
     <meta property="og:locale" content="uk" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Подкасти на Толоці - Вас слухає весь світ!">
-    <meta name="twitter:description" content="Тут Ви зможете знайти подкасть на будь-яку тему. Також, Ви можете розмістити свій подкаст і він потрапить в ефір мережі радіостанцій.">
-    <meta name="twitter:image" content="https://rfa.toloka.media/pictures/ogpodcastall.png">
+    <meta name="twitter:description" content="Тут Ви зможете знайти подкасти на будь-яку тему. Також, Ви можете розмістити свій подкаст і він потрапить в ефір мережі радіостанцій.">
+    <meta name="twitter:image" th:content="${siteUrl + '/pictures/ogpodcastall.png'}">
     
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogpost(post)">
-    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + post.coverstoreuuid}"/>
-    <meta property="og:url" th:content="${'https://rfa.toloka.media/post/postview/' + post?.uuid}" />
-    <meta property="og:title" th:content="${post?.posttitle}" />
-    <meta property="og:description" th:content="${post?.lead ?: ''}" />
-    <meta property="og:type" content="article"/>
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + post.coverstoreuuid}" />
+    <meta property="og:url" th:content="${siteUrl + '/post/postview/' + post?.uuid}" />
+    <meta property="og:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}" />
+    <meta property="og:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}" />
+    <meta property="og:type" content="article" />
     <meta property="og:locale" content="uk" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" th:content="${post?.posttitle}">
-    <meta name="twitter:description" th:content="${post?.lead ?: ''}" />
-    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + post.coverstoreuuid}">
+    <meta name="twitter:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}">
+    <meta name="twitter:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}">
+    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + post.coverstoreuuid}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogalbum(album, ogimage)">
-    <meta property="og:image" th:content="${ogimage == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + ogimage}"/>
-    <meta property="og:url" th:content="${'https://rfa.toloka.media/creater/album/' + album?.uuid}" />
-    <meta property="og:title" th:content="${album?.albumname}" />
-    <meta property="og:type" content="article"/>
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + ogimage}" />
+    <meta property="og:url" th:content="${siteUrl + '/creater/album/' + album?.uuid}" />
+    <meta property="og:title" th:content="${album?.albumname ?: 'Альбом на Толоці'}" />
+    <meta property="og:description" content="Слухайте музичні альбоми на нашому порталі." />
+    <meta property="og:type" content="music.album" />
     <meta property="og:locale" content="uk" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" th:content="${album?.albumname}">
-    <meta name="twitter:image" th:content="${ogimage == null ? 'https://rfa.toloka.media/pictures/ogpost.png' : 'https://rfa.toloka.media/store/content/' + ogimage}">
+    <meta name="twitter:title" th:content="${album?.albumname ?: 'Альбом на Толоці'}">
+    <meta name="twitter:description" content="Слухайте музичні альбоми на нашому порталі.">
+    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + ogimage}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogtrack(track)">
-    <meta property="og:image" th:content="${track?.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}"/>
-    <meta property="og:url" th:content="${'https://rfa.toloka.media/guest/viewtrack/' + track?.uuid}" />
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${track?.storeitem != null ? siteUrl + '/store/content/'+ track.storeitem.uuid : siteUrl + '/pictures/ogpost.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/viewtrack/' + track?.uuid}" />
     <meta property="og:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}" />
-    <meta property="og:type" content="article"/>
+    <meta property="og:description" th:content="${track?.description != null && !track.description.isEmpty() ? #strings.abbreviate(track.description, 200) : 'Слухайте трек ' + (track?.name ?: '') + ' на Радіо Толока.'}" />
+    <meta property="og:type" content="music.song" />
     <meta property="og:locale" content="uk" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}">
-    <meta name="twitter:image" th:content="${track?.storeitem != null ? 'https://rfa.toloka.media/store/content/'+ track.storeitem.uuid : 'https://rfa.toloka.media/pictures/ogpost.png'}">
+    <meta name="twitter:description" th:content="${track?.description != null && !track.description.isEmpty() ? #strings.abbreviate(track.description, 200) : 'Слухайте трек ' + (track?.name ?: '') + ' на Радіо Толока.'}">
+    <meta name="twitter:image" th:content="${track?.storeitem != null ? siteUrl + '/store/content/'+ track.storeitem.uuid : siteUrl + '/pictures/ogpost.png'}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="ogprofile">
-    <meta property=og:image th:attr="content=${ogimage==null? 'https://rfa.toloka.media/pictures/ogpost.png':'https://rfa.toloka.media/store/content/og/'+ ogimage+'/t.png' }"/>
-    <meta property=og:url th:attr="content=${'https://rfa.toloka.media/post/postview/'+post.id}" />
-    <meta property=og:title th:attr="content=${post.posttitle}" />
-    <meta property=og:type content=”article”/>
-    <meta property=og:locale content=”uk” />
+<th:block th:fragment="ogpostall">
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${siteUrl + '/pictures/ogpost.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/postall'}" />
+    <meta property="og:title" content="Новини на Толоці" />
+    <meta property="og:description" content="Читайте останні новини та події на нашому порталі." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Новини на Толоці">
+    <meta name="twitter:description" content="Читайте останні новини та події на нашому порталі.">
+    <meta name="twitter:image" th:content="${siteUrl + '/pictures/ogpost.png'}">
+    
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
+</th:block>
+
+<th:block th:fragment="ogprofile(cd, ogimage)">
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${ogimage == null ? (cd?.profilephoto != null ? siteUrl + '/store/content/' + cd.profilephoto.uuid : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/' + ogimage}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/profile/' + cd?.uuid}" />
+    <meta property="og:title" th:content="${(cd?.custname ?: '') + ' ' + (cd?.custsurname ?: '')}" />
+    <meta property="og:description" th:content="${'Профіль автора ' + (cd?.custname ?: '') + ' на Радіо Толока.'}" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:locale" content="uk" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${(cd?.custname ?: '') + ' ' + (cd?.custsurname ?: '')}">
+    <meta name="twitter:description" th:content="${'Профіль автора ' + (cd?.custname ?: '') + ' на Радіо Толока.'}">
+    <meta name="twitter:image" th:content="${ogimage == null ? (cd?.profilephoto != null ? siteUrl + '/store/content/' + cd.profilephoto.uuid : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/' + ogimage}">
+    
+    <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
+</th:block>
+
+<th:block th:fragment="ogauthorhub">
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${siteUrl + '/pictures/rfaog.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/authors'}" />
+    <meta property="og:title" content="Наші Автори - Радіо Толока" />
+    <meta property="og:description" content="Відкривайте нові погляди, аналітику та творчість у авторських колонках Толоки." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Наші Автори - Радіо Толока">
+    <meta name="twitter:description" content="Відкривайте нові погляди, аналітику та творчість у авторських колонках Толоки.">
+    <meta name="twitter:image" th:content="${siteUrl + '/pictures/rfaog.png'}">
+</th:block>
+
+<th:block th:fragment="ogauthorarticles">
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${siteUrl + '/pictures/rfaog.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/authors/articles-all'}" />
+    <meta property="og:title" content="Всі статті - Радіо Толока" />
+    <meta property="og:description" content="Читайте останні авторські матеріали та аналітику на нашому порталі." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Всі статті - Радіо Толока">
+    <meta name="twitter:description" content="Читайте останні авторські матеріали та аналітику на нашому порталі.">
+    <meta name="twitter:image" th:content="${siteUrl + '/pictures/rfaog.png'}">
+</th:block>
+
+<th:block th:fragment="ogtracksall">
+    <!-- Open Graph -->
+    <meta property="og:image" th:content="${siteUrl + '/pictures/ogpost.png'}" />
+    <meta property="og:url" th:content="${siteUrl + '/guest/tracksall'}" />
+    <meta property="og:title" content="Всі треки - Радіо Толока" />
+    <meta property="og:description" content="Слухайте музику від наших авторів та відкривайте нові таланти." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Всі треки - Радіо Толока">
+    <meta name="twitter:description" content="Слухайте музику від наших авторів та відкривайте нові таланти.">
+    <meta name="twitter:image" th:content="${siteUrl + '/pictures/ogpost.png'}">
 </th:block>
 
 <!--Paging -->

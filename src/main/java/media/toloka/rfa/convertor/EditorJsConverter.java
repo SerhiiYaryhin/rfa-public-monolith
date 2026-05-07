@@ -16,21 +16,14 @@ public class EditorJsConverter {
 
     public EditorJsData convertHtmlToEditorJs(String rawHtml) {
         EditorJsData result = new EditorJsData();
+        result.setTime(System.currentTimeMillis());
         if (rawHtml == null || rawHtml.isBlank()) return result;
 
-        // 1. Попереднє очищення: дозволяємо базове форматування, але видаляємо класи та стилі
-        // Ми дозволяємо посилання (a), форматування (b, i, em, strong)
-        Safelist safelist = Safelist.basic()
-                .addTags("h1", "h2", "h3", "h4", "h5", "h6")
-                .removeAttributes("a", "target", "rel"); // Editor.js зазвичай сам керує атрибутами
-
-        String cleanHtml = Jsoup.clean(rawHtml, safelist);
-
-        // 2. Парсимо для детальної обробки блоків
-        // Використовуємо оригінальний HTML для галерей, бо Safelist може видалити DIV-и
+        // Парсимо HTML. Використовуємо parseBodyFragment, щоб Jsoup не додавав <html><head>
         Document doc = Jsoup.parseBodyFragment(rawHtml);
         Element body = doc.body();
 
+        // Обробляємо всі прямі нащадки body
         for (Element el : body.children()) {
             processElement(el, result);
         }
@@ -41,40 +34,92 @@ public class EditorJsConverter {
     private void processElement(Element el, EditorJsData result) {
         String tag = el.tagName().toLowerCase();
 
-        // ОБРОБКА ГАЛЕРЕЇ (Swiper / page-gallery)
-        if (el.hasClass("page-gallery")) {
-            processGallery(el, result);
+        // 1. ОБРОБКА ГАЛЕРЕЇ (Swiper / page-gallery)
+        if (el.hasClass("page-gallery") || el.selectFirst(".page-gallery") != null) {
+            processGallery(el.hasClass("page-gallery") ? el : el.selectFirst(".page-gallery"), result);
             return;
         }
 
-        // ОБРОБКА ЗАГОЛОВКІВ (H1-H6)
+        // 2. ОБРОБКА ЗАГОЛОВКІВ (H1-H6)
         if (tag.matches("h[1-6]")) {
-            // Видаляємо всі внутрішні теги крім тексту, але зберігаємо логіку заголовка
             int level = Integer.parseInt(tag.substring(1));
-            result.addBlock("header", Map.of(
-                    "text", el.text(), // Використовуємо .text() щоб прибрати вкладені <span> від Word
-                    "level", level
-            ));
+            String text = cleanInlineHtml(el.html());
+            if (!text.isEmpty()) {
+                result.addBlock("header", Map.of(
+                        "text", text,
+                        "level", level
+                ));
+            }
             return;
         }
 
-        // ОБРОБКА СПИСКІВ (UL/OL)
+        // 3. ОБРОБКА СПИСКІВ (UL/OL)
         if (tag.equals("ul") || tag.equals("ol")) {
-            List<String> items = el.select("li").stream()
-                    .map(li -> Jsoup.clean(li.html(), Safelist.basic()))
+            List<String> items = el.select("> li").stream()
+                    .map(li -> cleanInlineHtml(li.html()))
+                    .filter(s -> !s.isEmpty())
                     .collect(Collectors.toList());
 
-            result.addBlock("list", Map.of(
-                    "style", tag.equals("ol") ? "ordered" : "unordered",
-                    "items", items
+            if (!items.isEmpty()) {
+                result.addBlock("list", Map.of(
+                        "style", tag.equals("ol") ? "ordered" : "unordered",
+                        "items", items
+                ));
+            }
+            return;
+        }
+
+        // 4. ОБРОБКА ЦИТАТ (BLOCKQUOTE)
+        if (tag.equals("blockquote")) {
+            result.addBlock("quote", Map.of(
+                    "text", cleanInlineHtml(el.html()),
+                    "caption", "",
+                    "alignment", "left"
             ));
             return;
         }
 
-        // ОБРОБКА АВТОРА (Специфічний блок в кінці)
-        // ОБРОБКА АВТОРА
-        if (el.hasClass("c__author-name") || !el.select("a.c__author-name").isEmpty()) {
-            Element authorLink = el.is("a") ? el : el.selectFirst("a.c__author-name");
+        // 5. ОБРОБКА РОЗДІЛЬНИКІВ (HR)
+        if (tag.equals("hr")) {
+            result.addBlock("delimiter", new HashMap<>());
+            return;
+        }
+
+        // 6. ОБРОБКА ТАБЛИЦЬ
+        if (tag.equals("table")) {
+            List<List<String>> content = new ArrayList<>();
+            for (Element tr : el.select("tr")) {
+                List<String> row = tr.select("th, td").stream()
+                        .map(cell -> cleanInlineHtml(cell.html()))
+                        .collect(Collectors.toList());
+                content.add(row);
+            }
+            if (!content.isEmpty()) {
+                result.addBlock("table", Map.of("content", content));
+            }
+            return;
+        }
+
+        // 7. ОБРОБКА EMBEDS (YouTube, etc.)
+        if (tag.equals("iframe") || el.selectFirst("iframe") != null) {
+            Element iframe = tag.equals("iframe") ? el : el.selectFirst("iframe");
+            String src = iframe.attr("src");
+            if (src.contains("youtube.com") || src.contains("youtu.be")) {
+                result.addBlock("embed", Map.of(
+                        "service", "youtube",
+                        "source", src,
+                        "embed", src,
+                        "width", iframe.attr("width"),
+                        "height", iframe.attr("height"),
+                        "caption", ""
+                ));
+                return;
+            }
+        }
+
+        // 8. ОБРОБКА АВТОРА
+        if (el.hasClass("c__author-name") || el.selectFirst("a.c__author-name") != null) {
+            Element authorLink = el.hasClass("c__author-name") && tag.equals("a") ? el : el.selectFirst("a.c__author-name");
             if (authorLink != null) {
                 result.addBlock("author", Map.of(
                         "name", authorLink.text(),
@@ -84,48 +129,54 @@ public class EditorJsConverter {
             return;
         }
 
-
-
-//        if (el.hasClass("c__author-name") || el.select("a.c__author-name").isNotEmpty()) {
-//            Element authorLink = el.is("a") ? el : el.selectFirst("a.c__author-name");
-//            result.addBlock("author", Map.of(
-//                    "name", authorLink.text(),
-//                    "url", authorLink.attr("href")
-//            ));
-//            return;
-//        }
-
-        // ОБРОБКА ЗОБРАЖЕНЬ (якщо вони не в галереї)
-        if (tag.equals("img") || (tag.equals("p") && el.selectFirst("img") != null)) {
-            Element img = tag.equals("img") ? el : el.selectFirst("img");
+        // 9. ОБРОБКА ЗОБРАЖЕНЬ
+        // Якщо в параграфі тільки одна картинка (або картинка + пробіли), робимо її блоком image
+        Elements images = el.select("img");
+        if (tag.equals("img") || (tag.equals("p") && images.size() == 1 && el.text().trim().isEmpty())) {
+            Element img = images.first();
             result.addBlock("image", Map.of(
-                    "url", img.attr("src"),
-                    "caption", img.attr("alt")
+                    "file", Map.of("url", img.attr("src")),
+                    "caption", img.attr("alt"),
+                    "withBorder", false,
+                    "stretched", false,
+                    "withBackground", false
             ));
             return;
         }
 
-        // ОБРОБКА ПАРАГРАФІВ (Default)
-        if (tag.equals("p")) {
-            // Очищуємо вміст параграфа, залишаючи тільки дозволені теги (b, i, a)
-            String content = Jsoup.clean(el.html(), Safelist.basic());
+        // 10. ОБРОБКА ПАРАГРАФІВ ТА ІНШИХ КОНТЕЙНЕРІВ
+        // Якщо це параграф або просто текст, що залишився
+        if (tag.equals("p") || tag.equals("div") || tag.equals("span")) {
+            String content = cleanInlineHtml(el.html());
             if (!content.isBlank() && !content.equals("&nbsp;")) {
                 result.addBlock("paragraph", Map.of("text", content));
             }
+        } else if (!el.text().isBlank()) {
+            // Фолбек для будь-якого іншого тегу з текстом
+            result.addBlock("paragraph", Map.of("text", cleanInlineHtml(el.outerHtml())));
         }
     }
 
-    private void processGallery(Element galleryEl, EditorJsData result) {
-        // Шукаємо всі оригінальні зображення в слайдері
-        Elements images = galleryEl.select("img.pg-image");
-        if (images.isEmpty()) images = galleryEl.select("img");
+    /**
+     * Очищує HTML для інлайнових елементів (всередині блоків Editor.js)
+     */
+    private String cleanInlineHtml(String html) {
+        if (html == null) return "";
+        // Editor.js параграфи підтримують b, i, a, code
+        Safelist safelist = Safelist.simpleText()
+                .addTags("a", "b", "strong", "i", "em", "code", "br")
+                .addAttributes("a", "href");
+        
+        return Jsoup.clean(html, safelist);
+    }
 
-        List<Map<String, String>> galleryItems = new ArrayList<>();
+    private void processGallery(Element galleryEl, EditorJsData result) {
+        Elements images = galleryEl.select("img");
+        List<Map<String, Object>> galleryItems = new ArrayList<>();
 
         for (Element img : images) {
-            // Шукаємо підпис у найближчому figcaption
             Element figure = img.closest("figure");
-            String caption = (figure != null) ? figure.select(".pg-caption").text() : "";
+            String caption = (figure != null) ? figure.select(".pg-caption, figcaption").text() : img.attr("alt");
 
             galleryItems.add(Map.of(
                     "url", img.attr("src"),
@@ -134,10 +185,9 @@ public class EditorJsConverter {
         }
 
         if (!galleryItems.isEmpty()) {
-            // Якщо картинка одна - створюємо блок image, якщо більше - gallery
             if (galleryItems.size() == 1) {
                 result.addBlock("image", Map.of(
-                        "url", galleryItems.get(0).get("url"),
+                        "file", Map.of("url", galleryItems.get(0).get("url")),
                         "caption", galleryItems.get(0).get("caption")
                 ));
             } else {

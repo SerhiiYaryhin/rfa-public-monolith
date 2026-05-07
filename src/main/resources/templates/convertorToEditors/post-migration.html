@@ -18,6 +18,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
@@ -97,7 +99,17 @@
         list: NestedList,
         quote: Quote,
         table: Table,
-        delimiter: Delimiter
+        delimiter: Delimiter,
+        image: {
+            class: ImageTool,
+            config: {
+                endpoints: {
+                    byFile: '/api/admin/posts/upload-image', // Потрібно додати в контролер
+                    byUrl: '/api/admin/posts/fetch-url',
+                }
+            }
+        },
+        embed: Embed
     };
 
     // Ініціалізація редактора
