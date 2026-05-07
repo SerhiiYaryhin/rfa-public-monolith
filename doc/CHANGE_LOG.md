@@ -334,3 +334,38 @@ Facebook показує зображення з профайлу автора з
 
 **Результат:** 
 Тепер можна перевірити в логах, чи значення coverUuid передається правильно для кожної статті.
+
+---
+
+## 14. Виправлення формування og:image для використання імені файлу разом з UUID
+
+**Дата:** 7 травня 2026 р.
+
+**Опис проблеми:**
+Facebook показував зображення з профайлу автора замість головної ілюстрації статті, посту або подкасту.
+Причина була в тому, що Facebook очікував реальне ім'я файлу в тезі `og:image`, а не просто UUID.
+
+**Причини:**
+1. Формування `og:image` використовувало формат `/store/content/{uuid}` замість `/store/thrumbal/{uuid}/{filename}`
+2. Facebook crawler не міг правильно ідентифікувати зображення за однією лише UUID
+3. Через це він використовував інше доступне зображення (наприклад, з профайлу автора)
+
+**Внесені зміни:**
+1. Оновлено фрагмент `metadata` у `common.html`, щоб приймати додатковий параметр `imageFilename`
+2. Оновлено фрагмент `ogpost` у `common.html`, щоб використовувати ім'я файлу разом з UUID
+3. Додано передачу `storeService` до моделі в `AuthorPublicController` і `PostController`
+4. Оновлено шаблони `author_article_view.html`, `author_column.html`, `episode.html`, `postview.html`, щоб передавати ім'я файлу до фрагментів метаданих
+5. Тепер формування `og:image` використовує формат `/store/thrumbal/{uuid}/{filename}`, який очікує Facebook
+
+**Файли, які були змінені:**
+- `/src/main/resources/templates/fragments/common.html`
+- `/src/main/resources/templates/guest/author_article_view.html`
+- `/src/main/resources/templates/guest/author_column.html`
+- `/src/main/resources/templates/podcast/episode.html`
+- `/src/main/java/media/toloka/rfa/author/controller/AuthorPublicController.java`
+- `/src/main/java/media/toloka/rfa/radio/post/PostController.java`
+- `/src/main/resources/templates/post/postview.html`
+
+**Результат:** 
+Тепер Facebook правильно ідентифікує ілюстрації до постів, подкастів та авторських статей, 
+використовуючи формат з ім'ям файлу, і більше не показує зображення з профайлу автора замість головної ілюстрації.
