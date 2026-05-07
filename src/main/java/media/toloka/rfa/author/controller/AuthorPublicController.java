@@ -72,7 +72,7 @@ public class AuthorPublicController {
         String userAgent = request.getHeader("User-Agent");
         if (userAgent != null && (userAgent.contains("facebookexternalhit") || userAgent.contains("Facebot"))) {
             logger.info("Facebook crawler accessing article: " + articleSlug);
-            logger.info("Full request headers: " + // логування заголовків запиту);
+            // logger.info("Full request headers: " + // логування заголовків запиту);
         }
 
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
