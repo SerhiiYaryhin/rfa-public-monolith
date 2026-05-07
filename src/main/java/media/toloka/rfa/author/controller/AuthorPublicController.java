@@ -82,6 +82,9 @@ public class AuthorPublicController {
 
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
                 .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
+        
+        // Логування значення coverUuid для аналізу проблеми з метаданими
+        logger.info("Article coverUuid for article {}: {}", articleSlug, article.getCoverUuid());
 
         // Збільшуємо лічильник переглядів
         article.setLooked(article.getLooked() + 1);
