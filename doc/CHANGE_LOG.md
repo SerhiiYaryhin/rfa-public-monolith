@@ -149,13 +149,13 @@
 Файл `/robots.txt` вимагав авторизації, хоча має бути публічно доступним.
 
 **Причини:**
-1. У файлі `MvcConfig.java` налаштування resource handler для `/robots.txt` вказувало на всю директорію `classpath:/static/`
+1. У файлі `MvcConfig.java` було налаштовано спеціальний resource handler для `/robots.txt`
 2. Це обходило правила безпеки, визначені в `SecurityConfig.java`
-3. Незважаючи на те, що `/robots.txt` був у списку дозволених шляхів у SecurityConfig, Spring обробляв цей запит як ресурс через MvcConfig
+3. Незважаючи на те, що `/robots.txt` був у списку дозволених шляхів у SecurityConfig, Spring обробляв цей запит через MvcConfig замість стандартного механізму обробки статичних ресурсів
 
 **Внесені зміни:**
-1. Змінено resource handler для `/robots.txt` у файлі `MvcConfig.java`, щоб він вказував на конкретний файл: `classpath:/static/robots.txt`
-2. Це дозволяє правильно застосовувати правила безпеки з `SecurityConfig.java`
+1. Видалено спеціальний resource handler для `/robots.txt` з файлу `MvcConfig.java`
+2. Тепер `/robots.txt` обробляється як звичайний статичний ресурс, і правила безпеки з `SecurityConfig.java` застосовуються правильно
 
 **Файли, які були змінені:**
 - `/src/main/java/media/toloka/rfa/config/MvcConfig.java`
