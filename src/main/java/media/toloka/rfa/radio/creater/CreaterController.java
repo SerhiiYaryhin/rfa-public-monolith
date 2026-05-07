@@ -38,9 +38,9 @@ public class CreaterController {
 
     final Logger logger = LoggerFactory.getLogger(CreaterController.class);
 
-    @GetMapping(value = {"/creater/home", "/creater/home/{cPage}"})
+    @GetMapping(value = "/creater/home")
     public String getUserHome(
-            @PathVariable(required = false) String cPage,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -48,25 +48,15 @@ public class CreaterController {
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-//        List<Post> posts = createrService.GetAllPostsByCreater(cd);
-//        model.addAttribute("posts", posts );
 
-
-        Integer curpage = 0;
-        if (cPage != null) {
-            try {
-                curpage = Integer.parseInt(cPage);
-            } catch (NumberFormatException e) {
-                curpage = 0;
-            }
-        }
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage,10, cd);
+        Integer curpage = Math.max(0, page); // Переконуємося, що сторінка не від'ємна
+        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.getContent();
 
         model.addAttribute("viewList", viewList );
-        model.addAttribute("totalPages",pageStore.getTotalPages());
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/home/");
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/home"); // Видалили слеш в кінці
 
         return "/creater/home";
     }
