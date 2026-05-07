@@ -89,7 +89,7 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
                 .addResourceLocations("classpath:/error/");
 
         registry.addResourceHandler("/robots.txt")
-                .addResourceLocations("classpath:/static/");
+                .addResourceLocations("classpath:/static/robots.txt");
 
 //                .addResourceLocations("/static/robots.txt");
 //                .addResourceLocations("/static/robots.txt");
