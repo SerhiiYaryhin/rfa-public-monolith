@@ -145,37 +145,45 @@ public class PostController {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Post post;
-        if (uuidPost.equals("0")) {
-            post = new Post();
-            post.setPostStatus(POSTSTATUS_REDY);
-        } else {
-            post = postService.GetPostByUuid(uuidPost);
-        }
-
-        if (post == null) return "redirect:/creater/home";
-
-        // Валідація ілюстрації при запиті на публікацію
-        if (fPost.getPostStatus() == POSTSTATUS_REQUEST && (post.getCoverstoreuuid() == null || post.getCoverstoreuuid().isEmpty())) {
-            model.addAttribute("error", "Для публікації посту необхідно встановити головну ілюстрацію!");
-            model.addAttribute("post", post);
-            model.addAttribute("categorys", Arrays.asList(EPostCategory.values()));
-            model.addAttribute("postStatuses", Arrays.asList(EPostStatus.POSTSTATUS_REDY, EPostStatus.POSTSTATUS_REQUEST));
-            List<PostCategory> pcats = new ArrayList<>();
-            for (PostCategory pc : postService.getPostCategory()) {
-                if (pc.getParent() == null) pcats.add(pc);
-            }
-            model.addAttribute("firstpostcategoryslist", pcats);
-            return "/creater/editpost";
-        }
         
-        post.setPostbody(fPost.getPostbody());
-        post.setPosttitle(fPost.getPosttitle());
-        post.setLead(fPost.getLead());
-        post.setCategory(fPost.getCategory());
-        post.setPostcategory(fPost.getPostcategory());
-        post.setClientdetail(cd);
-        post.setPostStatus(fPost.getPostStatus());
+        Post post = postService.GetPostByUuid(uuidPost);
+        
+        // Якщо пост не знайдено в базі, це новий пост
+        if (post == null) {
+            // Перевіряємо, чи UUID в моделі співпадає з тим, що в URL
+            if (uuidPost.equals(fPost.getUuid())) {
+                // Це новий пост, створюємо новий об'єкт
+                post = fPost;
+                post.setId(null); // Переконуємося, що ID порожній для нового запису
+                post.setPostStatus(POSTSTATUS_REDY);
+                post.setClientdetail(cd);
+            } else {
+                // Невідповідність UUID - помилка
+                return "redirect:/creater/home";
+            }
+        } else {
+            // Це існуючий пост, оновлюємо його
+            // Валідація ілюстрації при запиті на публікацію
+            if (fPost.getPostStatus() == POSTSTATUS_REQUEST && (post.getCoverstoreuuid() == null || post.getCoverstoreuuid().isEmpty())) {
+                model.addAttribute("error", "Для публікації посту необхідно встановити головну ілюстрацію!");
+                model.addAttribute("post", post);
+                model.addAttribute("categorys", Arrays.asList(EPostCategory.values()));
+                model.addAttribute("postStatuses", Arrays.asList(EPostStatus.POSTSTATUS_REDY, EPostStatus.POSTSTATUS_REQUEST));
+                List<PostCategory> pcats = new ArrayList<>();
+                for (PostCategory pc : postService.getPostCategory()) {
+                    if (pc.getParent() == null) pcats.add(pc);
+                }
+                model.addAttribute("firstpostcategoryslist", pcats);
+                return "/creater/editpost";
+            }
+
+            post.setPostbody(fPost.getPostbody());
+            post.setPosttitle(fPost.getPosttitle());
+            post.setLead(fPost.getLead());
+            post.setCategory(fPost.getCategory());
+            post.setPostcategory(fPost.getPostcategory());
+            post.setPostStatus(fPost.getPostStatus());
+        }
 
         postService.SavePost(post);
 
