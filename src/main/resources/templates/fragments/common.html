@@ -81,7 +81,7 @@
 
 <th:block th:fragment="ogpost(post, storeService)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetFileNameByUUID(post.coverstoreuuid) : 'image.jpg')}" />
+    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}" />
     <meta property="og:url" th:content="${siteUrl + '/post/postview/' + post?.uuid}" />
     <meta property="og:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}" />
     <meta property="og:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}" />
@@ -92,7 +92,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}">
     <meta name="twitter:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}">
-    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetFileNameByUUID(post.coverstoreuuid) : 'image.jpg')}">
+    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>

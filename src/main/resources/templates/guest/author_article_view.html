@@ -9,7 +9,7 @@
         title=${article.title},
         description=${article.lead != null ? article.lead : 'Стаття на Толоці'},
         image=${article.coverUuid},
-        imageFilename=${article.coverUuid != null ? storeService.GetFileNameByUUID(article.coverUuid) : null},
+        imageFilename=${article.coverUuid != null ? storeService.GetStoreByUUID(article.coverUuid)?.filename : null},
         url='/guest/authors/article/' + ${article.slug},
         type='article')}"/>
     <title th:text="${article.title} + ' - Авторська колонка | Толока'"></title>
