@@ -86,6 +86,9 @@ public class AuthorPublicController {
         // Логування значення coverUuid для аналізу проблеми з метаданими
         logger.info("Article coverUuid for article {}: {}", articleSlug, article.getCoverUuid());
 
+        // Додати сервіс до моделі для використання в шаблоні
+        model.addAttribute("storeService", commentService.getStoreService());
+
         // Збільшуємо лічильник переглядів
         article.setLooked(article.getLooked() + 1);
         articleService.saveArticle(article);

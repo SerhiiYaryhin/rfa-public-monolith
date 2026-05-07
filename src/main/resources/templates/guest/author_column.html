@@ -4,9 +4,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <div th:replace="~{/fragments/common :: metadata(
-        title=${column.title}, 
-        description=${column.description}, 
-        image=${column.author.profilephoto != null ? column.author.profilephoto.uuid : null}, 
+        title=${column.title},
+        description=${column.description},
+        image=${column.author.profilephoto != null ? column.author.profilephoto.uuid : null},
+        imageFilename=${column.author.profilephoto != null ? storeService.GetFileNameByUUID(column.author.profilephoto.uuid) : null},
         url='/guest/authors/' + ${column.slug},
         type='website')}"/>
     <title th:text="${column.title} + ' - Толока'"></title>

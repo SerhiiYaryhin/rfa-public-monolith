@@ -9,9 +9,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <div th:if="${podcastItem != null}" th:replace="~{/fragments/common :: metadata(
-        title=${podcastItem.title ?: 'Епізод подкасту'}, 
-        description=${podcastItem.lead != null ? podcastItem.lead : (podcastItem.description != null ? #strings.abbreviate(podcastItem.description, 200) : 'Епізод подкасту на Толоці')}, 
-        image=${podcastItem.imagestoreitem != null ? podcastItem.imagestoreitem.uuid : null}, 
+        title=${podcastItem.title ?: 'Епізод подкасту'},
+        description=${podcastItem.lead != null ? podcastItem.lead : (podcastItem.description != null ? #strings.abbreviate(podcastItem.description, 200) : 'Епізод подкасту на Толоці')},
+        image=${podcastItem.imagestoreitem != null ? podcastItem.imagestoreitem.uuid : null},
+        imageFilename=${podcastItem.imagestoreitem != null ? storeService.GetFileNameByUUID(podcastItem.imagestoreitem.uuid) : null},
         url='/podcast/episode/' + ${podcastItem.uuid ?: ''},
         type='music.song')}"/>
     <title th:text="${(podcastItem != null ? podcastItem.title : 'Епізод') + ' | Толока'}"></title>

@@ -27,20 +27,20 @@
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="metadata(title, description, image, url, type)">
+<th:block th:fragment="metadata(title, description, image, imageFilename, url, type)">
     <!-- Open Graph -->
     <meta property="og:title" th:content="${title}" />
     <meta property="og:description" th:content="${description}" />
-    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/content/' + image : siteUrl + '/pictures/rfaog.png'}" />
+    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/thrumbal/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}" />
     <meta property="og:url" th:content="${url.startsWith('http') ? url : siteUrl + url}" />
     <meta property="og:type" th:content="${type != null ? type : 'article'}" />
     <meta property="og:locale" content="uk" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${title}">
     <meta name="twitter:description" th:content="${description}">
-    <meta name="twitter:image" th:content="${image != null ? siteUrl + '/store/content/' + image : siteUrl + '/pictures/rfaog.png'}">
+    <meta name="twitter:image" th:content="${image != null ? siteUrl + '/store/thrumbal/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}">
 </th:block>
 
 <th:block th:fragment="ogpodcast">
@@ -79,20 +79,20 @@
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
-<th:block th:fragment="ogpost(post)">
+<th:block th:fragment="ogpost(post, storeService)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + post.coverstoreuuid}" />
+    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetFileNameByUUID(post.coverstoreuuid) : 'image.jpg')}" />
     <meta property="og:url" th:content="${siteUrl + '/post/postview/' + post?.uuid}" />
     <meta property="og:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}" />
     <meta property="og:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}" />
     <meta property="og:type" content="article" />
     <meta property="og:locale" content="uk" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}">
     <meta name="twitter:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}">
-    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/' + post.coverstoreuuid}">
+    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetFileNameByUUID(post.coverstoreuuid) : 'image.jpg')}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
