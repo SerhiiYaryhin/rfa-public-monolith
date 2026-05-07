@@ -146,7 +146,7 @@ public class RootController {
     @RequestMapping(value={"/robots.txt", "/robot.txt"})
     @ResponseBody
     public String getRobotsTxt() {
-        return "User-agent: *\nDisallow: /admin\n\nUser-agent: facebookexternalhit\nAllow: /\n\nUser-agent: Facebot\nAllow: /\n";
+        return "User-agent: *\nAllow: /\nDisallow: /admin/\n\nUser-agent: facebookexternalhit\nAllow: /\n\nUser-agent: Facebot\nAllow: /\n";
     }
 
 }
