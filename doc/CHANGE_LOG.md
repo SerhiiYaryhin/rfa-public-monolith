@@ -450,3 +450,28 @@ Facebook Sharing Debugger повідомляв, що надане зображе
 
 **Результат:** 
 Facebook тепер повинен правильно обробляти зображення в og:image, оскільки використовуються повнорозмірні зображення.
+
+---
+
+## 18. Виправлення помилки при переході на сторінку автора
+
+**Дата:** 7 травня 2026 р.
+
+**Опис проблеми:**
+Не вдавалося перейти на сторінку автора статей за посиланням `/guest/authors/{authorSlug}`. 
+Виникала помилка обробки шаблону `/guest/author_column` через те, що не вдалося обчислити вираз 
+`storeService.GetStoreByUUID(column.author.profilephoto.uuid)?.filename`.
+
+**Причини:**
+1. У методі `authorColumn` контролера `AuthorPublicController` не передавався `storeService` до моделі
+2. Через це в шаблоні `/guest/author_column.html` не було доступу до сервісу для отримання імені файлу зображення
+
+**Внесені зміни:**
+1. Додано передачу `storeService` до моделі в методі `authorColumn` контролера `AuthorPublicController`
+2. Тепер шаблон має доступ до сервісу для отримання імені файлу зображення автора
+
+**Файли, які були змінені:**
+- `/src/main/java/media/toloka/rfa/author/controller/AuthorPublicController.java`
+
+**Результат:** 
+Тепер можна успішно перейти на сторінку автора за посиланням `/guest/authors/{authorSlug}`.
