@@ -136,18 +136,28 @@ public class CreaterStoreController {
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Post curpost = createrService.GetPostByUuid(postUuid);
-
-        // Перевіряємо, чи знайдено пост
-        if (curpost == null) {
-            logger.error("Пост з UUID {} не знайдено", postUuid);
-            return "redirect:/error/general";
-        }
-
-        // Перевіряємо, чи користувач є власником поста
-        if (!curpost.getClientdetail().getId().equals(cd.getId())) {
-            logger.warn("Користувач намагається отримати доступ до поста, який йому не належить");
-            return "redirect:/error/general";
+        
+        Post curpost;
+        // Якщо postUuid дорівнює "0", це означає, що ми створюємо новий пост
+        if (postUuid.equals("0")) {
+            // Створюємо тимчасовий об'єкт поста для передачі в шаблон
+            curpost = new Post();
+            curpost.setUuid("0"); // Встановлюємо "0" як тимчасовий UUID
+            curpost.setClientdetail(cd); // Встановлюємо клієнта, щоб пройшла перевірку
+        } else {
+            curpost = createrService.GetPostByUuid(postUuid);
+            
+            // Перевіряємо, чи знайдено пост
+            if (curpost == null) {
+                logger.error("Пост з UUID {} не знайдено", postUuid);
+                return "redirect:/error/general";
+            }
+    
+            // Перевіряємо, чи користувач є власником поста
+            if (!curpost.getClientdetail().getId().equals(cd.getId())) {
+                logger.warn("Користувач намагається отримати доступ до поста, який йому не належить");
+                return "redirect:/error/general";
+            }
         }
 
         Page<Store> pageStore = storeService.GetAllPictures(pageNumber, 10, cd);
