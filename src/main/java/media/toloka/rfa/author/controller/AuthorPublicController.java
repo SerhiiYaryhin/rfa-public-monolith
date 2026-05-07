@@ -36,21 +36,22 @@ public class AuthorPublicController {
     }
 
     @GetMapping("/{columnSlug}")
-    public String authorColumn(@PathVariable String columnSlug, 
-                               @RequestParam(defaultValue = "0") int page, 
+    public String authorColumn(@PathVariable String columnSlug,
+                               @RequestParam(defaultValue = "0") int page,
                                Model model) {
 
 
         AuthorColumn column = articleService.getColumnBySlug(columnSlug)
                 .orElseThrow(() -> new RuntimeException("Колонку не знайдено"));
-        
+
         Page<AuthorArticle> articles = articleService.getPublishedArticlesByColumn(column, page, 12);
-        
+
         model.addAttribute("column", column);
         model.addAttribute("articles", articles.getContent());
         model.addAttribute("totalPages", articles.getTotalPages());
         model.addAttribute("currentPage", page);
-        
+        model.addAttribute("storeService", storeService);
+
         return "/guest/author_column";
     }
 
