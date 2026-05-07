@@ -211,3 +211,28 @@
 
 **Результат:** 
 Тепер обидва шляхи `/robots.txt` та `/robot.txt` правильно обробляються і повертають вміст файлу robots.txt.
+
+---
+
+## 9. Виправлення доступу для Facebook crawler до robots.txt
+
+**Дата:** 7 травня 2026 р.
+
+**Опис проблеми:**
+Facebook Sharing Debugger повідомляв про помилку 403, посилаючись на блокування через `robots.txt`.
+Повідомлення: "This response code could be due to a robots.txt block. Please allowlist facebookexternalhit on your sites robots.txt config".
+
+**Причини:**
+1. У попередній версії `robots.txt` було використано дозвіл `Allow: /` для `facebookexternalhit`, але це не було достатнім
+2. Потрібно було явно дозволити доступ до всіх сторінок для `facebookexternalhit`, щоб уникнути помилок при скануванні
+
+**Внесені зміни:**
+1. Оновлено вміст методу `getRobotsTxt()` у `RootController.java`, щоб явно дозволити доступ для `facebookexternalhit` та `Facebot` до всіх сторінок
+2. Змінено формат файлу `robots.txt`, щоб уникнути можливих конфліктів з правилами доступу
+3. Тепер `User-agent: *` має дозвіл на доступ до всіх сторінок, крім `/admin/`
+
+**Файли, які були змінені:**
+- `/src/main/java/media/toloka/rfa/radio/root/RootController.java`
+
+**Результат:** 
+Тепер Facebook crawler та інші сторонні сервіси можуть отримати доступ до сторінок сайту без помилок, пов'язаних з robots.txt.
