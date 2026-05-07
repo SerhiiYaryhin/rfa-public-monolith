@@ -31,7 +31,7 @@
     <!-- Open Graph -->
     <meta property="og:title" th:content="${title}" />
     <meta property="og:description" th:content="${description}" />
-    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/thrumbal/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}" />
+    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/content/og/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}" />
     <meta property="og:url" th:content="${url.startsWith('http') ? url : siteUrl + url}" />
     <meta property="og:type" th:content="${type != null ? type : 'article'}" />
     <meta property="og:locale" content="uk" />
@@ -81,7 +81,7 @@
 
 <th:block th:fragment="ogpost(post, storeService)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/thrumbal/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}" />
+    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}" />
     <meta property="og:url" th:content="${siteUrl + '/post/postview/' + post?.uuid}" />
     <meta property="og:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}" />
     <meta property="og:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}" />
