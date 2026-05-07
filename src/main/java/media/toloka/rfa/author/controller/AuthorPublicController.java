@@ -24,6 +24,9 @@ public class AuthorPublicController {
     @Autowired
     private AuthorArticleService articleService;
 
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreService storeService;
+
     final Logger logger = LoggerFactory.getLogger(AuthorPublicController.class);
 
     @GetMapping
@@ -87,7 +90,7 @@ public class AuthorPublicController {
         logger.info("Article coverUuid for article {}: {}", articleSlug, article.getCoverUuid());
 
         // Додати сервіс до моделі для використання в шаблоні
-        model.addAttribute("storeService", commentService.getStoreService());
+        model.addAttribute("storeService", storeService);
 
         // Збільшуємо лічильник переглядів
         article.setLooked(article.getLooked() + 1);

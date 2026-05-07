@@ -79,7 +79,7 @@ public class PostController {
         model.addAttribute("post", post);
         model.addAttribute("ogimage", post.getCoverstoreuuid());
         model.addAttribute("stationsonline", StationOnlineList.getInstance().GetOnlineList());
-        model.addAttribute("storeService", commentService.getStoreService());
+        model.addAttribute("storeService", storeService);
 
         // --- Завантаження коментарів ---
         Pageable pageable = PageRequest.of(page, size);
