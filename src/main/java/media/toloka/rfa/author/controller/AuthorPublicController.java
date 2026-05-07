@@ -1,9 +1,13 @@
 package media.toloka.rfa.author.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import media.toloka.rfa.author.model.AuthorArticle;
 import media.toloka.rfa.author.model.AuthorColumn;
 import media.toloka.rfa.author.service.AuthorArticleService;
+import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -20,6 +24,8 @@ public class AuthorPublicController {
     @Autowired
     private AuthorArticleService articleService;
 
+    final Logger logger = LoggerFactory.getLogger(AuthorPublicController.class);
+
     @GetMapping
     public String authorHub(Model model) {
         model.addAttribute("columns", articleService.getAllColumns());
@@ -30,6 +36,8 @@ public class AuthorPublicController {
     public String authorColumn(@PathVariable String columnSlug, 
                                @RequestParam(defaultValue = "0") int page, 
                                Model model) {
+
+
         AuthorColumn column = articleService.getColumnBySlug(columnSlug)
                 .orElseThrow(() -> new RuntimeException("Колонку не знайдено"));
         
@@ -58,7 +66,15 @@ public class AuthorPublicController {
     @GetMapping("/article/{articleSlug}")
     public String viewArticle(@PathVariable String articleSlug, 
                               @RequestParam(defaultValue = "0") int commentPage,
+                              HttpServletRequest request,
                               Model model) {
+
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent != null && (userAgent.contains("facebookexternalhit") || userAgent.contains("Facebot"))) {
+            logger.info("Facebook crawler accessing article: " + articleSlug);
+            logger.info("Full request headers: " + // логування заголовків запиту);
+        }
+
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
                 .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
         
