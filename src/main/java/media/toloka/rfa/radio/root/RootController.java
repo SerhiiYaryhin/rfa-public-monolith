@@ -143,7 +143,7 @@ public class RootController {
 
         return "redirect:/#contact";
     }
-    @RequestMapping(value={"/robots.txt"})
+    @RequestMapping(value={"/robots.txt", "/robot.txt"})
     @ResponseBody
     public String getRobotsTxt() {
         return "User-agent: *\nDisallow: /admin\n\nUser-agent: facebookexternalhit\nAllow: /\n\nUser-agent: Facebot\nAllow: /\n";
