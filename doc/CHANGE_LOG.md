@@ -394,3 +394,32 @@ Facebook показував зображення з профайлу автор�
 
 **Результат:** 
 Помилки компіляції виправлено, і застосунок може бути успішно зібраний.
+
+---
+
+## 16. Виправлення виклику методу у шаблонах
+
+**Дата:** 7 травня 2026 р.
+
+**Опис проблеми:**
+Виникла помилка виконання шаблону при спробі викликати метод `storeService.GetFileNameByUUID()`, 
+оскільки такого методу не існує в класі `StoreService`.
+
+**Причини:**
+1. Спроба викликати неіснуючий метод `GetFileNameByUUID` у шаблонах
+2. Потрібно отримувати ім'я файлу через отримання об'єкта Store і виклик методу `getFilename()`
+
+**Внесені зміни:**
+1. Виправлено виклики методів у шаблонах `/podcast/episode.html`, `/guest/author_article_view.html`, `/guest/author_column.html`
+2. Змінено виклик `storeService.GetFileNameByUUID(uuid)` на `storeService.GetStoreByUUID(uuid)?.filename`
+3. Оновлено фрагмент `ogpost` у `common.html` для використання правильного виклику методу
+4. Використано оператор безпечного виклику (`?.`) для запобігання помилок, якщо об'єкт не знайдено
+
+**Файли, які були змінені:**
+- `/src/main/resources/templates/fragments/common.html`
+- `/src/main/resources/templates/guest/author_article_view.html`
+- `/src/main/resources/templates/guest/author_column.html`
+- `/src/main/resources/templates/podcast/episode.html`
+
+**Результат:** 
+Помилка виконання шаблону усунена, і імена файлів тепер правильно отримуються з об'єктів Store.
