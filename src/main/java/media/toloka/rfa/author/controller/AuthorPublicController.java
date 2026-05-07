@@ -56,16 +56,20 @@ public class AuthorPublicController {
     private media.toloka.rfa.comments.service.CommentService commentService;
 
     @GetMapping("/article/{articleSlug}")
-    public String viewArticle(@PathVariable String articleSlug, 
+    public String viewArticle(@PathVariable String articleSlug,
                               @RequestParam(defaultValue = "0") int commentPage,
                               Model model) {
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
-                .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
+                .orElse(null);
         
+        if (article == null) {
+            return "redirect:/error/404";
+        }
+
         // Збільшуємо лічильник переглядів
         article.setLooked(article.getLooked() + 1);
         articleService.saveArticle(article);
-        
+
         // Завантажуємо коментарі
         var comments = commentService.getPaginatedCommentsHierarchy(ECommentSourceType.COMMENT_ARTICLE, article.getUuid(), org.springframework.data.domain.PageRequest.of(commentPage, 10));
         model.addAttribute("commentsPage", comments);
