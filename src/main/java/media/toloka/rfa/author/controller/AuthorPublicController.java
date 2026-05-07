@@ -60,11 +60,7 @@ public class AuthorPublicController {
                               @RequestParam(defaultValue = "0") int commentPage,
                               Model model) {
         AuthorArticle article = articleService.getPublishedArticleBySlug(articleSlug)
-                .orElse(null);
-        
-        if (article == null) {
-            return "redirect:/error/404";
-        }
+                .orElseThrow(() -> new RuntimeException("Статтю не знайдено"));
 
         // Збільшуємо лічильник переглядів
         article.setLooked(article.getLooked() + 1);
