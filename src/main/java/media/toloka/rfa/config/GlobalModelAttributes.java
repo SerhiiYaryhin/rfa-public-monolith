@@ -1,5 +1,6 @@
 package media.toloka.rfa.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -11,7 +12,10 @@ public class GlobalModelAttributes {
     private String siteUrl;
 
     @ModelAttribute("siteUrl")
-    public String getSiteUrl() {
-        return siteUrl;
+    public String getSiteUrl(HttpServletRequest request) {
+        // Використовуємо фактичний домен запиту, якщо він відрізняється від конфігурації
+        String requestUrl = request.getRequestURL().toString();
+        String requestDomain = requestUrl.substring(0, requestUrl.indexOf(request.getRequestURI()));
+        return requestDomain;
     }
 }
