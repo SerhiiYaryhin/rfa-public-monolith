@@ -138,21 +138,31 @@ public class CreaterStoreController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Post curpost = createrService.GetPostByUuid(postUuid);
 
-        Page pageStore = storeService.GetAllPictures(pageNumber,10, cd);
-        List<Store> storeList = pageStore.stream().toList();
+        // Перевіряємо, чи знайдено пост
+        if (curpost == null) {
+            logger.error("Пост з UUID {} не знайдено", postUuid);
+            return "redirect:/error/general";
+        }
 
-        int privpage ;
-        int nextpage ;
-        if (pageNumber == 0) {privpage = 0;} else {privpage = pageNumber - 1;};
-        if (pageNumber >= (pageStore.getTotalPages()-1) ) {nextpage = pageStore.getTotalPages()-1; } else {nextpage = pageNumber+1;} ;
+        // Перевіряємо, чи користувач є власником поста
+        if (!curpost.getClientdetail().getId().equals(cd.getId())) {
+            logger.warn("Користувач намагається отримати доступ до поста, який йому не належить");
+            return "redirect:/error/general";
+        }
 
-        model.addAttribute("curpost", curpost );
-        model.addAttribute("nextpage", nextpage );
-        model.addAttribute("privpage", privpage );
-        model.addAttribute("totalpage", pageStore.getTotalPages() );
-        model.addAttribute("pagetrack", pageStore );
-        model.addAttribute("currentpage", pageNumber );
-        model.addAttribute("storeList", storeList );
+        Page<Store> pageStore = storeService.GetAllPictures(pageNumber, 10, cd);
+        List<Store> storeList = pageStore.getContent(); // замість stream().toList()
+
+        int privpage = (pageNumber == 0) ? 0 : pageNumber - 1;
+        int nextpage = (pageNumber >= (pageStore.getTotalPages() - 1)) ? pageStore.getTotalPages() - 1 : pageNumber + 1;
+
+        model.addAttribute("curpost", curpost);
+        model.addAttribute("nextpage", nextpage);
+        model.addAttribute("privpage", privpage);
+        model.addAttribute("totalpage", pageStore.getTotalPages());
+        model.addAttribute("pagetrack", pageStore);
+        model.addAttribute("currentpage", pageNumber);
+        model.addAttribute("storeList", storeList);
 
 //        List<Store> storeList = storeService.GetAllPictures(cd);
 

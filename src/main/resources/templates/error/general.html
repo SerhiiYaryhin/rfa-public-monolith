@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Помилка - Толока</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
+
+    <div class="container" style="padding-top: 100px;">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Виникла помилка!</h4>
+                    <p>Вибачте, сталася помилка під час обробки вашого запиту.</p>
+                    <hr>
+                    <p class="mb-0">Будь ласка, поверніться назад та спробуйте ще раз або зверніться до служби підтримки.</p>
+                </div>
+                <a href="/creater/home" class="btn btn-primary">Повернутися на головну</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
