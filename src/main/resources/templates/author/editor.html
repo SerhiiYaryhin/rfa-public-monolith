@@ -112,7 +112,31 @@
 
     <!-- Модальне вікно сховища -->
     <div class="modal fade" id="storageModal" tabindex="-1" aria-hidden="true">
-... (rest of storage modal) ...
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-light px-4 py-3">
+                    <h5 class="fw-bold mb-0">Мої зображення</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 overflow-auto bg-white">
+                    <div class="container-fluid px-4 py-5">
+                        <div class="row g-4" id="storageGrid">
+                            <!-- Зображення будуть завантажені динамічно -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light d-flex justify-content-between">
+                    <div class="d-flex gap-2">
+                        <label class="btn btn-primary rounded-pill px-4" for="fileUpload">
+                            <i class="fas fa-upload me-2"></i>Завантажити нове
+                        </label>
+                        <input type="file" id="fileUpload" class="d-none" accept="image/*" 
+                               onchange="uploadNewCover(this.files[0]); this.value = '';">
+                    </div>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Закрити</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Модальне вікно попереднього перегляду -->
@@ -209,36 +233,77 @@
         }
 
         function openStorageModal() {
-            if (typeof bootstrap === 'undefined') {
+            if (typeof bootstrap === 'undefined' || typeof bootstrap.Modal === 'undefined') {
                 alert("Помилка завантаження системних скриптів. Будь ласка, оновіть сторінку.");
                 return;
             }
             const modalEl = document.getElementById('storageModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            if (!modalEl) {
+                console.error('Storage modal element not found');
+                return;
+            }
+            
+            // Properly initialize the modal instance
+            let modal = bootstrap.Modal.getInstance(modalEl);
+            if (!modal) {
+                modal = new bootstrap.Modal(modalEl);
+            }
             modal.show();
-            loadUserStorage();
+            
+            // Load user storage after the modal is shown
+            modalEl.addEventListener('shown.bs.modal', function () {
+                loadUserStorage();
+            }, { once: true });
         }
 
         async function loadUserStorage() {
             const grid = document.getElementById('storageGrid');
+            // Check if the grid element exists before trying to modify it
+            if (!grid) {
+                console.error('Storage grid element not found');
+                return;
+            }
+            
             try {
                 const res = await fetch('/api/author/images/my');
                 const images = await res.json();
-                grid.innerHTML = images.map(img => `
-                    <div class="col">
-                        <img src="${img.url}" class="storage-img-item w-100 ${img.uuid === selectedCoverUuid ? 'selected' : ''}" 
-                             onclick="selectStorageImage('${img.uuid}', '${img.url}')">
-                    </div>
-                `).join('');
-                if (images.length === 0) grid.innerHTML = '<p class="text-center py-5 w-100">Сховище порожнє</p>';
-            } catch (e) { grid.innerHTML = '<p class="text-center py-5 text-danger w-100">Помилка завантаження</p>'; }
+                
+                if (Array.isArray(images) && images.length > 0) {
+                    grid.innerHTML = images.map(img => `
+                        <div class="col-md-3 col-sm-4 col-6 mb-4">
+                            <img src="${img.url}" class="storage-img-item w-100 ${img.uuid === selectedCoverUuid ? 'selected' : ''}"
+                                 onclick="selectStorageImage('${img.uuid}', '${img.url}')">
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = '<p class="text-center py-5 w-100">Сховище порожнє</p>';
+                }
+            } catch (e) {
+                console.error('Error loading user storage:', e);
+                grid.innerHTML = '<p class="text-center py-5 text-danger w-100">Помилка завантаження</p>';
+            }
         }
 
         function selectStorageImage(uuid, url) {
             selectedCoverUuid = uuid;
             setCoverPreview(uuid);
             const modalEl = document.getElementById('storageModal');
-            bootstrap.Modal.getInstance(modalEl).hide();
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) {
+                    modal.hide();
+                } else {
+                    // Fallback if modal instance doesn't exist
+                    modalEl.classList.remove('show');
+                    modalEl.setAttribute('aria-hidden', 'true');
+                    modalEl.removeAttribute('style');
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            }
         }
 
         async function uploadNewCover(file) {
