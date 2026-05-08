@@ -69,7 +69,7 @@ public class PodcastItem {
     @ElementCollection
 //    @ManyToOne(cascade = CascadeType.ALL)
     @ToString.Exclude
-    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     @JoinColumn(name = "podcastchanneluuid")
     private PodcastChannel chanel;
 

@@ -18,7 +18,7 @@ public class AuthorColumn {
     @Column(unique = true, nullable = false)
     private String uuid = UUID.randomUUID().toString();
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_uuid", referencedColumnName = "uuid")
     private Clientdetail author;
 

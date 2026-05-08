@@ -60,7 +60,7 @@ public class Post {
 
 
     @Expose
-    @ManyToOne( fetch = FetchType.EAGER)
+    @ManyToOne( fetch = FetchType.LAZY)
     private PostCategory postcategory = null;   // ще одна категорія? todo розібратися 25.05.13
 
 //    @ToString.Exclude
@@ -72,7 +72,7 @@ public class Post {
 //    private Store store;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
 //    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;

@@ -67,12 +67,12 @@ public class Track {
     private Boolean publishstatus = false;  // публікація треку на порталі. Інакше - режим редагування інформації
 
     @ToString.Exclude
-    @ManyToOne(optional = true, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     @JoinColumn(name = "album_id")
     private Album album; // посилання на альбом в який цей трек входить
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail; //
 }

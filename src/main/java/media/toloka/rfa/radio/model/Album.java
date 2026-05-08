@@ -59,12 +59,12 @@ public class Album {
     private String description;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "album", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "album", fetch=FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Track> track;
 
 
