@@ -46,25 +46,29 @@ public class AdminPosts {
     final Logger logger = LoggerFactory.getLogger(AdminPosts.class);
 
 
-    @GetMapping(value = {"/admin/posts", "/admin/posts/{page}"})
+    @GetMapping(value = "/admin/posts")
     public String getUserHome(
-            @PathVariable(required = false) Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        int currentPage = (page == null) ? 0 : page;
         // Отримуємо пагінований список усіх постів
-        org.springframework.data.domain.Page<Post> postPage = postService.GetPostPage(currentPage, 15);
+        org.springframework.data.domain.Page<Post> postPage = postService.GetPostPage(page, 15);
 
         model.addAttribute("posts", postPage.getContent());
         model.addAttribute("totalPages", postPage.getTotalPages());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/admin/posts/");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("linkPage", "/admin/posts");
 
         return "/admin/posts";
+    }
+
+    @GetMapping(value = "/admin/posts/{page}")
+    public String getUserHomeOld(@PathVariable Integer page) {
+        return "redirect:/admin/posts?page=" + page;
     }
 
     /**

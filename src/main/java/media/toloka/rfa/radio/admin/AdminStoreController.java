@@ -46,23 +46,27 @@ public class AdminStoreController {
     final Logger logger = LoggerFactory.getLogger(AdminStoreController.class);
 
 
-    @GetMapping(value = {"/admin/storage", "/admin/storage/{pageNumber}"})
+    @GetMapping(value = "/admin/storage")
     public String getAdminStore(
-            @PathVariable(required = false) Integer pageNumber,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        int currentPage = (pageNumber == null) ? 0 : pageNumber;
-        Page<Store> pageStore = storeService.GetStorePage(currentPage, 20);
+        Page<Store> pageStore = storeService.GetStorePage(page, 20);
 
         model.addAttribute("storeList", pageStore.getContent());
         model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/admin/storage/");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("linkPage", "/admin/storage");
         
         return "/admin/storage";
+    }
+
+    @GetMapping(value = "/admin/storage/{pageNumber}")
+    public String getAdminStoreOld(@PathVariable Integer pageNumber) {
+        return "redirect:/admin/storage?page=" + pageNumber;
     }
 }

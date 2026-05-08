@@ -77,25 +77,29 @@ public class AdminTracks {
     }
 
     /** Відображення списку всіх треків для адміністратора */
-    @GetMapping(value = {"/admin/tracks", "/admin/tracks/{page}"})
+    @GetMapping(value = "/admin/tracks")
     public String getAdminTracks(
-            @PathVariable(required = false) Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
 
-        int currentPage = (page == null) ? 0 : page;
         // Отримуємо пагінований список усіх треків
-        org.springframework.data.domain.Page<Track> trackPage = createrService.GetTrackPage(currentPage, 15);
+        org.springframework.data.domain.Page<Track> trackPage = createrService.GetTrackPage(page, 15);
 
         model.addAttribute("trackList", trackPage.getContent());
         model.addAttribute("totalPages", trackPage.getTotalPages());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/admin/tracks/");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("linkPage", "/admin/tracks");
 
         return "/admin/tracks";
+    }
+
+    @GetMapping(value = "/admin/tracks/{page}")
+    public String getAdminTracksOld(@PathVariable Integer page) {
+        return "redirect:/admin/tracks?page=" + page;
     }
 
     /** Перемикання лише статусу публікації на порталі */

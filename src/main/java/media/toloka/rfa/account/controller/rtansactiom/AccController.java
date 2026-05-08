@@ -34,9 +34,9 @@ public class AccController {
     private AccService accService;
 
 
-    @GetMapping("/acc/{pageNumber}")
+    @GetMapping("/acc")
     public String ShowPageAccList(
-            @PathVariable int pageNumber,
+            @RequestParam(value = "page", defaultValue = "0") int page,
             @NotNull Model model) {
         // взяли поточного користувача
         Users user = clientService.GetCurrentUser();
@@ -52,17 +52,23 @@ public class AccController {
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
-        Page pageStore = accService.GetPageAcc(pageNumber,10);
+        Page pageStore = accService.GetPageAcc(page, 10);
         List<AccAccountsPlan> storeList = pageStore.stream().toList();
         List<EAccActivePassive> eAccActivePassives = Arrays.asList(EAccActivePassive.values());
 
         model.addAttribute("totalPages", pageStore.getTotalPages() );
-        model.addAttribute("currentPage", pageNumber );
+        model.addAttribute("currentPage", page );
+        model.addAttribute("linkPage", "/acc/acc" );
         model.addAttribute("eAccActivePassives", eAccActivePassives );
         model.addAttribute("viewList", storeList );
         model.addAttribute("pagetrack", pageStore );
         model.addAttribute("operatorcd", operatorcd);
         return "/acc/acc";
+    }
+
+    @GetMapping("/acc/{pageNumber}")
+    public String ShowPageAccListOld(@PathVariable int pageNumber) {
+        return "redirect:/acc/acc?page=" + pageNumber;
     }
 
     /// Редагування рахунку

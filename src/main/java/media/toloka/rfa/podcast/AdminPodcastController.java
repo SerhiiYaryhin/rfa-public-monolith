@@ -28,22 +28,26 @@ public class AdminPodcastController {
     final Logger logger = LoggerFactory.getLogger(AdminPodcastController.class);
 
     /** Список усіх подкастів для адміністратора */
-    @GetMapping(value = {"/admin/podcasts", "/admin/podcasts/{page}"})
+    @GetMapping(value = "/admin/podcasts")
     public String getAdminPodcasts(
-            @PathVariable(required = false) Integer page,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
 
-        int currentPage = (page == null) ? 0 : page;
-        Page<PodcastChannel> podcastPage = podcastService.GetAllPodcastsPage(currentPage, 15);
+        Page<PodcastChannel> podcastPage = podcastService.GetAllPodcastsPage(page, 15);
 
         model.addAttribute("podcastList", podcastPage.getContent());
         model.addAttribute("totalPages", podcastPage.getTotalPages());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/admin/podcasts/");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("linkPage", "/admin/podcasts");
 
         return "/admin/podcasts";
+    }
+
+    @GetMapping(value = "/admin/podcasts/{page}")
+    public String getAdminPodcastsOld(@PathVariable Integer page) {
+        return "redirect:/admin/podcasts?page=" + page;
     }
 
     /** Схвалення/відхилення подкасту */

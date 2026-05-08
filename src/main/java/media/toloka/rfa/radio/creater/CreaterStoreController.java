@@ -50,25 +50,29 @@ public class CreaterStoreController {
     @Autowired
     private media.toloka.rfa.radio.store.Service.StoreDependencyService dependencyService;
 
-    @GetMapping(value = {"/creater/storage", "/creater/storage/{pageNumber}", "/creater/store", "/creater/store/{pageNumber}"})
+    @GetMapping(value = {"/creater/storage", "/creater/store"})
     public String getStorage(
-            @PathVariable(required = false) Integer pageNumber,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
             Model model ) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
         
-        int currentPage = (pageNumber == null) ? 0 : pageNumber;
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
-        Page<Store> pageStore = storeService.GetStorePageByClientDetail(currentPage, 15, cd);
+        Page<Store> pageStore = storeService.GetStorePageByClientDetail(page, 15, cd);
         
         model.addAttribute("totalPages", pageStore.getTotalPages());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("linkPage", "/creater/storage/");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("linkPage", "/creater/storage");
         model.addAttribute("viewList", pageStore.getContent());
         model.addAttribute("pagetrack", pageStore);
 
         return "/store/mainstore";
+    }
+
+    @GetMapping(value = {"/creater/storage/{pageNumber}", "/creater/store/{pageNumber}"})
+    public String getStorageOld(@PathVariable Integer pageNumber) {
+        return "redirect:/creater/storage?page=" + pageNumber;
     }
 
     @GetMapping(value = "/creater/store/delete/{uuid}")
