@@ -1,186 +1,314 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
->
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Редагування треку - Толока</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
-    <!-- Font Awesome icons (free version)-->
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css"/>
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css"/>
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-    <!--    TinyMCE-->
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js"
-            referrerpolicy="origin"></script>
-
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!--    TinyMCE-->
-    <!--    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>-->
-
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; color: #2d3436; }
+        .edit-card { background: #fff; border-radius: 24px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.06); margin-top: 50px; margin-bottom: 50px; overflow: hidden; }
+        .card-header-gradient { background: linear-gradient(135deg, #007db5 0%, #00a8d6 100%); color: #fff; padding: 40px 30px; border: none; }
+        .form-label { font-weight: 600; color: #636e72; margin-bottom: 8px; font-size: 0.9rem; text-uppercase: none; }
+        .form-control, .form-select { border-radius: 12px; padding: 12px 18px; border: 2px solid #edf2f7; transition: all 0.3s; background-color: #f8fafc; }
+        .form-control:focus, .form-select:focus { border-color: #007db5; background-color: #fff; box-shadow: 0 0 0 4px rgba(0, 125, 181, 0.1); }
+        .btn-save { background: #007db5; color: #fff; border-radius: 12px; padding: 14px 35px; font-weight: 700; transition: 0.3s; border: none; }
+        .btn-save:hover { background: #005f8a; transform: translateY(-2px); color: #fff; box-shadow: 0 5px 15px rgba(0, 125, 181, 0.3); }
+        
+        .upload-zone { border: 2px dashed #007db5; border-radius: 20px; padding: 40px; text-align: center; background: #f0f9ff; cursor: pointer; transition: all 0.3s; position: relative; }
+        .upload-zone:hover { background: #e0f2fe; border-color: #00a8d6; }
+        .audio-preview-box { background: #f8fafc; border-radius: 20px; padding: 25px; margin-bottom: 35px; border: 1px solid #e2e8f0; position: relative; }
+        
+        .track-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
+        .form-check-input:checked { background-color: #007db5; border-color: #007db5; }
+        
+        audio { height: 45px; border-radius: 30px; }
+        audio::-webkit-media-controls-enclosure { border-radius: 30px; background-color: #f1f5f9; }
+    </style>
 </head>
 <body>
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
 
-<header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-</header>
+    <div class="container" style="padding-top: 80px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                
+                <!-- Service fragment if needed, but we keep the main focus on the form -->
+                <!-- <div th:insert="~{/fragments/creater :: service}"></div> -->
 
-<!--// User page container-->
-<div style="padding-top: 100px">
-    <!-- Services   -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <div th:insert="~{/fragments/creater :: service}"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <form th:action="@{/creater/edittrack}" method="post" th:object="${track}" class="form-horizontal">
-                    <fieldset>
-                        <legend>Інформація про трек</legend>
-                        <input type="hidden" th:field="*{id}"/>
-                        <input type="hidden" th:field="*{uuid}"/>
-
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="filename">Файл</label>
-                            <div class="col-md-5">
-                                <input th:if="${track.storeitem != null}" th:value="${track.storeitem.filename}" type="text" class="form-control input-md" disabled>
-                                <input th:if="${track.storeitem == null}" value="Файл відсутній" type="text" class="form-control input-md text-danger" disabled>
-                            </div>
+                <div class="edit-card animate__animated animate__fadeIn">
+                    <div class="card-header-gradient d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="track-badge mb-2 d-inline-block">ID: [[${track.uuid}]]</span>
+                            <h2 class="mb-1 fw-bold">Параметри треку</h2>
+                            <p class="mb-0 opacity-75">Відредагуйте інформацію та завантажте аудіофайл</p>
                         </div>
-
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="autor">Виконавець</label>
-                            <div class="col-md-5">
-                                <input th:field="*{autor}" type="text" class="form-control input-md">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="name">Назва треку</label>
-                            <div class="col-md-5">
-                                <input th:field="*{name}" type="text" class="form-control input-md">
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="style">Стиль</label>
-                            <div class="col-md-5">
-                                <input th:field="*{style}" type="text" placeholder="Стиль треку"
-                                       class="form-control input-md">
-                            </div>
-                        </div>
-
-                        <!-- Textarea -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="description">Опис треку</label>
-                            <div class="col-md-4">
-                                <script>
-                                    tinymce.init({
-                                        selector: 'textarea',
-                                        plugins: [
-                                            "advlist", "anchor", "autolink", "charmap", "code",
-                                            "help", "image", "insertdatetime", "link", "lists", "media",
-                                            "preview", "searchreplace", "table", "visualblocks",
-                                        ],
-                                        tinycomments_mode: 'embedded',
-                                        tinycomments_author: 'Author name',
-                                        mergetags_list: [
-                                            {value: 'First.Name', title: 'First Name'},
-                                            {value: 'Email', title: 'Email'},
-                                        ],
-                                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                    });
-                                </script>
-                                <textarea th:field="*{description}"/>
-
-                                <!--                                <textarea th:field="*{description}" class="form-control">Введіть опис треку</textarea>-->
-                            </div>
-                        </div>
-
-                        <!-- Select Basic -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="album">Альбом</label>
-                            <div class="col-md-5">
-                                <select th:field="*{album}">
-                                    <option value="0" text="Single"/>
-                                    <option th:each="al : ${albumList}" th:value="${al.id}"
-                                            th:text="${al.name}"></option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <!--                            <label class="col-md-4 control-label" for="checkboxes">Присутня ненормативна лексика</label>-->
-                            <div class="col-md-4">
-                                <div class="checkbox">
-                                    <label for="notnormalvocabulary">
-                                        <input th:field="*{notnormalvocabulary}" type="checkbox">
-                                        Присутня ненормативна лексика
-                                    </label>
+                        <i class="fas fa-music fa-4x opacity-25 d-none d-md-block"></i>
+                    </div>
+                    
+                    <div class="card-body p-4 p-md-5">
+                        
+                        <!-- Блок аудіофайлу -->
+                        <div class="audio-preview-box shadow-sm mb-5">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-volume-up"></i>
                                 </div>
-                                <div th:unless="*{tochat}">
-                                    <!--                                <div >-->
-                                    <div class="checkbox">
-                                        <label for="tochat">
-                                            <input th:field="*{tochat}" type="checkbox">
-                                            Опублікувати в чаті
-                                        </label>
-                                        <p>
-                                            Ви можете повідомити в чаті, що у Вас вийшов новий трек. Це можна зробити
-                                            лише один раз. Тож, будь ласка, заповніть максимально інформацію про трек.
-                                        </p>
+                                <h5 class="fw-bold mb-0">Аудіофайл треку</h5>
+                            </div>
+                            
+                            <div id="currentTrackInfo" th:if="${track.storeitem != null}" class="row align-items-center g-3">
+                                <div class="col-md-5">
+                                    <div class="text-muted small mb-1">Поточний файл:</div>
+                                    <div class="fw-bold text-truncate" id="displayFilename" th:text="${track.storeitem.filename}">filename.mp3</div>
+                                </div>
+                                <div class="col-md-5">
+                                    <audio controls class="w-100">
+                                        <source th:src="'/store/audio/' + ${track.storeitem.uuid}" type="audio/mpeg">
+                                        Ваш браузер не підтримує аудіо.
+                                    </audio>
+                                </div>
+                                <div class="col-md-2 text-md-end">
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100 w-md-auto" onclick="toggleUpload()">
+                                        <i class="fas fa-sync-alt me-1"></i> Змінити
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="noTrackInfo" th:if="${track.storeitem == null}" class="text-center py-4 rounded-4" style="background: #fff5f5; border: 1px dashed #feb2b2;">
+                                <i class="fas fa-exclamation-circle text-danger mb-3 fa-3x"></i>
+                                <h6 class="text-danger fw-bold">Аудіофайл не знайдено!</h6>
+                                <p class="text-muted small px-3">Цей трек не зможе потрапити в ефір без завантаженого файлу.</p>
+                                <button class="btn btn-danger rounded-pill px-4 mt-2" onclick="toggleUpload()">
+                                    <i class="fas fa-upload me-2"></i>Завантажити зараз
+                                </button>
+                            </div>
+
+                            <!-- Секція завантаження -->
+                            <div id="uploadSection" class="mt-4 d-none">
+                                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-file-audio fa-3x text-primary mb-3"></i>
+                                    <h5 class="fw-bold">Виберіть аудіофайл</h5>
+                                    <p class="text-muted mb-0">MP3 або WAV, до 50MB</p>
+                                    <input type="file" id="fileInput" hidden accept="audio/*" onchange="handleFileUpload(this.files[0])">
+                                </div>
+                                <div id="uploadProgress" class="mt-3 d-none">
+                                    <div class="d-flex justify-content-between mb-1 small">
+                                        <span id="uploadStatus">Завантаження...</span>
+                                        <span id="uploadPercent">0%</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Основна форма -->
+                        <form th:action="@{/creater/edittrack}" method="post" th:object="${track}">
+                            <input type="hidden" th:field="*{id}"/>
+                            <input type="hidden" th:field="*{uuid}" id="trackUuid"/>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Назва треку</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 border-2" style="border-radius: 12px 0 0 12px;"><i class="fas fa-quote-left text-muted"></i></span>
+                                        <input type="text" th:field="*{name}" class="form-control border-start-0 ps-0" placeholder="Назва пісні..." required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Виконавець / Колектив</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 border-2" style="border-radius: 12px 0 0 12px;"><i class="fas fa-user text-muted"></i></span>
+                                        <input type="text" th:field="*{autor}" class="form-control border-start-0 ps-0" placeholder="Ім'я артиста..." required>
                                     </div>
                                 </div>
 
+                                <div class="col-md-6">
+                                    <label class="form-label">Жанр / Стиль</label>
+                                    <input type="text" th:field="*{style}" class="form-control" placeholder="Напр. Electronic, Folk-Rock...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Альбом (якщо є)</label>
+                                    <select th:field="*{album}" class="form-select">
+                                        <option value="0">-- Поза альбомом (Single) --</option>
+                                        <option th:each="al : ${albumList}" th:value="${al.id}" th:text="${al.name}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Опис або історія створення</label>
+                                    <textarea th:field="*{description}" id="trackDescription"></textarea>
+                                </div>
+
+                                <div class="col-12 mt-5">
+                                    <div class="p-4 rounded-4 border-2 border-dashed" style="background-color: #f8fafc; border-color: #edf2f7;">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-7">
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input p-2" type="checkbox" th:field="*{notnormalvocabulary}" id="notnormal">
+                                                    <label class="form-check-label fw-bold ms-2" for="notnormal" style="font-size: 1.1rem;">Присутня ненормативна лексика</label>
+                                                </div>
+                                                
+                                                <div class="form-check form-switch" th:unless="*{tochat}">
+                                                    <input class="form-check-input p-2" type="checkbox" th:field="*{tochat}" id="tochat">
+                                                    <label class="form-check-label fw-bold ms-2" for="tochat" style="font-size: 1.1rem;">Анонсувати в загальному чаті</label>
+                                                    <p class="small text-muted mb-0 mt-1 ms-2">Слухачі отримають сповіщення про ваш новий трек. (Можливо лише 1 раз)</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                                                <button type="submit" class="btn btn-save shadow">
+                                                    <i class="fas fa-save me-2"></i> Зберегти всі зміни
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card-footer bg-light p-4 text-center border-top">
+                        <div th:switch="${track.apruve}">
+                            <div th:case="true" class="d-inline-flex align-items-center text-success px-4 py-2 rounded-pill bg-white border border-success shadow-sm">
+                                <i class="fas fa-check-circle me-2 fs-5"></i> <strong>Статус: СХВАЛЕНО</strong>
+                            </div>
+                            <div th:case="false" class="d-inline-flex align-items-center text-danger px-4 py-2 rounded-pill bg-white border border-danger shadow-sm">
+                                <i class="fas fa-times-circle me-2 fs-5"></i> <strong>Статус: ВІДХИЛЕНО</strong>
+                            </div>
+                            <div th:case="*" class="d-inline-flex align-items-center text-warning px-4 py-2 rounded-pill bg-white border border-warning shadow-sm">
+                                <i class="fas fa-hourglass-half me-2 fs-5"></i> <strong>Статус: НА МОДЕРАЦІЇ</strong>
                             </div>
                         </div>
-                        <!-- Button (Double) -->
-                        <div class="form-group">
-                            <!--                            <label class="col-md-4 control-label" for="button1id"></label>-->
-                            <div class="col-md-8">
-                                <button type="submit" class="btn btn-primary">Зберегти</button>
-                                <!--                                <button id="button2id" name="button2id" class="btn btn-primary">Повернутися</button>-->
-                            </div>
-                            <p>
-                                Після збереження Ваш трек буде відправлено редакторам. Будь ласка, перевірте
-                                правильність заповнення всіх необхідних полів (автор, назва, стиль тощо). Без наявності
-                                цієї інформації трек не може бути опублікованим.
-                            </p>
-                        </div>
-                    </fieldset>
-                </form>
-                <hr>
-                <form th:action="@{/creater/publishtrack}" method="post" th:object="${track}" class="form-horizontal">
-                    <fieldset>
-                        <div class="form-group">
-                            <div th:switch="*{apruve}">
-                                <p th:case="true" class="text-success"><i class="fa fa-check-circle"></i>Публікацію треку підтверджено.</p>
-                                <p th:case="false" class="text-danger"><i class="fa fa-times-circle"></i>Публікацію треку відхилено. Звʼяжіться з нами на пошту info@toloka.kiev.ua для уточнення. Попередньо перевірте чи всі поля заповнені. У листі вкажіть свій e-mail та назву треку.</p>
-                                <p th:case="*" class="text-warning"><i class="fa fa-clock"></i>Очікує на розгляд.</p>
-                            </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </form>
-                <hr>
+                        <p class="small text-muted mt-3 mb-0">
+                            Після схвалення трек стане доступним для ротації на радіостанціях Толоки.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="text-center mb-5">
+                    <a href="/creater/tracks/0" class="btn btn-link text-decoration-none text-muted fw-bold">
+                        <i class="fas fa-chevron-left me-1"></i> Повернутися до списку треків
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
-</div>
 
+    <footer class="mt-auto">
+        <div th:insert="~{/fragments/common :: footer}"></div>
+    </footer>
 
-<script src="/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Ініціалізація TinyMCE
+        tinymce.init({
+            selector: '#trackDescription',
+            height: 350,
+            plugins: 'lists link code help wordcount',
+            toolbar: 'undo redo | blocks | bold italic | bullist numlist | link | code',
+            menubar: false,
+            skin: 'oxide',
+            content_style: 'body { font-family: Inter, sans-serif; font-size: 15px; color: #2d3436; }',
+            border_radius: '12px'
+        });
+
+        function toggleUpload() {
+            const section = document.getElementById('uploadSection');
+            section.classList.toggle('d-none');
+            if (!section.classList.contains('d-none')) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        async function handleFileUpload(file) {
+            if (!file) return;
+            
+            // Перевірка розміру (50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('Файл занадто великий. Максимальний розмір - 50MB');
+                return;
+            }
+
+            const uuid = document.getElementById('trackUuid').value;
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const progress = document.getElementById('uploadProgress');
+            const progressBar = progress.querySelector('.progress-bar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const uploadPercent = document.getElementById('uploadPercent');
+            
+            progress.classList.remove('d-none');
+            progressBar.style.width = '0%';
+            uploadStatus.innerText = 'Завантаження...';
+            
+            try {
+                // Використовуємо XMLHttpRequest для відстеження прогресу
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressBar.style.width = percent + '%';
+                        uploadPercent.innerText = percent + '%';
+                    }
+                });
+
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.success) {
+                                progressBar.classList.remove('progress-bar-animated');
+                                progressBar.classList.add('bg-success');
+                                uploadStatus.innerText = 'Успішно завантажено!';
+                                progressBar.innerText = 'Готово!';
+                                
+                                setTimeout(() => {
+                                    location.reload(); // Перезавантажуємо сторінку для оновлення плеєра та імені файлу
+                                }, 800);
+                            } else {
+                                handleError(result.error || 'Помилка сервера');
+                            }
+                        } else {
+                            handleError('Помилка HTTP: ' + xhr.status);
+                        }
+                    }
+                };
+
+                xhr.open('POST', `/api/creater/track/replace/${uuid}`, true);
+                xhr.setRequestHeader('X-CSRF-TOKEN', /*[[${_csrf.token}]]*/ '');
+                xhr.send(formData);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                handleError('Помилка завантаження');
+            }
+        }
+
+        function handleError(msg) {
+            const progress = document.getElementById('uploadProgress');
+            const progressBar = progress.querySelector('.progress-bar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            progressBar.classList.remove('bg-primary', 'progress-bar-animated');
+            progressBar.classList.add('bg-danger');
+            progressBar.style.width = '100%';
+            uploadStatus.innerText = 'Помилка: ' + msg;
+            alert(msg);
+        }
+    </script>
 </body>
 </html>

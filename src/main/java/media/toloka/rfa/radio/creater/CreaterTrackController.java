@@ -139,7 +139,9 @@ public class CreaterTrackController {
         
         if (track.getTochat() != ftrack.getTochat()) {
             track.setTochat(ftrack.getTochat());
-            createrService.PublicTrackToChat(track, cd );
+            if (track.getTochat()) {
+                createrService.PublicTrackToChat(track, cd );
+            }
         }
         
         if (ftrack.getAlbum() != null && ftrack.getAlbum().getId() != null && ftrack.getAlbum().getId() != 0) {
@@ -150,9 +152,39 @@ public class CreaterTrackController {
 
         createrService.SaveTrack(track);
 
-        return "redirect:/creater/tracks/0";
+        return "redirect:/creater/tracks?page=0";
     }
-// публікуємо трек
+
+    @GetMapping(value = "/creater/publishtrack/{uuidTrack}")
+    public String togglePublishTrack(@PathVariable String uuidTrack) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+        
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Track track = createrService.GetTrackByUuid(uuidTrack);
+        
+        if (track != null && track.getClientdetail().getUuid().equals(cd.getUuid())) {
+            track.setPublishstatus(!track.getPublishstatus());
+            createrService.SaveTrack(track);
+        }
+        return "redirect:/creater/tracks";
+    }
+
+    @GetMapping(value = "/creater/deltrack/{uuidTrack}")
+    public String deleteTrack(@PathVariable String uuidTrack) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+        
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Track track = createrService.GetTrackByUuid(uuidTrack);
+        
+        if (track != null && track.getClientdetail().getUuid().equals(cd.getUuid())) {
+            createrService.DeleteTrack(track);
+        }
+        return "redirect:/creater/tracks";
+    }
+
+// публікуємо трек (застарілий метод)
     @PostMapping(value = "/creater/publishtrack")
     public String getCreaterPublishTracks(
             @ModelAttribute Track ftrack,

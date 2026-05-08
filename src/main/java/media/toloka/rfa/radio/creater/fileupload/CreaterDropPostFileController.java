@@ -80,6 +80,77 @@ public class CreaterDropPostFileController {
 
     }
 
+    @PostMapping(path = "/api/creater/track/replace/{uuidTrack}")
+    public org.springframework.http.ResponseEntity<?> replaceTrackFile(@PathVariable String uuidTrack, @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error", "Empty file"));
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Track track = createrService.GetTrackByUuid(uuidTrack);
+        
+        if (track == null || !track.getClientdetail().getUuid().equals(cd.getUuid())) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(java.util.Map.of("error", "Access denied"));
+        }
+
+        try {
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, STORE_TRACK);
+            Store newStore = storeService.GetStoreByUUID(storeUUID);
+            
+            // Видаляємо старий файл, якщо він був
+            if (track.getStoreitem() != null) {
+                storeService.DeleteInStore(track.getStoreitem());
+            }
+            
+            track.setStoreitem(newStore);
+            track.setStoreuuid(storeUUID);
+            createrService.SaveTrack(track);
+            
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                "success", true,
+                "uuid", storeUUID,
+                "filename", file.getOriginalFilename()
+            ));
+        } catch (IOException e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("error", "Save problem"));
+        }
+    }
+
+    @PostMapping(path = "/api/creater/album/replace-cover/{idAlbum}")
+    public org.springframework.http.ResponseEntity<?> replaceAlbumCover(@PathVariable Long idAlbum, @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error", "Empty file"));
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        Album album = createrService.GetAlbumById(idAlbum);
+        
+        if (album == null || !album.getClientdetail().getUuid().equals(cd.getUuid())) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(java.util.Map.of("error", "Access denied"));
+        }
+
+        try {
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, STORE_ALBUMCOVER);
+            
+            // Видаляємо стару обкладинку, якщо вона була саме у Store
+            if (album.getStoreuuidalbumcover() != null) {
+                Store oldStore = storeService.GetStoreByUUID(album.getStoreuuidalbumcover());
+                if (oldStore != null) {
+                    storeService.DeleteInStore(oldStore);
+                }
+            }
+            
+            album.setStoreuuidalbumcover(storeUUID);
+            createrService.SaveAlbum(album);
+            
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                "success", true,
+                "uuid", storeUUID,
+                "url", "/store/content/" + storeUUID
+            ));
+        } catch (IOException e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("error", "Save problem"));
+        }
+    }
+
     @PostMapping(path = "/creater/albumcoverupload" ) // , produces = MediaType.APPLICATION_JSON_VALUE
     public void uploadAlbumCover(@RequestParam("file") MultipartFile file) {
 
