@@ -12,7 +12,7 @@
         title=${podcastItem.title ?: 'Епізод подкасту'},
         description=${podcastItem.lead != null ? podcastItem.lead : (podcastItem.description != null ? #strings.abbreviate(podcastItem.description, 200) : 'Епізод подкасту на Толоці')},
         image=${podcastItem.imagestoreitem != null ? podcastItem.imagestoreitem.uuid : null},
-        imageFilename=${podcastItem.imagestoreitem != null ? storeService.GetStoreByUUID(podcastItem.imagestoreitem.uuid)?.filename : null},
+        imageFilename=${podcastItem.imagestoreitem != null ? podcastItem.imagestoreitem.filename : null},
         url='/podcast/episode/' + ${podcastItem.uuid ?: ''},
         type='music.song')}"/>
     <title th:text="${(podcastItem != null ? podcastItem.title : 'Епізод') + ' | Толока'}"></title>

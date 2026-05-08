@@ -237,6 +237,7 @@ public class PodcastController {
             podcastService.SaveEpisode(podcastItem);
 
             model.addAttribute("podcastItem", podcastItem);
+            model.addAttribute("storeService", storeService);
             return "/podcast/episode";
         } else {
             logger.warn("Отримали UUID епізоду, який не існує: {}", euuid);
