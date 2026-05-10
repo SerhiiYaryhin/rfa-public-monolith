@@ -20,12 +20,15 @@ public class GlobalModelAttributes {
         // 1. Заголовки X-Forwarded-Proto (якщо налаштовано стратегію native)
         // 2. Порти та домени, надіслані через проксі
 
-        String ttt = ServletUriComponentsBuilder.fromCurrentContextPath()
+//        String ttt = ServletUriComponentsBuilder.fromCurrentContextPath()
+//                .build()
+//                .toUriString();
+//        logger.info("=========== siteUrl: " + ttt);
+
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .build()
                 .toUriString();
-        logger.info("=========== siteUrl: " + ttt);
-
-        return ttt;
+//        return ttt;
     }
 }
 
