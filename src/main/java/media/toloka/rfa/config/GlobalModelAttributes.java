@@ -1,6 +1,9 @@
 package media.toloka.rfa.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -8,15 +11,21 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @ControllerAdvice
 public class GlobalModelAttributes {
 
+    final Logger logger = LoggerFactory.getLogger(GlobalModelAttributes.class);
+
+
     @ModelAttribute("siteUrl")
     public String getSiteUrl(HttpServletRequest request) {
         // ServletUriComponentsBuilder автоматично перевірить:
         // 1. Заголовки X-Forwarded-Proto (якщо налаштовано стратегію native)
         // 2. Порти та домени, надіслані через проксі
 
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
+        String ttt = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .build()
                 .toUriString();
+        logger.info("=========== siteUrl: " + ttt);
+
+        return ttt;
     }
 }
 
