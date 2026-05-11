@@ -277,4 +277,28 @@ public class PodcastEditController {
 
     }
 
+    @GetMapping(value = "/podcast/addcover/{puuid}/{iuuid}")
+    public String PodcastAddCover (
+            @PathVariable String puuid,
+            @PathVariable String iuuid,
+            Model model ) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) { return "redirect:/"; }
+
+        PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
+        Store store = storeService.GetStoreByUUID(iuuid);
+
+        if (podcast != null && store != null) {
+            podcast.setImagechanelstore(store);
+            podcastService.SavePodcast(podcast);
+            logger.info("Призначено обкладинку {} для подкасту {}", iuuid, puuid);
+        }
+
+        return "redirect:/podcast/pedit/" + puuid;
+    }
+
 }

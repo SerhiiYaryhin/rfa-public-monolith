@@ -26,7 +26,7 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
                 <h2 th:text="${message}"/>
             </div>
             <div id="dropzone">
-                <form th:action="'/podcast/episodeupload/'+${podcast.uuid}" class="dropzone needsclick" id="demo-upload" method="post">
+                <form action="/api/store/upload?type=STORE_EPISODETRACK" class="dropzone needsclick" id="demo-upload" method="post">
                     <input type="hidden"
                            th:name="${_csrf.parameterName}"
                            th:value="${_csrf.token}" />
@@ -93,13 +93,40 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
 <script th:src="@{/js/dropzone.min.js}"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
 
-<script>
+<script th:inline="javascript">
     Dropzone.autoDiscover = false;
+    const podcastUuid = [[${podcast.uuid}]];
+    const csrfHeader = [[${_csrf.headerName}]];
+    const csrfToken = [[${_csrf.token}]];
 
     $("#demo-upload").dropzone({
-
-        success : function(file, response) {
-            toastr.success('Файл ' + file.name + ' успішно завантажено');
+        acceptedFiles: "audio/*",
+        success : async function(file, response) {
+            if (response && response.success) {
+                toastr.info('Файл завантажено. Привʼязуємо до подкасту...');
+                
+                // Викликаємо REST API для лінкування епізоду
+                try {
+                    const linkResponse = await fetch(`/api/podcast/link-episode/${podcastUuid}/${response.uuid}`, {
+                        method: 'POST',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    });
+                    
+                    if (linkResponse.ok) {
+                        toastr.success('Епізод успішно додано!');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        const errorText = await linkResponse.text();
+                        toastr.error('Помилка привʼязки: ' + errorText);
+                    }
+                } catch (e) {
+                    toastr.error('Помилка звʼязку з сервером');
+                }
+            } else {
+                toastr.error('Помилка завантаження: ' + (response.error || response));
+            }
         }
     });
 </script>

@@ -1,105 +1,82 @@
 package media.toloka.rfa.radio.store;
 
-
-import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.client.service.ClientService;
-import media.toloka.rfa.radio.creater.service.CreaterService;
-import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.EStoreFileType;
-import media.toloka.rfa.radio.store.model.Store;
-import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.Map;
+
 @Profile("Front")
-@CrossOrigin
-@Controller
+@RestController
+@RequestMapping("/api/store")
 public class StoreItemController {
 
-    final Logger logger = LoggerFactory.getLogger(StoreItemController.class);
+    private final Logger logger = LoggerFactory.getLogger(StoreItemController.class);
 
     @Autowired
     private ClientService clientService;
 
     @Autowired
-    private FilesService filesService;
-
-    @Autowired
-    private CreaterService createrService;
-
-    @Autowired
     private StoreService storeService;
 
-//    http://localhost:8080/creater/edititem/452
-    @GetMapping(value = "/store/edititem/{storeItemUUID}")
-    public String GetStoreItemEdit(
-        @PathVariable String storeItemUUID,
-        @RequestParam(required = false) String from,
-        Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) { return "redirect:/"; }
+    @PostMapping("/upload")
+    public ResponseEntity<?> universalUpload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "type", defaultValue = "STORE_FILE") String type) {
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Store store = storeService.GetStoreByUUID(storeItemUUID);
-
-        List<EStoreFileType> storeFileList = new ArrayList<>(EnumSet.allOf(EStoreFileType.class));
-
-        model.addAttribute("store", store );
-        model.addAttribute("cd", cd );
-        model.addAttribute("from", from);
-        model.addAttribute("storefiletype", store.getStorefiletype() );
-        model.addAttribute("storefilelist", storeFileList );
-
-        return "/store/edititem";
-    }
-
-    @PostMapping(value = "/store/edititem/{storeItemUUID}")
-    public String PostStoreItemEdit(
-            @PathVariable String storeItemUUID,
-            @RequestParam(required = false) String from,
-            @ModelAttribute Store fstore,
-            Model model) {
-
-        Users user = clientService.GetCurrentUser();
-        if (user == null) { return "redirect:/"; }
-
-        Store store = storeService.GetStoreByUUID(storeItemUUID);
-        if (store != null) {
-            store.setComment(fstore.getComment());
-            store.setStorefiletype(fstore.getStorefiletype());
-            storeService.SaveStore(store);
+        // 1. Отримання поточного клієнта
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
         }
 
-        return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
+        // 2. Перевірка прав на завантаження
+        if (!clientService.ClientCanDownloadFile(cd)) {
+            logger.warn("Client {} does not have permission to upload files", cd.getUuid());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
+        }
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+
+        try {
+            // 3. Визначення типу (Enum)
+            EStoreFileType fileType;
+            try {
+                fileType = EStoreFileType.valueOf(type);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid store file type: {}", type);
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid file type"));
+            }
+
+            // 4. Завантаження через StoreService (включає транслітерацію та розміри)
+            String storeUUID = storeService.PutFileToStore(file.getInputStream(), file.getOriginalFilename(), cd, fileType);
+
+            logger.info("Universal upload success: type={}, filename={}, uuid={}", fileType, file.getOriginalFilename(), storeUUID);
+
+            // 5. Повернення стандартизованої відповіді
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "uuid", storeUUID,
+                    "url", "/store/content/" + storeUUID,
+                    "filename", file.getOriginalFilename()
+            ));
+        } catch (Exception e) {
+            logger.error("Universal upload error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
-
-
-    @GetMapping (value = "/store/deleteitem/{storeItemUUID}")
-    public String PostStoreItemDelete(
-            @PathVariable String storeItemUUID,
-            Model model) {
-
-        Users user = clientService.GetCurrentUser();
-        if (user == null) { return "redirect:/"; }
-
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-
-        Store store = storeService.GetStoreByUUID(storeItemUUID);
-        Boolean result = storeService.DeleteStoreRecord(store);
-
-        return "redirect:/creater/store/0";
-
-    }
-
-
-
 }

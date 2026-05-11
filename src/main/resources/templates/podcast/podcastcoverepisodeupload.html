@@ -34,7 +34,7 @@
                 </div>
                 <div class="card-body p-5">
                     <div id="dropzone">
-                        <form action="/creater/storefileupload" class="dropzone needsclick" id="episode-cover-upload" method="post">
+                        <form action="/api/store/upload?type=STORE_PODCASTCOVER" class="dropzone needsclick" id="episode-cover-upload" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             <div class="dz-message needsclick">
                                 <button type="button" class="dz-button">
@@ -93,12 +93,12 @@
             maxFiles: 1,
             acceptedFiles: "image/*",
             success : function(file, response) {
-                if (response && !response.startsWith("error")) {
+                if (response && response.success) {
                     toastr.success('Обкладинку завантажено! Встановлюємо...');
                     // Автоматично призначаємо завантажене зображення епізоду
-                    window.location.href = '/podcast/coverepisodeset/' + episodeUuid + '/' + response;
+                    window.location.href = '/podcast/coverepisodeset/' + episodeUuid + '/' + response.uuid;
                 } else {
-                    toastr.error('Помилка завантаження: ' + response);
+                    toastr.error('Помилка завантаження: ' + (response.error || response));
                     this.removeFile(file);
                 }
             },
