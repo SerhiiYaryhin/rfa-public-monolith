@@ -41,6 +41,10 @@ public class Store {
     @Expose
     private String contentMimeType;
     @Expose
+    private Integer width;
+    @Expose
+    private Integer height;
+    @Expose
     private Date createdate = new Date();
     @Expose
     private String comment;

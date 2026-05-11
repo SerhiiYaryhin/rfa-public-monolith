@@ -48,6 +48,9 @@ public class RootController {
     @Autowired
     private PodcastService podcastService;
 
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreService storeService;
+
     // todo подивитися чи використовується і або перенести, або видалити
     @GetMapping(value = "/admin/root")
     public String adminroot(Model model) {
@@ -101,6 +104,7 @@ public class RootController {
 
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
+        model.addAttribute("storeService", storeService);
 
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);

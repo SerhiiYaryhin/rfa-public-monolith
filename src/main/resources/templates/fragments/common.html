@@ -12,7 +12,12 @@
 
 <th:block th:fragment="og">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/og/' + ogimage + '/image.png'}" />
+    <th:block th:with="st=${ogimage != null and storeService != null ? storeService.GetStoreByUUID(ogimage) : null}">
+        <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/og/' + ogimage + '/image.png'}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/og/' + ogimage + '/image.png'}">
+    </th:block>
     <meta property="og:url" th:content="${siteUrl + '/'}" />
     <meta property="og:title" content="Радіо для всіх!" />
     <meta property="og:description" content="Кожен може створити інтернет радіостанцію і його почує весь світ!" />
@@ -22,7 +27,6 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Радіо для всіх!">
     <meta name="twitter:description" content="Кожен може створити інтернет радіостанцію і його почує весь світ!">
-    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/rfaog.png' : siteUrl + '/store/content/og/' + ogimage + '/image.png'}">
     
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
@@ -31,7 +35,12 @@
     <!-- Open Graph -->
     <meta property="og:title" th:content="${title}" />
     <meta property="og:description" th:content="${description}" />
-    <meta property="og:image" th:content="${image != null ? siteUrl + '/store/content/og/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}" />
+    <th:block th:with="st=${image != null and storeService != null ? storeService.GetStoreByUUID(image) : null}">
+        <meta property="og:image" th:content="${image != null ? siteUrl + '/store/content/og/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${image != null ? siteUrl + '/store/content/og/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}">
+    </th:block>
     <meta property="og:url" th:content="${url.startsWith('http') ? url : siteUrl + url}" />
     <meta property="og:type" th:content="${type != null ? type : 'article'}" />
     <meta property="og:locale" content="uk" />
@@ -40,12 +49,16 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${title}">
     <meta name="twitter:description" th:content="${description}">
-    <meta name="twitter:image" th:content="${image != null ? siteUrl + '/store/content/og/' + image + '/' + (imageFilename != null ? imageFilename : 'image.jpg') : siteUrl + '/pictures/rfaog.png'}">
 </th:block>
 
 <th:block th:fragment="ogpodcast">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg')}" />
+    <th:block th:with="st=${ogimage != null and storeService != null ? storeService.GetStoreByUUID(ogimage) : (podcast?.imagechanelstore)}">
+        <meta property="og:image" th:content="${st == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${st == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}">
+    </th:block>
     <meta property="og:url" th:content="${podcast != null ? siteUrl + '/podcast/view/' + podcast.uuid : siteUrl + '/podcast/all'}" />
     <meta property="og:title" th:content="${podcast != null ? podcast.title : 'Подкасти на Толоці'}" />
     <meta property="og:description" th:content="${podcast != null ? (podcast.lead ?: (podcast.description != null ? #strings.abbreviate(podcast.description, 200) : 'Подкасти на Толоці')) : 'Слухайте цікаві подкасти на нашому порталі.'}" />
@@ -56,7 +69,6 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${podcast != null ? podcast.title : 'Подкасти на Толоці'}">
     <meta name="twitter:description" th:content="${podcast != null ? (podcast.lead ?: (podcast.description != null ? #strings.abbreviate(podcast.description, 200) : 'Подкасти на Толоці')) : 'Слухайте цікаві подкасти на нашому порталі.'}">
-    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpodcast.png' : siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg')}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
@@ -81,7 +93,12 @@
 
 <th:block th:fragment="ogpost(post, storeService)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}" />
+    <th:block th:with="st=${post?.coverstoreuuid != null and storeService != null ? storeService.GetStoreByUUID(post.coverstoreuuid) : null}">
+        <meta property="og:image" th:content="${st == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${st == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}">
+    </th:block>
     <meta property="og:url" th:content="${siteUrl + '/post/postview/' + post?.uuid}" />
     <meta property="og:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}" />
     <meta property="og:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}" />
@@ -92,14 +109,18 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${post?.posttitle ?: 'Пост на Толоці'}">
     <meta name="twitter:description" th:content="${post?.lead != null && !post.lead.isEmpty() ? post.lead : 'Читайте цікаві новини та статті на Радіо Толока.'}">
-    <meta name="twitter:image" th:content="${post?.coverstoreuuid == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + post.coverstoreuuid + '/' + (storeService != null and post.coverstoreuuid != null ? storeService.GetStoreByUUID(post.coverstoreuuid)?.filename : 'image.jpg')}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogalbum(album, ogimage, ogimageFilename)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg')}" />
+    <th:block th:with="st=${ogimage != null and storeService != null ? storeService.GetStoreByUUID(ogimage) : null}">
+        <meta property="og:image" th:content="${st == null ? (ogimage != null ? siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg') : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${st == null ? (ogimage != null ? siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg') : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename != null ? st.filename : 'image.jpg')}">
+    </th:block>
     <meta property="og:url" th:content="${siteUrl + '/creater/album/' + album?.uuid}" />
     <meta property="og:title" th:content="${album?.albumname ?: 'Альбом на Толоці'}" />
     <meta property="og:description" content="Слухайте музичні альбоми на нашому порталі." />
@@ -110,14 +131,18 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${album?.albumname ?: 'Альбом на Толоці'}">
     <meta name="twitter:description" content="Слухайте музичні альбоми на нашому порталі.">
-    <meta name="twitter:image" th:content="${ogimage == null ? siteUrl + '/pictures/ogpost.png' : siteUrl + '/store/content/og/' + ogimage + '/' + (ogimageFilename != null ? ogimageFilename : 'image.jpg')}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
 
 <th:block th:fragment="ogtrack(track)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${track?.storeitem != null ? siteUrl + '/store/content/og/'+ track.storeitem.uuid + '/' + (track.storeitem.filename ?: 'image.jpg') : siteUrl + '/pictures/ogpost.png'}" />
+    <th:block th:with="st=${track?.storeitem}">
+        <meta property="og:image" th:content="${st != null ? siteUrl + '/store/content/og/'+ st.uuid + '/' + (st.filename ?: 'image.jpg') : siteUrl + '/pictures/ogpost.png'}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${st != null ? siteUrl + '/store/content/og/'+ st.uuid + '/' + (st.filename ?: 'image.jpg') : siteUrl + '/pictures/ogpost.png'}">
+    </th:block>
     <meta property="og:url" th:content="${siteUrl + '/guest/viewtrack/' + track?.uuid}" />
     <meta property="og:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}" />
     <meta property="og:description" th:content="${track?.description != null && !track.description.isEmpty() ? #strings.abbreviate(track.description, 200) : 'Слухайте трек ' + (track?.name ?: '') + ' на Радіо Толока.'}" />
@@ -128,7 +153,6 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" th:content="${(track?.name ?: 'Трек') + ' - ' + (track?.autor ?: 'Виконавець')}">
     <meta name="twitter:description" th:content="${track?.description != null && !track.description.isEmpty() ? #strings.abbreviate(track.description, 200) : 'Слухайте трек ' + (track?.name ?: '') + ' на Радіо Толока.'}">
-    <meta name="twitter:image" th:content="${track?.storeitem != null ? siteUrl + '/store/content/og/'+ track.storeitem.uuid + '/' + (track.storeitem.filename ?: 'image.jpg') : siteUrl + '/pictures/ogpost.png'}">
 
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>
@@ -153,7 +177,12 @@
 
 <th:block th:fragment="ogprofile(cd, ogimage)">
     <!-- Open Graph -->
-    <meta property="og:image" th:content="${ogimage == null ? (cd?.profilephoto != null ? siteUrl + '/store/content/og/' + cd.profilephoto.uuid + '/' + (cd.profilephoto.filename ?: 'avatar.jpg') : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/og/' + ogimage + '/image.jpg'}" />
+    <th:block th:with="st=${ogimage == null ? cd?.profilephoto : null}">
+        <meta property="og:image" th:content="${ogimage != null ? siteUrl + '/store/content/og/' + ogimage + '/image.jpg' : (st != null ? siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename ?: 'avatar.jpg') : siteUrl + '/pictures/ogpost.png')}" />
+        <meta th:if="${st != null and st.width != null}" property="og:image:width" th:content="${st.width}" />
+        <meta th:if="${st != null and st.height != null}" property="og:image:height" th:content="${st.height}" />
+        <meta name="twitter:image" th:content="${ogimage != null ? siteUrl + '/store/content/og/' + ogimage + '/image.jpg' : (st != null ? siteUrl + '/store/content/og/' + st.uuid + '/' + (st.filename ?: 'avatar.jpg') : siteUrl + '/pictures/ogpost.png')}">
+    </th:block>
     <meta property="og:url" th:content="${siteUrl + '/guest/profile/' + cd?.uuid}" />
     <meta property="og:title" th:content="${(cd?.custname ?: '') + ' ' + (cd?.custsurname ?: '')}" />
     <meta property="og:description" th:content="${'Профіль автора ' + (cd?.custname ?: '') + ' на Радіо Толока.'}" />
@@ -164,7 +193,6 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" th:content="${(cd?.custname ?: '') + ' ' + (cd?.custsurname ?: '')}">
     <meta name="twitter:description" th:content="${'Профіль автора ' + (cd?.custname ?: '') + ' на Радіо Толока.'}">
-    <meta name="twitter:image" th:content="${ogimage == null ? (cd?.profilephoto != null ? siteUrl + '/store/content/og/' + cd.profilephoto.uuid + '/' + (cd.profilephoto.filename ?: 'avatar.jpg') : siteUrl + '/pictures/ogpost.png') : siteUrl + '/store/content/og/' + ogimage + '/image.jpg'}">
     
     <meta name="facebook-domain-verification" content="rqtf0x9bnlli3nktas6bw2q0dvx3h1" />
 </th:block>

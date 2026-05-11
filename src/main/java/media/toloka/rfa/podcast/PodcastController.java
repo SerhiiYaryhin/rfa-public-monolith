@@ -134,6 +134,7 @@ public class PodcastController {
         model.addAttribute("totalPages", episodesPage.getTotalPages());
         model.addAttribute("currentPage", currentPage);
         model.addAttribute("ogimage", podcastChannel.getImagechanelstore() != null ? podcastChannel.getImagechanelstore().getUuid() : "");
+        model.addAttribute("storeService", storeService);
 
         return "/podcast/view";
     }

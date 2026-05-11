@@ -8,6 +8,7 @@ import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.store.Interface.StoreInterface;
 import media.toloka.rfa.radio.store.Reposirore.StoreRepositorePagination;
 import media.toloka.rfa.radio.store.model.Store;
+import media.toloka.rfa.radio.store.util.FilenameUtil;
 import media.toloka.rfa.radio.history.service.HistoryService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.Users;
@@ -20,6 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -82,7 +85,8 @@ public class StoreFileImplementation implements StoreInterface {
      */
     @Override
     public String PutFileToStore(InputStream inputStream, String filename, Clientdetail cd, EStoreFileType storeFileType) {
-        Path destination = Paths.get(filesService.GetBaseClientDirectory(cd) + "/" + filesService.GetUploadDirectory()).resolve(filename).normalize().toAbsolutePath();
+        String sanitizedFilename = FilenameUtil.sanitize(filename);
+        Path destination = Paths.get(filesService.GetBaseClientDirectory(cd) + "/" + filesService.GetUploadDirectory()).resolve(sanitizedFilename).normalize().toAbsolutePath();
         Boolean fileExist = Files.exists(destination);
 
         try {
@@ -92,7 +96,7 @@ public class StoreFileImplementation implements StoreInterface {
 
         } catch (IOException e) {
             //
-            logger.warn("RFAIOExeption StoreFileImplementation PutFileToStore {} {}", cd.getUuid(), filename);
+            logger.warn("RFAIOExeption StoreFileImplementation PutFileToStore {} {}", cd.getUuid(), sanitizedFilename);
             logger.error("error", e);
             //todo якщо IO помилка, то ми нічого не повинні повертати і закінчити завантаження файлу
             // return null
@@ -113,7 +117,7 @@ public class StoreFileImplementation implements StoreInterface {
                     storeitem = SaveStoreItemInfo(null,destination, storeFileType, cd);
                 }
             }
-            historyService.saveHistory(History_DocumentCreate, " Завантажено файл: " + filename, cd.getUser());
+            historyService.saveHistory(History_DocumentCreate, " Завантажено файл: " + sanitizedFilename, cd.getUser());
         }
         catch(InterruptedException e)
         {
@@ -176,6 +180,21 @@ public class StoreFileImplementation implements StoreInterface {
             storeitem.setContentMimeType(filesService.GetMediatype(destination));
             storeitem.setFilelength(filesService.GetMediaLength(destination));
         }
+
+        // Встановлюємо ширину та висоту для зображень
+        String mimeType = storeitem.getContentMimeType();
+        if (mimeType != null && mimeType.startsWith("image/")) {
+            try {
+                BufferedImage bimg = ImageIO.read(new File(storeitem.getFilepatch()));
+                if (bimg != null) {
+                    storeitem.setWidth(bimg.getWidth());
+                    storeitem.setHeight(bimg.getHeight());
+                }
+            } catch (Exception e) {
+                logger.warn("Could not read image dimensions for {}", storeitem.getFilepatch());
+            }
+        }
+
         try {
             storeRepositore.save(storeitem);
         } catch (Exception e)
