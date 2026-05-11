@@ -45,8 +45,8 @@ public class SecurityConfig {
                         // 🌐 Публічні ресурси
                         .requestMatchers(
                                 "/", "/home", "/register", "/saveUser", "/guest/**",
-                                "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/api/2.0/**",
-                                "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**"
+                                "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/robot.txt",
+                                "/api/2.0/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
                         ).permitAll()
                         
                         // 🔐 Публічні ендпоїнти логіну та реєстрації
