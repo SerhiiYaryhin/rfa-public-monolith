@@ -42,15 +42,15 @@
             <!-- Сайдбар з плеєром -->
             <div class="col-lg-3 col-md-4 col-sm-12 order-lg-last">
                 <div class="sticky-top" style="top: 20px;">
-                    <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-body p-2 text-center">
-                            <audio-player id="audio-player" 
-                                          th:if="${trackList != null && !trackList.isEmpty()}" 
-                                          th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"
-                                          th:data-name="${trackList[0].name}"
-                                          th:data-autor="${trackList[0].autor}"></audio-player>
-                        </div>
-                    </div>
+<!--                    <div class="card shadow-sm border-0 mb-4">-->
+<!--                        <div class="card-body p-2 text-center">-->
+<!--                            <audio-player id="audio-player" -->
+<!--                                          th:if="${trackList != null && !trackList.isEmpty()}" -->
+<!--                                          th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"-->
+<!--                                          th:data-name="${trackList[0].name}"-->
+<!--                                          th:data-autor="${trackList[0].autor}"></audio-player>-->
+<!--                        </div>-->
+<!--                    </div>-->
                     <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
                 </div>
             </div>
