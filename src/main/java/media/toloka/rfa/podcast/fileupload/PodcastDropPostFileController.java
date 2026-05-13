@@ -49,25 +49,21 @@ public class PodcastDropPostFileController {
 
     final Logger logger = LoggerFactory.getLogger(PodcastDropPostFileController.class);
 
-    @PostMapping(path = "/podcast/episodeupload/{puuid}" ) // , produces = MediaType.APPLICATION_JSON_VALUE
-    public void EpisodeUpload(
+    @PostMapping(path = "/podcast/episodeupload/{puuid}" )
+    public ResponseEntity<?> EpisodeUpload(
             @PathVariable String puuid,
             @RequestParam("file") MultipartFile file) {
 
-//        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
-//                throw new ExecutionControl.UserException("Empty file");
             logger.info("Завантаження епізоду подкасту: Файл порожній");
-            return;
+            return ResponseEntity.badRequest().body(Map.of("error", "Empty file"));
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
-            // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
         }
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
-        log.info("Current episode {} {}",puuid, podcast.getTitle());
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_EPISODETRACK);
             PodcastItem episode = new PodcastItem();
@@ -75,19 +71,16 @@ public class PodcastDropPostFileController {
             episode.setStoreuuid(storeUUID);
             episode.setEnclosurestore(storeService.GetStoreByUUID(storeUUID));
             episode.setClientdetail(cd.getUuid());
-            episode.setTimetrack(podcastService.GetTimeTrack(storeUUID)); // зберегли час треку для RSS
+            episode.setTimetrack(podcastService.GetTimeTrack(storeUUID));
             podcast.getItem().add(episode);
 
             podcastService.SavePodcast(podcast);
-//            podcastService.SaveEpisodeUploadfile(storeUUID, podcast, cd);
-
+            
+            return ResponseEntity.ok(Map.of("success", true, "uuid", storeUUID, "episodeUuid", episode.getUuid()));
         } catch (IOException e) {
-            logger.info("Завантаження файлу: Проблема збереження");
-//            e.printStackTrace();
+            logger.error("Завантаження файлу: Проблема збереження", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
-        log.info("uploaded file " + file.getOriginalFilename());
-
-        // Чому нічого не повертаю?
     }
 
     // Завантажуємо обкладинку подкасту
@@ -97,34 +90,29 @@ public class PodcastDropPostFileController {
      * @param puuid uuid родкасту
      * @param file файл з броузера клієнта, що завантажуємо
      */
-    @PostMapping(path = "/podcast/podcastcoverupload/{puuid}" ) // , produces = MediaType.APPLICATION_JSON_VALUE
-    public void PodcastCoverUpload(
+    @PostMapping(path = "/podcast/podcastcoverupload/{puuid}" )
+    public ResponseEntity<?> PodcastCoverUpload(
             @PathVariable String puuid,
             @RequestParam("file") MultipartFile file) {
 
-//        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
-//                throw new ExecutionControl.UserException("Empty file");
             logger.warn("PodcastCoverEpisodeUpload: Файл, що завантажуємо порожній");
-            return;
+            return ResponseEntity.badRequest().body(Map.of("error", "Empty file"));
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
-            // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
         }
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
-//        log.info("Current episode {} {}",puuid, podcast.getTitle());
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PODCASTCOVER);
             podcastService.SaveCoverPodcastUploadfile(storeUUID, podcast, cd);
+            return ResponseEntity.ok(Map.of("success", true, "uuid", storeUUID));
         } catch (IOException e) {
-            logger.info("Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
+            logger.error("Завантаження файлу: Проблема збереження", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
-        log.info("uploaded file " + file.getOriginalFilename());
-
     }
 
     /**
@@ -133,37 +121,32 @@ public class PodcastDropPostFileController {
      * @param euuid uuid епізоду
      * @param file файл з броузера клієнта, що завантажуємо
      */
-    @PostMapping(path = "/podcast/podcastcoverepisodeupload/{puuid}/{euuid}" ) // , produces = MediaType.APPLICATION_JSON_VALUE
-    public void PodcastCoverEpisodeUpload(
+    @PostMapping(path = "/podcast/podcastcoverepisodeupload/{puuid}/{euuid}" )
+    public ResponseEntity<?> PodcastCoverEpisodeUpload(
             @PathVariable String puuid,
             @PathVariable String euuid,
             @RequestParam("file") MultipartFile file) {
 
-//        log.info("uploaded file " + file.getOriginalFilename());
         if (file.isEmpty()) {
-//                throw new ExecutionControl.UserException("Empty file");
             logger.warn("PodcastCoverEpisodeUpload: Файл обкладинки порожній");
-            return;
+            return ResponseEntity.badRequest().body(Map.of("error", "Empty file"));
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (clientService.ClientCanDownloadFile(cd) == false) {
-            // клієнт з якоїсь причини не має права завантажувати файли
             logger.warn("PodcastCoverEpisodeUpload: Клієнт {} не має права завантажувати файли.", cd.getUuid());
-            return;
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
         }
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
         PodcastItem podcastItem = podcastService.GetEpisodeByUUID(euuid);
-//        log.info("Current episode {} {}",puuid, podcast.getTitle());
         try {
             String storeUUID = storeService.PutFileToStore(file.getInputStream(),file.getOriginalFilename(),cd,STORE_PODCASTCOVER);
             podcastItem.setImagestoreitem(storeService.GetStoreByUUID(storeUUID));
             podcastService.SavePodcast(podcast);
+            return ResponseEntity.ok(Map.of("success", true, "uuid", storeUUID));
         } catch (IOException e) {
-            logger.info("PodcastCoverEpisodeUpload: Завантаження файлу: Проблема збереження");
-            e.printStackTrace();
-            return;
+            logger.error("PodcastCoverEpisodeUpload: Завантаження файлу: Проблема збереження", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
-        log.info("uploaded file " + file.getOriginalFilename());
     }
 
 }
