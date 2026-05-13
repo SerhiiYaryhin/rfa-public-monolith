@@ -61,6 +61,14 @@ public class PodcastFileLinkController {
             return ResponseEntity.notFound().build();
         }
 
+        // Перевірка: чи вже існує епізод з таким файлом у цьому подкасті
+        boolean exists = podcast.getItem().stream()
+                .anyMatch(item -> item.getStoreuuid() != null && item.getStoreuuid().equals(storeUuid));
+
+        if (exists) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Episode with this audio file already exists"));
+        }
+
         PodcastItem episode = new PodcastItem();
         episode.setChanel(podcast);
         episode.setStoreuuid(storeUuid);
