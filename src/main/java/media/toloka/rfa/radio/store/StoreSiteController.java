@@ -246,7 +246,11 @@ public class StoreSiteController  {
             Model model ) {
         Store storeObject = storeService.GetStoreByUUID(storeUUID);
 //        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        response.setContentType(storeObject.getContentMimeType());
+        String mimeType = storeObject.getContentMimeType();
+        if (mimeType == null || mimeType.isEmpty()) {
+            mimeType = "application/octet-stream";
+        }
+        response.setContentType(mimeType);
         response.setContentLength(storeObject.getFilelength().intValue());
         String ifile = storeObject.getFilepatch();
         InputStream is;
@@ -281,7 +285,11 @@ public class StoreSiteController  {
             return null;
         }
 //        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        response.setContentType(storeObject.getContentMimeType());
+        String mimeType = storeObject.getContentMimeType();
+        if (mimeType == null || mimeType.isEmpty()) {
+            mimeType = "application/octet-stream";
+        }
+        response.setContentType(mimeType);
         response.setContentLength(storeObject.getFilelength().intValue());
         String ifile = storeObject.getFilepatch();
         InputStream is;
@@ -311,7 +319,11 @@ public class StoreSiteController  {
             Model model ) {
         Store storeObject = storeService.GetStoreByUUID(storeUUID);
 //        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        response.setContentType(storeObject.getContentMimeType());
+        String mimeType = storeObject.getContentMimeType();
+        if (mimeType == null || mimeType.isEmpty()) {
+            mimeType = "application/octet-stream";
+        }
+        response.setContentType(mimeType);
         response.setContentLength(storeObject.getFilelength().intValue());
         String ifile = storeObject.getFilepatch();
         InputStream is;
