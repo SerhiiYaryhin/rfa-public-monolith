@@ -86,6 +86,7 @@
 
 <script th:inline="javascript">
     Dropzone.autoDiscover = false;
+    const podcastUuid = [[${podcast.uuid}]];
     const episodeUuid = [[${episode.uuid}]];
 
     $(document).ready(function() {
@@ -94,9 +95,20 @@
             acceptedFiles: "image/*",
             success : function(file, response) {
                 if (response && response.success) {
-                    toastr.success('Обкладинку завантажено! Встановлюємо...');
-                    // Автоматично призначаємо завантажене зображення епізоду
-                    window.location.href = '/podcast/coverepisodeset/' + episodeUuid + '/' + response.uuid;
+                    $.ajax({
+                        url: "/podcast/link/episode-cover/" + episodeUuid,
+                        type: "POST",
+                        data: { storeUuid: response.uuid },
+                        success: function(res) {
+                            if (res.success) {
+                                toastr.success('Обкладинку завантажено та збережено!');
+                                window.location.reload();
+                            }
+                        },
+                        error: function() {
+                            toastr.error('Помилка прив\'язки обкладинки');
+                        }
+                    });
                 } else {
                     toastr.error('Помилка завантаження: ' + (response.error || response));
                     this.removeFile(file);

@@ -94,9 +94,20 @@
             acceptedFiles: "image/*",
             success : function(file, response) {
                 if (response && response.success) {
-                    toastr.success('Обкладинку завантажено! Встановлюємо...');
-                    // Автоматично призначаємо завантажене зображення подкасту
-                    window.location.href = '/podcast/addcover/' + podcastUuid + '/' + response.uuid;
+                    $.ajax({
+                        url: "/podcast/link/cover/" + podcastUuid,
+                        type: "POST",
+                        data: { storeUuid: response.uuid },
+                        success: function(res) {
+                            if (res.success) {
+                                toastr.success('Обкладинку завантажено та збережено!');
+                                window.location.reload();
+                            }
+                        },
+                        error: function() {
+                            toastr.error('Помилка прив\'язки обкладинки');
+                        }
+                    });
                 } else {
                     toastr.error('Помилка завантаження: ' + (response.error || response));
                     this.removeFile(file);

@@ -1,4 +1,4 @@
-# Звіт про виконані роботи: Виправлення помилок RFA
+## Звіт про виконані роботи: Виправлення помилок RFA
 Дата: 2026-05-13
 
 ## Огляд
@@ -9,25 +9,28 @@
 ### 1. Виправлення 404 помилок (Контролери)
 - Виявлено, що анотації `@Profile("Front")` були закоментовані у багатьох контролерах (всього 45 файлів), що призводило до їх неактивності при запуску.
 - Усі анотації `@Profile("Front")` були відновлені до робочого стану. Це забезпечило завантаження всіх ключових модулів:
-  - Адміністрування (`Admin*Controller`)
-  - Керування контентом (`Creater*Controller`)
-  - Робота зі сховищем (`StoreSiteController`, `StoreItemController`)
-  - Подкасти (`PodcastController`, `PodcastEditController` тощо).
+  - Адміністрування, Креатор, Подкасти, Сховище.
 
 ### 2. Очищення навігації та роутингу
-- У файлі `src/main/resources/templates/fragments/navbar.html`:
-  - Видалено дублюючий та нефункціональний пункт меню `/creater/podcasts/0`.
-  - Пункти меню для "Контенту" та "Сховища" тепер коректно відображаються лише для авторизованих користувачів з відповідними правами доступу, що виключає випадкові 404/403 помилки для гостей.
-  - Уточнені шляхи: `/podcast/home` використовується для авторської роботи, `/podcast/all` — для публічного перегляду.
+- Видалено дублюючий та нефункціональний пункт меню `/creater/podcasts/0` у `navbar.html`.
+- Додано перевірку ролей для пункту "Сховище" у навігації, щоб запобігти 404/403 помилкам.
 
 ### 3. Виправлення відображення зображень
-- У `StoreSiteController.java` додано обробку випадінь MIME-типів. Тепер, якщо файл у сховищі не має чітко визначеного типу, система призначає `application/octet-stream` замість того, щоб видавати помилку запиту.
-- Це забезпечує коректне відображення заставок подкастів та іншого контенту.
+- У `StoreSiteController.java` додано обробку `null` для `contentMimeType` (fallback до `application/octet-stream`).
+
+### 4. Рефакторинг завантаження подкастів (REST API)
+- Створено новий контролер `PodcastFileLinkController` для уніфікації логіки прив'язки файлів до сутностей подкастів.
+- Переведено `PodcastDropPostFileController` на використання REST-відповідей (`ResponseEntity`).
+- Оновлено шаблони (`podcastcoverupload.html`, `podcastcoverepisodeupload.html`, `podcastepisodeupload.html`):
+    - Налаштовано Dropzone на використання універсального ендпоінту `/api/store/upload`.
+    - Реалізовано AJAX-виклик до `PodcastFileLinkController` після успішного завантаження файлу для прив'язки UUID до подкасту або епізоду.
+    - Це дозволяє уникнути прямої залежності між завантаженням файлу та логікою створення сутностей у базі.
 
 ## Перелік модифікованих основних файлів
 - `src/main/resources/templates/fragments/navbar.html`
 - `src/main/java/media/toloka/rfa/radio/store/StoreSiteController.java`
-- (та 45 файлів контролерів, у яких відновлено анотації `@Profile("Front")`)
+- `src/main/java/media/toloka/rfa/podcast/fileupload/PodcastFileLinkController.java` (новий)
+- `src/main/java/media/toloka/rfa/podcast/fileupload/PodcastDropPostFileController.java`
+- `src/main/resources/templates/podcast/*.html` (оновлені JS-скрипти)
+- (та контролери, у яких відновлено анотації `@Profile("Front")`)
 
----
-Роботу завершено, система відповідає вимогам профілю "Front".
