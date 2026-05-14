@@ -34,9 +34,9 @@ public class DashboardController {
                 .map(p -> PostDto.builder()
                         .id(p.getUuid())
                         .title(p.getPosttitle())
-                        .imageUrl(p.getImageStore() != null ? "/store/content/" + p.getImageStore().getUuid() : "")
+                        .imageUrl(p.getCoverstoreuuid() != null ? "/store/content/" + p.getCoverstoreuuid() : "")
                         .createdAt(p.getCreatedate() != null ? p.getCreatedate().toString() : "")
-                        .summary(p.getDescription() != null ? p.getDescription() : "")
+                        .summary(p.getLead() != null ? p.getLead() : "")
                         .build())
                 .collect(Collectors.toList());
 
