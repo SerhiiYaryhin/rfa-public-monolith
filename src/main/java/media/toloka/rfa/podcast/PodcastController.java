@@ -41,7 +41,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Profile("Front")
-@Controller
+@Controller("podcastController")
 public class PodcastController {
 // стандарт RSS для подкаста
 // https://podcast-standard.org/podcast_standard/
