@@ -5,6 +5,7 @@ import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,41 +26,47 @@ public class DashboardController {
     @Autowired
     private CreaterService createrService;
 
+    @Cacheable(value = "dashboard", unless = "#result == null")
     @GetMapping("/dashboard")
     public DashboardDto getDashboard() {
-        // За замовчуванням беремо 5 елементів
         
         var posts = postService.GetPostPage(0, 5).getContent().stream()
                 .map(p -> PostDto.builder()
-                        .uuid(p.getUuid())
+                        .id(p.getUuid())
                         .title(p.getPosttitle())
-                        .authorName(p.getClientdetail() != null ? p.getClientdetail().getCustname() : "Admin")
+                        .imageUrl(p.getImageStore() != null ? "/store/content/" + p.getImageStore().getUuid() : "")
                         .createdAt(p.getCreatedate() != null ? p.getCreatedate().toString() : "")
+                        .summary(p.getDescription() != null ? p.getDescription() : "")
                         .build())
                 .collect(Collectors.toList());
 
+        var columns = Collections.<ColumnDto>emptyList();
+
         var podcasts = podcastService.GetPodcastsByClientPage(null, 0, 5).getContent().stream()
                 .map(p -> PodcastDto.builder()
-                        .uuid(p.getUuid())
+                        .id(p.getUuid())
                         .title(p.getTitle())
-                        .description(p.getLead())
-                        .authorName(p.getUuid()) // Поле authorName в PodcastChannel відсутнє, використовуємо uuid як тимчасове рішення
+                        .imageUrl(p.getImagechanelstore() != null ? "/store/content/" + p.getImagechanelstore().getUuid() : "")
+                        .createdAt(p.getDatepublish() != null ? p.getDatepublish().toString() : "")
+                        .audioUrl("")
+                        .durationSeconds(0)
                         .build())
                 .collect(Collectors.toList());
 
         var tracks = createrService.GetLastUploadTracks().stream().limit(5)
                 .map(t -> TrackDto.builder()
-                        .uuid(t.getUuid())
-                        .name(t.getName())
-                        .autor(t.getAutor())
-                        .albumName(t.getAlbum() != null ? t.getAlbum().getName() : "Single")
+                        .id(t.getUuid())
+                        .title(t.getName())
+                        .imageUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
+                        .createdAt(t.getUploaddate() != null ? t.getUploaddate().toString() : "")
                         .audioUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
+                        .artist(t.getAutor())
                         .build())
                 .collect(Collectors.toList());
 
-
         return DashboardDto.builder()
                 .posts(posts)
+                .columns(columns)
                 .podcasts(podcasts)
                 .tracks(tracks)
                 .build();
