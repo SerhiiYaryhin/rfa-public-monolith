@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
 
-@RestController
+@RestController("apiPostController")
 @RequestMapping("/api/v1")
-public class PostController {
+public class PostApiController {
 
     @Autowired
     private PostService postService;
