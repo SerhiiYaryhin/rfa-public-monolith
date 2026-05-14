@@ -10,9 +10,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
@@ -22,6 +24,9 @@ import org.springframework.web.filter.RequestContextFilter;
 @EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthFilter;
 
     @Autowired
     private UserDetailsService uds;
@@ -40,25 +45,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**")) // Ігноруємо CSRF для API, якщо це потрібно для Editor.js
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
-                        // 🌐 Публічні ресурси
                         .requestMatchers(
                                 "/", "/home", "/register", "/saveUser", "/guest/**",
                                 "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/robot.txt",
-                                "/api/2.0/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
+                                "/api/1.0/**", "/api/v1/auth/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
                         ).permitAll()
                         
-                        // 🔐 Публічні ендпоїнти логіну та реєстрації
                         .requestMatchers(
                                 "/login/**", "/login/route", "/logout", "/registerRadioUser", 
                                 "/restorePsw", "/chat", "/rfachat", "/sendmail", 
                                 "/setUserPassword", "/savequestion", "/store/**"
                         ).permitAll()
 
-                        // 👮 Доступи за ролями
                         .requestMatchers("/acc/**").hasAnyRole("ADMIN", "ACCCHEAF")
-                        // 👮 Доступи за ролями
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/creater/author/**").hasAnyRole("AUTHOR", "ADMIN")
                         .requestMatchers("/api/author/**").hasAnyRole("AUTHOR", "ADMIN")
@@ -72,11 +73,10 @@ public class SecurityConfig {
                         .requestMatchers("/editor/**").hasAnyRole("EDITOR", "ADMIN")
                         .requestMatchers("/moderator/**").hasAnyRole("MODERATOR", "ADMIN")
                         
-                        // 🔒 Все інше
                         .anyRequest().authenticated()
                 )
-
-                // 🔐 Форма логіну
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(fL -> fL
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -84,7 +84,6 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // 🚪 Логаут
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
