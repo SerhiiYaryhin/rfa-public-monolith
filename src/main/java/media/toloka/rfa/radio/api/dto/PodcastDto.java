@@ -6,9 +6,10 @@ import lombok.Builder;
 @Data
 @Builder
 public class PodcastDto {
-    private String uuid;
+    private String id;
     private String title;
-    private String description;
-    private String coverUrl;
-    private String authorName;
+    private String imageUrl;
+    private String createdAt;
+    private String audioUrl;
+    private Integer durationSeconds;
 }

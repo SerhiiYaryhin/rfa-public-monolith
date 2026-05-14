@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 public class DashboardDto {
     private List<PostDto> posts;
+    private List<ColumnDto> columns;
     private List<PodcastDto> podcasts;
     private List<TrackDto> tracks;
 }

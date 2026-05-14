@@ -6,9 +6,9 @@ import lombok.Builder;
 @Data
 @Builder
 public class PostDto {
-    private String uuid;
+    private String id;
     private String title;
-    private String authorName;
-    private String coverUrl;
+    private String imageUrl;
     private String createdAt;
+    private String summary;
 }

@@ -5,11 +5,10 @@ import lombok.Builder;
 
 @Data
 @Builder
-public class TrackDto {
+public class ColumnDto {
     private String id;
     private String title;
     private String imageUrl;
     private String createdAt;
-    private String audioUrl;
-    private String artist;
+    private String authorName;
 }
