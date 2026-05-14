@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
 
-@RestController
+@RestController("apiPodcastController")
 @RequestMapping("/api/v1")
 public class PodcastApiController {
 
