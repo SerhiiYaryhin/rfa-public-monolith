@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,8 +19,18 @@ public class PodcastApiController {
     @Autowired
     private PodcastService podcastService;
 
-    private String formatDateTime(java.util.Date date) {
-        return date != null ? DateTimeFormatter.ISO_INSTANT.format(date.toInstant()) : null;
+    private Integer parseDurationToSeconds(String duration) {
+        if (duration == null || duration.isEmpty()) return 0;
+        try {
+            if (duration.matches("\\d+")) return Integer.valueOf(duration);
+            String[] parts = duration.split(":");
+            if (parts.length == 3) {
+                return Integer.parseInt(parts[0]) * 3600 + Integer.parseInt(parts[1]) * 60 + Integer.parseInt(parts[2]);
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+        return 0;
     }
 
     @GetMapping("/podcasts")
@@ -29,7 +38,7 @@ public class PodcastApiController {
                                                  @RequestParam(defaultValue = "20") int size) {
         Page<PodcastChannel> podcastPage = podcastService.GetPublicPodcastsPage(page, size);
         
-        var content = podcastPage.getContent().stream()
+        List<PodcastDto> content = podcastPage.getContent().stream()
                 .map(p -> PodcastDto.builder()
                         .id(p.getUuid())
                         .title(p.getTitle())
@@ -49,7 +58,7 @@ public class PodcastApiController {
 
     @GetMapping("/podcasts/{id}")
     public ResponseEntity<PodcastDto> getPodcastById(@PathVariable String id) {
-        var podcast = podcastService.GetChanelByUUID(id);
+        PodcastChannel podcast = podcastService.GetChanelByUUID(id);
         if (podcast == null) {
             return ResponseEntity.notFound().build();
         }
@@ -57,18 +66,15 @@ public class PodcastApiController {
         String podcastImageUrl = podcast.getImagechanelstore() != null ? "/store/content/" + podcast.getImagechanelstore().getUuid() : null;
 
         List<EpisodeDto> episodes = podcast.getItem().stream()
-                .map(e -> {
-                    String eUuid = e.getImagestoreitem() != null ? e.getImagestoreitem().getUuid() : null;
-                    return EpisodeDto.builder()
+                .map(e -> EpisodeDto.builder()
                         .id(e.getUuid())
                         .title(e.getTitle())
                         .description(e.getLead())
-                        .imageUrl(eUuid != null ? "/store/content/" + eUuid : podcastImageUrl)
+                        .imageUrl(e.getImagestoreitem() != null ? "/store/content/" + e.getImagestoreitem().getUuid() : podcastImageUrl)
                         .audioUrl(e.getEnclosurestore() != null ? "/store/audio/" + e.getEnclosurestore().getUuid() : null)
-                        .durationSeconds(e.getTimetrack() != null ? Integer.valueOf(e.getTimetrack()) : 0)
-                        .createdAt(e.getPubDate() != null ? e.getPubDate().toString() : null)
-                        .build();
-                })
+                        .durationSeconds(parseDurationToSeconds(e.getTimetrack()))
+                        .createdAt(e.getPubDate())
+                        .build())
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(PodcastDto.builder()
