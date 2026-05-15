@@ -1,6 +1,8 @@
 package media.toloka.rfa.radio.api;
 
-import media.toloka.rfa.radio.api.dto.*;
+import media.toloka.rfa.radio.api.dto.PostDto;
+import media.toloka.rfa.radio.api.dto.PostDetailDto;
+import media.toloka.rfa.radio.api.dto.PagedResponse;
 import media.toloka.rfa.radio.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
