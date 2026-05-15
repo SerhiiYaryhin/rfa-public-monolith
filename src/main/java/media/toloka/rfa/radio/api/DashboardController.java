@@ -50,18 +50,13 @@ public class DashboardController {
                         .authorName(c.getColumn() != null ? c.getColumn().getTitle() : "Unknown")
                         .build())
                 .collect(Collectors.toList());
-
-        List<PodcastDto> podcasts = podcastService.GetPublicPodcastsPage(0, 5).getContent().stream()
-                .map(p -> PodcastDto.builder()
-                        .id(p.getUuid())
-                        .title(p.getTitle())
-                        .imageUrl(p.getImagechanelstore() != null ? "/store/content/" + p.getImagechanelstore().getUuid() : "")
-                        .createdAt(p.getDatepublish() != null ? p.getDatepublish().toString() : "")
-                        .audioUrl("") 
-                        .durationSeconds(0)
-                        .build())
-                .collect(Collectors.toList());
-
+List<PodcastDto> podcasts = podcastService.GetPublicPodcastsPage(0, 5).getContent().stream()
+        .map(p -> PodcastDto.builder()
+                .id(p.getUuid())
+                .title(p.getTitle())
+                .imageUrl(p.getImagechanelstore() != null ? "/store/content/" + p.getImagechanelstore().getUuid() : "")
+                .build())
+        .collect(Collectors.toList());
         List<TrackDto> tracks = createrService.GetLastUploadTracks().stream().limit(5)
                 .map(t -> {
                     String uuid = t.getStoreitem() != null ? t.getStoreitem().getUuid() : "";

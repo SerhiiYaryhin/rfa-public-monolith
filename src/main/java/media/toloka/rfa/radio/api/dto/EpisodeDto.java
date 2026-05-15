@@ -2,14 +2,15 @@ package media.toloka.rfa.radio.api.dto;
 
 import lombok.Data;
 import lombok.Builder;
-import java.util.List;
 
 @Data
 @Builder
-public class PodcastDto {
+public class EpisodeDto {
     private String id;
     private String title;
     private String description;
     private String imageUrl;
-    private List<EpisodeDto> episodes;
+    private String audioUrl;
+    private Integer durationSeconds;
+    private String createdAt;
 }
