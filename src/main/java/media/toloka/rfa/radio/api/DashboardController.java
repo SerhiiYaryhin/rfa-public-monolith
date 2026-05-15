@@ -41,7 +41,15 @@ public class DashboardController {
                         .build())
                 .collect(Collectors.toList());
 
-        List<ColumnDto> columns = Collections.emptyList();
+        List<ColumnDto> columns = createrService.GetPublicAuthorArticlesPage(0, 5).getContent().stream()
+                .map(c -> ColumnDto.builder()
+                        .id(c.getUuid())
+                        .title(c.getTitle())
+                        .imageUrl(c.getCoverUuid() != null ? "/store/content/" + c.getCoverUuid() : "")
+                        .createdAt(c.getPublishDate() != null ? c.getPublishDate().toString() : "")
+                        .authorName(c.getColumn() != null ? c.getColumn().getTitle() : "Unknown")
+                        .build())
+                .collect(Collectors.toList());
 
         List<PodcastDto> podcasts = podcastService.GetPublicPodcastsPage(0, 5).getContent().stream()
                 .map(p -> PodcastDto.builder()
