@@ -4,16 +4,17 @@ import media.toloka.rfa.radio.api.dto.*;
 import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
-import media.toloka.rfa.author.model.AuthorArticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
-@RestController
+@RestController("apiDashboardController")
 @RequestMapping("/api/v1")
 public class DashboardController {
 
@@ -30,7 +31,7 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public DashboardDto getDashboard() {
         
-        var posts = postService.GetPostPage(0, 5).getContent().stream()
+        List<PostDto> posts = postService.GetPostPage(0, 5).getContent().stream()
                 .map(p -> PostDto.builder()
                         .id(p.getUuid())
                         .title(p.getPosttitle())
@@ -40,17 +41,9 @@ public class DashboardController {
                         .build())
                 .collect(Collectors.toList());
 
-        var columns = createrService.GetPublicAuthorArticlesPage(0, 5).getContent().stream()
-                .map(c -> ColumnDto.builder()
-                        .id(c.getUuid())
-                        .title(c.getTitle())
-                        .imageUrl(c.getCoverUuid() != null ? "/store/content/" + c.getCoverUuid() : "")
-                        .createdAt(c.getPublishDate() != null ? c.getPublishDate().toString() : "")
-                        .authorName(c.getColumn() != null ? c.getColumn().getTitle() : "Unknown")
-                        .build())
-                .collect(Collectors.toList());
+        List<ColumnDto> columns = Collections.emptyList();
 
-        var podcasts = podcastService.GetPublicPodcastsPage(0, 5).getContent().stream()
+        List<PodcastDto> podcasts = podcastService.GetPublicPodcastsPage(0, 5).getContent().stream()
                 .map(p -> PodcastDto.builder()
                         .id(p.getUuid())
                         .title(p.getTitle())
@@ -61,7 +54,7 @@ public class DashboardController {
                         .build())
                 .collect(Collectors.toList());
 
-        var tracks = createrService.GetLastUploadTracks().stream().limit(5)
+        List<TrackDto> tracks = createrService.GetLastUploadTracks().stream().limit(5)
                 .map(t -> TrackDto.builder()
                         .id(t.getUuid())
                         .title(t.getName())

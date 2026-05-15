@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController("apiTrackController")
@@ -22,7 +23,7 @@ public class TrackController {
                                              @RequestParam(defaultValue = "20") int size) {
         Page<Track> trackPage = createrService.GetTrackPage(page, size);
         
-        var content = trackPage.getContent().stream()
+        List<TrackDto> content = trackPage.getContent().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
