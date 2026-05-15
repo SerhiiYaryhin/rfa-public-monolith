@@ -67,6 +67,7 @@ public class DashboardController {
                         .title(t.getName())
                         .imageUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
                         .createdAt(t.getUploaddate() != null ? t.getUploaddate().toString() : "")
+                        .streamUrl(t.getStoreitem() != null ? "/store/audio/" + t.getStoreitem().getUuid() : "")
                         .fileUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
                         .artist(t.getAutor())
                         .build())
