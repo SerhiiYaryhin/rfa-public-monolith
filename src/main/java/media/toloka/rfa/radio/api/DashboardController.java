@@ -55,15 +55,18 @@ public class DashboardController {
                 .collect(Collectors.toList());
 
         List<TrackDto> tracks = createrService.GetLastUploadTracks().stream().limit(5)
-                .map(t -> TrackDto.builder()
-                        .id(t.getUuid())
-                        .title(t.getName())
-                        .imageUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
-                        .createdAt(t.getUploaddate() != null ? t.getUploaddate().toString() : "")
-                        .streamUrl(t.getStoreitem() != null ? "/store/audio/" + t.getStoreitem().getUuid() : "")
-                        .fileUrl(t.getStoreitem() != null ? "/store/content/" + t.getStoreitem().getUuid() : "")
-                        .artist(t.getAutor())
-                        .build())
+                .map(t -> {
+                    String uuid = t.getStoreitem() != null ? t.getStoreitem().getUuid() : "";
+                    TrackDto dto = new TrackDto();
+                    dto.setId(t.getUuid());
+                    dto.setTitle(t.getName());
+                    dto.setImageUrl(!uuid.isEmpty() ? "/store/content/" + uuid : "");
+                    dto.setCreatedAt(t.getUploaddate() != null ? t.getUploaddate().toString() : "");
+                    dto.setStreamUrl(!uuid.isEmpty() ? "/store/audio/" + uuid : "");
+                    dto.setFileUrl(!uuid.isEmpty() ? "/store/content/" + uuid : "");
+                    dto.setArtist(t.getAutor());
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         return DashboardDto.builder()

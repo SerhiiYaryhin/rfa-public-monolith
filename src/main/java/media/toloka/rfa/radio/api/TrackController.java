@@ -47,15 +47,15 @@ public class TrackController {
 
     private TrackDto mapToDto(Track t) {
         String uuid = t.getStoreitem() != null ? t.getStoreitem().getUuid() : null;
-        return TrackDto.builder()
-                .id(t.getUuid())
-                .title(t.getName())
-                .artist(t.getAutor())
-                .streamUrl(uuid != null ? "/store/audio/" + uuid : null)
-                .imageUrl(uuid != null ? "/store/content/" + uuid : null)
-                .createdAt(t.getUploaddate() != null ? t.getUploaddate().toString() : null)
-                .fileUrl(uuid != null ? "/store/content/" + uuid : null)
-                .description(t.getDescription())
-                .build();
+        TrackDto dto = new TrackDto();
+        dto.setId(t.getUuid());
+        dto.setTitle(t.getName());
+        dto.setArtist(t.getAutor());
+        dto.setStreamUrl(uuid != null ? "/store/audio/" + uuid : null);
+        dto.setImageUrl(uuid != null ? "/store/content/" + uuid : null);
+        dto.setCreatedAt(t.getUploaddate() != null ? t.getUploaddate().toString() : null);
+        dto.setFileUrl(uuid != null ? "/store/content/" + uuid : null);
+        dto.setDescription(t.getDescription());
+        return dto;
     }
 }
