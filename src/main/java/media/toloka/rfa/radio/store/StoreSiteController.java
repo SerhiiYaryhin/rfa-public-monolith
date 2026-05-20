@@ -96,7 +96,7 @@ public class StoreSiteController  {
                 // Якщо плеєр не просить шматки (Range відсутній) — віддаємо весь файл цілком (200 OK)
                 logger.info("Віддача повного файлу для UUID: {}, розмір: {} байт", storeUUID, file.length());
                 return ResponseEntity.ok()
-                        .contentType(mediaType)
+                        .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
                         .contentLength(file.length())
                         .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                         .body(resource);
@@ -117,7 +117,7 @@ public class StoreSiteController  {
             logger.info("Стрімінг шматка для UUID: {}. Діапазон: bytes {}-{}/{}", storeUUID, start, end, contentLength);
 
             return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                    .contentType(mediaType)
+                    .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .body(region);
 
