@@ -54,44 +54,54 @@ public class Clientdetail {
 
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
     private Store profilephoto;
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
     private List<Clientaddress> clientaddressList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     //,cascade = {CascadeType.ALL},fetch= FetchType.EAGER)
     private List<Contract> contractList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<History> historyList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Documents> documentslist = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Station> stationList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Album> albumList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Track> trackList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Post> postList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Albumсover> albumсoverList = new ArrayList<>();
 
@@ -102,10 +112,12 @@ public class Clientdetail {
 //    private List<Store> filesinstore = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToMany
     private List<MessageRoom> roomList = new ArrayList<>();
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
     private Users user;
 

@@ -79,7 +79,8 @@ public class PodcastChannel {
     private List<PodcastItunesCategory> itunescategory = new ArrayList<>();  // категорія подкасту
 
     @Expose
-//    @ToString.Exclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "imagestoreuuid")
     private Store imagechanelstore;

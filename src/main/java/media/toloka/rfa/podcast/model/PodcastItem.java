@@ -62,6 +62,8 @@ public class PodcastItem {
 
 //    @OneToOne(cascade = {CascadeType.ALL})
     // аудіофайл подкасту
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "enclosure_store")
     private Store enclosurestore;
@@ -81,6 +83,8 @@ public class PodcastItem {
 //    private Clientdetail clientdetail;
     private String clientdetail;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "imagestoreuuid")
     private Store imagestoreitem;
