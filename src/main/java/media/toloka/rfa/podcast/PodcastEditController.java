@@ -256,10 +256,9 @@ public class PodcastEditController {
         // чистимо посилання на подкаст в епізоді та батьківському подкасті
             PodcastItem delItem = null;
             for (PodcastItem item : podcastFromEpisode.getItem()) {
-                if (item.getId() == episode.getId() ) {
+                if (item.getUuid().equals(episode.getUuid())) {
                     delItem = item;
                     break;
-
                 }
             }
             if (delItem != null) {

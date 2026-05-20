@@ -1,7 +1,4 @@
-<<!DOCTYPE HTML>
-<!--
-https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-area
--->
+<!DOCTYPE HTML>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
@@ -44,10 +41,10 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
     <!-- перелік всіх епізодів -->
     <div class="row">
         <div class="col-lg-8 mt-5">
-            <!-- перелік всіх епізодів -->
+            <!-- перелік останніх 12 епізодів -->
             <div class="row gx-lg-5">
                 <!-- початок циклу виводу подкастів -->
-                <div th:each="item : ${podcastAllItemList}" class="col-lg-6 col-xxl-4 mb-5">
+                <div th:each="item, iterStat : ${podcastAllItemList}" th:if="${iterStat.index < 12}" class="col-lg-6 col-xxl-4 mb-5">
                     <div class="card bg-light border-0 h-100">
                         <div class="card-header">
                             <!-- посилання на додавання епізоду до подкасту -->
@@ -71,8 +68,10 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
                             </div>
                             <!-- зміст епізоду -->
                             <div th:if="${item.description != null}">
-                                <p  th:if="${item.description.length()>200}" class="mb-0 fs-6" th:utext="${#strings.substring(item.description,0,200)+'...'}"></p>
-                                <p  th:if="${item.description.length()<200}" class="mb-0 fs-6" th:utext="${item.description}"></p>
+                                <p th:if="${item.description.length() > 200}" class="mb-0 fs-6" 
+                                   th:text="${item.description.replaceAll('<[^>]*>', '').substring(0, 200) + '...'}"></p>
+                                <p th:if="${item.description.length() <= 200}" class="mb-0 fs-6" 
+                                   th:text="${item.description.replaceAll('<[^>]*>', '')}"></p>
                             </div>
                         </div>
                     </div>
@@ -101,7 +100,11 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
 
     $("#demo-upload").dropzone({
         url: "/api/store/upload?type=STORE_EPISODETRACK",
+        paramName: "file",
         acceptedFiles: "audio/*",
+        headers: {
+            [csrfHeader]: csrfToken
+        },
         success : function(file, response) {
             if (response && response.success) {
                 toastr.info('Файл завантажено. Привʼязуємо до подкасту...');
@@ -109,21 +112,29 @@ https://frontbackend.com/thymeleaf/spring-boot-bootstrap-thymeleaf-drop-file-are
                 $.ajax({
                     url: "/podcast/link/episode-audio/" + podcastUuid,
                     type: "POST",
+                    headers: { [csrfHeader]: csrfToken },
                     data: { storeUuid: response.uuid },
                     success: function(res) {
                         if (res.success) {
                             toastr.success('Епізод успішно додано!');
                             setTimeout(() => location.reload(), 1500);
+                        } else {
+                            toastr.error('Помилка привʼязки: ' + (res.error || 'Невідома помилка'));
                         }
                     },
-                    error: function() {
-                        toastr.error('Помилка привʼязки епізоду');
+                    error: function(xhr) {
+                        toastr.error('Помилка привʼязки епізоду (Статус: ' + xhr.status + ')');
                     }
                 });
             } else {
                 toastr.error('Помилка завантаження: ' + (response.error || response));
                 this.removeFile(file);
             }
+        },
+        error: function(file, message) {
+            const errorMsg = message.error || (typeof message === 'string' ? message : 'Помилка завантаження');
+            toastr.error('Помилка: ' + errorMsg);
+            this.removeFile(file);
         }
     });
 </script>

@@ -11,7 +11,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import java.util.List;
 
 
-public interface ChanelRepository extends JpaRepository<PodcastChannel, Long>, PagingAndSortingRepository<PodcastChannel, Long> {
+public interface ChanelRepository extends JpaRepository<PodcastChannel, String>, PagingAndSortingRepository<PodcastChannel, String> {
     List<PodcastChannel> findByClientdetail(Clientdetail cd);
     List<PodcastChannel> findByClientdetail(String uuid);
     Page<PodcastChannel> findByClientdetailOrderByLastbuilddateDesc(String uuid, Pageable pageable);

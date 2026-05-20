@@ -9,7 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import java.util.List;
 
 public interface ItunesCategoryRepository
-        extends JpaRepository<PodcastItunesCategory, Long>, PagingAndSortingRepository<PodcastItunesCategory, Long> {
+        extends JpaRepository<PodcastItunesCategory, String>, PagingAndSortingRepository<PodcastItunesCategory, String> {
 
     List<PodcastItunesCategory> findByChanel(ChanelRepository icr);
     //    PodcastChannel getByStoreuuid(String storeUuid);

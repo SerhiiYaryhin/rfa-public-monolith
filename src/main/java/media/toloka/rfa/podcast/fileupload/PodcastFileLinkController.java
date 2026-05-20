@@ -1,11 +1,14 @@
 package media.toloka.rfa.podcast.fileupload;
 
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +23,9 @@ public class PodcastFileLinkController {
 
     @Autowired
     private StoreService storeService;
+
+    @Autowired
+    private ClientService clientService;
 
     // Прив'язка обкладинки до подкасту
     @PostMapping("/cover/{puuid}")
@@ -54,6 +60,11 @@ public class PodcastFileLinkController {
     // Прив'язка аудіофайлу до епізоду
     @PostMapping("/episode-audio/{puuid}")
     public ResponseEntity<?> linkAudioToEpisode(@PathVariable String puuid, @RequestParam String storeUuid) {
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized"));
+        }
+
         PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
         Store store = storeService.GetStoreByUUID(storeUuid);
 
@@ -73,6 +84,7 @@ public class PodcastFileLinkController {
         episode.setChanel(podcast);
         episode.setStoreuuid(storeUuid);
         episode.setEnclosurestore(store);
+        episode.setClientdetail(cd.getUuid());
         episode.setTimetrack(podcastService.GetTimeTrack(storeUuid));
         
         podcast.getItem().add(episode);

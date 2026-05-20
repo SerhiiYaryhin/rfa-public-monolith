@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public interface EpisodeRepository
-        extends JpaRepository<PodcastItem, Long>, PagingAndSortingRepository<PodcastItem, Long> {
+        extends JpaRepository<PodcastItem, String>, PagingAndSortingRepository<PodcastItem, String> {
 //    List<PodcastItem> findByClientdetail(Clientdetail cd);
 //    PodcastChannel getByStoreuuid(String storeUuid);
     PodcastItem getByUuid(String episodeUuid);
