@@ -233,8 +233,14 @@ public class PodcastService {
         logger.info("Початок видалення епізоду: {}. Видалення файлу: {}", episode.getUuid(), deleteFile);
         
         if (deleteFile && episode.getEnclosurestore() != null) {
+            Store enclosure = episode.getEnclosurestore();
+            // Розриваємо зв'язок перед видаленням зі Store, щоб уникнути конфліктів з каскадом
+            episode.setEnclosurestore(null);
+            episodeRepository.save(episode);
+            
             // Видаляємо фізичний файл та запис у Store
-            storeService.DeleteInStore(episode.getEnclosurestore());
+            storeService.DeleteInStore(enclosure);
+            logger.info("Аудіофайл та запис у Store видалено для епізоду {}", episode.getUuid());
         }
         
         PodcastChannel channel = episode.getChanel();

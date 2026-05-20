@@ -128,8 +128,13 @@ public class EpisodeEditController {
         if (episode != null) {
             PodcastChannel channel = episode.getChanel();
             if (channel != null && channel.getClientdetail().equals(cd.getUuid())) {
-                podcastService.DeleteEpisode(episode, deleteFile);
-                logger.info("Користувач {} видалив епізод: {}. Видалення файлу: {}", cd.getUuid(), euuid, deleteFile);
+                try {
+                    podcastService.DeleteEpisode(episode, deleteFile);
+                    logger.info("Користувач {} видалив епізод: {}. Видалення файлу: {}", cd.getUuid(), euuid, deleteFile);
+                } catch (Exception e) {
+                    logger.error("Помилка при видаленні епізоду {}: {}", euuid, e.getMessage(), e);
+                    return "redirect:/error"; // Or something else
+                }
             } else {
                 logger.warn("Спроба несанкціонованого видалення епізоду {} користувачем {}", euuid, cd.getUuid());
                 return "redirect:/podcast/home";

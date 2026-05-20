@@ -109,6 +109,8 @@ public class PodcastServiceTest {
         podcastService.DeleteEpisode(episode, true);
 
         // Assert
+        assertNull(episode.getEnclosurestore());
+        verify(episodeRepository, atLeastOnce()).save(episode);
         verify(storeService, times(1)).DeleteInStore(enclosure);
         verify(chanelRepository, times(1)).save(channel);
         verify(episodeRepository, times(1)).delete(episode);
