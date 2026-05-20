@@ -62,7 +62,7 @@ public class PodcastItem {
 
 //    @OneToOne(cascade = {CascadeType.ALL})
     // аудіофайл подкасту
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "enclosure_store")
     private Store enclosurestore;
 

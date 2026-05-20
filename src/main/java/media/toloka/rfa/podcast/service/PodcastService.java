@@ -232,26 +232,26 @@ public class PodcastService {
     public void DeleteEpisode(PodcastItem episode, boolean deleteFile) {
         logger.info("Початок видалення епізоду: {}. Видалення файлу: {}", episode.getUuid(), deleteFile);
         
-        if (deleteFile && episode.getEnclosurestore() != null) {
-            Store enclosure = episode.getEnclosurestore();
-            // Розриваємо зв'язок перед видаленням зі Store, щоб уникнути конфліктів з каскадом
-            episode.setEnclosurestore(null);
-            episodeRepository.save(episode);
-            
-            // Видаляємо фізичний файл та запис у Store
-            storeService.DeleteInStore(enclosure);
-            logger.info("Аудіофайл та запис у Store видалено для епізоду {}", episode.getUuid());
-        }
-        
+        Store enclosure = episode.getEnclosurestore();
         PodcastChannel channel = episode.getChanel();
+        
+        // 1. Видаляємо зв'язок з каналом
         if (channel != null) {
             channel.getItem().remove(episode);
             episode.setChanel(null);
             chanelRepository.save(channel);
         }
         
+        // 2. Видаляємо сам епізод
         episodeRepository.delete(episode);
         logger.info("Епізод {} видалено з репозиторію", episode.getUuid());
+
+        // 3. Якщо потрібно, видаляємо фізичний файл та запис у Store
+        // Робимо це в кінці, коли зв'язок вже розірвано видаленням епізоду
+        if (deleteFile && enclosure != null) {
+            storeService.DeleteInStore(enclosure);
+            logger.info("Аудіофайл та запис у Store видалено для епізоду {}", episode.getUuid());
+        }
     }
 
     public void DeletePodcast(PodcastChannel podcast) {
