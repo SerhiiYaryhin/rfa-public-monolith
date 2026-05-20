@@ -118,30 +118,43 @@ public class EpisodeEditController {
             @PathVariable String puuid, 
             @PathVariable String euuid,
             @RequestParam(defaultValue = "false") boolean deleteFile) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) return "redirect:/";
+        logger.info("[CONTROLLER] Запит на видалення епізоду: euuid={}, puuid={}, deleteFile={}", euuid, puuid, deleteFile);
+        
+        try {
+            Users user = clientService.GetCurrentUser();
+            if (user == null) {
+                logger.warn("[CONTROLLER] Користувач не авторизований");
+                return "redirect:/";
+            }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        if (cd == null) return "redirect:/";
+            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            if (cd == null) {
+                logger.warn("[CONTROLLER] Деталі клієнта не знайдені для користувача {}", user.getUsername());
+                return "redirect:/";
+            }
 
-        PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
-        if (episode != null) {
-            PodcastChannel channel = episode.getChanel();
-            if (channel != null && channel.getClientdetail().equals(cd.getUuid())) {
-                try {
+            PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
+            if (episode != null) {
+                PodcastChannel channel = episode.getChanel();
+                if (channel != null && channel.getClientdetail().equals(cd.getUuid())) {
+                    logger.info("[CONTROLLER] Авторизація успішна. Викликаємо сервіс видалення.");
                     podcastService.DeleteEpisode(episode, deleteFile);
-                    logger.info("Користувач {} видалив епізод: {}. Видалення файлу: {}", cd.getUuid(), euuid, deleteFile);
-                } catch (Exception e) {
-                    logger.error("Помилка при видаленні епізоду {}: {}", euuid, e.getMessage(), e);
-                    return "redirect:/error"; // Or something else
+                    logger.info("[CONTROLLER] Сервіс видалення повернув управління успішно.");
+                } else {
+                    logger.warn("[CONTROLLER] Спроба несанкціонованого видалення епізоду {} користувачем {}", euuid, cd.getUuid());
+                    return "redirect:/podcast/home";
                 }
             } else {
-                logger.warn("Спроба несанкціонованого видалення епізоду {} користувачем {}", euuid, cd.getUuid());
-                return "redirect:/podcast/home";
+                logger.warn("[CONTROLLER] Епізод {} не знайдено в БД", euuid);
             }
-        } else {
-            logger.warn("Спроба видалити неіснуючий епізод: {}", euuid);
+            
+            logger.info("[CONTROLLER] Виконуємо редірект на /podcast/pedit/{}", puuid);
+            return "redirect:/podcast/pedit/" + puuid;
+            
+        } catch (Throwable t) {
+            logger.error("[CONTROLLER FATAL] КРИТИЧНА ПОМИЛКА ПРИ ВИДАЛЕННІ: {}", t.getMessage(), t);
+            // Виводимо повний стек у консоль (це вже робить logger.error з 't')
+            return "redirect:/error"; 
         }
-        return "redirect:/podcast/pedit/" + puuid;
     }
 }

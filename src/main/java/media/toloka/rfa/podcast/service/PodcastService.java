@@ -230,28 +230,47 @@ public class PodcastService {
      */
     @Transactional
     public void DeleteEpisode(PodcastItem episode, boolean deleteFile) {
-        logger.info("Початок видалення епізоду: {}. Видалення файлу: {}", episode.getUuid(), deleteFile);
+        String euuid = (episode != null) ? episode.getUuid() : "null";
+        logger.info("[STEP 1] Початок DeleteEpisode для: {}. Видалення файлу: {}", euuid, deleteFile);
         
+        if (episode == null) {
+            logger.error("[ERROR] Спроба видалити null епізод!");
+            return;
+        }
+
         Store enclosure = episode.getEnclosurestore();
         PodcastChannel channel = episode.getChanel();
+        logger.info("[STEP 2] Отримано пов'язані об'єкти. Enclosure: {}, Channel: {}", 
+                (enclosure != null ? enclosure.getUuid() : "null"), 
+                (channel != null ? channel.getUuid() : "null"));
         
         // 1. Видаляємо зв'язок з каналом
         if (channel != null) {
+            logger.info("[STEP 3] Видалення епізоду зі списку каналу {}", channel.getUuid());
             channel.getItem().remove(episode);
             episode.setChanel(null);
             chanelRepository.save(channel);
+            logger.info("[STEP 4] Канал збережено після видалення епізоду");
         }
         
         // 2. Видаляємо сам епізод
+        logger.info("[STEP 5] Видалення епізоду {} з репозиторію", episode.getUuid());
         episodeRepository.delete(episode);
-        logger.info("Епізод {} видалено з репозиторію", episode.getUuid());
+        logger.info("[STEP 6] Епізод успішно видалено з БД");
 
         // 3. Якщо потрібно, видаляємо фізичний файл та запис у Store
-        // Робимо це в кінці, коли зв'язок вже розірвано видаленням епізоду
         if (deleteFile && enclosure != null) {
-            storeService.DeleteInStore(enclosure);
-            logger.info("Аудіофайл та запис у Store видалено для епізоду {}", episode.getUuid());
+            logger.info("[STEP 7] Запит на видалення файлу зі Store: {}", enclosure.getUuid());
+            try {
+                storeService.DeleteInStore(enclosure);
+                logger.info("[STEP 8] Аудіофайл та запис у Store успішно видалено");
+            } catch (Exception e) {
+                logger.error("[ERROR] Помилка при видаленні зі Store: {}", e.getMessage(), e);
+                // Ми не кидаємо виняток далі, щоб не відкотити видалення самого епізоду, 
+                // якщо файл чомусь не видалився
+            }
         }
+        logger.info("[STEP 9] Метод DeleteEpisode завершено успішно");
     }
 
     public void DeletePodcast(PodcastChannel podcast) {
