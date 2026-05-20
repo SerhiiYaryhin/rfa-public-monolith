@@ -230,6 +230,8 @@ public class PodcastService {
      */
     @Transactional
     public void DeleteEpisode(PodcastItem episode, boolean deleteFile) {
+        logger.info("Початок видалення епізоду: {}. Видалення файлу: {}", episode.getUuid(), deleteFile);
+        
         if (deleteFile && episode.getEnclosurestore() != null) {
             // Видаляємо фізичний файл та запис у Store
             storeService.DeleteInStore(episode.getEnclosurestore());
@@ -243,6 +245,7 @@ public class PodcastService {
         }
         
         episodeRepository.delete(episode);
+        logger.info("Епізод {} видалено з репозиторію", episode.getUuid());
     }
 
     public void DeletePodcast(PodcastChannel podcast) {

@@ -121,10 +121,21 @@ public class EpisodeEditController {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
 
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        if (cd == null) return "redirect:/";
+
         PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
         if (episode != null) {
-            podcastService.DeleteEpisode(episode, deleteFile);
-            logger.info("Користувач видалив епізод: {}. Видалення файлу: {}", euuid, deleteFile);
+            PodcastChannel channel = episode.getChanel();
+            if (channel != null && channel.getClientdetail().equals(cd.getUuid())) {
+                podcastService.DeleteEpisode(episode, deleteFile);
+                logger.info("Користувач {} видалив епізод: {}. Видалення файлу: {}", cd.getUuid(), euuid, deleteFile);
+            } else {
+                logger.warn("Спроба несанкціонованого видалення епізоду {} користувачем {}", euuid, cd.getUuid());
+                return "redirect:/podcast/home";
+            }
+        } else {
+            logger.warn("Спроба видалити неіснуючий епізод: {}", euuid);
         }
         return "redirect:/podcast/pedit/" + puuid;
     }

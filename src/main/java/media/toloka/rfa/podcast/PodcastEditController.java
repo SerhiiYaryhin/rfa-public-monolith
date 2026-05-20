@@ -81,8 +81,10 @@ public class PodcastEditController {
             // шукаємо за UUID подкасту
             podcast = podcastService.GetChanelByUUID(puuid);
             if (podcast == null ) {
+                logger.error("Подкаст з UUID {} не знайдено!", puuid);
                 model.addAttribute("warning",  "Йой! Щось пішло не так - ми не знайшли Ваш Подкаст."
                         +" Зверніться будь ласка до служби підтримки");
+                return "redirect:/podcast/home";
             }
         }
 
