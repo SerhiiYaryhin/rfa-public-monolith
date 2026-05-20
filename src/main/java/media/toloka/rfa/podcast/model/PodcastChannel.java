@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 //import javax.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -68,10 +69,12 @@ public class PodcastChannel {
     private Long looked = 0L; // скільки разів подивилися
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<PodcastItem> item = new ArrayList<>(); // перелік епізодів
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(orphanRemoval = true, mappedBy = "chanel", fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<PodcastItunesCategory> itunescategory = new ArrayList<>();  // категорія подкасту
 

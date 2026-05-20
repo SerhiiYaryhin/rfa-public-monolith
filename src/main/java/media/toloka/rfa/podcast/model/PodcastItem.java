@@ -3,6 +3,7 @@ package media.toloka.rfa.podcast.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -69,6 +70,7 @@ public class PodcastItem {
     @ElementCollection
 //    @ManyToOne(cascade = CascadeType.ALL)
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     @JoinColumn(name = "podcastchanneluuid")
     private PodcastChannel chanel;

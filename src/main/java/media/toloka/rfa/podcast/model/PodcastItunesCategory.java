@@ -3,6 +3,8 @@ package media.toloka.rfa.podcast.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -26,6 +28,8 @@ public class PodcastItunesCategory {
 
 //    @ElementCollection
 //    @ManyToOne(fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST,CascadeType.ALL})
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name = "podcast_channel_uuid")
     private PodcastChannel chanel;

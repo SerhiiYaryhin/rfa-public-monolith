@@ -123,14 +123,6 @@ public class EpisodeEditController {
 
         PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
         if (episode != null) {
-            // Перевіряємо власність через канал (uuid користувача у каналі)
-            PodcastChannel channel = episode.getChanel();
-            if (channel != null) {
-                // Видаляємо епізод з колекції каналу
-                channel.getItem().remove(episode);
-                podcastService.SavePodcast(channel);
-            }
-            // Видаляємо сам епізод (і опційно файл)
             podcastService.DeleteEpisode(episode, deleteFile);
             logger.info("Користувач видалив епізод: {}. Видалення файлу: {}", euuid, deleteFile);
         }

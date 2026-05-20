@@ -33,6 +33,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
@@ -227,11 +228,20 @@ public class PodcastService {
      * @param episode Об'єкт епізоду
      * @param deleteFile Якщо true - фізично видалити аудіофайл з диска
      */
+    @Transactional
     public void DeleteEpisode(PodcastItem episode, boolean deleteFile) {
         if (deleteFile && episode.getEnclosurestore() != null) {
             // Видаляємо фізичний файл та запис у Store
             storeService.DeleteInStore(episode.getEnclosurestore());
         }
+        
+        PodcastChannel channel = episode.getChanel();
+        if (channel != null) {
+            channel.getItem().remove(episode);
+            episode.setChanel(null);
+            chanelRepository.save(channel);
+        }
+        
         episodeRepository.delete(episode);
     }
 
