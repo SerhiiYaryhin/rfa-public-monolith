@@ -129,7 +129,7 @@ public class EpisodeEditController {
 
             Clientdetail cd = clientService.GetClientDetailByUser(user);
             if (cd == null) {
-                logger.warn("[CONTROLLER] Деталі клієнта не знайдені для користувача {}", user.getUsername());
+                logger.warn("[CONTROLLER] Деталі клієнта не знайдені для користувача {}", user.getEmail());
                 return "redirect:/";
             }
 
