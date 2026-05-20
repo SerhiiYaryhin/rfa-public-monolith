@@ -59,22 +59,25 @@ public class StoreSiteController  {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName}"})
+    @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
     public ResponseEntity<?> getStoreAudioToStream(
             @PathVariable("storeUUID") String storeUUID,
             @PathVariable(required = false) String fileName,
             @RequestHeader HttpHeaders headers
     ) {
         try {
+            logger.info("Запит на стрімінг аудіо. UUID: {}, FileName: {}", storeUUID, fileName);
             // 1. Шукаємо запис у базі даних
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
             if (storeRecord == null) {
+                logger.warn("Запис Store не знайдено для UUID: {}", storeUUID);
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
             // 2. Перевіряємо фізичну наявність файлу на диску
             File file = new File(storeRecord.getFilepatch());
             if (!file.exists()) {
+                logger.warn("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
@@ -95,6 +98,7 @@ public class StoreSiteController  {
                 return ResponseEntity.ok()
                         .contentType(mediaType)
                         .contentLength(file.length())
+                        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                         .body(resource);
             }
 
@@ -114,6 +118,7 @@ public class StoreSiteController  {
 
             return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
                     .contentType(mediaType)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .body(region);
 
         } catch (Exception e) {
@@ -166,7 +171,7 @@ public class StoreSiteController  {
 //    }
 
     //тимчасово продублював для верифікації RSS XML подкасту
-    @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName}")
+    @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName:.+}")
     public ResponseEntity<?> getStoreAudioToStreamWFN(
 //    public ResponseEntity<ResourceRegion> getStoreAudioToStreamWFN(
             @PathVariable("storeUUID") String storeUUID,
