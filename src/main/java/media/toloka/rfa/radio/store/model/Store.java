@@ -5,6 +5,7 @@ package media.toloka.rfa.radio.store.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import media.toloka.rfa.radio.model.Clientdetail;
 
