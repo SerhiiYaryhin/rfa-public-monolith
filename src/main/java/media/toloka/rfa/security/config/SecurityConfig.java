@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/home", "/register", "/saveUser", "/guest/**",
                                 "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/robot.txt",
-                                "/api/1.0/**", "/api/v1/auth/**", "/api/v1/dashboard", "/api/v1/columns/**", "/api/v1/podcasts/**", "/api/v1/tracks/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
+                                "/api/1.0/**", "/api/v1/auth/**", "/api/v1/dashboard", "/api/v1/columns/**", "/api/v1/podcasts/**", "/api/v1/tracks/**", "/api/v1/posts/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
                         ).permitAll()
                         
                         .requestMatchers(
