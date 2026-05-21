@@ -60,72 +60,126 @@ public class StoreSiteController  {
     private StoreService storeService;
 
     @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
-    public ResponseEntity<?> getStoreAudioToStream(
+    public ResponseEntity<Resource> getStoreAudioToStream(
             @PathVariable("storeUUID") String storeUUID,
             @PathVariable(required = false) String fileName,
             @RequestHeader HttpHeaders headers
     ) {
         try {
             logger.info("Запит на стрімінг аудіо. UUID: {}, FileName: {}", storeUUID, fileName);
+
             // 1. Шукаємо запис у базі даних
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
             if (storeRecord == null) {
                 logger.warn("Запис Store не знайдено для UUID: {}", storeUUID);
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
             }
 
             // 2. Перевіряємо фізичну наявність файлу на диску
             File file = new File(storeRecord.getFilepatch());
             if (!file.exists()) {
                 logger.warn("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
             }
 
-            Resource resource = new FileSystemResource(file);
-
-            // 3. Визначаємо MIME-тип (дефолт audio/mpeg для mp3)
+            // 3. Визначаємо MIME-тип
             String mimeType = storeRecord.getContentMimeType();
             if (mimeType == null || mimeType.isEmpty()) {
                 mimeType = "audio/mpeg";
             }
             MediaType mediaType = MediaType.parseMediaType(mimeType);
 
-            // 4. Перевіряємо, чи є в запиті заголовок Range від плеєра
-            List<HttpRange> ranges = headers.getRange();
-            if (ranges.isEmpty()) {
-                // Якщо плеєр не просить шматки (Range відсутній) — віддаємо весь файл цілком (200 OK)
-                logger.info("Віддача повного файлу для UUID: {}, розмір: {} байт", storeUUID, file.length());
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
-                        .contentLength(file.length())
-                        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                        .body(resource);
-            }
+            // 4. Огортаємо файл у Resource
+            Resource resource = new FileSystemResource(file);
 
-            // 5. Якщо плеєр запитав конкретний Range (Частковий контент 206)
-            long contentLength = resource.contentLength();
-            HttpRange range = ranges.get(0); // Беремо перший діапазон
-
-            long start = range.getRangeStart(contentLength);
-            long end = range.getRangeEnd(contentLength);
-
-            // ОБЧИСЛЕННЯ ДОВЖИНИ: віддаємо рівно стільки, скільки просить плеєр, без штучного ліміту в 1MB
-            long rangeLength = end - start + 1;
-
-            ResourceRegion region = new ResourceRegion(resource, start, rangeLength);
-
-            logger.info("Стрімінг шматка для UUID: {}. Діапазон: bytes {}-{}/{}", storeUUID, start, end, contentLength);
-
-            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                    .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+            // 5. Повертаємо ресурс. Spring Boot під капотом сам зчитає
+            // переданий `@RequestHeader HttpHeaders headers`, розпарсить Range
+            // та автоматично сформує правильну Partial Content (206) відповідь
+            // із заголовком Content-Range для плеєра.
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(region);
+                    .body(resource);
 
         } catch (Exception e) {
             logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+
+//    @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
+//    public ResponseEntity<?> getStoreAudioToStream(
+//            @PathVariable("storeUUID") String storeUUID,
+//            @PathVariable(required = false) String fileName,
+//            @RequestHeader HttpHeaders headers
+//    ) {
+//        try {
+//            logger.info("Запит на стрімінг аудіо. UUID: {}, FileName: {}", storeUUID, fileName);
+//            // 1. Шукаємо запис у базі даних
+//            Store storeRecord = storeService.GetStoreByUUID(storeUUID);
+//            if (storeRecord == null) {
+//                logger.warn("Запис Store не знайдено для UUID: {}", storeUUID);
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            }
+//
+//            // 2. Перевіряємо фізичну наявність файлу на диску
+//            File file = new File(storeRecord.getFilepatch());
+//            if (!file.exists()) {
+//                logger.warn("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            }
+//
+//            Resource resource = new FileSystemResource(file);
+//
+//            // 3. Визначаємо MIME-тип (дефолт audio/mpeg для mp3)
+//            String mimeType = storeRecord.getContentMimeType();
+//            if (mimeType == null || mimeType.isEmpty()) {
+//                mimeType = "audio/mpeg";
+//            }
+//            MediaType mediaType = MediaType.parseMediaType(mimeType);
+//
+//            // 4. Перевіряємо, чи є в запиті заголовок Range від плеєра
+//            List<HttpRange> ranges = headers.getRange();
+//            if (ranges.isEmpty()) {
+//                // Якщо плеєр не просить шматки (Range відсутній) — віддаємо весь файл цілком (200 OK)
+//                logger.info("Віддача повного файлу для UUID: {}, розмір: {} байт", storeUUID, file.length());
+//                return ResponseEntity.ok()
+//                        .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+//                        .contentLength(file.length())
+//                        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+//                        .body(resource);
+//            }
+//
+//            // 5. Якщо плеєр запитав конкретний Range (Частковий контент 206)
+//            long contentLength = resource.contentLength();
+//            HttpRange range = ranges.get(0); // Беремо перший діапазон
+//
+//            long start = range.getRangeStart(contentLength);
+//            long end = range.getRangeEnd(contentLength);
+//
+//            // ОБЧИСЛЕННЯ ДОВЖИНИ: віддаємо рівно стільки, скільки просить плеєр, без штучного ліміту в 1MB
+//            long rangeLength = end - start + 1;
+//
+//            ResourceRegion region = new ResourceRegion(resource, start, rangeLength);
+//
+//            logger.info("Стрімінг шматка для UUID: {}. Діапазон: bytes {}-{}/{}", storeUUID, start, end, contentLength);
+//            ResponseEntity<?> responseEntity = ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+//                    .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+//                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+//                    .body(region);
+//                return responseEntity;
+////            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+////                    .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+////                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+////                    .body(region);
+//
+//        } catch (Exception e) {
+//            logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage(), e);
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
 
 //    @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName}"})
