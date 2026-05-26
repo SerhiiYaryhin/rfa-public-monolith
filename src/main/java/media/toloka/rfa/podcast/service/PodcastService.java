@@ -354,7 +354,7 @@ public class PodcastService {
 
     public Page<PodcastItem> GetEpisodesByChanelPage(PodcastChannel chanel, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return episodeRepository.findByChanelOrderByPubDateDesc(chanel, pageable);
+        return episodeRepository.findByChanelAndPublishingTrueOrderByPubDateDesc(chanel, pageable);
     }
 
     public String GetEpisodeNumberComments(PodcastItem item) {

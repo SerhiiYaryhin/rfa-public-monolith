@@ -191,7 +191,13 @@
                             </td>
                             <td>
                                 <strong th:text="${item.title ?: 'Без назви'}">Назва</strong><br>
-                                <small class="text-muted" th:if="${item.enclosurestore}" th:text="${item.enclosurestore.filename}"></small>
+                                <small class="text-muted" th:if="${item.enclosurestore}" th:text="${item.enclosurestore.filename}"></small><br>
+                                <span th:if="${item.publishing}" class="badge bg-success-subtle text-success border border-success-subtle small mt-1">
+                                    <i class="fas fa-check-circle me-1"></i> Опубліковано
+                                </span>
+                                <span th:unless="${item.publishing}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle small mt-1">
+                                    <i class="fas fa-eye-slash me-1"></i> Приховано
+                                </span>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark rounded-pill border">

@@ -134,7 +134,9 @@ public class RSSXMLService {
 
         // заповнюємо епізоди
         for (PodcastItem item : podcastItems) {
-            channel.appendChild(AddItem(item));
+            if (item.getPublishing() != null && item.getPublishing()) {
+                channel.appendChild(AddItem(item));
+            }
         }
 
         rootRSS.appendChild(channel);

@@ -60,11 +60,16 @@ public class PodcastItem {
     @Expose
     private Long looked = 0L; // скільки разів подивилися
 
-//    @OneToOne(cascade = {CascadeType.ALL})
+    @Expose
+    private Boolean publishing = false; // опубліковано автором
+    @Expose
+    @DateTimeFormat(pattern = "dd-MM-yy")
+    private Date datepublish = null; // дата публікації епізоду
+
     // аудіофайл подкасту
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "enclosure_store")
     private Store enclosurestore;
 

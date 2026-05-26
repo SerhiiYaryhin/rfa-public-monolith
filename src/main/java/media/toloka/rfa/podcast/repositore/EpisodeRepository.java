@@ -22,6 +22,7 @@ public interface EpisodeRepository
     PodcastItem save(PodcastItem episode);
 
     Page<PodcastItem> findByChanelOrderByPubDateDesc(PodcastChannel chanel, Pageable pageable);
+    Page<PodcastItem> findByChanelAndPublishingTrueOrderByPubDateDesc(PodcastChannel chanel, Pageable pageable);
 
     List<PodcastItem> findByClientdetailOrderByIdDesc(Clientdetail cd);
     List<PodcastItem> findByClientdetailOrderByIdDesc(String cduuid);

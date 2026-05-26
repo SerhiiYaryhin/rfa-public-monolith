@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Толока - Аудіо епізоду</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link th:rel="stylesheet" th:href="@{/css/dropzone.min.css}"/>
+    <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
+</head>
+<body class="bg-light">
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
+</header>
+
+<div class="container py-5" style="padding-top: 120px !important;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{'/podcast/episodeedit/'+${podcast.uuid}+'/'+${episode.uuid}}">Редагування епізоду</a></li>
+                    <li class="breadcrumb-item active">Завантаження аудіо</li>
+                </ol>
+            </nav>
+
+            <div class="card border-primary shadow-sm mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-audio me-2"></i>Завантажити аудіофайл для епізоду</h5>
+                </div>
+                <div class="card-body p-5">
+                    <div id="dropzone">
+                        <form action="/api/store/upload?type=STORE_EPISODETRACK" class="dropzone needsclick" id="episode-audio-upload" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="dz-message needsclick">
+                                <button type="button" class="dz-button">
+                                    <i class="fas fa-microphone-alt fa-4x mb-3 text-primary"></i><br>
+                                    <span class="fs-5">Перетягніть аудіофайл сюди або натисніть для вибору.</span><br>
+                                    <small class="text-muted text-uppercase">Файл буде автоматично прив'язаний до епізоду після завантаження</small>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a th:href="@{'/podcast/episodeedit/'+${podcast.uuid}+'/'+${episode.uuid}}" class="btn btn-secondary px-5">
+                    <i class="fas fa-arrow-left me-2"></i> Повернутися до епізоду
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:insert="~{/fragments/common :: footer}"></div>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dropzone.min.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+
+<script th:inline="javascript">
+    Dropzone.autoDiscover = false;
+    const episodeUuid = [[${episode.uuid}]];
+    const csrfHeader = [[${_csrf.headerName}]];
+    const csrfToken = [[${_csrf.token}]];
+
+    $(document).ready(function() {
+        $("#episode-audio-upload").dropzone({
+            maxFiles: 1,
+            acceptedFiles: "audio/*",
+            headers: {
+                [csrfHeader]: csrfToken
+            },
+            success : function(file, response) {
+                if (response && response.success) {
+                    toastr.info('Файл завантажено. Привʼязуємо до епізоду...');
+                    $.ajax({
+                        url: "/podcast/link/episode-audio-link/" + episodeUuid,
+                        type: "POST",
+                        headers: { [csrfHeader]: csrfToken },
+                        data: { storeUuid: response.uuid },
+                        success: function(res) {
+                            if (res.success) {
+                                toastr.success('Аудіо успішно привʼязано!');
+                                setTimeout(() => {
+                                    window.location.href = '/podcast/episodeedit/[[${podcast.uuid}]]/' + episodeUuid;
+                                }, 1500);
+                            } else {
+                                toastr.error('Помилка привʼязки: ' + (res.error || 'Невідома помилка'));
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error('Помилка сервера при привʼязці (Статус: ' + xhr.status + ')');
+                        }
+                    });
+                } else {
+                    toastr.error('Помилка завантаження: ' + (response.error || response));
+                    this.removeFile(file);
+                }
+            },
+            error: function(file, message) {
+                const errorMsg = message.error || (typeof message === 'string' ? message : 'Помилка завантаження');
+                toastr.error('Помилка: ' + errorMsg);
+                this.removeFile(file);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

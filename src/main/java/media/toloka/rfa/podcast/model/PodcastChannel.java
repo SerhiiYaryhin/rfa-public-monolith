@@ -70,7 +70,7 @@ public class PodcastChannel {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "chanel", orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
     private List<PodcastItem> item = new ArrayList<>(); // перелік епізодів
 
     @ToString.Exclude

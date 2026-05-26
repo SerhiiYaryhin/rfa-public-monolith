@@ -116,5 +116,30 @@ public class PodcastDropGetFileController {
         return "/podcast/podcastcoverupload";
     }
 
+    @GetMapping("/podcast/audioupload/{puuid}/{euuid}")
+    public String PodcastDropGetAudioEpisode (
+            @PathVariable String puuid,
+            @PathVariable String euuid,
+            Model model
+    ) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+
+        PodcastChannel podcast = podcastService.GetChanelByUUID(puuid);
+        PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
+        
+        if (podcast == null || episode == null) {
+            model.addAttribute("warning", "Подкаст або епізод не знайдено.");
+            return "redirect:/podcast/home";
+        }
+
+        model.addAttribute("podcast", podcast);
+        model.addAttribute("episode", episode);
+        return "/podcast/podcastaudioupload";
+    }
+
 }
 
