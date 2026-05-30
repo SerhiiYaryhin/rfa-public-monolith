@@ -21,7 +21,7 @@ public interface EpisodeRepository
     List<PodcastItem> findByImagestoreitem(Store store);
     PodcastItem save(PodcastItem episode);
 
-    Page<PodcastItem> findByChanelOrderByDateDesc(PodcastChannel chanel, Pageable pageable);
+    Page<PodcastItem> findByChanelOrderByPubDateDesc(PodcastChannel chanel, Pageable pageable);
 
     List<PodcastItem> findByClientdetailOrderByIdDesc(Clientdetail cd);
     List<PodcastItem> findByClientdetailOrderByIdDesc(String cduuid);

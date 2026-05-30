@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/podcast/link")
@@ -57,7 +58,30 @@ public class PodcastFileLinkController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    // Прив'язка аудіофайлу до епізоду
+    // Прив'язка аудіофайлу до існуючого епізоду
+    @PostMapping("/episode-audio-link/{euuid}")
+    public ResponseEntity<?> linkAudioToExistingEpisode(@PathVariable String euuid, @RequestParam String storeUuid) {
+        PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
+        PodcastChannel chanel = podcastService.GetChanelByUUID(storeUuid);
+        Store store = storeService.GetStoreByUUID(storeUuid); // з якого дива ми подкаст витягуємо зі сховища?
+
+        if (episode == null || chanel == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Episode or Store item not found"));
+        }
+
+        try {
+            episode.setStoreuuid(storeUuid);
+            episode.setEnclosurestore(store);
+            episode.setTimetrack(podcastService.GetTimeTrack(storeUuid));
+            podcastService.SaveEpisode(episode);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error linking audio: " + e.getMessage()));
+        }
+    }
+
+    // Прив'язка аудіофайлу до подкасту (створення нового епізоду)
     @PostMapping("/episode-audio/{puuid}")
     public ResponseEntity<?> linkAudioToEpisode(@PathVariable String puuid, @RequestParam String storeUuid) {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
@@ -69,7 +93,7 @@ public class PodcastFileLinkController {
         Store store = storeService.GetStoreByUUID(storeUuid);
 
         if (podcast == null || store == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Podcast or Store item not found"));
         }
 
         // Перевірка: чи вже існує епізод з таким файлом у цьому подкасті
@@ -77,19 +101,25 @@ public class PodcastFileLinkController {
                 .anyMatch(item -> item.getStoreuuid() != null && item.getStoreuuid().equals(storeUuid));
 
         if (exists) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Episode with this audio file already exists"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Episode with this audio file already exists in this podcast"));
         }
 
-        PodcastItem episode = new PodcastItem();
-        episode.setChanel(podcast);
-        episode.setStoreuuid(storeUuid);
-        episode.setEnclosurestore(store);
-        episode.setClientdetail(cd.getUuid());
-        episode.setTimetrack(podcastService.GetTimeTrack(storeUuid));
-        
-        podcast.getItem().add(episode);
-        podcastService.SavePodcast(podcast);
+        try {
+            PodcastItem episode = new PodcastItem();
+            episode.setChanel(podcast);
+            episode.setStoreuuid(storeUuid);
+            episode.setEnclosurestore(store);
+            episode.setClientdetail(cd.getUuid());
+            episode.setTimetrack(podcastService.GetTimeTrack(storeUuid));
+            episode.setUuid(UUID.randomUUID().toString());
+            
+            podcast.getItem().add(episode);
+            podcastService.SavePodcast(podcast);
 
-        return ResponseEntity.ok(Map.of("success", true, "episodeUuid", episode.getUuid()));
+            return ResponseEntity.ok(Map.of("success", true, "episodeUuid", episode.getUuid()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error creating episode: " + e.getMessage()));
+        }
     }
 }

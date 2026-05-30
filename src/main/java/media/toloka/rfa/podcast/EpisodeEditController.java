@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Date;
 import java.util.List;
 
 @Profile("Front")
@@ -110,6 +111,51 @@ public class EpisodeEditController {
         }
 
         return "redirect:/podcast/episodeedit/" + episode.getChanel().getUuid() + "/" + episode.getUuid();
+    }
+
+    /** Публікація або зняття з публікації епізоду */
+    @PostMapping(value = "/podcast/episodepublish")
+    public String EpisodePublish(
+            @ModelAttribute PodcastItem episode,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        if (cd == null) return "redirect:/";
+
+        PodcastItem tEpisode = podcastService.GetEpisodeByUUID(episode.getUuid());
+        if (tEpisode == null) return "redirect:/podcast/home";
+
+
+        PodcastChannel channel = podcastService.GetChanelByUUID(tEpisode.getChanel().getUuid());
+//        PodcastChannel channel = tEpisode.getChanel();
+
+        // Перевірка прав: тільки власник і тільки якщо подкаст схвалений адміном
+        String cdt1 = channel.getClientdetail();
+        String cdt2 = cd.getUuid();
+        if (channel != null && cdt1.equals(cdt2) && channel.getApruve()) {
+//        if (channel != null && channel.getClientdetail().equals(cd.getUuid()) && channel.getApruve()) {
+//        if (channel != null && cdt.getUuid().equals(cd.getUuid()) && channel.getApruve()) {
+            if (tEpisode.getPublishing() != null) {
+                if (!tEpisode.getPublishing()) {
+                    tEpisode.setPublishing(true);
+                    tEpisode.setDatepublish(new Date());
+                } else {
+                    tEpisode.setPublishing(false);
+                }
+            } else {
+                tEpisode.setPublishing(true);
+                tEpisode.setDatepublish(new Date());
+            }
+
+            podcastService.SaveEpisode(tEpisode);
+            logger.info("Користувач {} змінив статус публікації епізоду {} на {}", cd.getUuid(), tEpisode.getUuid(), tEpisode.getPublishing());
+        } else {
+            logger.warn("Спроба публікації епізоду {} без прав або в несхваленому подкасті", tEpisode.getUuid());
+        }
+
+        return "redirect:/podcast/episodeedit/" + channel.getUuid() + "/" + tEpisode.getUuid();
     }
 
     /** Видалення епізоду подкасту */
