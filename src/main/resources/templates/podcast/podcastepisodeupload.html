@@ -108,7 +108,7 @@
         success : function(file, response) {
             if (response && response.success) {
                 toastr.info('Файл завантажено. Привʼязуємо до подкасту...');
-                
+
                 $.ajax({
                     url: "/podcast/link/episode-audio/" + podcastUuid,
                     type: "POST",
@@ -120,6 +120,7 @@
                             setTimeout(() => location.reload(), 1500);
                         } else {
                             toastr.error('Помилка привʼязки: ' + (res.error || 'Невідома помилка'));
+                            setTimeout(() => location.reload(), 1500);
                         }
                     },
                     error: function(xhr) {
