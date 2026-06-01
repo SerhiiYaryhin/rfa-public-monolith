@@ -92,7 +92,7 @@ public class PodcastItem {
     @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "imagestoreuuid")
-    private Store imagestoreitem;
+    private Store imagestoreitem; 
 
     // тимчасове поле. PodcastImage буде видалено
 //    @ElementCollection
