@@ -200,10 +200,12 @@ public class CreaterService {
         return trackRepository.findByApruveTrueAndPublishstatusTrueOrderByUploaddateDesc(pageable);
     }
 
-    /** Отримати лише публічні пости (схвалені та не видалені) */
+    /** Отримати лише публічні пости (схвалені, не видалені та не протерміновані) */
     public Page<Post> GetPublicPostsPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return postRepositore.findByApruveTrueAndPostStatusNotOrderByPublishdateDesc(pageable, media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_DELETE);
+        return postRepositore.findPublicPosts(pageable, 
+                media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_DELETE, 
+                new java.util.Date());
     }
 
     public Page GetPostPage(int pageNumber, int pageCount) {

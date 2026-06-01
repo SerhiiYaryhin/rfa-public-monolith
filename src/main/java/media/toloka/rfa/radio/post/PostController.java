@@ -268,6 +268,44 @@ public class PostController {
         return "redirect:/creater/home";
     }
 
+    @GetMapping(value = "/creater/withdrawpost/{uuidPost}")
+    public String postCreaterWithdrawPost(
+            @PathVariable String uuidPost,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        Post post = postService.GetPostByUuid(uuidPost);
+        if (post != null) {
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого відклику посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            // Переводимо назад у статус чернетки (READY), але скидаємо схвалення
+            post.setPostStatus(EPostStatus.POSTSTATUS_REDY);
+            post.setApruve(false);
+            postService.SavePost(post);
+        }
+        return "redirect:/creater/home";
+    }
+
+    @GetMapping(value = "/creater/unpublishpost/{uuidPost}")
+    public String postCreaterUnpublishPost(
+            @PathVariable String uuidPost,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        Post post = postService.GetPostByUuid(uuidPost);
+        if (post != null) {
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого зняття з публікації посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            // Знімаємо з публікації - повертаємо статус READY та apruve = false
+            post.setPostStatus(EPostStatus.POSTSTATUS_REDY);
+            post.setApruve(false);
+            postService.SavePost(post);
+        }
+        return "redirect:/creater/home";
+    }
+
     @GetMapping(value = "/post/setpostimage/{uuidpost}/{storeitemuuid}")
     public String SetPostMainImage(
             @PathVariable String uuidpost,

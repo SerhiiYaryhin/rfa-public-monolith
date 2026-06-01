@@ -29,6 +29,12 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
 
     Post getByUuid(String postUuid);
 
+    /** Отримати лише схвалені пости для публічного перегляду, виключаючи видалені та протерміновані */
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Post p WHERE p.apruve = true AND p.postStatus != :status " +
+            "AND (p.enddate IS NULL OR p.enddate > :now) " +
+            "ORDER BY p.publishdate DESC")
+    Page<Post> findPublicPosts(Pageable pageable, @org.springframework.data.repository.query.Param("status") media.toloka.rfa.radio.model.enumerate.EPostStatus status, @org.springframework.data.repository.query.Param("now") java.util.Date now);
+
     /** Отримати лише схвалені пости для публічного перегляду, виключаючи видалені */
     Page<Post> findByApruveTrueAndPostStatusNotOrderByPublishdateDesc(Pageable pageable, media.toloka.rfa.radio.model.enumerate.EPostStatus status);
 

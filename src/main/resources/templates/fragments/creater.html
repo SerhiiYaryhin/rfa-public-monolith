@@ -165,9 +165,12 @@
         <tr th:each="post : ${viewList}" th:classappend="${post.apruve != true} ? 'bg-light'">
             <td>
                 <strong th:text="${post.posttitle}"></strong><br>
-                <span th:text="${post.postStatus.label}" 
-                      th:class="${post.apruve == true} ? 'badge bg-success' : 'badge bg-warning text-dark'"></span>
-                <span th:if="${post.apruve != true}" class="small text-muted ms-2">Очікує модерації</span>
+                <!-- Статус-бедж -->
+                <span th:if="${post.postStatus.name() == 'POSTSTATUS_PUBLICATE' && post.apruve == true}" class="badge bg-success">Опубліковано</span>
+                <span th:if="${post.postStatus.name() == 'POSTSTATUS_REQUEST'}" class="badge bg-warning text-dark">На модерації</span>
+                <span th:if="${post.postStatus.name() == 'POSTSTATUS_REDY' && post.apruve == false}" class="badge bg-secondary">Чернетка</span>
+                <span th:if="${post.postStatus.name() == 'POSTSTATUS_REJECT'}" class="badge bg-danger">Відхилено</span>
+                <span th:if="${post.postStatus.name() == 'POSTSTATUS_DELETE'}" class="badge bg-dark">Видалено</span>
             </td>
             <td>
                 <span class="badge bg-secondary rounded-pill">
@@ -182,14 +185,30 @@
             </td>
             <td class="text-end">
                 <div class="btn-group">
-                    <a th:if="${post.apruve != true}" class="btn btn-outline-success btn-sm" th:href="@{'/creater/publishpost/'+${post.uuid} }" title="Опублікувати">
+                    <!-- Опублікувати (якщо чернетка або відхилено) -->
+                    <a th:if="${post.postStatus.name() == 'POSTSTATUS_REDY' || post.postStatus.name() == 'POSTSTATUS_REJECT'}" 
+                       class="btn btn-outline-success btn-sm" th:href="@{'/creater/publishpost/'+${post.uuid} }" title="Подати на модерацію">
                         <i class="fas fa-upload"></i>
                     </a>
+                    
+                    <!-- Відкликати (якщо на модерації) -->
+                    <a th:if="${post.postStatus.name() == 'POSTSTATUS_REQUEST'}" 
+                       class="btn btn-outline-warning btn-sm" th:href="@{'/creater/withdrawpost/'+${post.uuid} }" title="Відкликати з модерації">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                    
+                    <!-- Зняти з публікації (якщо опубліковано) -->
+                    <a th:if="${post.postStatus.name() == 'POSTSTATUS_PUBLICATE' && post.apruve == true}" 
+                       class="btn btn-outline-secondary btn-sm" th:href="@{'/creater/unpublishpost/'+${post.uuid} }" title="Зняти з публікації">
+                        <i class="fas fa-eye-slash"></i>
+                    </a>
+
                     <a class="btn btn-outline-primary btn-sm" th:href="@{'/creater/editpost/'+${post.uuid} }" title="Редагувати">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <a class="btn btn-outline-danger btn-sm" th:href="@{'/creater/delpost/'+${post.uuid} }" 
-                       onclick="return confirm('Видалити цей пост назавжди?')" title="Видалити">
+                    <a th:if="${post.postStatus.name() != 'POSTSTATUS_DELETE'}" 
+                       class="btn btn-outline-danger btn-sm" th:href="@{'/creater/delpost/'+${post.uuid} }" 
+                       onclick="return confirm('Видалити цей пост? (Його можна буде відновити через адмін-панель)')" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </a>
                 </div>
