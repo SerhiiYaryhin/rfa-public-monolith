@@ -127,15 +127,28 @@ public class EpisodeEditController {
         PodcastItem tEpisode = podcastService.GetEpisodeByUUID(episode.getUuid());
         if (tEpisode == null) return "redirect:/podcast/home";
 
-        PodcastChannel channel = tEpisode.getChanel();
+
+        PodcastChannel channel = podcastService.GetChanelByUUID(tEpisode.getChanel().getUuid());
+//        PodcastChannel channel = tEpisode.getChanel();
+
         // Перевірка прав: тільки власник і тільки якщо подкаст схвалений адміном
-        if (channel != null && channel.getClientdetail().equals(cd.getUuid()) && channel.getApruve()) {
-            if (!tEpisode.getPublishing()) {
+        String cdt1 = channel.getClientdetail();
+        String cdt2 = cd.getUuid();
+        if (channel != null && cdt1.equals(cdt2) && channel.getApruve()) {
+//        if (channel != null && channel.getClientdetail().equals(cd.getUuid()) && channel.getApruve()) {
+//        if (channel != null && cdt.getUuid().equals(cd.getUuid()) && channel.getApruve()) {
+            if (tEpisode.getPublishing() != null) {
+                if (!tEpisode.getPublishing()) {
+                    tEpisode.setPublishing(true);
+                    tEpisode.setDatepublish(new Date());
+                } else {
+                    tEpisode.setPublishing(false);
+                }
+            } else {
                 tEpisode.setPublishing(true);
                 tEpisode.setDatepublish(new Date());
-            } else {
-                tEpisode.setPublishing(false);
             }
+
             podcastService.SaveEpisode(tEpisode);
             logger.info("Користувач {} змінив статус публікації епізоду {} на {}", cd.getUuid(), tEpisode.getUuid(), tEpisode.getPublishing());
         } else {

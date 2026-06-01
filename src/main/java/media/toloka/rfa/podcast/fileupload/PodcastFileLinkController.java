@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/podcast/link")
@@ -61,9 +62,10 @@ public class PodcastFileLinkController {
     @PostMapping("/episode-audio-link/{euuid}")
     public ResponseEntity<?> linkAudioToExistingEpisode(@PathVariable String euuid, @RequestParam String storeUuid) {
         PodcastItem episode = podcastService.GetEpisodeByUUID(euuid);
-        Store store = storeService.GetStoreByUUID(storeUuid);
+        PodcastChannel chanel = podcastService.GetChanelByUUID(storeUuid);
+        Store store = storeService.GetStoreByUUID(storeUuid); // з якого дива ми подкаст витягуємо зі сховища?
 
-        if (episode == null || store == null) {
+        if (episode == null || chanel == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Episode or Store item not found"));
         }
 
@@ -109,6 +111,7 @@ public class PodcastFileLinkController {
             episode.setEnclosurestore(store);
             episode.setClientdetail(cd.getUuid());
             episode.setTimetrack(podcastService.GetTimeTrack(storeUuid));
+            episode.setUuid(UUID.randomUUID().toString());
             
             podcast.getItem().add(episode);
             podcastService.SavePodcast(podcast);
