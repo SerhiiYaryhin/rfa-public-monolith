@@ -7,6 +7,8 @@ import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.store.model.Store;
+import media.toloka.rfa.security.model.ERole;
+import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,47 @@ public class StoreService extends StoreFileImplementation {
 
     @Autowired
     private FilesService filesService;
+
+    public boolean canUserAccessStoreItem(Store store, Users user) {
+        if (store == null) return false;
+
+        // Публічні типи контенту доступні всім
+        EStoreFileType type = store.getStorefiletype();
+        if (type == STORE_POSTCOVER ||
+                type == STORE_PODCASTCOVER ||
+                type == STORE_ALBUMCOVER ||
+                type == STORE_BANNERIMAGE ||
+                type == STORE_PHOTO) {
+            return true;
+        }
+
+        // Для іншого контенту потрібна авторизація
+        if (user == null) return false;
+
+        // Власник завжди має доступ
+        if (store.getClientdetail() != null &&
+                store.getClientdetail().getUser() != null &&
+                store.getClientdetail().getUser().getId().equals(user.getId())) {
+            return true;
+        }
+
+        // Адмін-ролі мають доступ до всього
+        for (media.toloka.rfa.security.model.Roles role : user.getRoles()) {
+            ERole eRole = role.getRole();
+            if (eRole == ERole.ROLE_ADMIN ||
+                    eRole == ERole.ROLE_EDITOR ||
+                    eRole == ERole.ROLE_MODERATOR) {
+                return true;
+            }
+        }
+
+        // Додаткова логіка: Треки та Епізоди доступні всім (але можна посилити перевіркою apruve у Track)
+        if (type == STORE_TRACK || type == STORE_EPISODETRACK || type == STORE_TTS) {
+            return true;
+        }
+
+        return false;
+    }
 
     public List<Store> GetAllByClientId(Clientdetail cd) {
         return storeRepositore.findAllByClientdetail(cd);

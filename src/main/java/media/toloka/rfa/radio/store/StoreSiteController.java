@@ -1,44 +1,29 @@
 package media.toloka.rfa.radio.store;
-// https://paulcwarren.github.io/spring-content/refs/release/1.2.4/fs-index.html
-
 
 import jakarta.servlet.http.HttpServletResponse;
 import media.toloka.rfa.radio.store.Service.StoreService;
-import media.toloka.rfa.radio.store.model.EStoreFileType;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
-import media.toloka.rfa.radio.model.Clientdetail;
-import org.apache.commons.io.FileUtils;
+import media.toloka.rfa.security.model.Users;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.imgscalr.Scalr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-//import org.apache.commons.io.IOUtils
-
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
-import org.imgscalr.Scalr;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.imageio.ImageIO;
-
-import static org.springframework.http.HttpHeaders.ACCEPT_RANGES;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
 @CrossOrigin
 @Profile("Front")
@@ -59,6 +44,41 @@ public class StoreSiteController  {
     @Autowired
     private StoreService storeService;
 
+    /**
+     * Спільний метод для безпечної передачі файлів через стрім
+     */
+    private ResponseEntity<StreamingResponseBody> streamFile(Store store, Users user) {
+        if (store == null) return ResponseEntity.notFound().build();
+
+        if (!storeService.canUserAccessStoreItem(store, user)) {
+            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}", 
+                store.getUuid(), user != null ? user.getEmail() : "anonymous");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        File file = new File(store.getFilepatch());
+        if (!file.exists()) return ResponseEntity.notFound().build();
+
+        String mimeType = store.getContentMimeType();
+        if (mimeType == null || mimeType.isEmpty()) mimeType = "application/octet-stream";
+
+        String finalMimeType = mimeType;
+        StreamingResponseBody responseBody = outputStream -> {
+            try (InputStream inputStream = new FileInputStream(file)) {
+                IOUtils.copy(inputStream, outputStream);
+                outputStream.flush();
+            } catch (IOException e) {
+                logger.error("Помилка при стрімінгу файлу {}: {}", store.getUuid(), e.getMessage());
+            }
+        };
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, finalMimeType)
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + store.getFilename() + "\"")
+                .body(responseBody);
+    }
+
     @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
     public ResponseEntity<Resource> getStoreAudioToStream(
             @PathVariable("storeUUID") String storeUUID,
@@ -66,54 +86,38 @@ public class StoreSiteController  {
             @RequestHeader HttpHeaders headers
     ) {
         try {
-            logger.info("Запит на стрімінг аудіо. UUID: {}, FileName: {}", storeUUID, fileName);
-
-            // 1. Шукаємо запис у базі даних
+            Users user = clientService.GetCurrentUser();
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-            if (storeRecord == null) {
-                logger.warn("Запис Store не знайдено для UUID: {}", storeUUID);
-                return ResponseEntity.notFound().build();
+            
+            if (storeRecord == null) return ResponseEntity.notFound().build();
+
+            // Перевірка прав доступу
+            if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+                logger.warn("Несанкціонована спроба стрімінгу аудіо {}: {}", storeUUID, user != null ? user.getEmail() : "anonymous");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
-            // 2. Перевіряємо фізичну наявність файлу на диску
             File file = new File(storeRecord.getFilepatch());
-            if (!file.exists()) {
-                logger.warn("Файл не знайдено на диску: {}", storeRecord.getFilepatch());
-                return ResponseEntity.notFound().build();
-            }
+            if (!file.exists()) return ResponseEntity.notFound().build();
 
-            // 3. Визначаємо MIME-тип
             String mimeType = storeRecord.getContentMimeType();
-            if (mimeType == null || mimeType.isEmpty()) {
-                mimeType = "audio/mpeg";
-            }
-            MediaType mediaType = MediaType.parseMediaType(mimeType);
-
-            // 4. Огортаємо файл у Resource
+            if (mimeType == null || mimeType.isEmpty()) mimeType = "audio/mpeg";
+            
             Resource resource = new FileSystemResource(file);
 
-            // 5. Повертаємо ресурс. Spring Boot під капотом сам зчитає
-            // переданий `@RequestHeader HttpHeaders headers`, розпарсить Range
-            // та автоматично сформує правильну Partial Content (206) відповідь
-            // із заголовком Content-Range для плеєра.
             return ResponseEntity.ok()
-                    .contentType(mediaType)
+                    .contentType(MediaType.parseMediaType(mimeType))
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .body(resource);
 
         } catch (Exception e) {
-            logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage(), e);
+            logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-
-
-
-    //тимчасово продублював для верифікації RSS XML подкасту
     @GetMapping(value = "/podcast/audio/{storeUUID}/{fileName:.+}")
     public ResponseEntity<?> getStoreAudioToStreamWFN(
-//    public ResponseEntity<ResourceRegion> getStoreAudioToStreamWFN(
             @PathVariable("storeUUID") String storeUUID,
             @PathVariable String fileName,
             @RequestHeader HttpHeaders headers
@@ -121,291 +125,91 @@ public class StoreSiteController  {
         return getStoreAudioToStream(storeUUID, fileName, headers);
     }
 
-    @GetMapping(value = "/store/img/{clientUUID}/{fileName}",
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public @ResponseBody byte[] getStoreImage(
-            @PathVariable String clientUUID,
-            @PathVariable String fileName,
-            Model model ) {
-        Clientdetail cd = clientService.GetClientDetailByUuid(clientUUID);
-//        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        // todo Прибрати роботу з ресурсами і зробити звичайну роботу з файлами.
-        String ifile = filesService.GetBaseClientDirectory(cd)+"/"+fileName;
-        InputStream is;
-        try {
-            is = new FileInputStream(new File(ifile));
-            if (is == null) {
-                return new byte[0];
-            }
-            byte[] buffer = is.readAllBytes();
-            return buffer;
-        } catch (FileNotFoundException e) {
-            logger.info("getStoreAudio: Йой! FileNotFoundException! {}",ifile);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",ifile);
-            e.printStackTrace();
-            return null;
-        }
-        return null;
-    }
-
-    @GetMapping(value = "/store/thrumbal/{storeUUID}/{fileName}",
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public @ResponseBody byte[] getStoreThrumbal(
+    @GetMapping(value = "/store/thrumbal/{storeUUID}/{fileName}")
+    public ResponseEntity<StreamingResponseBody> getStoreThrumbal(
             @PathVariable String storeUUID,
-            @PathVariable String fileName,
-            Model model ) {
-        // https://medium.com/@asadise/create-thumbnail-for-an-image-in-spring-framework-49776c873ea1
-        // http://localhost:8080/store/thrumbal/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        InputStream is;
+            @PathVariable String fileName) {
+        
+        Users user = clientService.GetCurrentUser();
+        Store storeRecord = storeService.GetStoreByUUID(storeUUID);
+        
+        if (storeRecord == null) return ResponseEntity.notFound().build();
+        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-        OutputStream os;
-
-        BufferedImage thumbImg = null;
-        BufferedImage img;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Store storeRecord;
-        storeRecord = storeService.GetStoreByUUID(storeUUID);
-        try {
-//            storeRecord = storeService.GetStoreByUUID(storeUUID);
-            String ifile = storeRecord.getFilepatch();
-            is = new FileInputStream(new File(ifile));
-            if (is == null) {
-                return new byte[0];
+        StreamingResponseBody responseBody = outputStream -> {
+            try (InputStream is = new FileInputStream(new File(storeRecord.getFilepatch()))) {
+                BufferedImage img = ImageIO.read(is);
+                if (img != null) {
+                    BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 320, Scalr.OP_ANTIALIAS);
+                    String ext = FilenameUtils.getExtension(storeRecord.getFilename());
+                    ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
+                    outputStream.flush();
+                }
+            } catch (IOException e) {
+                logger.error("Помилка генерації мініатюри для {}: {}", storeUUID, e.getMessage());
             }
-             img = ImageIO.read(is);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",storeRecord.getFilepatch());
-//            logger.info("Проблеми з файлом: {}",ifile);
-//
-//            e.printStackTrace();
-            return null;
-        }
-        thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 320, Scalr.OP_ANTIALIAS);
-        try {
-            ImageIO.write(thumbImg, FilenameUtils.getExtension(storeRecord.getFilename()), baos);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",storeRecord.getFilepatch());
+        };
 
-//            e.printStackTrace();
-            return null;
-        }
-        byte[] bytes = baos.toByteArray();
-        return bytes;
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(responseBody);
     }
 
-    @GetMapping(value = "/store/thrumbal/w/{width}/{storeUUID}/{fileName}",
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public @ResponseBody byte[] getStoreThrumbalWidth(
+    @GetMapping(value = "/store/thrumbal/w/{width}/{storeUUID}/{fileName}")
+    public ResponseEntity<StreamingResponseBody> getStoreThrumbalWidth(
             @PathVariable String storeUUID,
             @PathVariable int width,
-            @PathVariable String fileName,
-            Model model ) {
-        // https://medium.com/@asadise/create-thumbnail-for-an-image-in-spring-framework-49776c873ea1
-        // http://localhost:8080/store/thrumbal/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
+            @PathVariable String fileName) {
+        
+        Users user = clientService.GetCurrentUser();
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
+        
+        if (storeRecord == null) return ResponseEntity.notFound().build();
+        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-        Clientdetail cd = clientService.GetClientDetailByUuid(storeRecord.getClientdetail().getUuid());
-//        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        InputStream is;
-
-        OutputStream os;
-
-        BufferedImage thumbImg = null;
-        BufferedImage img;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        // беремо шлях до файлу зі сторе
-        String filePatch = storeRecord.getFilepatch();
-        try {
-            is = new FileInputStream(new File(filePatch));
-            if (is == null) {
-                return new byte[0];
+        StreamingResponseBody responseBody = outputStream -> {
+            try (InputStream is = new FileInputStream(new File(storeRecord.getFilepatch()))) {
+                BufferedImage img = ImageIO.read(is);
+                if (img != null) {
+                    BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
+                    String ext = FilenameUtils.getExtension(fileName);
+                    ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
+                    outputStream.flush();
+                }
+            } catch (IOException e) {
+                logger.error("Помилка генерації мініатюри (w={}) для {}: {}", width, storeUUID, e.getMessage());
             }
-            img = ImageIO.read(is);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",storeRecord.getFilepatch());
-//            e.printStackTrace();
-            return null;
-        }
-        thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
-        try {
-            ImageIO.write(thumbImg, FilenameUtils.getExtension(fileName), baos);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",storeRecord.getFilepatch());
-//            e.printStackTrace();
-            return null;
-        }
-        byte[] bytes = baos.toByteArray();
-        return bytes;
+        };
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(responseBody);
     }
 
-// ==================== Пробуємо завантажити документ
-
-    @GetMapping(value = "/store/document/{storeUUID}"     )
-    public @ResponseBody byte[] getStoreDoc(
-            @PathVariable String storeUUID,
-//            @PathVariable String fileName,
-            HttpServletResponse response,
-            Model model ) {
-        Store storeObject = storeService.GetStoreByUUID(storeUUID);
-//        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        String mimeType = storeObject.getContentMimeType();
-        if (mimeType == null || mimeType.isEmpty()) {
-            mimeType = "application/octet-stream";
-        }
-        response.setContentType(mimeType);
-        response.setContentLength(storeObject.getFilelength().intValue());
-        String ifile = storeObject.getFilepatch();
-        InputStream is;
-        try {
-            is = new FileInputStream(new File(ifile));
-            if (is == null) {
-                return new byte[0];
-            }
-            byte[] buffer = is.readAllBytes();
-            return buffer;
-        } catch (FileNotFoundException e) {
-            logger.info("getStoreAudio: Йой! FileNotFoundException! {}",ifile);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreImage IOException");
-            logger.info("Проблеми з файлом: {}",ifile);
-            e.printStackTrace();
-            return null;
-        }
-        return null;
+    @GetMapping(value = "/store/document/{storeUUID}")
+    public ResponseEntity<StreamingResponseBody> getStoreDoc(@PathVariable String storeUUID) {
+        Users user = clientService.GetCurrentUser();
+        Store store = storeService.GetStoreByUUID(storeUUID);
+        return streamFile(store, user);
     }
 
-
-    /// вигрібаємо зі сховища встановлюючи тип контенту.
-    /// використовується для відображення на сайті та для завантаження з сайту.
-@GetMapping(value = "/store/content/{storeUUID}")
-public ResponseEntity<StreamingResponseBody> getStoreContent(
-        @PathVariable String storeUUID,
-        HttpServletResponse response) {
-
-    Store storeObject = storeService.GetStoreByUUID(storeUUID);
-    if (storeObject == null) {
-        logger.info("getStoreContent: UUID не знайдено у сховищі {}", storeUUID);
-        return ResponseEntity.notFound().build(); // Повертає статус 404 замість зависання
+    @GetMapping(value = "/store/content/{storeUUID}")
+    public ResponseEntity<StreamingResponseBody> getStoreContent(@PathVariable String storeUUID) {
+        Users user = clientService.GetCurrentUser();
+        Store store = storeService.GetStoreByUUID(storeUUID);
+        return streamFile(store, user);
     }
 
-    String ifile = storeObject.getFilepatch(); // або getFilepath()
-    File file = new File(ifile);
-
-    // ВАЖЛИВО: Перевіряємо наявність файлу НА ДИСКУ до того, як відправляти заголовки
-    if (!file.exists() || !file.isFile()) {
-        logger.info("getStoreContent: Йой! Файл не знайдено на диску: {}", ifile);
-        return ResponseEntity.notFound().build(); // Повертає чіткий 404 статус, браузер НЕ чекатиме
-    }
-
-    // Визначаємо MIME-тип
-    String mimeType = storeObject.getContentMimeType();
-    if (mimeType == null || mimeType.isEmpty()) {
-        mimeType = "application/octet-stream";
-    }
-
-    // Формуємо потокову відповідь (Streaming), яка не забиває оперативну пам'ять
-    String finalMimeType = mimeType;
-    StreamingResponseBody responseBody = outputStream -> {
-        // try-with-resources автоматично закриє FileInputStream у будь-якому випадку
-        try (InputStream inputStream = new FileInputStream(file)) {
-            byte[] buffer = new byte[8192]; // Читаємо порціями по 8 КБ
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            outputStream.flush();
-        } catch (IOException e) {
-            logger.info("Помилка під час стрімінгу файлу: {}", ifile);
-        }
-    };
-
-    // Повертаємо успішну відповідь із правильними заголовками
-    return ResponseEntity.ok()
-            .header("Content-Type", finalMimeType)
-            .header("Content-Length", String.valueOf(file.length()))
-            .body(responseBody);
-}
-
-
-
-//    @GetMapping(value = "/store/content/{storeUUID}")
-//    public @ResponseBody byte[] getStoreContent(
-//            @PathVariable String storeUUID,
-//            HttpServletResponse response,
-//            Model model ) {
-//        Store storeObject = storeService.GetStoreByUUID(storeUUID);
-//        if (storeObject == null) {
-//            logger.info("getStoreContent: UUID не знайдено у сховищі {}",storeUUID);
-//            return null;
-//        }
-////        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-//        String mimeType = storeObject.getContentMimeType();
-//        if (mimeType == null || mimeType.isEmpty()) {
-//            mimeType = "application/octet-stream";
-//        }
-//        response.setContentType(mimeType);
-//        response.setContentLength(storeObject.getFilelength().intValue());
-//        String ifile = storeObject.getFilepatch();
-//        InputStream is;
-//        try {
-//            is = new FileInputStream(new File(ifile));
-//            if (is == null) {
-//                return new byte[0];
-//            }
-//            byte[] buffer = is.readAllBytes();
-//            return buffer;
-//        } catch (FileNotFoundException e) {
-//            logger.info("getStoreContent: Йой! FileNotFoundException! {}",ifile);
-//        } catch (IOException e) {
-//            logger.info("==================================== getStoreContent IOException");
-//            logger.info("Проблеми з файлом: {}",ifile);
-//        }
-//        return null;
-//    }
-
-    // вигрібаємо зі сховища встановлюючи тип контенту.
-    // використовується для відображення на сайті та для завантаження з сайту.
     @GetMapping(value = "/store/content/og/{storeUUID}/{fn}")
-    public @ResponseBody byte[] getStoreOgContent(
+    public ResponseEntity<StreamingResponseBody> getStoreOgContent(
             @PathVariable String storeUUID,
-            @PathVariable String fn,
-            HttpServletResponse response,
-            Model model ) {
-        Store storeObject = storeService.GetStoreByUUID(storeUUID);
-//        http://localhost:8080/store/e2f9b0e6-73b5-4fcf-b249-f1e82d42a689/123.jpg
-        String mimeType = storeObject.getContentMimeType();
-        if (mimeType == null || mimeType.isEmpty()) {
-            mimeType = "application/octet-stream";
-        }
-        response.setContentType(mimeType);
-        response.setContentLength(storeObject.getFilelength().intValue());
-        String ifile = storeObject.getFilepatch();
-        InputStream is;
-        try {
-            is = new FileInputStream(new File(ifile));
-            if (is == null) {
-                return new byte[0];
-            }
-            byte[] buffer = is.readAllBytes();
-            return buffer;
-        } catch (FileNotFoundException e) {
-            logger.info("getStoreContent: Йой! FileNotFoundException! {}",ifile);
-        } catch (IOException e) {
-            logger.info("==================================== getStoreContent IOException");
-            logger.info("Проблеми з файлом: {}",ifile);
-//            e.printStackTrace();
-//            return null;
-        }
-        return null;
+            @PathVariable String fn) {
+        Users user = clientService.GetCurrentUser();
+        Store store = storeService.GetStoreByUUID(storeUUID);
+        return streamFile(store, user);
     }
-
-
-
 }
