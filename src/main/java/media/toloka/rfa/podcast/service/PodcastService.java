@@ -354,7 +354,7 @@ public class PodcastService {
 
     public Page<PodcastItem> GetEpisodesByChanelPage(PodcastChannel chanel, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return episodeRepository.findByChanelAndPublishingTrueOrderByPubDateDesc(chanel, pageable);
+        return episodeRepository.findByChanelAndPublishingTrueOrderByDateDesc(chanel, pageable);
     }
 
     /** Разове масове опублікування всіх епізодів (для Адміна) */
