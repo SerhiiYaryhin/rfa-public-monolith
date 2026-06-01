@@ -42,11 +42,14 @@ public class StoreService extends StoreFileImplementation {
                 type == STORE_PODCASTCOVER ||
                 type == STORE_ALBUMCOVER ||
                 type == STORE_BANNERIMAGE ||
-                type == STORE_PHOTO) {
+                type == STORE_PHOTO ||
+                type == STORE_TRACK ||
+                type == STORE_EPISODETRACK ||
+                type == STORE_TTS) {
             return true;
         }
 
-        // Для іншого контенту потрібна авторизація
+        // Для приватного контенту потрібна авторизація
         if (user == null) return false;
 
         // Власник завжди має доступ
@@ -64,11 +67,6 @@ public class StoreService extends StoreFileImplementation {
                     eRole == ERole.ROLE_MODERATOR) {
                 return true;
             }
-        }
-
-        // Додаткова логіка: Треки та Епізоди доступні всім (але можна посилити перевіркою apruve у Track)
-        if (type == STORE_TRACK || type == STORE_EPISODETRACK || type == STORE_TTS) {
-            return true;
         }
 
         return false;
