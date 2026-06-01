@@ -357,6 +357,13 @@ public class PodcastService {
         return episodeRepository.findByChanelAndPublishingTrueOrderByPubDateDesc(chanel, pageable);
     }
 
+    /** Разове масове опублікування всіх епізодів (для Адміна) */
+    public int publishAllEpisodes() {
+        int updatedCount = episodeRepository.publishAllExistingEpisodes();
+        logger.info("Адміністратор виконав масове опублікування {} епізодів", updatedCount);
+        return updatedCount;
+    }
+
     public String GetEpisodeNumberComments(PodcastItem item) {
         // кількість коментарів для епізоду подкасту
         return "0";
@@ -761,6 +768,8 @@ public class PodcastService {
 //            tmpstrUrl.getPodcastChannel().getItem().add(podcastItem);
 
             podcastItem.setTitle(title);
+            podcastItem.setPublishing(true); // Автоматично публікуємо імпортовані епізоди
+            podcastItem.setDatepublish(new Date());
 
             podcastItem.setDescription(getElementValue(item, "description"));
             // Навіщо зберігаємо, коли ще не додали елемент подкасту

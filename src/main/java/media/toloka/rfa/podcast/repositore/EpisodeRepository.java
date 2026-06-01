@@ -30,4 +30,9 @@ public interface EpisodeRepository
     List<PodcastItem> findByTitle(String title);
 
     PodcastItem getByTitle(String title);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query("UPDATE PodcastItem p SET p.publishing = true, p.datepublish = CURRENT_TIMESTAMP WHERE p.publishing IS NULL OR p.publishing = false")
+    int publishAllExistingEpisodes();
 }
