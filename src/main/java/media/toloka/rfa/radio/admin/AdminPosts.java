@@ -83,14 +83,11 @@ public class AdminPosts {
         Post post = postService.GetPostByUuid(postUuid);
         if (post != null) {
             boolean newState = !post.getApruve();
-            post.setApruve(newState);
             if (newState) {
-                post.setPostStatus(POSTSTATUS_PUBLICATE);
-                post.setPublishdate(new Date());
+                postService.approvePost(post);
             } else {
-                post.setPostStatus(POSTSTATUS_REJECT);
+                postService.rejectPost(post);
             }
-            adminService.SavePost(post);
             
             historyService.saveHistory(EHistoryType.History_PostPublicate, 
                 "Admin toggled post status to " + newState + " for post: " + post.getUuid(), 
@@ -109,14 +106,13 @@ public class AdminPosts {
         }
 
         Post post = postService.GetPostByUuid(postUuid);
-        post.setPostStatus(POSTSTATUS_PUBLICATE);
-        post.setApruve(true);
-        post.setPublishdate(new Date());
-        adminService.SavePost(post);
-        historyService.saveHistory(EHistoryType.History_PostPublicate,"Apruve post "+post.getUuid()
-                        +" cd="+post.getClientdetail().getId()
-                        +" Client UUID="+post.getClientdetail().getUuid()
-                ,post.getClientdetail().getUser());
+        if (post != null) {
+            postService.approvePost(post);
+            historyService.saveHistory(EHistoryType.History_PostPublicate,"Apruve post "+post.getUuid()
+                            +" cd="+post.getClientdetail().getId()
+                            +" Client UUID="+post.getClientdetail().getUuid()
+                    ,post.getClientdetail().getUser());
+        }
         return "redirect:/admin/posts";
     }
 
@@ -130,14 +126,13 @@ public class AdminPosts {
         }
 
         Post post = postService.GetPostByUuid(postUuid);
-        post.setPostStatus(POSTSTATUS_DELETE);
-        post.setApruve(false);
-//        post.setPublishdate(new Date());
-        adminService.SavePost(post);
-        historyService.saveHistory(EHistoryType.History_PostDelete,"Delete post "+post.getUuid()
-                        +" cd="+post.getClientdetail().getId()
-                        +" Client UUID="+post.getClientdetail().getUuid()
-                ,post.getClientdetail().getUser());
+        if (post != null) {
+            postService.softDeletePost(post);
+            historyService.saveHistory(EHistoryType.History_PostDelete,"Delete post "+post.getUuid()
+                            +" cd="+post.getClientdetail().getId()
+                            +" Client UUID="+post.getClientdetail().getUuid()
+                    ,post.getClientdetail().getUser());
+        }
         return "redirect:/admin/posts";
     }
 
@@ -152,14 +147,13 @@ public class AdminPosts {
         }
 
         Post post = postService.GetPostByUuid(postUuid);
-        post.setPostStatus(POSTSTATUS_REJECT);
-        post.setApruve(false);
-//        post.setPublishdate(new Date());
-        adminService.SavePost(post);
-        historyService.saveHistory(EHistoryType.History_PostReject,"Reject post id="+post.getUuid()
-                +" cd="+post.getClientdetail().getId()
-                +" Client UUID="+post.getClientdetail().getUuid()
-                ,post.getClientdetail().getUser());
+        if (post != null) {
+            postService.rejectPost(post);
+            historyService.saveHistory(EHistoryType.History_PostReject,"Reject post id="+post.getUuid()
+                    +" cd="+post.getClientdetail().getId()
+                    +" Client UUID="+post.getClientdetail().getUuid()
+                    ,post.getClientdetail().getUser());
+        }
         return "redirect:/admin/posts";
     }
 }

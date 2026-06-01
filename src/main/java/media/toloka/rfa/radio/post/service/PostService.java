@@ -106,6 +106,53 @@ public class PostService {
         return false;
     }
 
+    /** Подати пост на модерацію */
+    public void requestPublication(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REQUEST);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} подано на модерацію", post.getUuid());
+    }
+
+    /** Відкликати пост з модерації або зняти з публікації */
+    public void withdrawToDraft(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} переведено у статус чернетки", post.getUuid());
+    }
+
+    /** Видалити пост (soft delete) */
+    public void softDeletePost(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_DELETE);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} позначено як видалений", post.getUuid());
+    }
+
+    /** Схвалити публікацію (для адміна) */
+    public void approvePost(Post post) {
+        if (post == null) return;
+        post.setApruve(true);
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_PUBLICATE);
+        post.setApruvedate(new java.util.Date());
+        post.setPublishdate(new java.util.Date());
+        postRepositore.save(post);
+        logger.info("Пост {} схвалено та опубліковано", post.getUuid());
+    }
+
+    /** Відхилити публікацію (для адміна) */
+    public void rejectPost(Post post) {
+        if (post == null) return;
+        post.setApruve(false);
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REJECT);
+        postRepositore.save(post);
+        logger.info("Пост {} відхилено модератором", post.getUuid());
+    }
+
     public List<PostCategory> getChildPostCategory(PostCategory category) {
         return postCategoryRepositore.findByParent(category);
     }

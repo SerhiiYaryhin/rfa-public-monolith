@@ -245,8 +245,7 @@ public class PostController {
                 return "redirect:/creater/editpost/" + post.getUuid();
             }
 
-            post.setPostStatus(EPostStatus.POSTSTATUS_REQUEST);
-            postService.SavePost(post);
+            postService.requestPublication(post);
         }
         return "redirect:/creater/home";
     }
@@ -262,8 +261,7 @@ public class PostController {
                 logger.warn("Спроба несанкціонованого видалення посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
                 return "redirect:/creater/home";
             }
-            post.setPostStatus(EPostStatus.POSTSTATUS_DELETE);
-            postService.SavePost(post);
+            postService.softDeletePost(post);
         }
         return "redirect:/creater/home";
     }
@@ -279,10 +277,7 @@ public class PostController {
                 logger.warn("Спроба несанкціонованого відклику посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
                 return "redirect:/creater/home";
             }
-            // Переводимо назад у статус чернетки (READY), але скидаємо схвалення
-            post.setPostStatus(EPostStatus.POSTSTATUS_REDY);
-            post.setApruve(false);
-            postService.SavePost(post);
+            postService.withdrawToDraft(post);
         }
         return "redirect:/creater/home";
     }
@@ -298,10 +293,7 @@ public class PostController {
                 logger.warn("Спроба несанкціонованого зняття з публікації посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
                 return "redirect:/creater/home";
             }
-            // Знімаємо з публікації - повертаємо статус READY та apruve = false
-            post.setPostStatus(EPostStatus.POSTSTATUS_REDY);
-            post.setApruve(false);
-            postService.SavePost(post);
+            postService.withdrawToDraft(post);
         }
         return "redirect:/creater/home";
     }
