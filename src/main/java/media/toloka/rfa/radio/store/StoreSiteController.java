@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 @CrossOrigin
 @Profile("Front")
@@ -62,6 +63,11 @@ public class StoreSiteController  {
         String mimeType = store.getContentMimeType();
         if (mimeType == null || mimeType.isEmpty()) mimeType = "application/octet-stream";
 
+        // Безпечно пакуємо назву файлу (навіть із суворою кирилицею) за стандартом RFC 5987
+        ContentDisposition contentDisposition = ContentDisposition.inline()
+                .filename(store.getFilename(), StandardCharsets.UTF_8)
+                .build();
+
         String finalMimeType = mimeType;
         StreamingResponseBody responseBody = outputStream -> {
             try (InputStream inputStream = new FileInputStream(file)) {
@@ -75,7 +81,8 @@ public class StoreSiteController  {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, finalMimeType)
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + store.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()) // Використовуємо згенерований Spring безпечний заголовок
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + store.getFilename() + "\"")
                 .body(responseBody);
     }
 
@@ -138,6 +145,10 @@ public class StoreSiteController  {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
+        // Динамічно визначаємо MediaType на основі контенту з бази даних
+        String mimeType = storeRecord.getContentMimeType();
+        MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
+
         StreamingResponseBody responseBody = outputStream -> {
             try (InputStream is = new FileInputStream(new File(storeRecord.getFilepatch()))) {
                 BufferedImage img = ImageIO.read(is);
@@ -153,7 +164,8 @@ public class StoreSiteController  {
         };
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
+                .contentType(mediaType)
+//                .contentType(MediaType.IMAGE_JPEG)
                 .body(responseBody);
     }
 
@@ -170,6 +182,9 @@ public class StoreSiteController  {
         if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        // Динамічно визначаємо MediaType на основі контенту з бази даних
+        String mimeType = storeRecord.getContentMimeType();
+        MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
         StreamingResponseBody responseBody = outputStream -> {
             try (InputStream is = new FileInputStream(new File(storeRecord.getFilepatch()))) {
@@ -186,7 +201,8 @@ public class StoreSiteController  {
         };
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
+                .contentType(mediaType)
+//                .contentType(MediaType.IMAGE_JPEG)
                 .body(responseBody);
     }
 
