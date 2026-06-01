@@ -205,9 +205,22 @@
                                 </span>
                             </td>
                             <td class="text-end">
-                                <a class="btn btn-sm btn-outline-primary" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}">
-                                    <i class="fas fa-edit"></i> Редагувати
-                                </a>
+                                <div class="btn-group shadow-sm">
+                                    <!-- Опублікувати / Приховати епізод -->
+                                    <form th:action="@{/podcast/episodepublish}" method="post" class="d-inline" th:if="${podcast.apruve}">
+                                        <input type="hidden" name="uuid" th:value="${item.uuid}"/>
+                                        <input type="hidden" name="from" value="podcast"/>
+                                        <button type="submit" class="btn btn-sm" 
+                                                th:classappend="${item.publishing} ? 'btn-outline-secondary' : 'btn-success'"
+                                                th:title="${item.publishing} ? 'Зняти з публікації' : 'Опублікувати'">
+                                            <i class="fas" th:classappend="${item.publishing} ? 'fa-eye-slash' : 'fa-paper-plane'"></i>
+                                        </button>
+                                    </form>
+
+                                    <a class="btn btn-sm btn-outline-primary" th:href="'/podcast/episodeedit/'+${podcast.uuid}+'/'+${item.uuid}" title="Редагувати">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${itemslist.isEmpty()}">
