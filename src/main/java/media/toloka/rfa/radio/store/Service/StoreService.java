@@ -38,6 +38,8 @@ public class StoreService extends StoreFileImplementation {
 
         // Публічні типи контенту доступні всім
         EStoreFileType type = store.getStorefiletype();
+        String mimeType = store.getContentMimeType();
+        
         if (type == STORE_POSTCOVER ||
                 type == STORE_PODCASTCOVER ||
                 type == STORE_ALBUMCOVER ||
@@ -45,7 +47,8 @@ public class StoreService extends StoreFileImplementation {
                 type == STORE_PHOTO ||
                 type == STORE_TRACK ||
                 type == STORE_EPISODETRACK ||
-                type == STORE_TTS) {
+                type == STORE_TTS ||
+                (mimeType != null && mimeType.startsWith("image/"))) {
             return true;
         }
 
