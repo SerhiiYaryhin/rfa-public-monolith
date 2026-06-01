@@ -29,7 +29,9 @@ public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSort
 
     Post getByUuid(String postUuid);
 
-    /** Отримати лише схвалені пости для публічного перегляду */
+    /** Отримати лише схвалені пости для публічного перегляду, виключаючи видалені */
+    Page<Post> findByApruveTrueAndPostStatusNotOrderByPublishdateDesc(Pageable pageable, media.toloka.rfa.radio.model.enumerate.EPostStatus status);
+
     Page<Post> findByApruveTrueOrderByPublishdateDesc(Pageable pageable);
 
     List<Post> findByCoverstoreuuid(String coverstoreuuid);

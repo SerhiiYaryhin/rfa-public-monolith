@@ -7,6 +7,7 @@ import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
+import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,29 @@ public class PostService {
 
     public List<PostCategory> getPostCategory() {
         return postCategoryRepositore.findAllByOrderByIdAsc();
+    }
+
+    public boolean canUserModifyPost(Post post, Users user) {
+        if (post == null || user == null) return false;
+        
+        // Перевірка, чи є користувач власником посту
+        if (post.getClientdetail() != null && 
+            post.getClientdetail().getUser() != null && 
+            post.getClientdetail().getUser().getId().equals(user.getId())) {
+            return true;
+        }
+
+        // Перевірка ролей: Редактор, Модератор, Адміністратор
+        for (media.toloka.rfa.security.model.Roles role : user.getRoles()) {
+            media.toloka.rfa.security.model.ERole eRole = role.getRole();
+            if (eRole == media.toloka.rfa.security.model.ERole.ROLE_ADMIN ||
+                eRole == media.toloka.rfa.security.model.ERole.ROLE_EDITOR ||
+                eRole == media.toloka.rfa.security.model.ERole.ROLE_MODERATOR) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public List<PostCategory> getChildPostCategory(PostCategory category) {
