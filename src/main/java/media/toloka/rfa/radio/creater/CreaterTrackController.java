@@ -164,7 +164,12 @@ public class CreaterTrackController {
         Track track = createrService.GetTrackByUuid(uuidTrack);
         
         if (track != null && track.getClientdetail().getUuid().equals(cd.getUuid())) {
-            track.setPublishstatus(!track.getPublishstatus());
+
+            if (track.getApruve()) { // false - заборонено адміном
+                track.setPublishstatus(!track.getPublishstatus());
+            } else {
+                track.setPublishstatus(false);
+            }
             createrService.SaveTrack(track);
         }
         return "redirect:/creater/tracks";
