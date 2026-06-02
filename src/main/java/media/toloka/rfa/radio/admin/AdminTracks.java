@@ -110,7 +110,7 @@ public class AdminTracks {
 
         Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
-            track.setPublishstatus(!track.getPublishstatus());
+            track.setApruve(!track.getApruve());
             createrService.SaveTrack(track);
         }
         return "redirect:/admin/tracks";
