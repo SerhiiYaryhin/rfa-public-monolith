@@ -117,6 +117,7 @@ public class EpisodeEditController {
     @PostMapping(value = "/podcast/episodepublish")
     public String EpisodePublish(
             @ModelAttribute PodcastItem episode,
+            @RequestParam(value = "from", required = false) String from,
             Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
@@ -129,14 +130,11 @@ public class EpisodeEditController {
 
 
         PodcastChannel channel = podcastService.GetChanelByUUID(tEpisode.getChanel().getUuid());
-//        PodcastChannel channel = tEpisode.getChanel();
 
         // Перевірка прав: тільки власник і тільки якщо подкаст схвалений адміном
         String cdt1 = channel.getClientdetail();
         String cdt2 = cd.getUuid();
         if (channel != null && cdt1.equals(cdt2) && channel.getApruve()) {
-//        if (channel != null && channel.getClientdetail().equals(cd.getUuid()) && channel.getApruve()) {
-//        if (channel != null && cdt.getUuid().equals(cd.getUuid()) && channel.getApruve()) {
             if (tEpisode.getPublishing() != null) {
                 if (!tEpisode.getPublishing()) {
                     tEpisode.setPublishing(true);
@@ -153,6 +151,10 @@ public class EpisodeEditController {
             logger.info("Користувач {} змінив статус публікації епізоду {} на {}", cd.getUuid(), tEpisode.getUuid(), tEpisode.getPublishing());
         } else {
             logger.warn("Спроба публікації епізоду {} без прав або в несхваленому подкасті", tEpisode.getUuid());
+        }
+
+        if ("podcast".equals(from)) {
+            return "redirect:/podcast/pedit/" + channel.getUuid() + "#episodes";
         }
 
         return "redirect:/podcast/episodeedit/" + channel.getUuid() + "/" + tEpisode.getUuid();

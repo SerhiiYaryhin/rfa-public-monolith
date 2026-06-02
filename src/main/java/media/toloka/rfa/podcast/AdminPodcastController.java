@@ -64,4 +64,24 @@ public class AdminPodcastController {
         }
         return "redirect:/admin/podcasts";
     }
+
+    /** Разове виправлення видимості всіх епізодів */
+    @GetMapping(value = "/admin/podcast/fix-visibility")
+    public String fixEpisodeVisibility(org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+        
+        // Додаткова перевірка на роль Адміна (хоча весь контролер має бути захищений)
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(r -> r.getRole() == media.toloka.rfa.security.model.ERole.ROLE_ADMIN);
+        
+        if (!isAdmin) {
+            return "redirect:/";
+        }
+
+        int count = podcastService.publishAllEpisodes();
+        redirectAttributes.addFlashAttribute("success", "Успішно опубліковано " + count + " епізодів.");
+        
+        return "redirect:/admin/podcasts";
+    }
 }

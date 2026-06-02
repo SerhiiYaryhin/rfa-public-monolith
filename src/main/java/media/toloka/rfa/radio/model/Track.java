@@ -58,7 +58,7 @@ public class Track {
     private Boolean tochat = true; // можливість опублікувати в чаті RFA
 
     @Expose
-    private Boolean apruve = true; // Трек схвалено для публікації. Зроблено на випадок не заповнення інформаційних полів треку.
+    private Boolean apruve = true; // Трек схвалено адміністратором для публікації. Зроблено на випадок поганих треків.
 
     @Expose
     private EDocumentStatus status; // уяви не маю, що це таке. Напевно якийсь артефакт

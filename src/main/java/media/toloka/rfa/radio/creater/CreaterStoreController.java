@@ -127,6 +127,9 @@ public class CreaterStoreController {
         return (from != null && from.equals("admin")) ? "redirect:/admin/storage" : "redirect:/creater/storage/0";
     }
 
+    @Autowired
+    private media.toloka.rfa.radio.post.service.PostService postService;
+
     @GetMapping(value = "/creater/setpostmainpicture/{postUuid}/{pageNumber}")
     public String getStoreMainPictureForPost(
             @PathVariable String postUuid,
@@ -149,18 +152,18 @@ public class CreaterStoreController {
             curpost.setUuid("0"); // Встановлюємо "0" як тимчасовий UUID
             curpost.setClientdetail(cd); // Встановлюємо клієнта, щоб пройшла перевірку
         } else {
-            curpost = createrService.GetPostByUuid(postUuid);
+            curpost = postService.GetPostByUuid(postUuid);
             
             // Перевіряємо, чи знайдено пост
             if (curpost == null) {
                 logger.error("Пост з UUID {} не знайдено", postUuid);
-                return "redirect:/error/general";
+                return "redirect:/creater/home";
             }
     
-            // Перевіряємо, чи користувач є власником поста
-            if (!curpost.getClientdetail().getId().equals(cd.getId())) {
-                logger.warn("Користувач намагається отримати доступ до поста, який йому не належить");
-                return "redirect:/error/general";
+            // Перевіряємо права доступу
+            if (!postService.canUserModifyPost(curpost, user)) {
+                logger.warn("Користувач {} намагається отримати доступ до вибору ілюстрації поста {}, який йому не належить", user.getEmail(), postUuid);
+                return "redirect:/creater/home";
             }
         }
 

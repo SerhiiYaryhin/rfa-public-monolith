@@ -114,6 +114,10 @@ public class PostController {
             // ID залишається null для нового посту, UUID генерується в моделі
         } else {
             post = postService.GetPostByUuid(uuidPost);
+            if (post != null && !postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого редагування посту {} користувачем {}", uuidPost, user.getEmail());
+                return "redirect:/creater/home";
+            }
         }
 
         if (post == null) return "redirect:/creater/home";
@@ -148,6 +152,12 @@ public class PostController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         
         Post post = postService.GetPostByUuid(uuidPost);
+        
+        // Якщо пост знайдено, перевіряємо права на його зміну
+        if (post != null && !postService.canUserModifyPost(post, user)) {
+            logger.warn("Спроба несанкціонованого збереження посту {} користувачем {}", uuidPost, user.getEmail());
+            return "redirect:/creater/home";
+        }
         
         // Якщо пост не знайдено в базі, це новий пост
         if (post == null) {
@@ -221,10 +231,21 @@ public class PostController {
     public String postCreaterPublishPost(
             @PathVariable String uuidPost,
             Model model) {
+        Users user = clientService.GetCurrentUser();
         Post post = postService.GetPostByUuid(uuidPost);
         if (post != null) {
-            post.setPostStatus(EPostStatus.POSTSTATUS_REQUEST);
-            postService.SavePost(post);
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованої публікації посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            
+            // Перевірка наявності ілюстрації перед подачею на модерацію
+            if (post.getCoverstoreuuid() == null || post.getCoverstoreuuid().isEmpty()) {
+                logger.warn("Спроба публікації посту {} без головної ілюстрації", uuidPost);
+                return "redirect:/creater/editpost/" + post.getUuid();
+            }
+
+            postService.requestPublication(post);
         }
         return "redirect:/creater/home";
     }
@@ -233,10 +254,46 @@ public class PostController {
     public String postCreaterDelPost(
             @PathVariable String uuidPost,
             Model model) {
+        Users user = clientService.GetCurrentUser();
         Post post = postService.GetPostByUuid(uuidPost);
         if (post != null) {
-            post.setPostStatus(EPostStatus.POSTSTATUS_DELETE);
-            postService.SavePost(post);
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого видалення посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            postService.softDeletePost(post);
+        }
+        return "redirect:/creater/home";
+    }
+
+    @GetMapping(value = "/creater/withdrawpost/{uuidPost}")
+    public String postCreaterWithdrawPost(
+            @PathVariable String uuidPost,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        Post post = postService.GetPostByUuid(uuidPost);
+        if (post != null) {
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого відклику посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            postService.withdrawToDraft(post);
+        }
+        return "redirect:/creater/home";
+    }
+
+    @GetMapping(value = "/creater/unpublishpost/{uuidPost}")
+    public String postCreaterUnpublishPost(
+            @PathVariable String uuidPost,
+            Model model) {
+        Users user = clientService.GetCurrentUser();
+        Post post = postService.GetPostByUuid(uuidPost);
+        if (post != null) {
+            if (!postService.canUserModifyPost(post, user)) {
+                logger.warn("Спроба несанкціонованого зняття з публікації посту {} користувачем {}", uuidPost, user != null ? user.getEmail() : "anonymous");
+                return "redirect:/creater/home";
+            }
+            postService.withdrawToDraft(post);
         }
         return "redirect:/creater/home";
     }
@@ -254,6 +311,11 @@ public class PostController {
         Post post = postService.GetPostByUuid(uuidpost);
         if (post == null) {
             logger.error("Пост з UUID {} не знайдено", uuidpost);
+            return "redirect:/creater/home";
+        }
+
+        if (!postService.canUserModifyPost(post, user)) {
+            logger.warn("Спроба несанкціонованої зміни ілюстрації посту {} користувачем {}", uuidpost, user.getEmail());
             return "redirect:/creater/home";
         }
 

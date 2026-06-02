@@ -7,6 +7,7 @@ import media.toloka.rfa.radio.model.enumerate.EPostCategory;
 import media.toloka.rfa.radio.post.repositore.PostCategoryRepositore;
 import media.toloka.rfa.radio.post.repositore.PostRepositore;
 import media.toloka.rfa.radio.repository.ClientDetailRepository;
+import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,76 @@ public class PostService {
 
     public List<PostCategory> getPostCategory() {
         return postCategoryRepositore.findAllByOrderByIdAsc();
+    }
+
+    public boolean canUserModifyPost(Post post, Users user) {
+        if (post == null || user == null) return false;
+        
+        // Перевірка, чи є користувач власником посту
+        if (post.getClientdetail() != null && 
+            post.getClientdetail().getUser() != null && 
+            post.getClientdetail().getUser().getId().equals(user.getId())) {
+            return true;
+        }
+
+        // Перевірка ролей: Редактор, Модератор, Адміністратор
+        for (media.toloka.rfa.security.model.Roles role : user.getRoles()) {
+            media.toloka.rfa.security.model.ERole eRole = role.getRole();
+            if (eRole == media.toloka.rfa.security.model.ERole.ROLE_ADMIN ||
+                eRole == media.toloka.rfa.security.model.ERole.ROLE_EDITOR ||
+                eRole == media.toloka.rfa.security.model.ERole.ROLE_MODERATOR) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Подати пост на модерацію */
+    public void requestPublication(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REQUEST);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} подано на модерацію", post.getUuid());
+    }
+
+    /** Відкликати пост з модерації або зняти з публікації */
+    public void withdrawToDraft(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REDY);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} переведено у статус чернетки", post.getUuid());
+    }
+
+    /** Видалити пост (soft delete) */
+    public void softDeletePost(Post post) {
+        if (post == null) return;
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_DELETE);
+        post.setApruve(false);
+        postRepositore.save(post);
+        logger.info("Пост {} позначено як видалений", post.getUuid());
+    }
+
+    /** Схвалити публікацію (для адміна) */
+    public void approvePost(Post post) {
+        if (post == null) return;
+        post.setApruve(true);
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_PUBLICATE);
+        post.setApruvedate(new java.util.Date());
+        post.setPublishdate(new java.util.Date());
+        postRepositore.save(post);
+        logger.info("Пост {} схвалено та опубліковано", post.getUuid());
+    }
+
+    /** Відхилити публікацію (для адміна) */
+    public void rejectPost(Post post) {
+        if (post == null) return;
+        post.setApruve(false);
+        post.setPostStatus(media.toloka.rfa.radio.model.enumerate.EPostStatus.POSTSTATUS_REJECT);
+        postRepositore.save(post);
+        logger.info("Пост {} відхилено модератором", post.getUuid());
     }
 
     public List<PostCategory> getChildPostCategory(PostCategory category) {

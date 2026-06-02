@@ -57,11 +57,18 @@
                         <div class="row">
                             <!-- картинка подкасту та RSS-->
                             <div class="col text-center">
-                                <img class="img-fluid rounded shadow-sm" 
-                                     style="padding-top: 20px; aspect-ratio: 1/1; object-fit: cover; max-width: 300px;"
-                                     th:if="${podcastItem.imagestoreitem != null}"
-                                     th:src="'/store/content/' + ${podcastItem.imagestoreitem.uuid}"
-                                     th:id="${podcastItem.imagestoreitem.uuid}"/>
+                                <div th:if="${podcastItem.imagestoreitem != null}">
+                                    <img class="img-fluid rounded shadow-sm"
+                                         style="padding-top: 20px; aspect-ratio: 1/1; object-fit: cover; max-width: 300px;"
+                                         th:src="'/store/content/' + ${podcastItem.imagestoreitem.uuid}"
+                                         th:id="${podcastItem.imagestoreitem.uuid}"/>
+                                </div>
+                                <div th:if="${podcastItem.imagestoreitem == null}">
+                                    <img class="img-fluid rounded shadow-sm"
+                                         style="padding-top: 20px; aspect-ratio: 1/1; object-fit: cover; max-width: 300px;"
+                                         th:src="'/store/content/' + ${podcastItem.chanel.imagechanelstore.uuid}"
+                                         th:id="${podcastItem.chanel.imagechanelstore}"/>
+                                </div>
                             </div>
                         </div>
                         <h1 class="fs-4 fw-bold text-center" th:text="${podcastItem.title}"
