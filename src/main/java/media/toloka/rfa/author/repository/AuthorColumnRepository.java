@@ -11,4 +11,5 @@ public interface AuthorColumnRepository extends JpaRepository<AuthorColumn, Long
     Optional<AuthorColumn> findByUuid(String uuid);
     Optional<AuthorColumn> findBySlug(String slug);
     Optional<AuthorColumn> findByAuthorUuid(String authorUuid);
+    java.util.List<AuthorColumn> findByAvatarUuid(String avatarUuid);
 }

@@ -399,43 +399,15 @@ public class PodcastService {
      * @param title String назва епізоду
      * @return List<PodcastItem>
      */
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreCleanupService storeCleanupService;
+
     /**
-     * Зануляє всі посилання на об'єкт Store у подкастах та епізодах.
+     * Зануляє всі посилання на об'єкт Store у всіх сутностях системи.
      * Використовується перед видаленням файла зі сховища.
      */
     public void DetachStoreFromPodcasts(Store store) {
-        // 1. Очищаємо епізоди (аудіо та картинки)
-        List<PodcastItem> episodesAsAudio = episodeRepository.findByEnclosurestore(store);
-        for (PodcastItem ep : episodesAsAudio) {
-            ep.setEnclosurestore(null);
-            episodeRepository.save(ep);
-        }
-        List<PodcastItem> episodesAsImage = episodeRepository.findByImagestoreitem(store);
-        for (PodcastItem ep : episodesAsImage) {
-            ep.setImagestoreitem(null);
-            episodeRepository.save(ep);
-        }
-
-        // 2. Очищаємо канали (обкладинки)
-        List<PodcastChannel> channels = chanelRepository.findByImagechanelstore(store);
-        for (PodcastChannel ch : channels) {
-            ch.setImagechanelstore(null);
-            chanelRepository.save(ch);
-        }
-
-        // 3. Очищаємо Пости (обкладинки по UUID)
-        List<media.toloka.rfa.radio.model.Post> posts = postRepository.findByCoverstoreuuid(store.getUuid());
-        for (media.toloka.rfa.radio.model.Post p : posts) {
-            p.setCoverstoreuuid(null);
-            postRepository.save(p);
-        }
-
-        // 4. Очищаємо Треки
-        List<media.toloka.rfa.radio.model.Track> tracks = trackRepository.findByStoreitem(store);
-        for (media.toloka.rfa.radio.model.Track t : tracks) {
-            t.setStoreitem(null);
-            trackRepository.save(t);
-        }
+        storeCleanupService.detachAll(store);
     }
 
     public List<PodcastItem> GetListByTitle(String title) {

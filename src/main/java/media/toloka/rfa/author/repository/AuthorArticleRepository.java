@@ -17,4 +17,5 @@ public interface AuthorArticleRepository extends JpaRepository<AuthorArticle, Lo
     Page<AuthorArticle> findByColumn(AuthorColumn column, Pageable pageable);
     Page<AuthorArticle> findByColumnAndStatus(AuthorColumn column, EAuthorArticleStatus status, Pageable pageable);
     Page<AuthorArticle> findByStatus(EAuthorArticleStatus status, Pageable pageable);
+    java.util.List<AuthorArticle> findByCoverUuid(String coverUuid);
 }

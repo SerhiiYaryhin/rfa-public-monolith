@@ -20,5 +20,8 @@ public interface DocumentRepository extends JpaRepository<Documents, Long> {
     List<Documents> findByStatusLessThan(EDocumentStatus eDocumentStatus);
     List<Documents> findByStatusNot(EDocumentStatus eDocumentStatus);
 
+    List<Documents> findByStore(media.toloka.rfa.radio.store.model.Store store);
+    List<Documents> findByStoreuuid(String storeuuid);
+
     Documents getByUuid(String uuid);
 }

@@ -1,7 +1,6 @@
 package media.toloka.rfa.radio.newstoradio.repository;
 
 import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.newstoradio.model.ENewsCategory;
 import media.toloka.rfa.radio.newstoradio.model.News;
 import org.springframework.data.domain.Page;
@@ -17,6 +16,8 @@ public interface NewsRepositore extends JpaRepository<News, Long>, PagingAndSort
 
     Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
 
+    List<News> findByStorespeach(media.toloka.rfa.radio.store.model.Store storespeach);
+
     Page findAllByOrderByCreatedateDesc(Pageable storePage);
 
     List<News> findByClientdetailOrderByCreatedateDesc(Clientdetail cd);
@@ -24,5 +25,4 @@ public interface NewsRepositore extends JpaRepository<News, Long>, PagingAndSort
     News getByUuid(String newsUuid);
 
     List<News> findByCategoryOrderByCreatedateDesc(ENewsCategory eNewsCategory);
-
 }
