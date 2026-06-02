@@ -61,7 +61,8 @@
                             <i class="fas fa-download"></i>
                         </a>
                         <a class="btn btn-sm btn-outline-danger" th:href="@{'/creater/store/delete/'+${store.uuid} + '?from=admin'}" 
-                           onclick="return confirm('Видалити цей файл назавжди з сервера?')" title="Видалити">
+                           onclick="return confirm('Видалити цей файл? Система автоматично перевірить його на наявність зв\'язків з іншими об\'єктами.')"
+                           title="Видалити">
                             <i class="fas fa-trash-alt"></i>
                         </a>
                     </div>
