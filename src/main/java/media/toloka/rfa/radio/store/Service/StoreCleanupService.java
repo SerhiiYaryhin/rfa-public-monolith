@@ -8,8 +8,8 @@ import media.toloka.rfa.podcast.model.PodcastChannel;
 import media.toloka.rfa.podcast.model.PodcastItem;
 import media.toloka.rfa.podcast.repositore.ChanelRepository;
 import media.toloka.rfa.podcast.repositore.EpisodeRepository;
-import media.toloka.rfa.radio.creater.repository.AlbumRepository;
 import media.toloka.rfa.radio.creater.repository.TrackRepository;
+import media.toloka.rfa.radio.creater.repository.AlbumRepository;
 import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Documents;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StoreCleanupService {
@@ -38,6 +39,9 @@ public class StoreCleanupService {
 
     @Autowired
     private StoreService storeService;
+
+    @Autowired
+    private StoreDependencyService dependencyService;
 
     @Autowired
     private PostRepositore postRepository;
@@ -193,6 +197,34 @@ public class StoreCleanupService {
             logger.info("Об'єкт Store {} та його файл успішно видалено", store.getUuid());
         } else {
             logger.info("Об'єкт Store {} від'єднано, але залишено у сховищі", store.getUuid());
+        }
+    }
+
+    /**
+     * Безпечне видалення треку разом із його аудіофайлом.
+     * Якщо файл використовується десь інде, він залишається.
+     */
+    @Transactional
+    public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
+        Store store = track.getStoreitem();
+        String trackUuid = track.getUuid();
+        
+        // 1. Видаляємо трек
+        trackRepository.delete(track);
+        // Забезпечуємо синхронізацію з БД перед пошуком залежностей
+        trackRepository.flush();
+        logger.info("Запис про трек {} видалено", trackUuid);
+
+        // 2. Якщо був файл, перевіряємо чи він ще десь потрібен
+        if (store != null) {
+            Map<String, List<?>> deps = dependencyService.findDependencies(store);
+            if (deps.isEmpty()) {
+                storeService.DeleteInStore(store);
+                logger.info("Аудіофайл треку {} ({}) видалено (більше не використовується)", store.getFilename(), store.getUuid());
+            } else {
+                logger.info("Аудіофайл треку {} ({}) залишено, бо він має інші залежності: {}", 
+                        store.getFilename(), store.getUuid(), deps.keySet());
+            }
         }
     }
 }
