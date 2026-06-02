@@ -112,7 +112,7 @@ public class AdminTracks {
     public String togglePublishStatus(@PathVariable String trackUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
-
+        // todo додати перевірку на адміна 260602
         Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             track.setApruve(!track.getApruve());
@@ -130,7 +130,7 @@ public class AdminTracks {
         if (user == null) {
             return "redirect:/";
         }
-
+        // todo додати перевірку на адміна 260602
         Track track = createrService.GetTrackByUuid(trackUuid);
         if (track != null) {
             boolean newState = !track.getApruve();
