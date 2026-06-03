@@ -67,7 +67,7 @@ public class Track {
     private Boolean publishstatus = false;  // публікація треку на порталі. Інакше - режим редагування інформації
 
     @ToString.Exclude
-    @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "album_id")
     private Album album; // посилання на альбом в який цей трек входить
 

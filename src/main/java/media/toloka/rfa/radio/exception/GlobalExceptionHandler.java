@@ -1,5 +1,7 @@
 package media.toloka.rfa.radio.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,10 +15,17 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 1. Додаємо логер для цього класу
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
         String path = request.getDescription(false);
-        
+
+        // 2. Логуємо помилку в консоль ПЕРЕД тим, як її обробити
+        // Передаючи 'ex' другим аргументом, ми змушуємо Java вивести повний Stack Trace
+        logger.error("🔥 Перехоплено виключну ситуацію на ендпоінті [{}]: ", path, ex);
+
         // Повертаємо JSON тільки для API
         if (path.contains("/api/")) {
             Map<String, Object> body = new LinkedHashMap<>();

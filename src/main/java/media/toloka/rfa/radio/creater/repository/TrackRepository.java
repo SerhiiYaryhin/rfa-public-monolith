@@ -7,8 +7,10 @@ import media.toloka.rfa.radio.store.model.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -45,6 +47,9 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
     /** Отримати повний список усіх треків системи для панелі адміністратора */
     List<Track> findAllByOrderByUploaddateDesc();
 
+    @Modifying
+    @Query("DELETE FROM Track t WHERE t.uuid = :uuid")
+    void deleteByUuidDirectly(@Param("uuid") String uuid);
 
 //    Page findAllOrderByUploaddateByAsc(Pageable storePage);
 //

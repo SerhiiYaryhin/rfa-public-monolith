@@ -59,7 +59,7 @@ public class Album {
     private String description;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 

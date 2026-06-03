@@ -1,5 +1,6 @@
 package media.toloka.rfa.radio.store.Service;
 
+import jakarta.persistence.EntityNotFoundException;
 import media.toloka.rfa.author.model.AuthorArticle;
 import media.toloka.rfa.author.model.AuthorColumn;
 import media.toloka.rfa.author.repository.AuthorArticleRepository;
@@ -206,36 +207,77 @@ public class StoreCleanupService {
      */
     @Transactional
     public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
-        Store store = track.getStoreitem();
-        String trackUuid = track.getUuid();
+        // 1. Отримуємо свіжий об'єкт у поточній транзакції (EntityManager),
+        // щоб уникнути detached-стану та конфліктів версій
+        media.toloka.rfa.radio.model.Track managedTrack = trackRepository.findById(track.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Трек не знайдено з ID: " + track.getId()));
 
-        // СИНХРОНІЗАЦІЯ ДВОСТОРONНІХ ЗВ'ЯЗКІВ (Обов'язково для Hibernate)
-        // Відв'язуємо від клієнта
-        if (track.getClientdetail() != null && track.getClientdetail().getTrackList() != null) {
-            track.getClientdetail().getTrackList().remove(track);
+        String trackUuid = managedTrack.getUuid();
+        Store store = managedTrack.getStoreitem();
+
+        // 2. Розірвання двосторонніх зв'язків у пам'яті (Це обов'язково для Hibernate/JPA!)
+        if (managedTrack.getClientdetail() != null && managedTrack.getClientdetail().getTrackList() != null) {
+            managedTrack.getClientdetail().getTrackList().remove(managedTrack);
         }
-        // 2. Відв'язуємо від альбому, щоб не було конфліктів
-        track.setAlbum(null);
 
-        // 1. Видаляємо трек
-        track.setStoreitem(null);
-        track.setStoreuuid(null);
-        trackRepository.save(track);
-        trackRepository.delete(track);
-        // Забезпечуємо синхронізацію з БД перед пошуком залежностей
+        if (managedTrack.getAlbum() != null && managedTrack.getAlbum().getTrack() != null) {
+            managedTrack.getAlbum().getTrack().remove(managedTrack);
+        }
+
+        // Відв'язуємо Store від треку перед видаленням треку, щоб не було Foreign Key констрейнтів
+        managedTrack.setStoreitem(null);
+
+        // 3. Видаляємо ТРЕК стандартним методом репозиторію
+        trackRepository.delete(managedTrack);
+
+        // Примусово синхронізуємо зміни з БД прямо зараз всередині транзакції
         trackRepository.flush();
-        logger.info("Запис про трек {} видалено", trackUuid);
 
-        // 2. Якщо був файл, перевіряємо чи він ще десь потрібен
+        // 4. Логіка очищення файлу (тепер вона повністю безпечна)
         if (store != null) {
             Map<String, List<?>> deps = dependencyService.findDependencies(store);
             if (deps.isEmpty()) {
                 storeService.DeleteInStore(store);
                 logger.info("Аудіофайл треку {} ({}) видалено (більше не використовується)", store.getFilename(), store.getUuid());
             } else {
-                logger.info("Аудіофайл треку {} ({}) залишено, бо він має інші залежності: {}", 
+                logger.info("Аудіофайл треку {} ({}) залишено, бо є інші залежності: {}",
                         store.getFilename(), store.getUuid(), deps.keySet());
             }
         }
+
+        logger.info("Запис про трек {} успішно видалено з БД через JPA", trackUuid);
     }
+//    public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
+//        Store store = track.getStoreitem();
+//        String trackUuid = track.getUuid();
+//
+//        // СИНХРОНІЗАЦІЯ ДВОСТОРONНІХ ЗВ'ЯЗКІВ (Обов'язково для Hibernate)
+//        // Відв'язуємо від клієнта
+//        if (track.getClientdetail() != null && track.getClientdetail().getTrackList() != null) {
+//            track.getClientdetail().getTrackList().remove(track);
+//        }
+//        // 2. Відв'язуємо від альбому, щоб не було конфліктів
+//        track.setAlbum(null);
+//
+//        // 1. Видаляємо трек
+//        track.setStoreitem(null);
+//        track.setStoreuuid(null);
+//        trackRepository.save(track);
+//        trackRepository.delete(track);
+//        // Забезпечуємо синхронізацію з БД перед пошуком залежностей
+//        trackRepository.flush();
+//        logger.info("Запис про трек {} видалено", trackUuid);
+//
+//        // 2. Якщо був файл, перевіряємо чи він ще десь потрібен
+//        if (store != null) {
+//            Map<String, List<?>> deps = dependencyService.findDependencies(store);
+//            if (deps.isEmpty()) {
+//                storeService.DeleteInStore(store);
+//                logger.info("Аудіофайл треку {} ({}) видалено (більше не використовується)", store.getFilename(), store.getUuid());
+//            } else {
+//                logger.info("Аудіофайл треку {} ({}) залишено, бо він має інші залежності: {}",
+//                        store.getFilename(), store.getUuid(), deps.keySet());
+//            }
+//        }
+//    }
 }
