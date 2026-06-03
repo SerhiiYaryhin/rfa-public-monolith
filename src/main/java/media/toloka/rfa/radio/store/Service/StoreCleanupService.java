@@ -208,8 +208,19 @@ public class StoreCleanupService {
     public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
         Store store = track.getStoreitem();
         String trackUuid = track.getUuid();
-        
+
+        // СИНХРОНІЗАЦІЯ ДВОСТОРONНІХ ЗВ'ЯЗКІВ (Обов'язково для Hibernate)
+        // Відв'язуємо від клієнта
+        if (track.getClientdetail() != null && track.getClientdetail().getTrackList() != null) {
+            track.getClientdetail().getTrackList().remove(track);
+        }
+        // 2. Відв'язуємо від альбому, щоб не було конфліктів
+        track.setAlbum(null);
+
         // 1. Видаляємо трек
+        track.setStoreitem(null);
+        track.setStoreuuid(null);
+        trackRepository.save(track);
         trackRepository.delete(track);
         // Забезпечуємо синхронізацію з БД перед пошуком залежностей
         trackRepository.flush();
