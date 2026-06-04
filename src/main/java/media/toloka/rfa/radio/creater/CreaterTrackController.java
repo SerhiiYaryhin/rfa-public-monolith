@@ -107,14 +107,41 @@ public class CreaterTrackController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Track track = null;
         
-        if (ftrack.getUuid() != null && !ftrack.getUuid().isEmpty()) {
-            track = createrService.GetTrackByUuid(ftrack.getUuid());
+        String inputUuid = ftrack.getUuid();
+        if (inputUuid != null && !inputUuid.isEmpty()) {
+            // 1. Спочатку шукаємо за UUID самого треку
+            track = createrService.GetTrackByUuid(inputUuid);
+            
+            // 2. Якщо не знайдено, можливо це UUID зі сховища (для нових треків)
+            if (track == null) {
+                track = createrService.GetTrackByStoreuuid(inputUuid);
+            }
+            
+            // 3. Якщо все ще не знайдено, перевіряємо чи є такий файл у сховищі
+            if (track == null) {
+                Store store = storeService.GetStoreByUUID(inputUuid);
+                if (store != null) {
+                    // Перевірка прав на файл
+                    if (store.getClientdetail().getUuid().equals(cd.getUuid())) {
+                        track = createrService.SaveTrackUploadInfo(inputUuid, cd);
+                        logger.info("Створено новий об'єкт Track для існуючого файлу Store: {}", inputUuid);
+                    }
+                }
+            }
         }
         
         if (track == null) {
+            logger.info("Не змогли ідентифікувати трек або файл за UUID: {}", inputUuid);
             return "redirect:/creater/home";
         }
         
+        // Перевірка прав власності на трек
+        if (!track.getClientdetail().getUuid().equals(cd.getUuid())) {
+            logger.warn("User {} tried to modify track {} belonging to another user", user.getEmail(), track.getUuid());
+            return "redirect:/creater/home";
+        }
+        
+        // Оновлюємо поля
         if (ftrack.getName() != null) track.setName(ftrack.getName());
         if (ftrack.getAutor() != null) track.setAutor(ftrack.getAutor());
         if (ftrack.getDescription() != null) track.setDescription(ftrack.getDescription());

@@ -134,7 +134,7 @@ public class CreaterService {
 
     /** Пошук треку за UUID зі сховища */
     public Track GetTrackByStoreuuid (String storeUuid) {
-        return trackRepository.getByUuid(storeUuid);
+        return trackRepository.getByStoreuuid(storeUuid);
     }
 
     /** Збереження змін у треку */
