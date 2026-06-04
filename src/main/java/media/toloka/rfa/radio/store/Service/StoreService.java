@@ -111,6 +111,11 @@ public class StoreService extends StoreFileImplementation {
 //        return storeRepositore.findByStorelAllPictures(cd.getId());
     }
 
+    public Page GetAllAudio(int pageNumber, int pageCount, Clientdetail cd) {
+        Pageable storePage = PageRequest.of(pageNumber, pageCount);
+        return storeRepositore.findByStorelAllAudio(storePage, cd);
+    }
+
     public List<Store> GetPodcastCoverListByCd(Clientdetail cd) {
         return storeRepositore.findByClientdetailAndStorefiletype(cd, STORE_PODCASTCOVER);
     }

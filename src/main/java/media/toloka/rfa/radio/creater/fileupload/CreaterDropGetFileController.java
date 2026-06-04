@@ -31,6 +31,9 @@ public class CreaterDropGetFileController {
     @Autowired
     private media.toloka.rfa.radio.creater.service.CreaterService createrService;
 
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreService storeService;
+
     final Logger logger = LoggerFactory.getLogger(CreaterDropGetFileController.class);
 
     @GetMapping("/creator/trackupload")
@@ -43,6 +46,7 @@ public class CreaterDropGetFileController {
         }
         media.toloka.rfa.radio.model.Clientdetail cd = clientService.GetClientDetailByUser(user);
         model.addAttribute("albumList", createrService.GetAllAlbumsByCreater(cd));
+        model.addAttribute("audioFiles", storeService.GetAllAudio(0, 50, cd).getContent());
         model.addAttribute("track", new media.toloka.rfa.radio.model.Track());
         return "/creater/trackupload";
     }
