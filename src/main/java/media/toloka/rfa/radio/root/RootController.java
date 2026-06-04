@@ -79,8 +79,8 @@ public class RootController {
         // Подкасти для каруселі
         List<PodcastChannel> podcastChannels = podcastService.GetPodcastListForRootCarusel();
 
-        // Авторські статті для слайдера
-        Page<media.toloka.rfa.author.model.AuthorArticle> authorArticlePage = createrService.GetPublicAuthorArticlesPage(0, 5);
+        // Авторські статті для слайдера та нового блоку (15 штук)
+        Page<media.toloka.rfa.author.model.AuthorArticle> authorArticlePage = createrService.GetPublicAuthorArticlesPage(0, 15);
 
         // Схвалені треки (пагінація)
         Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
