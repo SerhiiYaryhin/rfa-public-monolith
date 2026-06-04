@@ -23,29 +23,24 @@
     .podcast-play-overlay {
         position: relative;
     }
-    .podcast-play-overlay::after {
-        content: '\f144'; /* FontAwesome Play Circle */
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
+    .podcast-play-icon {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 3rem;
         color: rgba(255, 255, 255, 0.8);
         text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         opacity: 0.7;
         transition: all 0.3s ease;
         pointer-events: none;
+        z-index: 10;
     }
-    .card:hover .podcast-play-overlay::after {
+    .card:hover .podcast-play-icon {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.1);
     }
-    
-    /* Компактні оверлеї для мініатюр */
-    .podcast-play-overlay-sm::after {
-        font-size: 1.5rem;
+    .podcast-play-icon-sm {
+        font-size: 0.8rem;
     }
 
     .transition-hover {
@@ -282,6 +277,9 @@
                                         <div th:if="${pod.imagechanelstore == null}" class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white-50">
                                             <i class="fas fa-podcast fa-4x"></i>
                                         </div>
+                                        <div class="podcast-play-icon">
+                                            <i class="fas fa-play-circle fa-4x"></i>
+                                        </div>
                                     </a>
                                 </div>
                                 <div class="card-body p-3 bg-white">
@@ -317,6 +315,9 @@
                                              class="rounded w-100 h-100" style="object-fit: cover;">
                                         <div th:if="${pod.imagechanelstore == null}" class="bg-light rounded w-100 h-100 d-flex align-items-center justify-content-center text-muted">
                                             <i class="fas fa-podcast"></i>
+                                        </div>
+                                        <div class="podcast-play-icon podcast-play-icon-sm">
+                                            <i class="fas fa-play-circle"></i>
                                         </div>
                                     </a>
                                 </div>
