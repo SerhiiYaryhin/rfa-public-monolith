@@ -1,7 +1,5 @@
 package media.toloka.rfa.radio.root;
 
-//import media.toloka.rfa.radio.model.MessageFromSite;
-//import media.toloka.rfa.service.ServiceMessageFromSite;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.MessageFromSite;
 import media.toloka.rfa.radio.model.Post;
@@ -12,7 +10,6 @@ import media.toloka.rfa.radio.root.service.ServiceMessageFromSite;
 import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
 import media.toloka.rfa.radio.station.service.StationOnlineList;
 import media.toloka.rfa.radio.station.service.StationService;
-import media.toloka.rfa.radio.store.model.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +19,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-//import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Date;
 import java.util.List;
+
 @Profile("Front")
 @Controller
 @EnableWebMvc
@@ -37,7 +34,7 @@ public class RootController {
     Logger logger = LoggerFactory.getLogger(RootController.class);
 
     @Autowired
-    private ServiceMessageFromSite smfs; // = new ServiceMessageFromSite();
+    private ServiceMessageFromSite smfs;
 
     @Autowired
     private CreaterService createrService;
@@ -49,23 +46,21 @@ public class RootController {
     private PodcastService podcastService;
 
     @Autowired
+    private media.toloka.rfa.radio.client.service.ClientService clientService;
+
+    @Autowired
     private media.toloka.rfa.radio.store.Service.StoreService storeService;
 
-    // todo подивитися чи використовується і або перенести, або видалити
     @GetMapping(value = "/admin/root")
     public String adminroot(Model model) {
 
         List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-        List<Track> trackList = createrService.GetLastUploadTracks();
-
         Page<Track> pageTrack = createrService.GetTrackPage(0,10);
         List<Track> storeTrackList = pageTrack.getContent();
 
         Page<Post> pagePost = createrService.GetPostPage(0,12);
         List<Post> storePostList = pagePost.getContent();
 
-
-//        model.addAttribute("trackList", trackList );
         model.addAttribute("trackList", storeTrackList );
         model.addAttribute("postList", storePostList );
         model.addAttribute("posts", posts );
@@ -74,7 +69,6 @@ public class RootController {
         model.addAttribute("question", QuestionForm);
         return "/admin/root";
     }
-
 
     @GetMapping(value = "/")
     public String index(Model model) {
@@ -91,20 +85,24 @@ public class RootController {
         // Схвалені треки (пагінація)
         Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
         List<Track> publicTracks = pageTrack.getContent();
-        logger.info("Found {} public tracks", publicTracks.size());
 
         // Схвалені пости (пагінація)
         Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
+
+        // Останні змінені подкасти для нового блоку (9 штук)
+        Page<PodcastChannel> latestPodcastsPage = podcastService.GetPublicPodcastsPage(0, 9);
 
         model.addAttribute("trackList", publicTracks );
         model.addAttribute("postList", pagePost.getContent() );
         model.addAttribute("stationsonline", stationOnlineList );
         model.addAttribute("podcastChannels", podcastChannels );
+        model.addAttribute("latestPodcasts", latestPodcastsPage.getContent());
         model.addAttribute("authorArticles", authorArticlePage.getContent());
 
         // Open graph image
         model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
         model.addAttribute("storeService", storeService);
+        model.addAttribute("clientService", clientService);
 
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);
@@ -115,20 +113,14 @@ public class RootController {
         return "/root";
     }
 
-
     @GetMapping(value = "/about")
     public String about(Model model) {
-
         List<Post> posts = createrService.GetAllPostsByApruveAndMusicPost(true);
-        List<Track> trackList = createrService.GetLastUploadTracks();
-
         Page<Track> pageTrack = createrService.GetTrackPage(0,10);
         List<Track> storeTrackList = pageTrack.getContent();
 
-//        model.addAttribute("trackList", trackList );
         model.addAttribute("trackList", storeTrackList );
         model.addAttribute("posts", posts );
-//        model.addAttribute("stations",  stationService.GetListStationByUser(user));
 
         MessageFromSite QuestionForm = new MessageFromSite();
         model.addAttribute("question", QuestionForm);
@@ -147,6 +139,7 @@ public class RootController {
 
         return "redirect:/#contact";
     }
+
     @RequestMapping(value={"/robots.txt", "/robot.txt"})
     @ResponseBody
     public String getRobotsTxt() {
@@ -161,8 +154,5 @@ public class RootController {
             User-agent: Facebot
             Allow: /
             """;
-
-        //"User-agent: * \nAllow: / \nDisallow: /admin/ \n\nUser-agent: facebookexternalhit \nAllow: / \n\nUser-agent: Facebot\nAllow: /\n";
     }
-
 }
