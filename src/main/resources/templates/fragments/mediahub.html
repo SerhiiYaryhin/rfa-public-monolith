@@ -411,11 +411,352 @@
 </section>
 
 <template th:fragment="audiotemplate">
-...
+    <style>
+        button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            outline: none;
+            width: 20px;
+            height: 20px;
+            float: left;
+        }
+        #audio-player-container {
+            position: relative;
+            margin: 0px 2.5% auto 2.5%;
+            width: 95%;
+            max-width: 500px;
+            height: 80px;
+            background: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+            --seek-before-width: 0%;
+            --volume-before-width: 80%;
+            --buffered-width: 0%;
+            letter-spacing: -0.5px;
+        }
+        #audio-player-container::before {
+            position: absolute;
+            content: '';
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            left: -2px;
+            top: -2px;
+            background: linear-gradient(to left, #007db5, #ff8a00);
+            z-index: -1;
+        }
+        p {
+            position: absolute;
+            top: -18px;
+            right: 5%;
+            padding: 0 5px;
+            margin: 0;
+            font-size: 0.8rem;
+            background: #fff;
+        }
+        #play-icon {
+            margin: 20px 2.5% 10px 2.5%;
+        }
+        path {
+            stroke: #007db5;
+        }
+        .time {
+            display: inline-block;
+            width: 37px;
+            text-align: center;
+            font-size: 12px;
+            margin: 20px 0 0px 0;
+            float: left;
+        }
+        output {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            font-size: 12px;
+            margin: 0px 2.5% 0 5%;
+            float: left;
+            clear: left;
+        }
+        #volume-slider {
+            margin: 0px 2.5%;
+            width: 43%;
+        }
+        #volume-slider::-webkit-slider-runnable-track {
+            background: rgba(0, 125, 181, 0.6);
+        }
+        #volume-slider::-moz-range-track {
+            background: rgba(0, 125, 181, 0.6);
+        }
+        #volume-slider::-ms-fill-upper {
+            background: rgba(0, 125, 181, 0.6);
+        }
+        #volume-slider::before {
+            width: var(--volume-before-width);
+        }
+        #mute-icon {
+            margin: 0 2.5%;
+        }
+        input[type="range"] {
+            position: relative;
+            -webkit-appearance: none;
+            width: 38%;
+            margin: 0;
+            padding: 0;
+            height: 19px;
+            margin: 20px 2.5% 5px 2.5%;
+            float: left;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 3px;
+            cursor: pointer;
+            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
+        }
+        input[type="range"]::before {
+            position: absolute;
+            content: "";
+            top: 8px;
+            left: 0;
+            width: var(--seek-before-width);
+            height: 3px;
+            background-color: #007db5;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            position: relative;
+            -webkit-appearance: none;
+            box-sizing: content-box;
+            border: 1px solid #007db5;
+            height: 15px;
+            width: 15px;
+            border-radius: 40%;
+            background-color: #fff;
+            cursor: pointer;
+            margin: -7px 0 0 0;
+        }
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.2);
+            background: #007db5;
+        }
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 3px;
+            cursor: pointer;
+            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
+        }
+        input[type="range"]::-moz-range-progress {
+            background-color: #007db5;
+        }
+        input[type="range"]::-moz-focus-outer {
+            border: 0;
+        }
+        input[type="range"]::-moz-range-thumb {
+            box-sizing: content-box;
+            border: 1px solid #007db5;
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        input[type="range"]:active::-moz-range-thumb {
+            transform: scale(1.2);
+            background: #007db5;
+        }
+        input[type="range"]::-ms-track {
+            width: 100%;
+            height: 3px;
+            cursor: pointer;
+            background: transparent;
+            border: solid transparent;
+            color: transparent;
+        }
+        input[type="range"]::-ms-fill-lower {
+            background-color: #007db5;
+        }
+        input[type="range"]::-ms-fill-upper {
+            background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
+        }
+        input[type="range"]::-ms-thumb {
+            box-sizing: content-box;
+            border: 1px solid #007db5;
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        input[type="range"]:active::-ms-thumb {
+            transform: scale(1.2);
+            background: #007db5;
+        }
+    </style>
+    <div id="audio-player-container">
+        <audio src="" preload="metadata" loop></audio>
+        <p id="NameAutor">Толока медіа</p>
+        <button id="play-icon"></button>
+        <span id="current-time" class="time">0:00</span>
+        <input type="range" id="seek-slider" max="100" value="0">
+        <span id="duration" class="time">0:00</span>
+        <output id="volume-output">100</output>
+        <input type="range" id="volume-slider" class="time" max="100" value="100">
+        <button id="mute-icon"></button>
+    </div>
 </template>
 
 <!--Останні завантажені треки-->
-...
+<div th:fragment="lasttrecks">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 text-center">
+            <h3 class="h5 fw-bold mb-0">Нові треки</h3>
+        </div>
+        <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
+            <audio-player id="audio-player" style="padding:0" 
+                          th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"
+                          th:data-name="${trackList[0].name}"
+                          th:data-autor="${trackList[0].autor}"/>
+        </div>
+        <div th:if="${trackList == null || trackList.isEmpty()}" class="p-4 text-center text-muted">
+            <div class="py-3">
+                <i class="fas fa-compact-disc fa-3x mb-3 opacity-25"></i>
+                <p class="small mb-0">Треків поки немає</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="rfa-banner rfa-banner-image mb-4"></div>
+
+    <div class="card shadow-sm border-0" th:if="${trackList != null && !trackList.isEmpty()}">
+        <ul class="list-group list-group-flush">
+            <div th:each="track, iStat : ${trackList}">
+                <li class="list-group-item">
+                    <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.02)'">
+                        <div class="col-auto">
+                            <div class="cursor-pointer"
+                                 th:data-uuid="${track.storeuuid}"
+                                 th:data-name="${track.name}"
+                                 th:data-autor="${track.autor}"
+                                 onclick="onClickTrack(this.dataset.uuid, this.dataset.name, this.dataset.autor)">
+                                <div class="fa-stack text-primary">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="small fw-bold text-truncate" style="max-width: 150px;">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}" class="text-decoration-none text-dark"
+                                   th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></a>
+                            </div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 150px;">
+                                <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-muted"
+                                   th:text="${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}"></a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </div>
+        </ul>
+        <div class="card-footer bg-white border-top-0 text-center">
+            <a href="/guest/tracksall/0" class="btn btn-link btn-sm text-decoration-none">Всі треки</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" th:fragment="lasttrecksall">
+    <div class="card shadow-sm border-0 mt-5">
+        <div class="card-header bg-white py-3">
+            <h3 class="h4 fw-bold mb-0">Завантажені треки</h3>
+        </div>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+                <div th:if="${trackList == null || trackList.isEmpty()}" class="p-5 text-center text-muted">
+                    <p class="mb-0">Треків поки немає</p>
+                </div>
+                <div th:each="track, iStat : ${trackList}">
+                    <li class="list-group-item py-3">
+                        <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.01)'">
+                            <div class="col-auto ps-4">
+                                <div class="cursor-pointer"
+                                     th:data-uuid="${track.storeuuid}"
+                                     th:data-name="${track.name}"
+                                     th:data-autor="${track.autor}"
+                                     onclick="onClickTrack(this.dataset.uuid, this.dataset.name, this.dataset.autor)">
+                                    <div class="fa-stack fa-lg text-primary">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a th:if="${track.storeitem != null}" th:href="'/store/content/' + ${track.storeitem.uuid}"
+                                   th:download="${track.storeitem.filename}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                            </div>
+                            <div class="col px-3">
+                                <div class="fw-bold">
+                                    <a th:href="'/guest/viewtrack/'+${track.uuid}" class="text-decoration-none text-dark"
+                                       th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}">Назва</a>
+                                </div>
+                                <div class="small text-muted">
+                                    <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-secondary">
+                                        <i class="far fa-user me-1"></i>[[${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}]]
+                                    </a>
+                                    <span class="ms-3"><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(track.uploaddate, 'dd.MM.yyyy')}]]</span>
+                                </div>
+                            </div>
+                            <div class="col-auto pe-4">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}" class="btn btn-sm btn-link text-decoration-none">
+                                    Детальніше <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </div>
+            </ul>
+        </div>
+        <div class="card-footer bg-white py-4" th:if="${totalpage > 1}">
+            <nav aria-label="navigation">
+                <ul class="pagination pagination-sm justify-content-center mb-0 shadow-sm">
+                    <!-- Початок / -10 -->
+                    <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/0'" title="Перша сторінка"><i class="fas fa-angle-double-left"></i></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentpage < 10} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${currentpage - 10 < 0 ? 0 : currentpage - 10}" title="-10 сторінок">-10</a>
+                    </li>
+
+                    <!-- Попередня -->
+                    <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${privpage}"><i class="fas fa-chevron-left"></i></a>
+                    </li>
+
+                    <!-- Номери сторінок (обмежено поточна +- 2) -->
+                    <th:block th:with="start=${currentpage - 2 < 0 ? 0 : currentpage - 2}, end=${currentpage + 2 > totalpage - 1 ? totalpage - 1 : currentpage + 2}">
+                        <li class="page-item" th:each="lpage : ${#numbers.sequence(start, end)}" th:classappend="${lpage == currentpage} ? 'active'">
+                            <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
+                        </li>
+                    </th:block>
+
+                    <!-- Наступна -->
+                    <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/'+${nextpage}"><i class="fas fa-chevron-right"></i></a>
+                    </li>
+
+                    <!-- +10 / Кінець -->
+                    <li class="page-item" th:classappend="${currentpage > totalpage - 11} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${currentpage + 10 > totalpage - 1 ? totalpage - 1 : currentpage + 10}" title="+10 сторінок">+10</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${totalpage - 1}" title="Остання сторінка"><i class="fas fa-angle-double-right"></i></a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
