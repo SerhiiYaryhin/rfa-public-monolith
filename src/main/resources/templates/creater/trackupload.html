@@ -262,11 +262,21 @@
             const name = $("#name").val().trim();
             const uuid = $("#track-uuid").val().trim();
             
-            const isValid = autor.length > 0 && name.length > 0 && uuid.length > 0;
+            // Отримуємо контент з TinyMCE
+            const description = tinymce.get('description') ? tinymce.get('description').getContent({format: 'text'}).trim() : "";
+            
+            const isValid = autor.length > 0 && name.length > 0 && description.length > 0 && uuid.length > 0;
             $("#submit-btn").prop("disabled", !isValid);
         }
 
         $("#autor, #name").on("input", validateForm);
+        
+        // Відстеження змін у TinyMCE для валідації
+        setTimeout(() => {
+            if (tinymce.get('description')) {
+                tinymce.get('description').on('keyup change', validateForm);
+            }
+        }, 1000);
         
         // Ініціальна валідація
         validateForm();
