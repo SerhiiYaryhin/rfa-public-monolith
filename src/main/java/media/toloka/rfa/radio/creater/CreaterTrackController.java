@@ -141,6 +141,17 @@ public class CreaterTrackController {
             return "redirect:/creater/home";
         }
         
+        // Валідація обов'язкових полів на бекенді
+        if (ftrack.getAutor() == null || ftrack.getAutor().trim().isEmpty() ||
+            ftrack.getName() == null || ftrack.getName().trim().isEmpty() ||
+            ftrack.getDescription() == null || ftrack.getDescription().trim().isEmpty()) {
+            
+            logger.warn("User {} tried to save track without mandatory fields", user.getEmail());
+            // Оскільки ми використовуємо redirect, для передачі помилки зазвичай потрібен RedirectAttributes
+            // Але в даному контексті ми можемо просто повернути користувача назад
+            return "redirect:/creator/trackupload";
+        }
+
         // Оновлюємо поля
         if (ftrack.getName() != null) track.setName(ftrack.getName());
         if (ftrack.getAutor() != null) track.setAutor(ftrack.getAutor());
