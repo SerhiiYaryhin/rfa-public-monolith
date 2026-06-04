@@ -89,8 +89,8 @@ public class RootController {
         // Схвалені пости (пагінація)
         Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
 
-        // Останні змінені подкасти для нового блоку (9 штук)
-        Page<PodcastChannel> latestPodcastsPage = podcastService.GetPublicPodcastsPage(0, 9);
+        // Останні змінені подкасти для нового блоку (15 штук)
+        Page<PodcastChannel> latestPodcastsPage = podcastService.GetPublicPodcastsPage(0, 15);
 
         model.addAttribute("trackList", publicTracks );
         model.addAttribute("postList", pagePost.getContent() );

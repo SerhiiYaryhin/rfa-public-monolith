@@ -284,18 +284,18 @@
                     <a href="/podcast/all" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">Всі подкасти</a>
                 </div>
                 <div class="card-body">
-                    <!-- Перші 3 подкасти (Великий стиль) -->
+                    <!-- Перші 3 подкасти (Великий стиль - Квадратна ілюстрація) -->
                     <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                         <div th:each="pod, iStat : ${latestPodcasts}" th:if="${iStat.index < 3}" class="col">
                             <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover">
-                                <div class="overflow-hidden rounded-top" style="height: 180px;">
+                                <div class="ratio ratio-1x1 overflow-hidden rounded-top">
                                     <a th:href="'/podcast/view/'+${pod.uuid}">
                                         <img th:if="${pod.imagechanelstore != null}" 
                                              th:src="'/store/content/'+${pod.imagechanelstore.uuid}" 
-                                             class="card-img-top h-100 w-100" style="object-fit: cover;"
+                                             class="card-img-top w-100 h-100" style="object-fit: cover;"
                                              th:alt="${pod.title}">
                                         <div th:if="${pod.imagechanelstore == null}" class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white-50">
-                                            <i class="fas fa-podcast fa-3x"></i>
+                                            <i class="fas fa-podcast fa-4x"></i>
                                         </div>
                                     </a>
                                 </div>
