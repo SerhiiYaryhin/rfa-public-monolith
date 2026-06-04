@@ -77,17 +77,18 @@ public class Station {
 
 
     @ToString.Exclude
-    @ManyToOne(optional = false, cascade = {CascadeType.ALL})
+//    @ManyToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}) //  PERSIST видалено!
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @ManyToOne(optional = true, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = true, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "contract_id")
     private Contract contract;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "station", fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "station", fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<Poolport> ports = new ArrayList<>();
 
     @ToString.Exclude

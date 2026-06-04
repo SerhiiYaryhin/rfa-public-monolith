@@ -41,12 +41,12 @@ public class Contract {
     private String usercomment;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch=FetchType.EAGER)
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "contract", fetch=FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "contract", fetch=FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     private List<Station> stationList = new ArrayList<>();
 
 

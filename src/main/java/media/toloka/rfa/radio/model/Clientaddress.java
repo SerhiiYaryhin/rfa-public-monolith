@@ -56,7 +56,7 @@ public class Clientaddress {
 //    private boolean cheked = false;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, cascade = {CascadeType.ALL}) //, cascade = {CascadeType.ALL}
+    @ManyToOne(optional = false, cascade = {CascadeType.MERGE, CascadeType.REFRESH}) //, cascade = {CascadeType.ALL}
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
