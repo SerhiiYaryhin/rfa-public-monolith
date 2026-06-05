@@ -257,6 +257,9 @@
                 </div>
             </div>
 
+            <!-- Додаємо текстовий банер-->
+            <div class="rfa-banner rfa-banner-text"></div>
+
             <!-- Новий блок: Останні подкасти (пастельний червоний фон) -->
             <div class="card shadow-sm border-0 mb-5 section-podcasts overflow-hidden" th:if="${latestPodcasts != null && !latestPodcasts.isEmpty()}" style="border-radius: 20px;">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
@@ -333,6 +336,9 @@
                 </div>
             </div>
 
+            <!-- Додаємо текстовий банер-->
+            <div class="rfa-banner rfa-banner-text"></div>
+
             <!-- Новий блок: Останні авторські статті (пастельний золотистий фон) -->
             <div class="card shadow-sm border-0 mb-5 section-articles overflow-hidden" th:if="${authorArticles != null && !authorArticles.isEmpty()}" style="border-radius: 20px;">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
@@ -407,6 +413,10 @@
         <div class="col-lg-3 col-sm-12">
             <div class="rfa-banner rfa-banner-image"></div>
             <div th:insert="~{/fragments/mediahub :: lasttrecks}"></div>
+
+            <!-- Додаємо текстовий банер-->
+            <div class="rfa-banner rfa-banner-text"></div>
+
             <div th:insert="~{/fragments/mediahub :: lastAuthorArticles}"></div>
         </div>
     </div>
