@@ -51,18 +51,19 @@
                 <div class="card-body p-4">
                     <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Швидкі дії</h5>
                     <div class="d-flex flex-wrap gap-2">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <a th:href="${linkstation}" id="toStation" class="btn btn-light btn-action text-primary" target="_blank">
                             <i class="fas fa-external-link-alt me-2"></i>ВІДКРИТИ ПАНЕЛЬ
                         </a>
-                        <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-success btn-action">
+                        <button type="button" onclick="stationAction('start')" id="startStation" class="btn btn-success btn-action">
                             <i class="fas fa-play me-2"></i>СТАРТУВАТИ
-                        </a>
-                        <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-warning btn-action">
+                        </button>
+                        <button type="button" onclick="stationAction('stop')" id="stopStation" class="btn btn-warning btn-action">
                             <i class="fas fa-stop me-2"></i>ЗУПИНИТИ
-                        </a>
-                        <a th:href="@{/user/deletestation(id=${station.id})}" id="delStation" class="btn btn-danger btn-action" onclick="return confirm('Ви впевнені, що хочете видалити станцію?')">
+                        </button>
+                        <button type="button" onclick="stationAction('delete')" id="delStation" class="btn btn-danger btn-action">
                             <i class="fas fa-trash-alt me-2"></i>ВИДАЛИТИ
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>

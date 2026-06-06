@@ -1,84 +1,99 @@
 /*!
 * Start Rfa - відслідковуємо кнопки на панелі керування станцією.
-*
-*
+* Оновлено для роботи з AJAX (Фаза 4)
 */
-//
-// Scripts
-// https://rfa.toloka.media
 
 let intervalId;
-let curstatus;
 var toloka = {};
 
 window.addEventListener('DOMContentLoaded', event => {
 
-function getkeyhrev () {
-    toloka.blink = document.getElementById('toStation');
-    toloka.bstart = document.getElementById('startStation');
-    toloka.bstop = document.getElementById('stopStation');
-    toloka.bdel = document.getElementById('delStation');
-    toloka.changepswdiv = document.getElementById('setpswarea');
-
-    toloka.blinkdisplay = toloka.blink.style.display;
-    toloka.bstartdisplay = toloka.bstart.style.display;
-    toloka.bstopdisplay = toloka.bstop.style.display;
-    toloka.bdeldisplay = toloka.bdel.style.display;
-    toloka.bchangepswdiv =toloka.changepswdiv.style.display;
-
-    toloka.blink.style.display = "none";
-    toloka.bstart.style.display = "none";
-    toloka.bstop.style.display = "none";
-    toloka.bdel.style.display = "none";
-    toloka.changepswdiv.style.display = "none";
-    toloka.changepswdiv.style.display = "none";
-}
-
-
-
-async function getStatus() {
-    let siteurl = "https://rfa.toloka.media/api/1.0/ps/"+stationId;
-    const response = await fetch(siteurl);
-    const data = await response.json();
-    stationstate = data["status"];
-    myspan = document.getElementById('spanstationstate');
-
-    switch (stationstate) {
-//        case '6':
-        case '7':
-            myspan.textContent = 'Всі сервіси працюють нормально.';
-            myspan.setAttribute("style", "color:green;");
-            toloka.blink.style.display = toloka.blinkdisplay;
-            toloka.bstart.style.display = "none";
-            toloka.bstop.style.display = toloka.bstopdisplay;
-            toloka.bdel.style.display = "none";
-            toloka.changepswdiv.style.display = "none";
-            break;
-        case '0':
-            myspan.textContent = 'Станція вимкнена';
-            myspan.setAttribute("style", "color:red;");
-            toloka.blink.style.display = "none";
-            toloka.bstart.style.display = toloka.bstartdisplay
-            toloka.bstop.style.display = "none";
-            toloka.bdel.style.display = toloka.bdeldisplay ;
-            toloka.changepswdiv.style.display = toloka.bchangepswdiv;
-            break;
-        default:
-            myspan.textContent = 'Станція в процесі запуску або зупинки';
-            myspan.setAttribute("style", "color:orange;");
-            toloka.blink.style.display = "none";
-            toloka.bstart.style.display = "none";
-            toloka.bstop.style.display = "none";
-            toloka.bdel.style.display = "none";
-            break;
+    function getElements() {
+        toloka.blink = document.getElementById('toStation');
+        toloka.bstart = document.getElementById('startStation');
+        toloka.bstop = document.getElementById('stopStation');
+        toloka.bdel = document.getElementById('delStation');
+        toloka.myspan = document.getElementById('spanstationstate');
+        
+        // Зберігаємо оригінальні стани відображення
+        if (toloka.bstart) toloka.bstartdisplay = "inline-block";
+        if (toloka.bstop) toloka.bstopdisplay = "inline-block";
+        if (toloka.blink) toloka.blinkdisplay = "inline-block";
+        if (toloka.bdel) toloka.bdeldisplay = "inline-block";
     }
-  return data;
-}
 
+    async function getStatus() {
+        if (!stationId) return;
+        let siteurl = "/api/1.0/ps/" + stationId;
+        try {
+            const response = await fetch(siteurl);
+            const data = await response.json();
+            const stationstate = data["status"];
+            
+            if (!toloka.myspan) return;
 
-getkeyhrev();
+            switch (stationstate) {
+                case '7':
+                    toloka.myspan.textContent = 'Всі сервіси працюють нормально';
+                    toloka.myspan.className = 'fw-bold px-3 text-success';
+                    if (toloka.blink) toloka.blink.style.display = "inline-block";
+                    if (toloka.bstart) toloka.bstart.style.display = "none";
+                    if (toloka.bstop) toloka.bstop.style.display = "inline-block";
+                    if (toloka.bdel) toloka.bdel.style.display = "none";
+                    break;
+                case '0':
+                    toloka.myspan.textContent = 'Станція вимкнена';
+                    toloka.myspan.className = 'fw-bold px-3 text-danger';
+                    if (toloka.blink) toloka.blink.style.display = "none";
+                    if (toloka.bstart) toloka.bstart.style.display = "inline-block";
+                    if (toloka.bstop) toloka.bstop.style.display = "none";
+                    if (toloka.bdel) toloka.bdel.style.display = "inline-block";
+                    break;
+                default:
+                    toloka.myspan.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Станція в процесі...';
+                    toloka.myspan.className = 'fw-bold px-3 text-warning';
+                    if (toloka.blink) toloka.blink.style.display = "none";
+                    if (toloka.bstart) toloka.bstart.style.display = "none";
+                    if (toloka.bstop) toloka.bstop.style.display = "none";
+                    if (toloka.bdel) toloka.bdel.style.display = "none";
+                    break;
+            }
+        } catch (e) {
+            console.error("Status check error", e);
+        }
+    }
 
-intervalId = setInterval(getStatus, 3000);
+    // AJAX управління
+    window.stationAction = async function(action) {
+        if (!confirm('Виконати дію ' + action + '?')) return;
+        
+        const url = `/api/1.0/user/station/${stationId}/${action}`;
+        const method = action === 'delete' ? 'DELETE' : 'POST';
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value
+                }
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                toastr.success(result.message);
+                if (action === 'delete') window.location.href = '/user/stations';
+                getStatus(); // Одразу оновлюємо стан
+            } else {
+                toastr.error(result.message || 'Помилка виконання операції');
+            }
+        } catch (e) {
+            toastr.error('Системна помилка: ' + e.message);
+        }
+    };
 
-
+    getElements();
+    if (stationId) {
+        getStatus();
+        intervalId = setInterval(getStatus, 5000);
+    }
 });
