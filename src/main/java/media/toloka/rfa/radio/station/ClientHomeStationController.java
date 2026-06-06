@@ -52,6 +52,9 @@ public class ClientHomeStationController {
     private MessangerService messangerService;
 
     @Autowired
+    private media.toloka.rfa.radio.document.service.DocumentService documentService;
+
+    @Autowired
     private SendToRadio sendToRadio;
 
     @GetMapping(value = "/user/toradiouser")
@@ -124,6 +127,18 @@ public class ClientHomeStationController {
         if (user == null) return "redirect:/";
         model.addAttribute("stations", stationService.GetListStationByUser(user));
         return "/user/stations";
+    }
+
+    @GetMapping(value = "/user/station/wizard")
+    public String stationWizard(Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) return "redirect:/";
+
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        model.addAttribute("cd", cd);
+        model.addAttribute("addresses", clientService.GetClientAddressList(cd));
+        model.addAttribute("documents", documentService.listDocumentsByClientdetail(cd));
+        return "/user/wizard";
     }
 
     @GetMapping(value = "/user/createstation")
