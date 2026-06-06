@@ -49,6 +49,9 @@ public class AdminService {
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private media.toloka.rfa.service.notification.NotificationService notificationService;
+
     final Logger logger = LoggerFactory.getLogger(AdminService.class);
 
     public List<Post> GetNotApruvePosts() {
@@ -112,6 +115,14 @@ public class AdminService {
 
     public void SaveClientAddress(Clientaddress clientaddress) {
         clientService.SaveAddress(clientaddress);
+
+        // Відправляємо сповіщення
+        Users admin = clientService.GetCurrentUser();
+        if (admin != null && clientaddress.getApruve()) {
+            Clientdetail adminCd = clientService.GetClientDetailByUser(admin);
+            notificationService.sendSystemNotification(adminCd, clientaddress.getClientdetail(),
+                    "Вашу адресу '" + clientaddress.getShortaddress() + "' було схвалено адміністрацією.");
+        }
     }
 
     public void updateDocumentStatus(Long id, EDocumentStatus status, String adminComment) {
@@ -120,6 +131,14 @@ public class AdminService {
             doc.setStatus(status);
             if (adminComment != null) doc.setAdminComment(adminComment);
             documentService.saveDocument(doc);
+
+            // Відправляємо сповіщення
+            Users admin = clientService.GetCurrentUser();
+            if (admin != null) {
+                Clientdetail adminCd = clientService.GetClientDetailByUser(admin);
+                String message = "Статус вашого документа '" + (doc.getDocumenttype() != null ? doc.getDocumenttype() : "Документ") + "' змінено на: " + status.label;
+                notificationService.sendSystemNotification(adminCd, doc.getClientdetail(), message);
+            }
         }
     }
 
