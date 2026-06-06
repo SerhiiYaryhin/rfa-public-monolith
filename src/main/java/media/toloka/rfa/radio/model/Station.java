@@ -28,21 +28,21 @@ public class Station {
     @Column(columnDefinition = "TEXT")
     private String description; // Опис радіостанції
     @Expose
-    private String dbname; // імʼя бази даних
+    private String dbname; // TODO: PROPOSAL -> dbName (Keep 'dbname' in DB/JSON for backward compatibility)
     @Expose
-    private String purchaseditem = null; // куплене коротке та гарне імʼя
+    private String purchaseditem = null; // TODO: PROPOSAL -> purchasedItem
     @Expose
     private boolean enable = false; // станцію можна запускати
     @Expose
-    private Date startdate;  // дата останього старту
+    private Date startdate;  // TODO: PROPOSAL -> startDate
     @Expose
-    private Date createdate;  // дата створення
+    private Date createdate;  // TODO: PROPOSAL -> createDate
     @Expose
-    private Date endworkdate;  // дата зупинки з панелі
+    private Date endworkdate;  // TODO: PROPOSAL -> endWorkDate
     @Expose
-    private Date lastpaydate;   // дата останьої оплати
+    private Date lastpaydate;   // TODO: PROPOSAL -> lastPayDate
     @Expose
-    private Date lastchangedate;  //дата останьої зміни даних
+    private Date lastchangedate;  // TODO: PROPOSAL -> lastChangeDate
     @Expose
     public Integer guiport; // port gui server
     @Expose
@@ -56,22 +56,22 @@ public class Station {
     @Expose
     private String uuid; // заповнюється десь в програмі при створенні станції. Чи можна тут заповнювати?
     @Expose
-    private String icecastname;
+    private String icecastname; // TODO: PROPOSAL -> icecastName
     @Expose
-    private String icecastdescription;
+    private String icecastdescription; // TODO: PROPOSAL -> icecastDescription
     @Expose
-    private String icecastsite;
+    private String icecastsite; // TODO: PROPOSAL -> icecastSite
     @Expose
-    private String icecastgenre;
+    private String icecastgenre; // TODO: PROPOSAL -> icecastGenre
     @Expose
-    private Boolean stationstate; // true if station runing state
+    private Boolean stationstate; // TODO: PROPOSAL -> isRunning (CRITICAL: used in JSON/RabbitMQ)
     @Expose
-    private String roomuuid = null;
+    private String roomuuid = null; // TODO: PROPOSAL -> roomUuid
     @Expose
-    private String toradiouser; // імʼя користувача для трансляцій
+    private String toradiouser; // TODO: PROPOSAL -> toRadioUser
     @Expose
     @Column(columnDefinition = "TEXT")
-    private String toradiopassword; // шифрований пароль для трансляції в Libretime
+    private String toradiopassword; // TODO: PROPOSAL -> toRadioPassword
 
 //    private transient Contract contract;
 
