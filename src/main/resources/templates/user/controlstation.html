@@ -1,178 +1,243 @@
 <!DOCTYPE html>
-<html lang ="uk" xmlns="http://www.w3.org/1999/xhtml"
+<html lang="uk" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
 >
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Панель керування - <span th:text="${station.name}">Станція</span></title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .dashboard-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .status-badge { font-size: 1rem; padding: 8px 15px; border-radius: 20px; }
+        .nav-tabs-custom { border-bottom: 2px solid #f1f5f9; }
+        .nav-tabs-custom .nav-link { border: none; color: #64748b; font-weight: 600; padding: 12px 20px; }
+        .nav-tabs-custom .nav-link.active { color: #0d6efd; border-bottom: 2px solid #0d6efd; background: transparent; }
+        .btn-action { border-radius: 10px; padding: 10px 20px; font-weight: 600; }
+        .copy-link { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
+        .copy-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 <header>
-<!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
-<div class="row"  style="padding-top: 100px">
-    <div class="col-md-8 mb-4">
-        <div class="card mb-4">
-            <div class="card-header py-3">
-                <h5 class="mb-0">Керування станцією</h5>
-            </div>
-            <div class="card-body">
-<!--                <form th:action="@{/user/stationsave}" th:object="${station}" method="post">-->
-                <form th:action="@{/user/stationsave}" method="post">
-                    <div class="row mb-4">
-                        <div th:if="${station.contract == null}" class="alert alert-danger" role="alert"
-                             th:text="'Не можемо запустити станцію ' +  ${station.uuid} + ' для користувача ' + ${station.clientdetail.user.email} + ' Перевірте, чи приєднана вона до контракту.'"/>
-                        <div class="col">
-                            <div class="form-outline">
-                                <input type="hidden" name="id" id="id" th:value="${station.id}" />
-                                <input type="text" name="name" id="name" th:value="${station.name}" class="form-control" />
-                                <label class="form-label" for="name">Найменування Станції</label>
-                                <div id="setpswarea" style="background: #ccddee;">
-                                    <hr>
-                                    <p>
-                                        Встановлення пароля для користувача "admin" панелі керування станцією.<br>
 
-                                        <span>
-                                            <span style="color:red"><b>УВАГА!</b></span><br>Всі користувачі будуть видалені, всі данні збережуться.<br>
-                                            Введіть пароль і натисніть "Зберігти".
-                                        </span>
-                                    </p>
-<!--                                    Обʼєкт для паролю formUserPSW-->
-                                    <input type="text" name="password" id="password" th:value="${formUserPSW.password}" class="form-control" />
-                                    <label class="form-label" for="password">Пароль користувача "admin" для панелі керування станцією.</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div>
-                                <div>
-                                    <a th:href="'/user/toradiouser?id='+${station.id}"
-                                       id="toradiouser" class="btn btn-primary py-2" >Встановити користувача для трансляції новин у прямому ефірі</a><hr>
-                                </div>
-                                <div th:if="${station.roomuuid == null}">
-                                    <b>Створення кімнати в чаті для прямого ефіру.</b><br>
-                                    Надіслати повідомлення можна буде і з чату, і з <a href="https://t.me/TolokaMediaBot">Телеграм бота</a><br>
-                                    <a   th:href="'/user/stationcreateroom/'+${station.uuid}" id="liveCreateBroadcast" class="btn btn-primary" >Створити кімнату</a>
-                                </div>
-                                <div th:if="!${station.roomuuid == null}">
-                                    <div th:if="!${stationstateonline}">
-                                        Ви можете запустити та зупинити можливість в чаті та <a href="https://t.me/TolokaMediaBot">Телеграмі</a> надсилати повідомлення під час прямого ефіру.<br>
-                                        <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
-                                           id="liveBroadcast" class="btn btn-primary" >Прямий ефір</a>
-                                    </div>
-                                    <div th:if="${stationstateonline}">
-                                        <a th:href="'/user/stationslivebroadcast/'+${station.uuid}"
-                                           id="liveBroadcastOn" class="btn btn-danger" >Прямий ефір</a>
-                                        <span th:text="' Прямий ефір стартував: ' +${#dates.format(roomstart, 'dd-MM-yyyy HH:mm')}"></span>
-                                    </div>
-                                </div>
-                                <hr>
-                            </div>
-                            <div class="form-outline">
-                                <style>
-                                    .disabled{
-                                        /*Disabled link style*/
-                                        color:black;
-                                    }
-                                </style>
-                                <a th:href="${linkstation}" id="toStation" class="btn btn-primary" target="_blank" >ПЕРЕЙТИ</a>
-                                <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-primary" >Стартувати</a>
-                                <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-primary" >Зупинити</a>
-                                <a th:href="@{/user/deletestation(id=${station.id})}" id="delStation"class="btn btn-primary" >Видалити</a>
-                            </div>
-                            <div>
-                                <p>Посилання для програвача радіо:</p>
-                                <p>
-                                    <a th:href="@{'https://'+${station.dbname} + '.rfa.toloka.media:8443/'+${station.uuid} + '-main'}" target="_blank">
-                                        <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media:8443/'+${station.uuid} + '-main'" />
-                                    </a>
+<div class="container py-5 mt-5">
+    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 
-                                </p>
-                                <p>Посилання для входу до системи керування станцією:</p>
-                                <p>
-                                    <a th:href="'https://'+${station.dbname} + '.rfa.toloka.media'" target="_blank">
-                                        <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media'" />
-                                    </a>
-                                </p>
-                                <p>Ці посилання Ви завжди можете скопіювати і вставити до броузера.</p>
-
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col">
-                            <div class="form-outline">
-                                Дата сворення станції:<span th:text="${station.createdate}" /><br>
-                                Дата останнього запуску:<span th:text="${station.startdate}" />
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-outline">
-                                Стан станції зараз: <b><span id="spanstationstate"></span></b><br>
-                                Дата останньої оплати:<span th:text="${station.lastpaydate}" />
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col">
-                            <div class="form-outline">
-                                <input type="text" name="icecastname" id="icecastname" th:value="${station.icecastname}" class="form-control" />
-                                <label class="form-label" for="icecastname">Icecast name</label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-outline">
-                                <input type="text" name="icecastdescription" id="icecastdescription" th:value="${station.icecastdescription}" class="form-control" />
-                                <label class="form-label" for="icecastdescription">Icecast description</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col">
-                            <div class="form-outline">
-                                <input type="text" name="icecastsite" id="icecastsite" th:value="${station.icecastsite}" class="form-control" />
-                                <label class="form-label" for="icecastsite">Site for Icecast</label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-outline">
-                                <input type="text" name="icecastgenre" id="icecastgenre" th:value="${station.icecastgenre}" class="form-control" />
-                                <label class="form-label" for="icecastgenre">Icecast genre</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Text input -->
-                    <div>
-<!--                        <button type="submit" class="btn btn-primary btn-lg btn-block">Зберегти</button>-->
-                        <button type="submit" class="btn btn-primary btn-block">Зберегти</button>
-                        <a href="/user/stations" class="btn btn-primary btn-block">Повернутися</a>
-                    </div>
-                </form>
+    <!-- Заголовок та статус -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h1 class="fw-bold mb-1" th:text="${station.name}">Назва станції</h1>
+            <p class="text-muted mb-0">ID: <span class="font-monospace" th:text="${station.uuid}"></span></p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-inline-block p-2 bg-white rounded-pill shadow-sm">
+                <span id="spanstationstate" class="fw-bold px-3">Завантаження статусу...</span>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-<!--        <div th:insert="~{/fragments/user :: userrecentactions}">  </div>-->
+    <div class="row">
+        <!-- Основна колонка -->
+        <div class="col-lg-8">
+            <!-- Швидкі дії -->
+            <div class="card dashboard-card bg-primary text-white">
+                <div class="card-body p-4">
+                    <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Швидкі дії</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="${linkstation}" id="toStation" class="btn btn-light btn-action text-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>ВІДКРИТИ ПАНЕЛЬ
+                        </a>
+                        <a th:href="@{/user/startstation(id=${station.id})}" id="startStation" class="btn btn-success btn-action">
+                            <i class="fas fa-play me-2"></i>СТАРТУВАТИ
+                        </a>
+                        <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-warning btn-action">
+                            <i class="fas fa-stop me-2"></i>ЗУПИНИТИ
+                        </a>
+                        <a th:href="@{/user/deletestation(id=${station.id})}" id="delStation" class="btn btn-danger btn-action" onclick="return confirm('Ви впевнені, що хочете видалити станцію?')">
+                            <i class="fas fa-trash-alt me-2"></i>ВИДАЛИТИ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Налаштування (Вкладки) -->
+            <div class="card dashboard-card">
+                <div class="card-header bg-white pt-3 border-0">
+                    <ul class="nav nav-tabs nav-tabs-custom" id="stationTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general" type="button">Загальні</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#icecast" type="button">Мовлення (Icecast)</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#admin-psw" type="button">Пароль Адміна</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#live-stream" type="button">Прямий ефір</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/user/stationsave}" method="post">
+                        <input type="hidden" name="id" th:value="${station.id}" />
+                        
+                        <div class="tab-content" id="stationTabsContent">
+                            <!-- Загальні -->
+                            <div class="tab-pane fade show active" id="general">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Найменування станції</label>
+                                    <input type="text" name="name" th:value="${station.name}" class="form-control">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Дата створення</label>
+                                        <div class="fw-bold" th:text="${#dates.format(station.createdate, 'dd.MM.yyyy HH:mm')}"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Останній запуск</label>
+                                        <div class="fw-bold" th:text="${station.startdate != null ? #dates.format(station.startdate, 'dd.MM.yyyy HH:mm') : 'Ніколи'}"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Icecast -->
+                            <div class="tab-pane fade" id="icecast">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Icecast Name</label>
+                                        <input type="text" name="icecastname" th:value="${station.icecastname}" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Genre</label>
+                                        <input type="text" name="icecastgenre" th:value="${station.icecastgenre}" class="form-control">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">Description</label>
+                                        <input type="text" name="icecastdescription" th:value="${station.icecastdescription}" class="form-control">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">Website</label>
+                                        <input type="text" name="icecastsite" th:value="${station.icecastsite}" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Адмін Пароль -->
+                            <div class="tab-pane fade" id="admin-psw">
+                                <div id="setpswarea" class="alert alert-info border-0 shadow-sm">
+                                    <h6 class="fw-bold text-dark"><i class="fas fa-user-shield me-2"></i>Пароль користувача "admin"</h6>
+                                    <p class="small mb-3">Це пароль для входу в основну панель керування Libretime.</p>
+                                    <input type="password" name="password" id="password" class="form-control mb-2" placeholder="Введіть новий пароль">
+                                    <div class="text-danger small fw-bold"><i class="fas fa-exclamation-circle me-1"></i>УВАГА! Всі існуючі користувачі панелі будуть видалені, але дані збережуться.</div>
+                                </div>
+                            </div>
+
+                            <!-- Прямий ефір -->
+                            <div class="tab-pane fade" id="live-stream">
+                                <div class="card border bg-light mb-3">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold">Трансляція зі свого ПК</h6>
+                                        <p class="small text-muted">Використовуйте ці налаштування для RadioBOSS, BUTT тощо.</p>
+                                        <a th:href="'/user/toradiouser?id='+${station.id}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="fas fa-user-cog me-1"></i>Налаштувати доступ
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="card border bg-light">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold">Чат та Прямий ефір</h6>
+                                        <div th:if="${station.roomuuid == null}">
+                                            <p class="small text-muted">Створіть кімнату чату для спілкування зі слухачами.</p>
+                                            <a th:href="'/user/stationcreateroom/'+${station.uuid}" class="btn btn-primary btn-sm rounded-pill px-3">Створити кімнату</a>
+                                        </div>
+                                        <div th:if="${station.roomuuid != null}">
+                                            <div th:if="${!stationstateonline}">
+                                                <p class="small text-muted">Ви можете відкрити чат для прийому повідомлень.</p>
+                                                <a th:href="'/user/stationslivebroadcast/'+${station.uuid}" class="btn btn-outline-success btn-sm rounded-pill px-3">Відкрити ефір</a>
+                                            </div>
+                                            <div th:if="${stationstateonline}">
+                                                <div class="alert alert-success d-flex align-items-center mb-2">
+                                                    <i class="fas fa-broadcast-tower me-2 fa-spin"></i>
+                                                    <span class="small">Ефір триває з <strong th:text="${#dates.format(roomstart, 'HH:mm')}"></strong></span>
+                                                </div>
+                                                <a th:href="'/user/stationslivebroadcast/'+${station.uuid}" class="btn btn-danger btn-sm rounded-pill px-3">Закрити ефір</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold">Зберегти всі зміни</button>
+                            <a href="/user/stations" class="btn btn-outline-secondary px-4">Назад до списку</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сайдбар: Посилання -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-link me-2 text-primary"></i>Корисні посилання</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label small text-muted fw-bold">Потік для програвача (Stream)</label>
+                        <div class="copy-link text-truncate pe-5 small font-monospace">
+                            <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media:8443/'+${station.uuid} + '-main'"></span>
+                            <button class="btn btn-sm btn-link copy-btn" th:onclick="'navigator.clipboard.writeText(\'https://' + ${station.dbname} + '.rfa.toloka.media:8443/' + ${station.uuid} + '-main\')'">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small text-muted fw-bold">Панель керування (Libretime)</label>
+                        <div class="copy-link text-truncate pe-5 small font-monospace">
+                            <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media'"></span>
+                            <button class="btn btn-sm btn-link copy-btn" th:onclick="'navigator.clipboard.writeText(\'https://' + ${station.dbname} + '.rfa.toloka.media\')'">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary py-2 border-0 bg-opacity-10 bg-dark mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i> 
+                        <span class="x-small">Ви можете скопіювати ці посилання та вставити їх у браузер або програвач.</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Стан оплати -->
+            <div class="card dashboard-card">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-credit-card me-2 text-success"></i>Статус оплати</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Остання оплата:</span>
+                        <span class="small fw-bold" th:text="${station.lastpaydate != null ? #dates.format(station.lastpaydate, 'dd.MM.yyyy') : '-'}"></span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">Оплачено до:</span>
+                        <span class="small fw-bold text-danger" th:text="${station.endworkdate != null ? #dates.format(station.endworkdate, 'dd.MM.yyyy') : '-'}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
 <script>
     var stationId = [[${station.id}]]
 </script>
