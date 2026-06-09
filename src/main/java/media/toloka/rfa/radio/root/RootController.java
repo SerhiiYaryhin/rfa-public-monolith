@@ -28,7 +28,6 @@ import java.util.List;
 
 @Profile("Front")
 @Controller
-@EnableWebMvc
 public class RootController {
 
     Logger logger = LoggerFactory.getLogger(RootController.class);
