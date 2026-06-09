@@ -66,6 +66,9 @@ public class Track {
     @Expose
     private Boolean publishstatus = false;  // публікація треку на порталі. Інакше - режим редагування інформації
 
+    @Expose
+    private Long looked = 0L; // скільки разів подивилися/послухали
+
     @ToString.Exclude
     @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "album_id")

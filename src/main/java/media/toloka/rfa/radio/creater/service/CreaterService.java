@@ -142,6 +142,14 @@ public class CreaterService {
         trackRepository.save(track);
     }
 
+    /** Збільшення лічильника переглядів/прослуховувань треку */
+    public void incrementTrackLooked(Track track) {
+        if (track != null) {
+            track.setLooked(track.getLooked() + 1L);
+            trackRepository.save(track);
+        }
+    }
+
     /** Отримання списку треків для модерації (лише не схвалені) */
     public List<Track> GetNotApruveTracks() {
         return trackRepository.findByApruveFalseOrderByUploaddateDesc();

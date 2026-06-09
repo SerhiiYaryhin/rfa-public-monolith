@@ -60,11 +60,26 @@
         </div>
     </div>
 
+    <!-- CSRF Token for AJAX -->
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
     <script type="module" src="/js/audioplayer/audioplayer.js"></script>
     <script>
-        function onClickTrack(uuid, name, autor) {
+        async function onClickTrack(uuid, name, autor) {
             if (uuid) {
                 document.getElementById('audio-player').myChangeTrack(uuid, name, autor);
+                
+                // Збільшуємо лічильник прослуховувань
+                try {
+                    fetch('/api/1.0/track/' + uuid + '/inc-looked', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value || ''
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error incrementing track looked count', e);
+                }
             }
         }
     </script>
