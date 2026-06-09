@@ -8,7 +8,6 @@ import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
 import media.toloka.rfa.security.model.Users;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.imgscalr.Scalr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 @CrossOrigin
 @Profile("Front")
 @Controller
-public class StoreSiteController  {
+public class StoreSiteController {
 
     final Logger logger = LoggerFactory.getLogger(StoreSiteController.class);
 
@@ -46,14 +45,14 @@ public class StoreSiteController  {
     private StoreService storeService;
 
     /**
-     * Спільний метод для безпечної передачі файлів через стрім
+     * Спільний метод для безпечної та оптимізованої передачі файлів (Аудіо, Документи, Зображення)
      */
-    private ResponseEntity<StreamingResponseBody> streamFile(Store store, Users user) {
+    private ResponseEntity<Resource> streamFile(Store store, Users user) {
         if (store == null) return ResponseEntity.notFound().build();
 
         if (!storeService.canUserAccessStoreItem(store, user)) {
-            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}", 
-                store.getUuid(), user != null ? user.getEmail() : "anonymous");
+            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
+                    store.getUuid(), user != null ? user.getEmail() : "anonymous");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -63,29 +62,24 @@ public class StoreSiteController  {
         String mimeType = store.getContentMimeType();
         if (mimeType == null || mimeType.isEmpty()) mimeType = "application/octet-stream";
 
-        // Безпечно пакуємо назву файлу (навіть із суворою кирилицею) за стандартом RFC 5987
+        // Безпечно пакуємо назву файлу за стандартом RFC 5987 (підтримка кирилиці)
         ContentDisposition contentDisposition = ContentDisposition.inline()
                 .filename(store.getFilename(), StandardCharsets.UTF_8)
                 .build();
 
-        String finalMimeType = mimeType;
-        StreamingResponseBody responseBody = outputStream -> {
-            try (InputStream inputStream = new FileInputStream(file)) {
-                IOUtils.copy(inputStream, outputStream);
-                outputStream.flush();
-            } catch (IOException e) {
-                logger.error("Помилка при стрімінгу файлу {}: {}", store.getUuid(), e.getMessage());
-            }
-        };
+        Resource resource = new FileSystemResource(file);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, finalMimeType)
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()) // Використовуємо згенерований Spring безпечний заголовок
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + store.getFilename() + "\"")
-                .body(responseBody);
+                .contentType(MediaType.parseMediaType(mimeType))
+                .contentLength(file.length())
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes") // Дозволяє перемотку в плеєрах
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(resource);
     }
 
+    /**
+     * Стрімінг аудіо треків (з підтримкою Range-перемотки та передачею Content-Length)
+     */
     @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
     public ResponseEntity<Resource> getStoreAudioToStream(
             @PathVariable("storeUUID") String storeUUID,
@@ -95,27 +89,9 @@ public class StoreSiteController  {
         try {
             Users user = clientService.GetCurrentUser();
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-            
-            if (storeRecord == null) return ResponseEntity.notFound().build();
 
-            // Перевірка прав доступу
-            if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
-                logger.warn("Несанкціонована спроба стрімінгу аудіо {}: {}", storeUUID, user != null ? user.getEmail() : "anonymous");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            File file = new File(storeRecord.getFilepatch());
-            if (!file.exists()) return ResponseEntity.notFound().build();
-
-            String mimeType = storeRecord.getContentMimeType();
-            if (mimeType == null || mimeType.isEmpty()) mimeType = "audio/mpeg";
-            
-            Resource resource = new FileSystemResource(file);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mimeType))
-                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(resource);
+            // Використовуємо наш єдиний оптимізований метод передачі файлів
+            return streamFile(storeRecord, user);
 
         } catch (Exception e) {
             logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage());
@@ -132,20 +108,22 @@ public class StoreSiteController  {
         return getStoreAudioToStream(storeUUID, fileName, headers);
     }
 
+    /**
+     * Динамічна генерація мініатюр зображень
+     */
     @GetMapping(value = "/store/thrumbal/{storeUUID}/{fileName}")
     public ResponseEntity<StreamingResponseBody> getStoreThrumbal(
             @PathVariable String storeUUID,
             @PathVariable String fileName) {
-        
+
         Users user = clientService.GetCurrentUser();
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-        
+
         if (storeRecord == null) return ResponseEntity.notFound().build();
         if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // Динамічно визначаємо MediaType на основі контенту з бази даних
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
@@ -156,7 +134,7 @@ public class StoreSiteController  {
                     BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 320, Scalr.OP_ANTIALIAS);
                     String ext = FilenameUtils.getExtension(storeRecord.getFilename());
                     ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
-                    outputStream.flush();
+                    // Видалено ручний flush(), Spring сам коректно закриє потік
                 }
             } catch (IOException e) {
                 logger.error("Помилка генерації мініатюри для {}: {}", storeUUID, e.getMessage());
@@ -165,24 +143,26 @@ public class StoreSiteController  {
 
         return ResponseEntity.ok()
                 .contentType(mediaType)
-//                .contentType(MediaType.IMAGE_JPEG)
                 .body(responseBody);
     }
 
+    /**
+     * Динамічна генерація мініатюр зображень із заданою шириною
+     */
     @GetMapping(value = "/store/thrumbal/w/{width}/{storeUUID}/{fileName}")
     public ResponseEntity<StreamingResponseBody> getStoreThrumbalWidth(
             @PathVariable String storeUUID,
             @PathVariable int width,
             @PathVariable String fileName) {
-        
+
         Users user = clientService.GetCurrentUser();
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-        
+
         if (storeRecord == null) return ResponseEntity.notFound().build();
         if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        // Динамічно визначаємо MediaType на основі контенту з бази даних
+
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
@@ -193,7 +173,7 @@ public class StoreSiteController  {
                     BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
                     String ext = FilenameUtils.getExtension(fileName);
                     ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
-                    outputStream.flush();
+                    // Видалено ручний flush()
                 }
             } catch (IOException e) {
                 logger.error("Помилка генерації мініатюри (w={}) для {}: {}", width, storeUUID, e.getMessage());
@@ -202,26 +182,34 @@ public class StoreSiteController  {
 
         return ResponseEntity.ok()
                 .contentType(mediaType)
-//                .contentType(MediaType.IMAGE_JPEG)
                 .body(responseBody);
     }
 
+    /**
+     * Оновлено: Віддача документів тепер використовує Resource (Виправлено помилку компіляції)
+     */
     @GetMapping(value = "/store/document/{storeUUID}")
-    public ResponseEntity<StreamingResponseBody> getStoreDoc(@PathVariable String storeUUID) {
+    public ResponseEntity<Resource> getStoreDoc(@PathVariable String storeUUID) {
         Users user = clientService.GetCurrentUser();
         Store store = storeService.GetStoreByUUID(storeUUID);
         return streamFile(store, user);
     }
 
+    /**
+     * Віддача загального контенту
+     */
     @GetMapping(value = "/store/content/{storeUUID}")
-    public ResponseEntity<StreamingResponseBody> getStoreContent(@PathVariable String storeUUID) {
+    public ResponseEntity<Resource> getStoreContent(@PathVariable String storeUUID) {
         Users user = clientService.GetCurrentUser();
         Store store = storeService.GetStoreByUUID(storeUUID);
         return streamFile(store, user);
     }
 
+    /**
+     * Оновлено: Віддача Open Graph контенту тепер використовує Resource (Виправлено помилку компіляції)
+     */
     @GetMapping(value = "/store/content/og/{storeUUID}/{fn}")
-    public ResponseEntity<StreamingResponseBody> getStoreOgContent(
+    public ResponseEntity<Resource> getStoreOgContent(
             @PathVariable String storeUUID,
             @PathVariable String fn) {
         Users user = clientService.GetCurrentUser();
