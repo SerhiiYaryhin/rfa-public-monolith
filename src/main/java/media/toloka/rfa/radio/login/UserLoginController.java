@@ -129,7 +129,8 @@ public class UserLoginController {
         } else if (request.isUserInRole("EDITOR")) {
             return "redirect:/editor/home";
         } else if (request.isUserInRole("CREATER")) {
-            return "redirect:/creater/home";
+//            return "redirect:/creater/home";
+            return "redirect:/user/user_page";
         } else if (request.isUserInRole("USER")) {
             return "redirect:/user/user_page";
         } else if (request.isUserInRole("AUTHOR")) {
