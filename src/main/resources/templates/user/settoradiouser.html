@@ -5,61 +5,66 @@
 >
 <head>
     <meta charset="utf-8" />
-    <!--    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Налаштування трансляції - Толока</title>
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
 </head>
-<body>
+<body class="bg-light">
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
 </header>
 
-<div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
+<div class="container py-5 mt-5">
+    <div th:insert="~{/fragments/messagebox :: mymessagebox}">  </div>
 
-<div class="container-fluid px-lg-5 py-5" style="padding-top: 30px">
-    <div class="bg-light rounded-3 text-center">
-        <div class="m-4 m-lg-5">
-            <h1 class="display-5 fw-bold">Ваш епізод подкасту</h1>
-            <p class="fs-6">Заповніть необхідні поля, додайте обкладинку епізоду та його опис.</p>
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-0 overflow-hidden" style="border-radius: 15px;">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-broadcast-tower me-2"></i>Параметри трансляції</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">
+                        Ці дані використовуються для підключення стороннього програмного забезпечення (наприклад, RadioBOSS або BUTT) для прямого етеру на вашу станцію 
+                        <strong th:text="${station.name}"></strong>.
+                    </p>
+
+                    <form th:action="@{/user/toradiousersave}" th:object="${toradiouser}" method="post">
+                        <input type="hidden" th:field="*{id}" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Імʼя користувача (Source User)</label>
+                            <input type="text" th:field="*{username}" class="form-control" placeholder="Введіть ім'я">
+                            <div class="form-text">Зазвичай використовується 'source' або ім'я диджея.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Пароль трансляції</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-key text-muted"></i></span>
+                                <input type="password" th:field="*{password}" class="form-control" placeholder="Новий пароль">
+                            </div>
+                            <div class="form-text text-danger">Обережно! Цей пароль передається у відкритому вигляді при налаштуванні мовлення.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-save me-2"></i>Зберегти параметри
+                            </button>
+                            <a class="btn btn-outline-secondary" th:href="'/user/controlstation?id=' + *{id}">
+                                <i class="fas fa-arrow-left me-2"></i>Повернутися до керування
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col">
-            <form  th:action="@{'/user/toradiousersave'}" th:object="${toradiouser}" method="post">
-                <div class="mb-3">
-                    <!--        <input type="hidden" th:field="*{uuid}" />-->
-                    <input type="hidden" th:field="*{id}" />
-                    <label for="username" class="form-label">Імʼя користувача</label>
-                    <!--        <input type="text" id="toradiouser" name="toradiouser" value="${toradiouser}" th:field="${toradiouser}"  class="form-control">-->
-                    <input type="text" th:field="*{username}"  class="form-control">
-                </div>
-                <div class="form-outline mb-4">
-                    <label for="userpasswd" class="form-label">Опис епізоду</label>
-                    <input type="text"  th:field="*{userpasswd}" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-primary">Зберегти</button>
-                <a class="btn btn-primary" th:href="'/user/controlstation?id=' + *{id}">Повернутися</a>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
 
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

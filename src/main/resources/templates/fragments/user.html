@@ -82,41 +82,64 @@
         </div>
     </div>
 </div>
-<!--============= Ваші станції ========================-->
 <div th:fragment="liststation">
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Стан</th>
-            <th scope="col">Імʼя станції</th>
-            <th scope="col">Дата створення</th>
-            <th scope="col">Дата останньої оплати</th>
-            <th scope="col">Оплачено до</th>
-            <th scope="col">Дії</th>
-        </tr>
-        </thead>
-        <tbody>
-        <a class="btn btn-primary" href="/user/createstation">Створити радіо станцію</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Ваші радіостанції</h4>
+        <a class="btn btn-success rounded-pill px-4 shadow-sm" href="/user/station/wizard">
+            <i class="fas fa-magic me-2"></i>Майстер створення станції
+        </a>
+    </div>
 
-        <tr th:each="station : ${stations}">
-            <td>
-                <span class="fa-stack ">
-                    <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                    <i class="fas fa-circle-info fa-stack-1x fa-inverse"></i>
-                </span>
-            </td>
-            <td><span th:text="${station.name}"></span></td>
-            <!--                <td><span th:text="${station.createdate}"></span></td>-->
-            <td><span th:text="${#dates.format(station.createdate, 'dd-MM-yyyy HH:mm' )}"></span></td>
-            <td><span th:text="${#dates.format(station.lastpaydate, 'dd-MM-yyyy HH:mm')}"></span></td>
-            <td> </td>
-            <td><a class="btn btn-primary" th:href="@{/user/controlstation(id=${station.id})}">Керувати</a>
-            </td>
-            <!--                <a th:href="@{/user/temporary(id='${station.id}')}"-->
+    <div th:if="${stations == null || stations.isEmpty()}" class="text-center py-5 bg-light rounded-3 shadow-sm border">
+        <i class="fas fa-broadcast-tower fa-4x mb-3 text-primary opacity-25"></i>
+        <h5 class="fw-bold">Бажаєте запустити власне радіо?</h5>
+        <p class="text-muted mb-4">Наш майстер допоможе вам налаштувати все за кілька кроків.</p>
+        <a href="/user/station/wizard" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+            <i class="fas fa-magic me-2"></i>ЗАПУСТИТИ МАЙСТЕР
+        </a>
+    </div>
 
-        </tr>
-        </tbody>
-    </table>
+    <div th:if="${stations != null && !stations.isEmpty()}" class="table-responsive">
+        <table class="table table-hover align-middle border-top">
+            <thead class="table-light">
+            <tr>
+                <th scope="col" class="ps-4">Статус</th>
+                <th scope="col">Назва станції</th>
+                <th scope="col">Дата створення</th>
+                <th scope="col">Кінець оплати</th>
+                <th scope="col" class="text-end pe-4">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="station : ${stations}">
+                <td class="ps-4">
+                    <span th:if="${station.stationstate}" class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                        <i class="fas fa-play-circle me-1"></i> Працює
+                    </span>
+                    <span th:if="${!station.stationstate}" class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">
+                        <i class="fas fa-stop-circle me-1"></i> Вимкнена
+                    </span>
+                </td>
+                <td>
+                    <div class="fw-bold text-dark" th:text="${station.name}">Станція</div>
+                    <small class="text-muted font-monospace" th:text="${station.uuid}">uuid</small>
+                </td>
+                <td class="text-muted small" th:text="${#dates.format(station.createdate, 'dd.MM.yyyy HH:mm')}">дата</td>
+                <td>
+                    <span th:if="${station.endworkdate != null}" 
+                          th:classappend="${station.endworkdate.before(#dates.createNow())} ? 'text-danger fw-bold' : 'text-muted'"
+                          th:text="${#dates.format(station.endworkdate, 'dd.MM.yyyy')}">дата</span>
+                    <span th:if="${station.endworkdate == null}" class="text-muted">-</span>
+                </td>
+                <td class="text-end pe-4">
+                    <a class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm" th:href="@{/user/controlstation(id=${station.id})}">
+                        <i class="fas fa-cog me-1"></i> Керувати
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 <!--============= Ваші станції ========================-->
 <div th:fragment="listaddress">

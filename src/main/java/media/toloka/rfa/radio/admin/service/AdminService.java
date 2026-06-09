@@ -1,17 +1,13 @@
 package media.toloka.rfa.radio.admin.service;
 
-
+import media.toloka.rfa.radio.admin.dto.PendingApprovalDTO;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.document.service.DocumentService;
 import media.toloka.rfa.radio.history.service.HistoryService;
-//import media.toloka.rfa.radio.message.service.MessageService;
-import media.toloka.rfa.radio.model.Clientaddress;
-import media.toloka.rfa.radio.model.Clientdetail;
-import media.toloka.rfa.radio.model.Documents;
-import media.toloka.rfa.radio.model.Post;
-import media.toloka.rfa.radio.model.Track;
+import media.toloka.rfa.radio.model.*;
+import media.toloka.rfa.radio.model.enumerate.EDocumentStatus;
 import media.toloka.rfa.radio.post.service.PostService;
 import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.radio.store.Service.StoreService;
@@ -24,11 +20,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 @Service
 public class AdminService {
-
 
     @Autowired
     private ClientService clientService;
@@ -48,18 +43,16 @@ public class AdminService {
     @Autowired
     private HistoryService historyService;
 
-//    @Autowired
-//    private MessageService messageService;
-
     @Autowired
     private StationService stationService;
 
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private media.toloka.rfa.service.notification.NotificationService notificationService;
 
     final Logger logger = LoggerFactory.getLogger(AdminService.class);
-
 
     public List<Post> GetNotApruvePosts() {
         return postService.GetListPostByApruve(false);
@@ -78,17 +71,14 @@ public class AdminService {
     }
 
     public List<Users> GetAllUsers() {
-       List<Users> usersList = clientService.GetAllUsers();
-        return usersList;
+        return clientService.GetAllUsers();
     }
 
     public List<Users> GetSearchUsers(String template) {
         if (template == null) {
-            List<Users> usersList = clientService.GetAllUsers();
-            return usersList;
+            return clientService.GetAllUsers();
         }
-        List<Users> usersList = clientService.GetSearchUsers(template);
-        return usersList;
+        return clientService.GetSearchUsers(template);
     }
 
     @Autowired
@@ -111,7 +101,6 @@ public class AdminService {
         return userRepository.findUsersBySearchTemplate(query, pageable);
     }
 
-
     public List<Documents> GetNotApruvedDocuments() {
         return documentService.GetUnApruvedDocumentsOrderLoaddate();
     }
@@ -126,6 +115,67 @@ public class AdminService {
 
     public void SaveClientAddress(Clientaddress clientaddress) {
         clientService.SaveAddress(clientaddress);
+
+        // Відправляємо сповіщення
+        Users admin = clientService.GetCurrentUser();
+        if (admin != null && clientaddress.getApruve()) {
+            Clientdetail adminCd = clientService.GetClientDetailByUser(admin);
+            notificationService.sendSystemNotification(adminCd, clientaddress.getClientdetail(),
+                    "Вашу адресу '" + clientaddress.getShortaddress() + "' було схвалено адміністрацією.");
+        }
+    }
+
+    public void updateDocumentStatus(Long id, EDocumentStatus status, String adminComment) {
+        Documents doc = documentService.GetDocument(id);
+        if (doc != null) {
+            doc.setStatus(status);
+            if (adminComment != null) doc.setAdminComment(adminComment);
+            documentService.saveDocument(doc);
+
+            // Відправляємо сповіщення
+            Users admin = clientService.GetCurrentUser();
+            if (admin != null) {
+                Clientdetail adminCd = clientService.GetClientDetailByUser(admin);
+                String message = "Статус вашого документа '" + (doc.getDocumenttype() != null ? doc.getDocumenttype() : "Документ") + "' змінено на: " + status.label;
+                notificationService.sendSystemNotification(adminCd, doc.getClientdetail(), message);
+            }
+        }
+    }
+
+    public List<PendingApprovalDTO> GetPendingApprovals() {
+        Map<Long, PendingApprovalDTO> userMap = new HashMap<>();
+
+        // 1. Обробляємо адреси
+        List<Clientaddress> pendingAddresses = GetNotApruvedAddresses();
+        for (Clientaddress addr : pendingAddresses) {
+            Clientdetail cd = addr.getClientdetail();
+            PendingApprovalDTO dto = getOrCreateDTO(userMap, cd);
+            dto.getPendingAddresses().add(addr);
+        }
+
+        // 2. Обробляємо документи
+        List<Documents> pendingDocs = GetNotApruvedDocuments();
+        for (Documents doc : pendingDocs) {
+            Clientdetail cd = doc.getClientdetail();
+            PendingApprovalDTO dto = getOrCreateDTO(userMap, cd);
+            dto.getPendingDocuments().add(doc);
+        }
+
+        List<PendingApprovalDTO> approvals = new ArrayList<>(userMap.values());
+        approvals.forEach(a -> a.setTotalPending(a.getPendingAddresses().size() + a.getPendingDocuments().size()));
+        
+        return approvals;
+    }
+
+    private PendingApprovalDTO getOrCreateDTO(Map<Long, PendingApprovalDTO> userMap, Clientdetail cd) {
+        return userMap.computeIfAbsent(cd.getId(), id -> PendingApprovalDTO.builder()
+                .clientId(cd.getId())
+                .userEmail(cd.getUser().getEmail())
+                .fullName(cd.getCustname() + " " + cd.getCustsurname())
+                .firmName(cd.getFirmname())
+                .pendingAddresses(new ArrayList<>())
+                .pendingDocuments(new ArrayList<>())
+                .build());
     }
 
     public List<Clientdetail> GetClienListWithNotApruvedAdresses() {
@@ -135,9 +185,8 @@ public class AdminService {
         for (Clientaddress adr : clientaddressList) {
             if (!clientdetailLongHashMap.containsKey(adr.getClientdetail().getId())) {
                 Clientdetail cd = adr.getClientdetail();
-                Integer sz = cd.getClientaddressList().size();
                 clientdetailList.add(cd);
-                clientdetailLongHashMap.put(cd.getId(), sz);
+                clientdetailLongHashMap.put(cd.getId(), cd.getClientaddressList().size());
             }
         }
         return clientdetailList;
@@ -164,35 +213,24 @@ public class AdminService {
         return createrService.GetNotApruveTracks();
     }
 
-    /** Отримати всі треки системи */
     public List<Track> GetAllTracks() {
         return createrService.GetAllTracks();
     }
 
-    /** Знайти трек за ID */
     public Track GetTrackById(Long idTrack) {
         return createrService.GetTrackById(idTrack);
     }
 
-    /** Зберегти зміни в треку (схвалення/відхилення) */
     public void SaveTrack(Track track) {
         createrService.SaveTrack(track);
     }
 
-    /** 
-     * Реалізує ПОВНЕ КАСКАДНЕ ВИДАЛЕННЯ треку:
-     * 1. Видалення фізичного файлу з диска сервера.
-     * 2. Видалення метаданих файлу зі сховища (Store).
-     * 3. Видалення запису про трек із медіатеки (Track).
-     */
     public void DeleteTrack(Long idTrack) {
         Track track = createrService.GetTrackById(idTrack);
         if (track != null) {
-            // Крок 1 та 2: Фізичне видалення + БД Store
             if (track.getStoreitem() != null) {
                 storeService.DeleteInStore(track.getStoreitem());
             }
-            // Крок 3: БД Track
             createrService.DeleteTrack(track);
         }
     }
