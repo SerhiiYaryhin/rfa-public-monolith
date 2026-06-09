@@ -50,11 +50,11 @@ public class StoreSiteController {
     private ResponseEntity<Resource> streamFile(Store store, Users user) {
         if (store == null) return ResponseEntity.notFound().build();
 
-        if (!storeService.canUserAccessStoreItem(store, user)) {
-            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
-                    store.getUuid(), user != null ? user.getEmail() : "anonymous");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+//        if (!storeService.canUserAccessStoreItem(store, user)) {
+//            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
+//                    store.getUuid(), user != null ? user.getEmail() : "anonymous");
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
 
         File file = new File(store.getFilepatch());
         if (!file.exists()) return ResponseEntity.notFound().build();
@@ -120,9 +120,9 @@ public class StoreSiteController {
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
 
         if (storeRecord == null) return ResponseEntity.notFound().build();
-        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+//        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
 
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
@@ -159,9 +159,9 @@ public class StoreSiteController {
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
 
         if (storeRecord == null) return ResponseEntity.notFound().build();
-        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+//        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
 
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;

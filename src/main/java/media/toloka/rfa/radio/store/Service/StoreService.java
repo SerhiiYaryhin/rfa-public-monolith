@@ -33,6 +33,7 @@ public class StoreService extends StoreFileImplementation {
     @Autowired
     private FilesService filesService;
 
+    // дивна перевірка на можливість доступу користувача до контенту. Сенсу - нуль
     public boolean canUserAccessStoreItem(Store store, Users user) {
         if (store == null) return false;
 
@@ -45,10 +46,12 @@ public class StoreService extends StoreFileImplementation {
                 type == STORE_ALBUMCOVER ||
                 type == STORE_BANNERIMAGE ||
                 type == STORE_PHOTO ||
-                type == STORE_TRACK ||
-                type == STORE_EPISODETRACK ||
-                type == STORE_TTS ||
-                (mimeType != null && mimeType.startsWith("image/"))) {
+// дивна перевірка аудіофайлів на image
+//                type == STORE_TRACK ||
+//                type == STORE_EPISODETRACK ||
+//                type == STORE_TTS ||
+                (mimeType != null && mimeType.startsWith("image/"))
+        ) {
             return true;
         }
 
