@@ -425,7 +425,17 @@ model.addAttribute("linkPage","/creater/tracks/");
     </div>
     <!-- Copyright -->
 </footer>
-<!-- Podcast Footer -->
+
+<!-- Breadcrumbs Fragment -->
+<nav th:fragment="breadcrumbs(links)" aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-white p-3 rounded shadow-sm border-0">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none"><i class="fas fa-home me-1"></i>Головна</a></li>
+        <li th:each="link, iterStat : ${links}" class="breadcrumb-item" th:classappend="${iterStat.last} ? 'active' : ''" th:attr="aria-current=${iterStat.last} ? 'page' : null">
+            <a th:if="${!iterStat.last}" th:href="${link.url}" th:text="${link.label}" class="text-decoration-none"></a>
+            <span th:if="${iterStat.last}" th:text="${link.label}"></span>
+        </li>
+    </ol>
+</nav>
 
 </body>
 </html>
