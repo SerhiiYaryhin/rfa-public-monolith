@@ -28,7 +28,7 @@ import java.util.List;
 
 @Profile("Front")
 @Controller
-@EnableWebMvc
+//@EnableWebMvc // борюся з повідомленням що не знайдено favicon.ico
 public class RootController {
 
     Logger logger = LoggerFactory.getLogger(RootController.class);
