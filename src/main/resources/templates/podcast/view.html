@@ -69,6 +69,13 @@
         <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
     </header>
 
+    <div class="container" style="margin-top: 100px; margin-bottom: -70px; position: relative; z-index: 10;">
+        <div th:replace="~{/fragments/common :: breadcrumbs(links=${ {
+            {url: '/podcast/all', label: 'Подкасти'},
+            {url: '#', label: podcast.title}
+        } })}"></div>
+    </div>
+
     <!-- Hero Section -->
     <section class="podcast-hero shadow-sm">
         <div class="container">
