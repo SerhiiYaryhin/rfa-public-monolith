@@ -128,12 +128,12 @@ public class UserLoginController {
             return "redirect:/moderator/home";
         } else if (request.isUserInRole("EDITOR")) {
             return "redirect:/editor/home";
-        } else if (request.isUserInRole("AUTHOR")) {
-            return "redirect:/creater/author/dashboard";
         } else if (request.isUserInRole("CREATER")) {
             return "redirect:/creater/home";
         } else if (request.isUserInRole("USER")) {
             return "redirect:/user/user_page";
+        } else if (request.isUserInRole("AUTHOR")) {
+            return "redirect:/creater/author/dashboard";
         } else if (request.isUserInRole("UNKNOWN")) {
             return "redirect:/messenger";
         } else if (request.isUserInRole("TELEGRAM")) {
