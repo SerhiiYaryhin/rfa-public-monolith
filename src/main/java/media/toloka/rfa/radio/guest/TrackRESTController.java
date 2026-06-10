@@ -1,4 +1,4 @@
-package media.toloka.rfa.radio.creater;
+package media.toloka.rfa.radio.guest;
 
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.Track;

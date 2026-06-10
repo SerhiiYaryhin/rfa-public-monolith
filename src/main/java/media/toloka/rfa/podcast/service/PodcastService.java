@@ -103,6 +103,17 @@ public class PodcastService {
         return episodeRepository.getByTitle(euuid);
     }
 
+    public void incrementEpisodeLooked(PodcastItem podcastItem) {
+        if (podcastItem != null) {
+            if (podcastItem.getLooked() != null) {
+                podcastItem.setLooked(podcastItem.getLooked() + 1L);
+            } else {
+                podcastItem.setLooked(1L);
+            }
+            episodeRepository.save(podcastItem);
+        }
+    }
+
     // клас для форми urla
     @Getter
     @Setter
