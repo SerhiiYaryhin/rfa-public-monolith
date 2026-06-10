@@ -59,18 +59,6 @@ public class PodcastController {
     @Autowired
     private StoreService storeService;
 
-//    // клас для форми urla
-//    @Getter
-//    @Setter
-//    public class strUrl {
-//        String RSSFromUrl = "";
-//        PodcastChannel podcastChannel = null;// = new PodcastChannel();
-//        Boolean fill = false;
-//        Boolean tested = true;
-//        Boolean clrpodcast = false;
-//    }
-
-//    public strUrl tmpstrUrl = new strUrl();
 
     final Logger logger = LoggerFactory.getLogger(PodcastController.class);
 
