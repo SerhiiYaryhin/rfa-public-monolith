@@ -218,14 +218,14 @@
                 player.myChangeTrack(itemid, name, storeid, file);
                 // Збільшуємо лічильник прослуховувань
                 try {
-                    fetch('/api/1.0/podcast/' + itemid + '/inc-looked', {
+                    fetch('/api/1.0/podcast/episode/' + itemid + '/inc-looked', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value || ''
                         }
                     });
                 } catch (e) {
-                    console.error('Error incrementing track looked count', e);
+                    console.error('Error incrementing episode looked count', e);
                 }
                 // Ініціалізуємо список епізодів для перемикання (Next/Prev)
                 if (episodeArray.length === 0) {
