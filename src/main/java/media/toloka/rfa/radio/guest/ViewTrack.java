@@ -34,8 +34,12 @@ public class ViewTrack {
             @RequestParam (defaultValue = "5")  Integer size,
             Model model) {
         Track curtrack = createrService.GetTrackByUuid(trackuuid);
+
         if (curtrack != null)   {
-            // model.addAttribute("curtrack", curtrack );
+            // Increased the number of views of the track
+            curtrack.setLooked(curtrack.getLooked() + 1L);
+            createrService.SaveTrack(curtrack);
+
             model.addAttribute("curtrack", curtrack );
 
             // --- Завантаження коментарів ---
