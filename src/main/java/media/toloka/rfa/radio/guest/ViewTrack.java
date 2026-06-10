@@ -37,8 +37,13 @@ public class ViewTrack {
 
         if (curtrack != null)   {
             // Increased the number of views of the track
-            curtrack.setLooked(curtrack.getLooked() + 1L);
-            createrService.SaveTrack(curtrack);
+            if (curtrack.getLooked() != null) {
+                curtrack.setLooked(curtrack.getLooked() + 1L);
+                createrService.SaveTrack(curtrack);
+            } else {
+                curtrack.setLooked(1L);
+                createrService.SaveTrack(curtrack);
+            }
 
             model.addAttribute("curtrack", curtrack );
 
