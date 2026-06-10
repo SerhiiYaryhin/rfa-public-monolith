@@ -43,7 +43,6 @@ import static media.toloka.rfa.security.model.ERole.*;
 //import static media.toloka.rfa.radio.model.EHistoryType.*;
 //import static media.toloka.rfa.security.model.ERole.*;
 //import static media.toloka.rfa.security.UserDetailsService.model.ERole.ROLE_USER;
-
 @Profile("Front")
 @Controller
 public class UserLoginController {

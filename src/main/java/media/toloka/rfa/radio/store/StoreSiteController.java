@@ -52,7 +52,7 @@ public class StoreSiteController {
 
 //        if (!storeService.canUserAccessStoreItem(store, user)) {
 //            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
-//                    store.getUuid(), user != null ? user.getEmail() : "anonymous");
+//                store.getUuid(), user != null ? user.getEmail() : "anonymous");
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 //        }
 
@@ -62,7 +62,7 @@ public class StoreSiteController {
         String mimeType = store.getContentMimeType();
         if (mimeType == null || mimeType.isEmpty()) mimeType = "application/octet-stream";
 
-        // Безпечно пакуємо назву файлу за стандартом RFC 5987 (підтримка кирилиці)
+        // Безпечно пакуємо назву файлу (навіть із суворою кирилицею) за стандартом RFC 5987
         ContentDisposition contentDisposition = ContentDisposition.inline()
                 .filename(store.getFilename(), StandardCharsets.UTF_8)
                 .build();
@@ -115,15 +115,16 @@ public class StoreSiteController {
     public ResponseEntity<StreamingResponseBody> getStoreThrumbal(
             @PathVariable String storeUUID,
             @PathVariable String fileName) {
-
+        
         Users user = clientService.GetCurrentUser();
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-
+        
         if (storeRecord == null) return ResponseEntity.notFound().build();
 //        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 //        }
 
+        // Динамічно визначаємо MediaType на основі контенту з бази даних
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
@@ -162,7 +163,7 @@ public class StoreSiteController {
 //        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 //        }
-
+        // Динамічно визначаємо MediaType на основі контенту з бази даних
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
