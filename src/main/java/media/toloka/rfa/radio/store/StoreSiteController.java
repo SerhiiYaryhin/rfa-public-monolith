@@ -1,6 +1,5 @@
 package media.toloka.rfa.radio.store;
 
-import jakarta.servlet.http.HttpServletResponse;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.client.service.ClientService;
@@ -47,14 +46,14 @@ public class StoreSiteController {
     /**
      * Спільний метод для безпечної та оптимізованої передачі файлів (Аудіо, Документи, Зображення)
      */
-    private ResponseEntity<Resource> streamFile(Store store, Users user) {
+    private ResponseEntity<Resource> streamFile(Store store, Users user, boolean isDownload) {
         if (store == null) return ResponseEntity.notFound().build();
 
-//        if (!storeService.canUserAccessStoreItem(store, user)) {
-//            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
-//                store.getUuid(), user != null ? user.getEmail() : "anonymous");
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
+        if (!storeService.canUserAccessStoreItem(store, user)) {
+            logger.warn("Спроба несанкціонованого доступу до файлу {} користувачем {}",
+                store.getUuid(), user != null ? user.getEmail() : "anonymous");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         File file = new File(store.getFilepatch());
         if (!file.exists()) return ResponseEntity.notFound().build();
@@ -62,23 +61,22 @@ public class StoreSiteController {
         String mimeType = store.getContentMimeType();
         if (mimeType == null || mimeType.isEmpty()) mimeType = "application/octet-stream";
 
-        // Безпечно пакуємо назву файлу (навіть із суворою кирилицею) за стандартом RFC 5987
-        ContentDisposition contentDisposition = ContentDisposition.inline()
-                .filename(store.getFilename(), StandardCharsets.UTF_8)
-                .build();
+        // Визначаємо спосіб передачі: перегляд (inline) або завантаження (attachment)
+        ContentDisposition.Builder cb = isDownload ? ContentDisposition.attachment() : ContentDisposition.inline();
+        ContentDisposition contentDisposition = cb.filename(store.getFilename(), StandardCharsets.UTF_8).build();
 
         Resource resource = new FileSystemResource(file);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(mimeType))
                 .contentLength(file.length())
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes") // Дозволяє перемотку в плеєрах
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(resource);
     }
 
     /**
-     * Стрімінг аудіо треків (з підтримкою Range-перемотки та передачею Content-Length)
+     * Стрімінг аудіо треків
      */
     @GetMapping(value = {"/store/audio/{storeUUID}", "/store/audio/{storeUUID}/{fileName:.+}"})
     public ResponseEntity<Resource> getStoreAudioToStream(
@@ -89,10 +87,7 @@ public class StoreSiteController {
         try {
             Users user = clientService.GetCurrentUser();
             Store storeRecord = storeService.GetStoreByUUID(storeUUID);
-
-            // Використовуємо наш єдиний оптимізований метод передачі файлів
-            return streamFile(storeRecord, user);
-
+            return streamFile(storeRecord, user, false);
         } catch (Exception e) {
             logger.error("Помилка стрімінгу аудіо для UUID {}: {}", storeUUID, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -120,11 +115,10 @@ public class StoreSiteController {
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
         
         if (storeRecord == null) return ResponseEntity.notFound().build();
-//        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
+        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-        // Динамічно визначаємо MediaType на основі контенту з бази даних
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
@@ -135,7 +129,6 @@ public class StoreSiteController {
                     BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, 320, Scalr.OP_ANTIALIAS);
                     String ext = FilenameUtils.getExtension(storeRecord.getFilename());
                     ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
-                    // Видалено ручний flush(), Spring сам коректно закриє потік
                 }
             } catch (IOException e) {
                 logger.error("Помилка генерації мініатюри для {}: {}", storeUUID, e.getMessage());
@@ -160,10 +153,10 @@ public class StoreSiteController {
         Store storeRecord = storeService.GetStoreByUUID(storeUUID);
 
         if (storeRecord == null) return ResponseEntity.notFound().build();
-//        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-        // Динамічно визначаємо MediaType на основі контенту з бази даних
+        if (!storeService.canUserAccessStoreItem(storeRecord, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         String mimeType = storeRecord.getContentMimeType();
         MediaType mediaType = (mimeType != null && !mimeType.isEmpty()) ? MediaType.parseMediaType(mimeType) : MediaType.IMAGE_JPEG;
 
@@ -174,7 +167,6 @@ public class StoreSiteController {
                     BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
                     String ext = FilenameUtils.getExtension(fileName);
                     ImageIO.write(thumbImg, (ext != null && !ext.isEmpty()) ? ext : "jpg", outputStream);
-                    // Видалено ручний flush()
                 }
             } catch (IOException e) {
                 logger.error("Помилка генерації мініатюри (w={}) для {}: {}", width, storeUUID, e.getMessage());
@@ -186,35 +178,28 @@ public class StoreSiteController {
                 .body(responseBody);
     }
 
-    /**
-     * Оновлено: Віддача документів тепер використовує Resource (Виправлено помилку компіляції)
-     */
     @GetMapping(value = "/store/document/{storeUUID}")
     public ResponseEntity<Resource> getStoreDoc(@PathVariable String storeUUID) {
         Users user = clientService.GetCurrentUser();
         Store store = storeService.GetStoreByUUID(storeUUID);
-        return streamFile(store, user);
+        return streamFile(store, user, true);
     }
 
-    /**
-     * Віддача загального контенту
-     */
     @GetMapping(value = "/store/content/{storeUUID}")
-    public ResponseEntity<Resource> getStoreContent(@PathVariable String storeUUID) {
+    public ResponseEntity<Resource> getStoreContent(
+            @PathVariable String storeUUID,
+            @RequestParam(required = false, defaultValue = "false") boolean download) {
         Users user = clientService.GetCurrentUser();
         Store store = storeService.GetStoreByUUID(storeUUID);
-        return streamFile(store, user);
+        return streamFile(store, user, download);
     }
 
-    /**
-     * Оновлено: Віддача Open Graph контенту тепер використовує Resource (Виправлено помилку компіляції)
-     */
     @GetMapping(value = "/store/content/og/{storeUUID}/{fn}")
     public ResponseEntity<Resource> getStoreOgContent(
             @PathVariable String storeUUID,
             @PathVariable String fn) {
         Users user = clientService.GetCurrentUser();
         Store store = storeService.GetStoreByUUID(storeUUID);
-        return streamFile(store, user);
+        return streamFile(store, user, false);
     }
 }

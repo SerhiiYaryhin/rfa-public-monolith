@@ -96,14 +96,14 @@
                             <div class="card h-100 border shadow-none bg-light bg-opacity-50">
                                 <div class="p-2">
                                     <!-- Прев'ю картинки або іконка PDF -->
-                                    <div class="ratio ratio-16x9 mb-3 bg-white rounded overflow-hidden">
-                                        <a th:if="${doc.store != null}" th:href="'/store/content/' + ${doc.store.uuid}" target="_blank">
+                                    <div class="ratio ratio-16x9 mb-2 bg-white rounded overflow-hidden shadow-sm">
+                                        <a th:if="${doc.store != null}" th:href="'/store/content/' + ${doc.store.uuid}" target="_blank" title="Відкрити у новій вкладці">
                                             <img th:if="${doc.store.contentMimeType != null && doc.store.contentMimeType.startsWith('image/')}" 
                                                  th:src="'/store/content/' + ${doc.store.uuid}" class="doc-preview">
                                             <div th:if="${doc.store.contentMimeType == null || !doc.store.contentMimeType.startsWith('image/')}" 
                                                  class="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
-                                                <i class="fas fa-file-pdf fa-3x mb-2"></i>
-                                                <span class="small" th:text="${doc.store.filename}">файл.pdf</span>
+                                                <i class="fas fa-file-pdf fa-3x mb-2 text-danger"></i>
+                                                <span class="x-small px-2 text-center text-truncate w-100" th:text="${doc.store.filename}">файл.pdf</span>
                                             </div>
                                         </a>
                                         <div th:if="${doc.store == null}" class="h-100 d-flex align-items-center justify-content-center text-danger">
@@ -112,7 +112,14 @@
                                     </div>
                                     
                                     <div class="px-2">
-                                        <div class="fw-bold small mb-1" th:text="${doc.documenttype ?: 'Тип не вказано'}">Паспорт</div>
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="fw-bold small text-truncate" style="max-width: 150px;" th:text="${doc.documenttype ?: 'Тип не вказано'}">Паспорт</div>
+                                            <a th:if="${doc.store != null}" th:href="'/store/content/' + ${doc.store.uuid} + '?download=true'" 
+                                               class="btn btn-link btn-sm p-0 text-primary" title="Завантажити файл">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </div>
+                                        
                                         <p th:if="${doc.userComment != null}" class="x-small text-muted mb-3 italic" th:text="'«' + ${doc.userComment} + '»'"></p>
                                         
                                         <div class="d-flex gap-1 mb-2">
