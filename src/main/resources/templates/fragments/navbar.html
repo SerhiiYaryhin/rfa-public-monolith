@@ -117,6 +117,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Адмін</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarAdmin">
+                        <li><a class="dropdown-item fw-bold text-primary" href="/admin/approvals"><i class="fas fa-check-double me-2"></i>Схвалення</a></li>
                         <li><a class="dropdown-item" href="/admin/users">Користувачі</a></li>
                         <li><a class="dropdown-item" href="/admin/addresses">Адреси</a></li>
                         <li><a class="dropdown-item" href="/admin/documents">Документи</a></li>
@@ -240,6 +241,7 @@
         </div>
         <div sec:authorize="hasRole('ROLE_ADMIN')" class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                <li class="nav-item"><a class="nav-link text-primary fw-bold" href="/admin/approvals">Схвалення</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/home">Головна</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/users">Користувачі</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/addresses">Адреси</a></li>
