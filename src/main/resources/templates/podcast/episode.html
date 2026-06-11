@@ -37,7 +37,7 @@
 <div class="container" style="margin-top: 100px; margin-bottom: -60px; position: relative; z-index: 10;">
     <div th:replace="~{/fragments/common :: breadcrumbs(links=${ {
         {url: '/podcast/all', label: 'Подкасти'},
-        {url: |/podcast/view/${podcastItem.chanel.uuid}|, label: podcastItem.chanel.title},
+        {url: '/podcast/view/' + podcastItem.chanel.uuid, label: podcastItem.chanel.title},
         {url: '#', label: podcastItem.title}
     } })}"></div>
 </div>
