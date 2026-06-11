@@ -33,7 +33,7 @@ public class History {
     private String          comment;
 
     @ToString.Exclude
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 

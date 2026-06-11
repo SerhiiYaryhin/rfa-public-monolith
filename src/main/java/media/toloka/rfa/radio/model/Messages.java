@@ -23,11 +23,11 @@ public class Messages {
     @Expose
     private String uuid= UUID.randomUUID().toString();
     @Expose
-    @ManyToOne(optional = false, cascade = {CascadeType.ALL}) //, cascade = {CascadeType.ALL}
+    @ManyToOne(optional = false)
 //    @JoinColumn(name = "from_id")
     private Clientdetail from; // from user
     @Expose
-    @ManyToOne(optional = false, cascade = {CascadeType.ALL}) //, cascade = {CascadeType.ALL}
+    @ManyToOne(optional = false)
 //    @JoinColumn(name = "to_id")
     private Clientdetail to; // to user
     @Expose

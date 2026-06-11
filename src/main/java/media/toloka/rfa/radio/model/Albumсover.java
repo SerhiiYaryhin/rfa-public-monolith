@@ -43,7 +43,7 @@ public class Albumсover {
     private Store storeitem;
 
     @ToString.Exclude
-    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "clientdetail_id")
     private Clientdetail clientdetail;
 
