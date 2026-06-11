@@ -65,30 +65,18 @@ window.addEventListener('DOMContentLoaded', event => {
 
     // AJAX управління
     window.stationAction = async function(action) {
-        if (!confirm('Виконати дію ' + action + '?')) return;
-        
-        const url = `/api/1.0/user/station/${stationId}/${action}`;
-        const method = action === 'delete' ? 'DELETE' : 'POST';
-        
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value
-                }
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                toastr.success(result.message);
-                if (action === 'delete') window.location.href = '/user/stations';
-                getStatus(); // Одразу оновлюємо стан
-            } else {
-                toastr.error(result.message || 'Помилка виконання операції');
-            }
-        } catch (e) {
-            toastr.error('Системна помилка: ' + e.message);
-        }
+        // ... (existing code)
+    };
+
+    // Помічник для копіювання в кліпборд
+    window.copyToClipboard = function(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function() {
+            toastr.info('Посилання скопійовано: ' + text);
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+            toastr.error('Помилка при копіюванні');
+        });
     };
 
     getElements();

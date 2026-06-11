@@ -199,7 +199,9 @@
                         <label class="form-label small text-muted fw-bold">Потік для програвача (Stream)</label>
                         <div class="copy-link text-truncate pe-5 small font-monospace">
                             <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media:8443/'+${station.uuid} + '-main'"></span>
-                            <button class="btn btn-sm btn-link copy-btn" th:onclick="'navigator.clipboard.writeText(\'https://' + ${station.dbname} + '.rfa.toloka.media:8443/' + ${station.uuid} + '-main\')'">
+                            <button class="btn btn-sm btn-link copy-btn" 
+                                    th:data-copy-text="'https://'+${station.dbname} + '.rfa.toloka.media:8443/'+${station.uuid} + '-main'"
+                                    onclick="copyToClipboard(this.dataset.copyText)">
                                 <i class="far fa-copy"></i>
                             </button>
                         </div>
@@ -209,7 +211,9 @@
                         <label class="form-label small text-muted fw-bold">Панель керування (Libretime)</label>
                         <div class="copy-link text-truncate pe-5 small font-monospace">
                             <span th:text="'https://'+${station.dbname} + '.rfa.toloka.media'"></span>
-                            <button class="btn btn-sm btn-link copy-btn" th:onclick="'navigator.clipboard.writeText(\'https://' + ${station.dbname} + '.rfa.toloka.media\')'">
+                            <button class="btn btn-sm btn-link copy-btn" 
+                                    th:data-copy-text="'https://'+${station.dbname} + '.rfa.toloka.media'"
+                                    onclick="copyToClipboard(this.dataset.copyText)">
                                 <i class="far fa-copy"></i>
                             </button>
                         </div>
