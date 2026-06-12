@@ -43,7 +43,9 @@ public class AnsibleTestController {
                 "/test_vhost",
                 "test_mq_user",
                 "test_mq_pass",
-                port
+                port,
+                port+1,
+                port+2
         );
         return success ? "Станція успішно створена (див. логи)" : "Помилка створення станції";
     }
