@@ -1,0 +1,78 @@
+---
+- name: Повне каскадне видалення радіостанції (з очищенням дискових квот)
+  hosts: all               # Цільовий сервер мовлення (передається з Java)
+  become: yes              # Усі локальні дії робимо під root
+
+  tasks:
+    # ========================================================
+    # ЕТАП 1: Зупинка контейнерів та звільнення пристроїв
+    # ========================================================
+    - name: 1.1. Зупинка та видалення Docker-контейнерів радіостанції
+      community.docker.docker_compose_v2:
+        project_src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+        state: absent
+      ignore_errors: yes   # Якщо папки чи контейнерів уже немає — не зупиняємо процес
+
+    # ========================================================
+    # ЕТАП 2: Робота з файловою системою та Loop-пристроєм
+    # ========================================================
+    - name: 2.1. Безпечне розмонтування образу диска та видалення рядка з /etc/fstab
+      ansible.posix.mount:
+        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime" # Точка монтування
+        src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+        fstype: ext4
+        state: absent      # 'absent' розмонтовує диск в OS та повністю вичищає fstab
+
+    - name: 2.2. Повне видалення каталогу станції (разом із розмонтованим storage.img)
+      ansible.builtin.file:
+        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+        state: absent
+
+    # ========================================================
+    # ЕТАП 3: Очищення зовнішнього Nginx Proxy Gateway (Делегування)
+    # ========================================================
+    - name: 3.1. Видалення конфігураційного файлу з Nginx Gateway
+      ansible.builtin.file:
+        path: "/etc/nginx/sites-enabled/{{ station_uuid }}.conf"
+        state: absent
+      delegate_to: "{{ nginx_gateway_ip }}"
+      register: nginx_proxy_config
+
+    - name: 3.2. Перезавантаження конфігурації Nginx Gateway
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+      delegate_to: "{{ nginx_gateway_ip }}"
+      when: nginx_proxy_config.changed
+
+    # ========================================================
+    # ЕТАП 4: Очищення PostgreSQL (Делегування)
+    # ========================================================
+    - name: 4.1. Видалення бази даних станції з PostgreSQL
+      community.postgresql.postgresql_db:
+        name: "{{ libretime_postgresql_dbname }}"
+        state: absent
+      delegate_to: "{{ db_server_ip }}"
+      become_user: postgres
+
+    - name: 4.2. Видалення відповідного користувача PostgreSQL
+      community.postgresql.postgresql_user:
+        name: "{{ libretime_postgresql_username }}"
+        state: absent
+      delegate_to: "{{ db_server_ip }}"
+      become_user: postgres
+
+    # ========================================================
+    # ЕТАП 5: Очищення RabbitMQ (Делегування)
+    # ========================================================
+    - name: 5.1. Видалення vhost RabbitMQ (автоматично зачищає всі черги всередині)
+      community.rabbitmq.rabbitmq_vhost:
+        name: "{{ libretime_rabbitmq_vhost }}"
+        state: absent
+      delegate_to: "{{ mq_server_ip }}"
+
+    - name: 5.2. Видалення користувача RabbitMQ
+      community.rabbitmq.rabbitmq_user:
+        user: "{{ libretime_rabbitmq_username }}"
+        state: absent
+      delegate_to: "{{ mq_server_ip }}"

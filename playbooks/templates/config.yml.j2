@@ -1,0 +1,25 @@
+general:
+  public_url: {{ station_uuid }}.rfa.toloka.media
+  api_key: {{ libretime_api_key }}
+  secret_key: {{ libretime_secret_key }}
+  allowed_cors_origins: []
+  timezone: {{ libretime_timezone }}
+  cache_ahead_hours: 1
+  auth: local
+
+storage:
+  path: /srv/libretime
+
+database:
+  host: {{ db_server_ip }}
+  port: 5432
+  dbname: {{ libretime_postgresql_dbname }}
+  user: {{ libretime_postgresql_username }}
+  password: {{ libretime_postgresql_password }}
+
+rabbitmq:
+  host: {{ mq_server_ip }}
+  port: 5672
+  vhost: {{ libretime_rabbitmq_vhost }}
+  user: {{ libretime_rabbitmq_username }}
+  password: {{ libretime_rabbitmq_password }}
