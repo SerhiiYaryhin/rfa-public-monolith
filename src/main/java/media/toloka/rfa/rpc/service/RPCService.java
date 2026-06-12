@@ -74,12 +74,7 @@ public class RPCService {
         Station Radio = gStation.fromJson(sStation, Station.class);
 
         Station newRadio = stationService.GetStationByUUID(gStation.fromJson(sStation, Station.class).getUuid());
-//        Station newRadio = stationService.GetStationByUUID(Radio.getUuid());
-//        Station newRadio = stationService.GetStationById(Radio.getId());
-//        if (newRadio == null) {
-//            newRadio = stationService.GetStationByUUID(Radio.getUuid());
-//        }
-//        // генеруємо випадковий рядок символів для імені бази
+        // генеруємо випадковий рядок символів для імені бази
         SetStationDBName(newRadio);
 
 
@@ -103,18 +98,6 @@ public class RPCService {
 
         Gson gstation = gsonService.CreateGson();
         rjob.setRjobdata(gstation.toJson(newRadio).toString());
-//        rjob.setRJobType(JOB_STATION_ALLOCATE);
-//        Gson gson = gsonService.CreateGson();
-////        String strgson = gson.toJson(rjob).toString();
-//        template.convertAndSend(queueName,gson.toJson(rjob).toString());
-        // подивилися, чи є у нього угода. Якщо немає контракту то створили безкоштовний
-            // відправили повідомлення про створення контракту
-        // подивилися, чи є в угоді станція. Якщо немає то створили радіостанцію на безкоштовному пакеті
-            // відправили повідомлення про створення радіостанції
-            // якщо в безкоштовній угоді є радіостанція, то повідомлення, що вже є безкоштовна станція
-        // створили станцію
-            // відправили повідомлення про створення станції
-//        serviceMessage.SendMessageToUser(null, user, msg);
         return 0L;
     }
 }
