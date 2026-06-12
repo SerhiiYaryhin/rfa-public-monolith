@@ -1,9 +1,6 @@
 package media.toloka.rfa.ansible;
 
-
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +10,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class AnsibleStationControlService {
-
-    private static final Logger log = LoggerFactory.getLogger(AnsibleStationControlService.class);
 
     @Value("${rfa.infrastructure.client-base-dir:/home/rfa-worker}")
     private String clientBaseDir;

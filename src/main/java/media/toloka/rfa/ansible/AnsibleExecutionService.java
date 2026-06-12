@@ -1,65 +1,132 @@
 package media.toloka.rfa.ansible;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Сервіс для первинного розгортання радіостанції через Ansible.
+ */
+@Slf4j
+@Service
 public class AnsibleExecutionService {
 
-    public void createStation() {
+    @Value("${media.toloka.rfa.server.client_dir:/Clients}")
+    private String clientBaseDir;
+
+    @Value("${media.toloka.rfa.server.libretime.postgresql.host}")
+    private String dbServerIp;
+
+    @Value("${rabbitmq.host}")
+    private String mqServerIp;
+
+    @Value("${media.toloka.rfa.server.libretime.gateway}")
+    private String nginxGatewayIp;
+
+    @Value("${media.toloka.rfa.server.libretime.timezone:Europe/Kyiv}")
+    private String timezone;
+
+    /**
+     * Повне розгортання нової станції.
+     *
+     * @param stationServerIp   IP сервера мовлення (де буде Docker)
+     * @param clientUuid        UUID клієнта
+     * @param stationUuid       UUID станції
+     * @param libretimeApiKey   Ключ API для LibreTime
+     * @param libretimeSecretKey Секретний ключ для LibreTime
+     * @param postgresDbName    Назва БД
+     * @param postgresUsername  Користувач БД
+     * @param postgresPassword  Пароль БД
+     * @param rabbitVhost       VHost RabbitMQ
+     * @param rabbitUsername    Користувач RabbitMQ
+     * @param rabbitPassword    Пароль RabbitMQ
+     * @param stationWebPort    Порт для Nginx Docker-контейнера
+     * @return true, якщо розгортання успішне
+     */
+    public boolean createStation(
+            String stationServerIp,
+            String clientUuid,
+            String stationUuid,
+            String libretimeApiKey,
+            String libretimeSecretKey,
+            String postgresDbName,
+            String postgresUsername,
+            String postgresPassword,
+            String rabbitVhost,
+            String rabbitUsername,
+            String rabbitPassword,
+            int stationWebPort
+    ) {
+        log.info("Початок розгортання станції {} для клієнта {} на сервері {}", stationUuid, clientUuid, stationServerIp);
+
         try {
             List<String> command = new ArrayList<>();
             command.add("ansible-playbook");
             command.add("playbooks/create_station_full.yml");
-            command.add("-i"); command.add("192.168.1.50,"); // IP сервера мовлення
-            command.add("-u"); command.add("rfa-worker");
 
-            // Передаємо змінні
+            // Цільовий сервер мовлення
+            command.add("-i");
+            command.add(stationServerIp + ",");
+
+            // Користувач для SSH
+            command.add("-u");
+            command.add("rfa-worker");
+
+            // Формуємо блок extra-vars (-e)
+            StringBuilder extraVars = new StringBuilder();
+            extraVars.append("client_dir=").append(clientBaseDir).append(" ");
+            extraVars.append("client_uuid=").append(clientUuid).append(" ");
+            extraVars.append("station_uuid=").append(stationUuid).append(" ");
+            extraVars.append("libretime_api_key=").append(libretimeApiKey).append(" ");
+            extraVars.append("libretime_secret_key=").append(libretimeSecretKey).append(" ");
+            extraVars.append("libretime_timezone=").append(timezone).append(" ");
+            extraVars.append("db_server_ip=").append(dbServerIp).append(" ");
+            extraVars.append("libretime_postgresql_dbname=").append(postgresDbName).append(" ");
+            extraVars.append("libretime_postgresql_username=").append(postgresUsername).append(" ");
+            extraVars.append("libretime_postgresql_password=").append(postgresPassword).append(" ");
+            extraVars.append("mq_server_ip=").append(mqServerIp).append(" ");
+            extraVars.append("libretime_rabbitmq_vhost=").append(rabbitVhost).append(" ");
+            extraVars.append("libretime_rabbitmq_username=").append(rabbitUsername).append(" ");
+            extraVars.append("libretime_rabbitmq_password=").append(rabbitPassword).append(" ");
+            extraVars.append("nginx_gateway_ip=").append(nginxGatewayIp).append(" ");
+            extraVars.append("station_web_port=").append(stationWebPort);
+
             command.add("-e");
-            command.add("client_dir=/home/rfa-worker "+
-                    "client_uuid=c1 "+
-                    "station_uuid=st1 " +
-                    "libretime_api_key=ak1 " +
-                    "libretime_secret_key=sk1 " +
-                    "libretime_timezone=Europe/Kyiv " +
-                    "db_server_ip=pg.rfa " +
-                    "libretime_postgresql_dbname=db1 " +
-                    "libretime_postgresql_username=u1 " +
-                    "libretime_postgresql_password=p1 " +
-                    "mq_server_ip=rabbit.rfa " +
-                    "libretime_rabbitmq_vhost=/vh1 " +
-                    "libretime_rabbitmq_username=mq1 " +
-                    "libretime_rabbitmq_password=mqp1 " +
-                    "nginx_gateway_ip=gate.rfa " +
-                    "station_web_port=8085");
+            command.add(extraVars.toString());
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-            // Встановлюємо робочий каталог процесу — корінь проєкту, де лежить папка playbooks
             processBuilder.directory(new File(System.getProperty("user.dir")));
-            processBuilder.redirectErrorStream(true); // Об'єднуємо stdout та stderr
+            processBuilder.redirectErrorStream(true);
 
+            log.debug("Команда Ansible: {}", String.join(" ", command));
             Process process = processBuilder.start();
 
-            // Читаємо лог Ansible в реальному часі (можна писати в логер)
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("[Ansible] " + line);
+                    log.info("[Ansible Create] {}", line);
                 }
             }
 
             int exitCode = process.waitFor();
             if (exitCode == 0) {
-                System.out.println("Станція успішно створена через Ansible!");
+                log.info("Станція {} успішно створена через Ansible!", stationUuid);
+                return true;
             } else {
-                System.err.println("Помилка виконання плейбука. Код виходу: " + exitCode);
+                log.error("Помилка виконання плейбука створення станції {}. Код виходу: {}", stationUuid, exitCode);
+                return false;
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Критична помилка під час розгортання станції {}", stationUuid, e);
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 }
