@@ -1,0 +1,10 @@
+---
+- name: Запуск радіостанції (Docker Compose Up)
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Запуск контейнерів Libretime
+      community.docker.docker_compose_v2:
+        project_src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+        state: present # Еквівалент 'up -d'

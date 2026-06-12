@@ -1,0 +1,10 @@
+---
+- name: Зупинка радіостанції (Docker Compose Down)
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Зупинка та видалення контейнерів Libretime
+      community.docker.docker_compose_v2:
+        project_src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+        state: absent # Еквівалент 'down'
