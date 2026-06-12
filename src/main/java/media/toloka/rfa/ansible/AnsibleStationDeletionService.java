@@ -17,17 +17,20 @@ public class AnsibleStationDeletionService {
     private static final Logger log = LoggerFactory.getLogger(AnsibleStationDeletionService.class);
 
     // Загальні параметри інфраструктури, які підтягуються з application.properties
-    @Value("${rfa.infrastructure.db-server-ip}")
+    @Value("${media.toloka.rfa.server.libretime.postgresql.host}")
     private String dbServerIp;
 
-    @Value("${rfa.infrastructure.mq-server-ip}")
+    @Value("${rabbitmq.host}")
     private String mqServerIp;
 
-    @Value("${rfa.infrastructure.nginx-gateway-ip}")
+    @Value("${media.toloka.rfa.server.libretime.gateway}")
     private String nginxGatewayIp;
 
-    @Value("${rfa.infrastructure.client-base-dir:/home/rfa-worker}")
+    @Value("${media.toloka.rfa.server.client_dir:/Clients}")
     private String clientBaseDir;
+
+    @Value("${media.toloka.rfa.upload_directory}")
+    private String PATHuploadDirectory;
 
     /**
      * Метод для каскадного видалення радіостанції через Ansible
