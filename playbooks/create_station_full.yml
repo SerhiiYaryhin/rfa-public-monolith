@@ -4,142 +4,147 @@
   become: yes              # Усі локальні дії робимо під root
 
   tasks:
-    # ========================================================
-    # ЕТАП 1:  Підготовка дискових квот та каталогів
-    # ========================================================
-    - name: 1.1. Створення базового каталогу для станції клієнта
-      ansible.builtin.file:
-        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
-        state: directory
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0755'
+  # ========================================================
+  # ЕТАП 1: Підготовка дискових квот та каталогів
+  # ========================================================
+  - name: 1.1. Створення базового каталогу для станції клієнта
+    ansible.builtin.file:
+      path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+      state: directory
+      owner: rfa
+      group: rfa
+      mode: '0755'
+  
+  - name: 1.2. Створення точки монтування (каталогу libretime)
+    ansible.builtin.file:
+      path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime"
+      state: directory
+      owner: rfa
+      group: rfa
+      mode: '0755'
+  
+  - name: 1.3. Створення розрідженого (sparse) файлу-образу для ліміту сховища (10G)
+    ansible.builtin.command:
+      cmd: "truncate -s 10G {{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+      creates: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+  
+  - name: 1.4. Форматування файлу-образу в файлову систему ext4
+    community.general.filesystem:
+      fstype: ext4
+      dev: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+  
+  - name: 1.5. Монтування дискової квоти та збереження в /etc/fstab (для автоматичних ребутів)
+    ansible.posix.mount:
+      path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime"
+      src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+      fstype: ext4
+      opts: loop,rw,noatime
+      state: mounted
+  
+  # 🎯 Створюємо всі підкаталоги ВСЕРЕДИНІ змонтованого образу з правами користувача rfa
+  - name: 1.6. Створення необхідної структури підкаталогів Libretime
+    ansible.builtin.file:
+      path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime/{{ item }}"
+      state: directory
+      owner: rfa
+      group: rfa
+      mode: '0755'
+    loop:
+      - storage   # Для аудіофайлів та медіабібліотеки
+      - assets    # Для веб-ресурсів та картинок
+      - playout   # Для кешу черги відтворення плеєра
 
-    - name: 1.2. Створення точки монтування (каталогу libretime)
-      ansible.builtin.file:
-        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime"
-        state: directory
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0755'
+  # ========================================================
+  # ЕТАП 2: Налаштування Бази Даних (Делегування на PostgreSQL)
+  # ========================================================
+  - name: 2.1. Створення бази даних у СУБД PostgreSQL
+    community.postgresql.postgresql_db:
+      name: "{{ libretime_postgresql_dbname }}"
+      state: present
+    delegate_to: "{{ db_server_ip }}"
+    become_user: postgres
 
-    - name: 1.3. Створення розрідженого (sparse) файлу-образу для ліміту сховища (10G)
-      ansible.builtin.command:
-        cmd: "truncate -s 10G {{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
-        creates: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+  - name: 2.2. Створення користувача PostgreSQL із правами на цю БД
+    community.postgresql.postgresql_user:
+      name: "{{ libretime_postgresql_username }}"
+      password: "{{ libretime_postgresql_password }}"
+      db: "{{ libretime_postgresql_dbname }}"
+      priv: "ALL"
+      state: present
+    delegate_to: "{{ db_server_ip }}"
+    become_user: postgres
 
-    - name: 1.4. Форматування файлу-образу в файлову систему ext4
-      community.general.filesystem:
-        fstype: ext4
-        dev: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
+  # ========================================================
+  # ЕТАП 3: Налаштування RabbitMQ (Делегування на RabbitMQ)
+  # ========================================================
+  - name: 3.1. Створення віртуального хосту (vhost) RabbitMQ
+    community.rabbitmq.rabbitmq_vhost:
+      name: "{{ libretime_rabbitmq_vhost }}"
+      state: present
+    delegate_to: "{{ mq_server_ip }}"
 
-    - name: 1.5. Монтування дискової квоти та збереження в /etc/fstab (для автоматичних ребутів)
-      ansible.posix.mount:
-        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime"
-        src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/storage.img"
-        fstype: ext4
-        opts: loop,rw,noatime
-        state: mounted
+  - name: 3.2. Створення користувача RabbitMQ та призначення прав
+    community.rabbitmq.rabbitmq_user:
+      user: "{{ libretime_rabbitmq_username }}"
+      password: "{{ libretime_rabbitmq_password }}"
+      vhost: "{{ libretime_rabbitmq_vhost }}"
+      configure_priv: ".*"
+      read_priv: ".*"
+      write_priv: ".*"
+      tags: administrator
+      state: present
+    delegate_to: "{{ mq_server_ip }}"
 
-    - name: 1.6. Створення кінцевого каталогу storage вже ВСЕРЕДИНІ змонтованого диска
-      ansible.builtin.file:
-        path: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/libretime/storage"
-        state: directory
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0755'
+  # ========================================================
+  # ЕТАП 4: Налаштування конфігів та запуск контейнерів станції
+  # ========================================================
+  - name: 4.1. Генерація файлу config.yml із шаблону
+    ansible.builtin.template:
+      src: templates/config.yml.j2
+      dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/config.yml"
+      owner: rfa-worker
+      group: rfa-worker
+      mode: '0644'
 
-    # ========================================================
-    # ЕТАП 2: Налаштування Бази Даних (Делегування на PostgreSQL)
-    # ========================================================
-    - name: 2.1. Створення бази даних у СУБД PostgreSQL
-      community.postgresql.postgresql_db:
-        name: "{{ libretime_postgresql_dbname }}"
-        state: present
-      delegate_to: "{{ db_server_ip }}"
-      become_user: postgres
+  - name: 4.2. Генерація файлу docker-compose.yml із шаблону
+    ansible.builtin.template:
+      src: templates/docker-compose.yml.j2
+      dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/docker-compose.yml"
+      owner: rfa-worker
+      group: rfa-worker
+      mode: '0644'
 
-    - name: 2.2. Створення користувача PostgreSQL із правами на цю БД
-      community.postgresql.postgresql_user:
-        name: "{{ libretime_postgresql_username }}"
-        password: "{{ libretime_postgresql_password }}"
-        db: "{{ libretime_postgresql_dbname }}"
-        priv: "ALL"
-        state: present
-      delegate_to: "{{ db_server_ip }}"
-      become_user: postgres
+  - name: 4.3. Копіювання внутрішнього nginx.conf для контейнера станції
+    ansible.builtin.copy:
+      src: files/nginx.conf  # Цей файл має лежати у твоїй папці playbooks/files/
+      dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/nginx.conf"
+      owner: rfa-worker
+      group: rfa-worker
+      mode: '0644'
 
-    # ========================================================
-    # ЕТАП 3: Налаштування RabbitMQ (Делегування на RabbitMQ)
-    # ========================================================
-    - name: 3.1. Створення віртуального хосту (vhost) RabbitMQ
-      community.rabbitmq.rabbitmq_vhost:
-        name: "{{ libretime_rabbitmq_vhost }}"
-        state: present
-      delegate_to: "{{ mq_server_ip }}"
+  - name: 4.4. Запуск Docker Compose проєкту (підйом контейнерів Libretime)
+    community.docker.docker_compose_v2:
+      project_src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
+      state: present
 
-    - name: 3.2. Створення користувача RabbitMQ та призначення прав
-      community.rabbitmq.rabbitmq_user:
-        user: "{{ libretime_rabbitmq_username }}"
-        password: "{{ libretime_rabbitmq_password }}"
-        vhost: "{{ libretime_rabbitmq_vhost }}"
-        configure_priv: ".*"
-        read_priv: ".*"
-        write_priv: ".*"
-        tags: administrator
-        state: present
-      delegate_to: "{{ mq_server_ip }}"
+  # ========================================================
+  # ЕТАП 5: Налаштування зовнішнього Nginx Proxy Gateway (Делегування)
+  # ========================================================
+  - name: 5.1. Подача проксі-конфігу на зовнішній сервер rfagate
+    ansible.builtin.template:
+      src: templates/nginx_proxy.conf.j2
+      dest: "/etc/nginx/sites-available/{{ station_uuid }}.conf"
+    delegate_to: "{{ nginx_gateway_ip }}"
 
-    # ========================================================
-    # ЕТАП 4: Налаштування конфігів та запуск контейнерів станції
-    # ========================================================
-    - name: 4.1. Генерація файлу config.yml із шаблону
-      ansible.builtin.template:
-        src: templates/config.yml.j2
-        dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/config.yml"
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0644'
+  - name: 5.2. Активація сайту через створення символічного посилання
+    ansible.builtin.file:
+      src: "/etc/nginx/sites-available/{{ station_uuid }}.conf"
+      dest: "/etc/nginx/sites-enabled/{{ station_uuid }}.conf"
+      state: link
+    delegate_to: "{{ nginx_gateway_ip }}"
 
-    - name: 4.2. Генерація файлу docker-compose.yml із шаблону
-      ansible.builtin.template:
-        src: templates/docker-compose.yml.j2
-        dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/docker-compose.yml"
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0644'
-
-    - name: 4.3. Копіювання внутрішнього nginx.conf для контейнера станції
-      ansible.builtin.copy:
-        src: files/nginx.conf  # Цей файл має лежати у твоїй папці playbooks/files/
-        dest: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}/nginx.conf"
-        owner: rfa-worker
-        group: rfa-worker
-        mode: '0644'
-
-    - name: 4.4. Запуск Docker Compose проєкту (підйом контейнерів Libretime)
-      community.docker.docker_compose_v2:
-        project_src: "{{ client_dir }}/{{ client_uuid }}/{{ station_uuid }}"
-        state: present
-
-    # ========================================================
-    # ЕТАП 5: Налаштування зовнішнього Nginx Proxy Gateway (Делегування)
-    # ========================================================
-    - name: 5.1. Подача проксі-конфігу на зовнішній сервер rfagate
-      ansible.builtin.template:
-        src: templates/nginx_proxy.conf.j2
-        dest: "/etc/nginx/sites-available/{{ station_uuid }}.conf"
-      delegate_to: "{{ nginx_gateway_ip }}"
-
-    - name: 5.2. Активація сайту через створення символічного посилання
-      ansible.builtin.file:
-        src: "/etc/nginx/sites-available/{{ station_uuid }}.conf"
-        dest: "/etc/nginx/sites-enabled/{{ station_uuid }}.conf"
-        state: link
-      delegate_to: "{{ nginx_gateway_ip }}"
-
-    - name: 5.3. Перезавантаження конфігурації зовнішнього Nginx для пуску трафіку
-      ansible.builtin.systemd:
-        name: nginx
-        state: reloaded
-      delegate_to: "{{ nginx_gateway_ip }}"
+  - name: 5.3. Перезавантаження конфігурації зовнішнього Nginx для пуску трафіку
+    ansible.builtin.systemd:
+      name: nginx
+      state: reloaded
+    delegate_to: "{{ nginx_gateway_ip }}"

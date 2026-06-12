@@ -47,6 +47,8 @@ public class AnsibleExecutionService {
      * @param rabbitUsername    Користувач RabbitMQ
      * @param rabbitPassword    Пароль RabbitMQ
      * @param stationWebPort    Порт для Nginx Docker-контейнера
+     * @param stationMainPort    Порт для Nginx Docker-контейнера
+     * @param stationDJPort    Порт для Nginx Docker-контейнера
      * @return true, якщо розгортання успішне
      */
     public boolean createStation(
@@ -61,7 +63,9 @@ public class AnsibleExecutionService {
             String rabbitVhost,
             String rabbitUsername,
             String rabbitPassword,
-            int stationWebPort
+            int stationWebPort,
+            int stationMainPort,
+            int stationDJPort
     ) {
         log.info("Початок розгортання станції {} для клієнта {} на сервері {}", stationUuid, clientUuid, stationServerIp);
 
@@ -95,7 +99,8 @@ public class AnsibleExecutionService {
             extraVars.append("libretime_rabbitmq_username=").append(rabbitUsername).append(" ");
             extraVars.append("libretime_rabbitmq_password=").append(rabbitPassword).append(" ");
             extraVars.append("nginx_gateway_ip=").append(nginxGatewayIp).append(" ");
-            extraVars.append("station_web_port=").append(stationWebPort);
+            extraVars.append("station_web_port=").append(stationMainPort).append(" ");
+            extraVars.append("station_web_port=").append(stationDJPort);
 
             command.add("-e");
             command.add(extraVars.toString());
