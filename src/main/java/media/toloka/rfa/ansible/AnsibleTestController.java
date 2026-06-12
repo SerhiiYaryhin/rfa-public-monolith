@@ -27,7 +27,7 @@ public class AnsibleTestController {
      */
     @GetMapping("/create")
     public String testCreate(
-            @RequestParam(defaultValue = "192.168.1.50") String ip,
+            @RequestParam(defaultValue = "w01.rfa") String ip,
             @RequestParam(defaultValue = "8085") int port
     ) {
         log.info("Тестовий запит на створення станції на IP: {}, Port: {}", ip, port);
