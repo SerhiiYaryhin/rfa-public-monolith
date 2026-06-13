@@ -131,8 +131,14 @@
                 <div id="privatearea" class="d-flex flex-column gap-3"></div>
             </div>
 
-            <!-- Input Area -->
             <footer class="input-area">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">
+                        <i class="fas fa-image text-muted"></i>
+                    </button>
+                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
+                </div>
+                
                 <div class="input-group-custom">
                     <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">
                     <button class="btn-emoji" id="emojiToggle">😀</button>

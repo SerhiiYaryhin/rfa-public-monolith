@@ -234,6 +234,66 @@ function sendprivate() {
     input.value = "";
 }
 
+/**
+ * Завантаження зображення
+ */
+async function uploadImage(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        alert('Можна завантажувати лише зображення');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Показуємо стан завантаження (можна додати прогрес-бар)
+    document.getElementById('newmessage').placeholder = 'Завантаження зображення...';
+
+    try {
+        const response = await fetch('/api/chat/upload-image', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            // Формуємо HTML-тег зображення для повідомлення
+            const imgHtml = `<img src="${result.url}" class="img-fluid rounded-3 mt-2 mb-2" style="max-height: 300px; cursor: pointer;" onclick="window.open('${result.url}', '_blank')">`;
+            
+            // Відправляємо як звичайне повідомлення (залежно від контексту)
+            if (window.clientuuid) {
+                stompClient.send("/app/private", {}, JSON.stringify({
+                    uuid: curuuid,
+                    send: Date.now(),
+                    fromname: curusername,
+                    fromuuid: curuuid,
+                    toname: toclientname,
+                    touuid: clientuuid,
+                    body: imgHtml
+                }));
+            } else {
+                stompClient.send("/app/public", {}, JSON.stringify({
+                    uuid: curuuid,
+                    send: Date.now(),
+                    fromname: curusername,
+                    fromuuid: curuuid,
+                    body: imgHtml,
+                    roomuuid: curroom
+                }));
+            }
+        } else {
+            alert('Помилка завантаження: ' + result.error);
+        }
+    } catch (e) {
+        console.error('Upload error:', e);
+        alert('Помилка при завантаженні файлу');
+    } finally {
+        document.getElementById('newmessage').placeholder = 'Напишіть повідомлення...';
+        document.getElementById('imageInput').value = ''; // Скидаємо інпут
+    }
+}
+
 // Допоміжні функції
 function getuserlist() { stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() })); }
 function getroomlist() { stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() })); }

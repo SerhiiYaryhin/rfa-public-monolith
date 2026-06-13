@@ -46,6 +46,7 @@ public class StoreService extends StoreFileImplementation {
                 type == STORE_ALBUMCOVER ||
                 type == STORE_BANNERIMAGE ||
                 type == STORE_PHOTO ||
+                type == STORE_CHATIMAGE ||
 // дивна перевірка аудіофайлів на image
 //                type == STORE_TRACK ||
 //                type == STORE_EPISODETRACK ||

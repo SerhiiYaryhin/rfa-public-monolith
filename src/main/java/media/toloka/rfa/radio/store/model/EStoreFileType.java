@@ -17,7 +17,8 @@ public enum EStoreFileType {
     STORE_DUMMY("Невизначений тип у сховищі"), // 12
     STORE_BANNERIMAGE("Зображення баннера"), // 13
     STORE_BANNERAUDIO("Аудіо баннер"), // 14
-    STORE_BANNERVIDEO("Відео баннер"); // 15
+    STORE_BANNERVIDEO("Відео баннер"), // 15
+    STORE_CHATIMAGE("Зображення чату"); // 16
     public final String label;
 
     private EStoreFileType(String label) {
