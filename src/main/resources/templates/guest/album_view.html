@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- SEO & Social Meta Tags -->
+    <div th:replace="~{/fragments/common :: metadata(
+        title=${album.name} + ' - ' + ${album.autor},
+        description=${album.autor} + ' представляє альбом ' + ${album.name},
+        image=${album.storeuuidalbumcover},
+        url='/album/view/' + ${album.uuid},
+        type='music.album')}"/>
+    
+    <title th:text="${album.name} + ' - ' + ${album.autor} + ' | RFA'"></title>
+    
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
+    <!-- Editor.js for Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+
+    <style>
+        :root { --accent-color: #6c5ce7; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; }
+        
+        /* Immersive Hero Section */
+        .album-hero { position: relative; width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 120px 20px 80px; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(60px) brightness(0.4); transform: scale(1.1); z-index: -1; }
+        
+        /* Glassmorphism Card */
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 32px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        
+        .album-cover-main { width: 100%; max-width: 400px; aspect-ratio: 1/1; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); object-fit: cover; }
+        
+        /* Tracklist Styling */
+        .track-row { cursor: pointer; transition: 0.2s; border-radius: 12px; padding: 12px 15px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; }
+        .track-row:hover { background: rgba(255, 255, 255, 0.1); }
+        .track-row.active { background: var(--accent-color); color: #fff; }
+        .track-num { width: 30px; font-weight: 800; opacity: 0.5; font-size: 0.9rem; }
+        .track-row.active .track-num { opacity: 1; }
+        
+        /* Content Styling */
+        #editorjs { font-family: 'Lora', serif; font-size: 1.2rem; line-height: 1.8; color: #cbd5e1; }
+        .ce-header { font-family: 'Inter', sans-serif; color: #fff; }
+        .cdx-quote { border-left: 4px solid var(--accent-color); padding-left: 20px; font-style: italic; background: rgba(255,255,255,0.03); border-radius: 0 12px 12px 0; }
+
+        /* Sticky Mini-Player */
+        .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 0; z-index: 1000; transform: translateY(100%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .player-bar.visible { transform: translateY(0); }
+        
+        .play-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--accent-color); border: none; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; }
+        .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(108, 92, 231, 0.4); }
+        
+        .progress-container { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; position: relative; margin-top: 10px; }
+        .progress-fill { height: 100%; background: var(--accent-color); border-radius: 2px; width: 0%; transition: width 0.1s linear; }
+
+        .btn-play-all { background: var(--accent-color); color: #fff; border: none; padding: 12px 35px; border-radius: 50px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .btn-play-all:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); color: #fff; }
+    </style>
+</head>
+<body>
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
+
+    <div class="album-hero">
+        <div class="hero-bg" th:style="${album.storeuuidalbumcover != null} ? 'background-image: url(/store/content/' + ${album.storeuuidalbumcover} + ')' : ''"></div>
+        
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <!-- Left: Cover & Info -->
+                <div class="col-lg-5 text-center text-lg-start">
+                    <img th:if="${album.storeuuidalbumcover != null}" 
+                         th:src="'/store/content/' + ${album.storeuuidalbumcover}" 
+                         class="album-cover-main shadow-lg mb-4 animate__animated animate__fadeInLeft">
+                    <div th:if="${album.storeuuidalbumcover == null}" 
+                         class="album-cover-main bg-secondary d-flex align-items-center justify-content-center mx-auto mb-4">
+                        <i class="fas fa-compact-disc fa-8x opacity-25"></i>
+                    </div>
+                    
+                    <h1 class="display-3 fw-800 mb-2" th:text="${album.name}">Назва альбому</h1>
+                    <h4 class="text-muted mb-4 fw-600" th:text="${album.autor}">Виконавець</h4>
+                    
+                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                        <button class="btn-play-all shadow" onclick="playAll()">
+                            <i class="fas fa-play me-2"></i> Слухати все
+                        </button>
+                        <div class="badge bg-light bg-opacity-10 text-white rounded-pill px-3 py-2 d-flex align-items-center">
+                            <i class="fas fa-music me-2"></i>
+                            <span th:text="${trackList != null ? trackList.size() : 0}">0</span> треків
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Tracklist & Description -->
+                <div class="col-lg-7">
+                    <div class="glass-panel animate__animated animate__fadeInRight">
+                        <ul class="nav nav-pills mb-4 gap-2" id="albumTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active rounded-pill px-4 text-white border border-white border-opacity-10" id="tracks-tab" data-bs-toggle="pill" data-bs-target="#tracks" type="button">Трек-лист</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill px-4 text-white border border-white border-opacity-10" id="info-tab" data-bs-toggle="pill" data-bs-target="#info" type="button">Про альбом</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="albumTabsContent">
+                            <!-- Tracks Tab -->
+                            <div class="tab-pane fade show active" id="tracks" role="tabpanel">
+                                <div th:if="${trackList != null && !trackList.isEmpty()}" id="trackList">
+                                    <div th:each="track, iter : ${trackList}" 
+                                         class="track-row" 
+                                         th:attr="data-uuid=${track.storeitem != null ? track.storeitem.uuid : ''}, data-name=${track.name}"
+                                         th:onclick="'playTrackAtIndex(' + ${iter.index} + ')'">
+                                        <div class="track-num" th:text="${iter.count}">1</div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-bold text-truncate" th:text="${track.name}">Назва треку</div>
+                                        </div>
+                                        <div class="small opacity-50"><i class="fas fa-play"></i></div>
+                                    </div>
+                                </div>
+                                <div th:if="${trackList == null || trackList.isEmpty()}" class="text-center py-5 opacity-50">
+                                    Треки поки не додані.
+                                </div>
+                            </div>
+                            
+                            <!-- Info Tab -->
+                            <div class="tab-pane fade" id="info" role="tabpanel">
+                                <div id="editorjs"></div>
+                                <div th:if="${album.description == null || album.description == '{}'}" class="text-center py-5 opacity-50">
+                                    Опис відсутній.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini Player Bar -->
+    <div id="playerBar" class="player-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <button class="play-btn" onclick="togglePlay()">
+                        <i id="playIcon" class="fas fa-pause"></i>
+                    </button>
+                </div>
+                <div class="col overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div id="playerTrackName" class="fw-bold text-truncate small">Track Name</div>
+                        <div class="x-small opacity-50"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></div>
+                    </div>
+                    <div class="progress-container" onclick="seek(event)">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+                <div class="col-auto d-none d-md-block">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-link text-white opacity-50" onclick="playPrev()"><i class="fas fa-step-backward"></i></button>
+                        <button class="btn btn-link text-white opacity-50" onclick="playNext()"><i class="fas fa-step-forward"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioEngine" class="d-none"></audio>
+    <input type="hidden" id="albumData" th:value="${album.description}">
+
+    <div th:insert="~{/fragments/common :: footer}"></div>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Data and Initialization
+        const albumDescription = document.getElementById('albumData').value;
+        const tracks = Array.from(document.querySelectorAll('.track-row')).map(row => ({
+            uuid: row.dataset.uuid,
+            name: row.dataset.name,
+            element: row
+        }));
+        
+        let currentIndex = -1;
+        const audio = document.getElementById('audioEngine');
+        const playerBar = document.getElementById('playerBar');
+        const playIcon = document.getElementById('playIcon');
+        const progressBar = document.getElementById('progressFill');
+
+        // Editor.js Renderer (Read-only)
+        if (albumDescription && albumDescription !== '{}') {
+            new EditorJS({
+                holder: 'editorjs',
+                readOnly: true,
+                tools: {
+                    header: Header,
+                    paragraph: Paragraph,
+                    list: NestedList,
+                    quote: Quote,
+                    delimiter: Delimiter
+                },
+                data: JSON.parse(albumDescription)
+            });
+        }
+
+        // Player Logic
+        function playTrackAtIndex(index) {
+            if (index < 0 || index >= tracks.length) return;
+            const track = tracks[index];
+            if (!track.uuid) return;
+
+            // UI Update
+            tracks.forEach(t => t.element.classList.remove('active'));
+            track.element.classList.add('active');
+            document.getElementById('playerTrackName').innerText = track.name;
+            
+            // Audio Update
+            audio.src = '/store/audio/' + track.uuid;
+            audio.play();
+            
+            currentIndex = index;
+            playerBar.classList.add('visible');
+            playIcon.className = 'fas fa-pause';
+        }
+
+        function playAll() {
+            if (tracks.length > 0) playTrackAtIndex(0);
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.className = 'fas fa-pause';
+            } else {
+                audio.pause();
+                playIcon.className = 'fas fa-play';
+            }
+        }
+
+        function playNext() {
+            if (currentIndex < tracks.length - 1) playTrackAtIndex(currentIndex + 1);
+        }
+
+        function playPrev() {
+            if (currentIndex > 0) playTrackAtIndex(currentIndex - 1);
+        }
+
+        function seek(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        }
+
+        // Time Formatting
+        function formatTime(secs) {
+            if (isNaN(secs)) return '0:00';
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // Audio Events
+        audio.ontimeupdate = () => {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = pct + '%';
+            document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+            document.getElementById('duration').innerText = formatTime(audio.duration);
+        };
+
+        audio.onended = () => {
+            if (currentIndex < tracks.length - 1) {
+                playNext();
+            } else {
+                playIcon.className = 'fas fa-play';
+            }
+        };
+    </script>
+</body>
+</html>

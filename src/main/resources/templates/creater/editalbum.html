@@ -10,7 +10,15 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
+    <!-- Editor.js Core and Tools -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 
     <style>
@@ -39,6 +47,10 @@
         .btn-play:hover { background: #6c5ce7; color: #fff; }
         .btn-remove { color: #ff7675; }
         .btn-remove:hover { background: #ff7675; color: #fff; }
+
+        /* Editor.js Styling */
+        #editorjs { background: #f8fafc; border-radius: 15px; padding: 20px; border: 2px solid #edf2f7; min-height: 200px; }
+        .ce-block__content, .ce-toolbar__content { max-width: 100% !important; }
 
         /* Custom Audio Player */
         .mini-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 50px; padding: 10px 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 1000; transition: 0.3s; }
@@ -135,9 +147,10 @@
                             <div class="col-lg-7 ps-lg-5">
                                 <h5 class="fw-bold mb-4">Основна інформація</h5>
 
-                                <form th:action="@{/creater/editalbum}" method="post" th:object="${album}">
+                                <form id="albumSaveForm" th:action="@{/creater/editalbum}" method="post" th:object="${album}">
                                     <input type="hidden" th:field="*{id}" id="albumId"/>
                                     <input type="hidden" th:field="*{uuid}"/>
+                                    <input type="hidden" th:field="*{description}" id="albumDescriptionInput"/>
 
                                     <div class="mb-3">
                                         <label class="form-label">Назва альбому</label>
@@ -164,8 +177,8 @@
                                     </div>
 
                                     <div class="mb-4">
-                                        <label class="form-label">Опис альбому</label>
-                                        <textarea th:field="*{description}" id="albumDescription"></textarea>
+                                        <label class="form-label">Опис альбому (Editor.js)</label>
+                                        <div id="editorjs"></div>
                                     </div>
 
                                     <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5">
@@ -228,17 +241,41 @@
     <script th:inline="javascript">
         const csrfToken = /*[[${_csrf.token}]]*/ '';
         const albumId = /*[[${album.id}]]*/ 0;
+        const initialDescription = /*[[${album.description}]]*/ '{}';
 
-        tinymce.init({
-            selector: '#albumDescription',
-            height: 250,
-            plugins: 'lists link code',
-            toolbar: 'bold italic | bullist numlist | link',
-            menubar: false,
-            skin: 'oxide',
-            content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
-            border_radius: '10px'
-        });
+        // Initialize Editor.js
+        let editor;
+        try {
+            const parsedData = initialDescription ? JSON.parse(initialDescription) : {};
+            editor = new EditorJS({
+                holder: 'editorjs',
+                tools: {
+                    header: { class: Header, config: { levels: [2, 3], defaultLevel: 2 } },
+                    paragraph: { class: Paragraph, config: { preserveBlank: true } },
+                    list: { class: List, inlineToolbar: true },
+                    quote: { class: Quote, inlineToolbar: true },
+                    delimiter: Delimiter
+                },
+                data: parsedData,
+                placeholder: 'Опишіть ваш альбом...'
+            });
+        } catch (e) {
+            console.error("EditorJS Init Error:", e);
+            editor = new EditorJS({ holder: 'editorjs' });
+        }
+
+        // Handle Form Submit with EditorJS save
+        document.getElementById('albumSaveForm').onsubmit = async function(e) {
+            e.preventDefault();
+            try {
+                const outputData = await editor.save();
+                document.getElementById('albumDescriptionInput').value = JSON.stringify(outputData);
+                this.submit();
+            } catch (error) {
+                console.error('Saving failed: ', error);
+                toastr.error('Помилка збереження опису');
+            }
+        };
 
         // Album Cover Upload
         async function handleCoverUpload(file) {
@@ -290,8 +327,11 @@
         }
 
         async function openAddTrackModal() {
-            const modal = new bootstrap.Modal(document.getElementById('addTrackModal'));
+            const modalEl = document.getElementById('addTrackModal');
+            let modal = bootstrap.Modal.getInstance(modalEl);
+            if (!modal) modal = new bootstrap.Modal(modalEl);
             modal.show();
+            
             const list = document.getElementById('availableTracksList');
             list.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
             
@@ -322,7 +362,7 @@
                 });
                 if (res.ok) {
                     toastr.success('Трек додано!');
-                    location.reload(); // Simple way to update the list and avoid complex DOM manipulation
+                    location.reload();
                 }
             } catch (e) { toastr.error('Помилка'); }
         }
@@ -364,8 +404,10 @@
         }
 
         audio.ontimeupdate = () => {
-            const pct = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = pct + '%';
+            if (audio.duration) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = pct + '%';
+            }
         };
 
         audio.onended = () => {

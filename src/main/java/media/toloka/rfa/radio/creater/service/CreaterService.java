@@ -170,6 +170,10 @@ public class CreaterService {
         return album;
     }
 
+    public Album GetAlbumByUuid(String uuid) {
+        return albumRepository.findByUuid(uuid);
+    }
+
     public void SaveAlbum(Album album) {
         albumRepository.save(album);
     }

@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Track;
-import media.toloka.rfa.radio.service.ClientService;
+import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,11 +33,13 @@ public class CreaterAlbumRESTController {
         
         List<Map<String, Object>> available = allTracks.stream()
                 .filter(t -> t.getAlbum() == null || !t.getAlbum().getId().equals(idAlbum))
-                .map(t -> Map.of(
-                        "uuid", t.getUuid(),
-                        "name", t.getName(),
-                        "autor", t.getAutor() != null ? t.getAutor() : "---"
-                ))
+                .map(t -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("uuid", t.getUuid());
+                    map.put("name", t.getName());
+                    map.put("autor", t.getAutor() != null ? t.getAutor() : "---");
+                    return map;
+                })
                 .collect(Collectors.toList());
         
         return ResponseEntity.ok(available);
