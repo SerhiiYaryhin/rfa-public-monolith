@@ -194,7 +194,7 @@ public class NewsHome {
         if (news.getStation().getRadioserver() != null) localGuiServer = news.getStation().getRadioserver();
         if (news.getStation().getToradiopassword() == null) {
             // Пейджинг для сторінки
-            Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
+            Page<News> pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
             List<News> viewList = pageStore.stream().toList();
             List<News> newsList = NewsBackServerService.GetListNewsByCd(cd);
             Boolean runTTS = false;
@@ -324,7 +324,7 @@ public class NewsHome {
         Integer curpage = 0;
 
 // Пейджинг для сторінки
-        Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page<News> pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
@@ -348,7 +348,7 @@ public class NewsHome {
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
-        Page pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
+        Page<News> pageStore = NewsBackServerService.GetNewsPageByClientDetail(curpage, 10, cd);
         List<News> viewList = pageStore.stream().toList();
         List<News> newsList = NewsBackServerService.GetListNewsByCd(cd);
         Boolean runTTS = false;

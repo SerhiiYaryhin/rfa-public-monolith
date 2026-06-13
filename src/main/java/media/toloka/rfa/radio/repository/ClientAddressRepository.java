@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ClientAddressRepository extends JpaRepository<Clientaddress, Long> {
 
-    Clientaddress getById(Long id);
+    Clientaddress getReferenceById(Long id);
 
     List<Clientaddress> findByClientdetail(Clientdetail Clientdetail);
 

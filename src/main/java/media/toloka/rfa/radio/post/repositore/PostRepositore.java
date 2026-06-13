@@ -13,17 +13,17 @@ import java.util.List;
 
 public interface PostRepositore extends JpaRepository<Post, Long>, PagingAndSortingRepository<Post, Long> {
     List<Post> findByClientdetail(Clientdetail cd);
-    Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
+    Page<Post> findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
 
 
-    Post getById(Long id);
+    Post getReferenceById(Long id);
     List<Post> findByApruveOrderByCreatedateDesc(Boolean apruve);
 
     List<Post> findAllByOrderByCreatedateDesc();
 
     Page findAllByOrderByPublishdateDesc(Pageable storePage);
 
-    Page findAllByPublishdateIsNotNullOrderByPublishdateDesc(Pageable storePage);
+    Page<Post> findAllByPublishdateIsNotNullOrderByPublishdateDesc(Pageable storePage);
 
     List<Post> findByClientdetailOrderByCreatedateDesc(Clientdetail cd);
 

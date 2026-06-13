@@ -207,8 +207,8 @@ public class STTHome {
         Integer curpage = 0;
 
 // Пейджинг для сторінки
-        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
-        List<News> viewList = pageStore.stream().toList();
+        Page<Stt> pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
+        List<Stt> viewList = pageStore.stream().toList();
 
         model.addAttribute("totalPages", pageStore.getTotalPages());
         model.addAttribute("currentPage", scurpage);
@@ -231,7 +231,7 @@ public class STTHome {
         Integer curpage = Integer.parseInt(cPage);
 
 // Пейджинг для сторінки
-        Page pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
+        Page<Stt> pageStore = sttBackServerService.GetSttPageByClientDetail(curpage, 10, cd);
         List<Stt> viewList = pageStore.stream().toList();
         List<Stt> sttList = sttBackServerService.GetListSttByCd(cd);
 

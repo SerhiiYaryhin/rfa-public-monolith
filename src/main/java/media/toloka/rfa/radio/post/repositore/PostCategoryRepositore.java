@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PostCategoryRepositore  extends JpaRepository<PostCategory, Long> {
 
-    PostCategory getById(Long aLong);
+    PostCategory getReferenceById(Long aLong);
     PostCategory getByUuid(String uuid);
 //    List<PostCategory> findByUuid(String uuid);
     List<PostCategory> findByParent(PostCategory pc);

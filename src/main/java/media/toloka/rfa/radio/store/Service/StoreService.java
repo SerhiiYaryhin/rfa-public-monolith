@@ -82,13 +82,12 @@ public class StoreService extends StoreFileImplementation {
         return storeRepositore.findAllByClientdetail(cd);
     }
 
-    public Page GetStorePage(int pageNumber, int pageCount) {
+    public Page<Store> GetStorePage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount, Sort.by("createdate").descending());
-        Page page = storeRepositore.findAll(storePage);
-        return page;
+        return storeRepositore.findAll(storePage);
     }
 
-    public Page GetStorePageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+    public Page<Store> GetStorePageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
 //        Pageable storePage = PageRequest.of(pageNumber, pageCount);
         return storeRepositore.findByClientdetailOrderByIdDesc(PageRequest.of(pageNumber, pageCount),cd);
 //        return page;
@@ -107,11 +106,11 @@ public class StoreService extends StoreFileImplementation {
         return storeRepositore.findByClientdetailAndStorefiletypeOrderByIdDesc(cd,STORE_EPISODETRACK);
     }
 
-    public Page GetAllPictures(int pageNumber, int pageCount, Clientdetail cd) {
+    public Page<Store> GetAllPictures(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
         Page ttt = storeRepositore.findByStorelAllPictures(storePage, cd);
-        return ttt; // storeRepositore.findByStorelAllPictures(storePage, cd);
-//        return storeRepositore.findByStorelAllPictures(cd.getId());
+//        return ttt; // storeRepositore.findByStorelAllPictures(storePage, cd);
+        return storeRepositore.findByStorelAllPictures(storePage, cd);
     }
 
     public Page GetAllAudio(int pageNumber, int pageCount, Clientdetail cd) {

@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.stt.service;
 
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.newstoradio.model.News;
 import media.toloka.rfa.radio.store.Service.StoreService;
 import media.toloka.rfa.radio.store.model.Store;
 import media.toloka.rfa.radio.stt.model.ESttStatus;
@@ -38,9 +39,8 @@ public class STTBackServerService {
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
 
-    public Page GetSttPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
-        Pageable NewsPage = PageRequest.of(pageNumber, pageCount);
-        return sttRepositore.findByClientdetailOrderByCreatedateDesc(NewsPage, cd);
+    public Page<Stt> GetSttPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+        return sttRepositore.findByClientdetailOrderByCreatedateDesc(PageRequest.of(pageNumber, pageCount), cd);
     }
 
     public Stt GetByUUID(String uuidstt) {

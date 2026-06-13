@@ -14,7 +14,7 @@ public interface NewsRepositore extends JpaRepository<News, Long>, PagingAndSort
 
     List<News> findByClientdetail(Clientdetail cd);
 
-    Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
+    Page<News> findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
 
     List<News> findByStorespeach(media.toloka.rfa.radio.store.model.Store storespeach);
 

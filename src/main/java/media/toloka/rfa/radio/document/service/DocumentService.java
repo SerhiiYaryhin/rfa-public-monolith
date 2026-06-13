@@ -29,7 +29,7 @@ public class DocumentService {
     private ClientService clientService;
 
     public Documents GetDocument(Long id) {
-        return documentRepository.getById(id);
+        return documentRepository.getReferenceById(id);
     }
 
     public void saveDocument(Documents document) {

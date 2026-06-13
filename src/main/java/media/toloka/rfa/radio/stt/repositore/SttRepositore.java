@@ -14,7 +14,7 @@ public interface SttRepositore extends JpaRepository<Stt, Long>, PagingAndSortin
 
     List<Stt> findByClientdetail(Clientdetail cd);
 
-    Page findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
+    Page<Stt> findByClientdetailOrderByCreatedateDesc(Pageable storePage, Clientdetail cd);
 
     Page findAllByOrderByCreatedateDesc(Pageable storePage);
 

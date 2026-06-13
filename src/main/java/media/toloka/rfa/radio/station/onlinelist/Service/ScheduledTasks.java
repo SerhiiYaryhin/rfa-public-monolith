@@ -2,7 +2,9 @@ package media.toloka.rfa.radio.station.onlinelist.Service;
 
 //import lombok.var;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.ClientHomeStationController;
 import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
@@ -20,7 +22,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -68,7 +72,8 @@ public class ScheduledTasks {
             URL url;
             try {
                 // сформували урл для станції
-                url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
+//                url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
+                url = URI.create("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback").toURL();
             } catch (MalformedURLException e) {
                 logger.info("GetStationOnlineList: MalformedURLException new URL");
                 continue;
@@ -83,10 +88,19 @@ public class ScheduledTasks {
                 continue;
 //                throw new RuntimeException(e);
             }
-            GsonBuilder builder = new GsonBuilder();
-            Object o = builder.create().fromJson(json, Object.class);
-            Map<String, Object> Report = (Map<String, Object>) o;
-//            Map<String, Object> previous = (Map<String, Object>) Report.get("previous");
+//            GsonBuilder builder = new GsonBuilder();
+//            Object o = builder.create().fromJson(json, Object.class);
+//            Map<String, Object> Report = (Map<String, Object>) o;
+
+// 1. Оголошуємо точний тип, який нам потрібен (Мапа String -> Object)
+            Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
+
+// 2. Передаємо цей тип у Gson
+            Gson gson = new GsonBuilder().create();
+            Map<String, Object> Report = gson.fromJson(json, mapType); // 👈 Ніяких кастингів і нуль варнінгів!
+
+
+            //            Map<String, Object> previous = (Map<String, Object>) Report.get("previous");
 
             Map<String, Object> current = (Map<String, Object>) Report.get("current");
             if (current != null) {
