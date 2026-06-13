@@ -43,6 +43,13 @@ function onConnected() {
     subroom = stompClient.subscribe('/roomslist/' + curuuid, onRoomList);
     subMediaToPublic = stompClient.subscribe('/media', onMediaPublic);
 
+    // Підписка на події оновлення присутності (через RabbitMQ на бекенді)
+    stompClient.subscribe('/topic/presence-update', function(msg) {
+        console.log("=== Presence Update Received ===");
+        getuserlist();
+        getroomlist();
+    });
+
     // Вітаємося з сервером
     stompClient.send("/app/hello", {}, JSON.stringify({
         uuid: curuuid,

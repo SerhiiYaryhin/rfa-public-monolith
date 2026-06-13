@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
 import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
+import media.toloka.rfa.media.messanger.config.WebSocketEventListener;
+import media.toloka.rfa.media.messanger.model.ChatPresenceEvent;
+import media.toloka.rfa.media.messanger.service.ChatPresenceService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.media.messanger.model.ChatListElement;
 import media.toloka.rfa.media.messanger.model.ChatMessage;
@@ -14,6 +17,7 @@ import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -40,6 +44,12 @@ public class ChatController {
     private MessangerService messangerService;
 
     @Autowired
+    private ChatPresenceService presenceService;
+
+    @Autowired
+    private WebSocketEventListener sessionListener;
+
+    @Autowired
     public ChatController(SimpMessagingTemplate template) {
         this.template = template;
     }
@@ -47,11 +57,21 @@ public class ChatController {
     final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
     @MessageMapping("/hello")
-    public void GetChatMessage( ChatMessage inmsg) {
+    public void GetChatMessage( ChatMessage inmsg, @Header("simpSessionId") String sessionId) {
             // add user to userlist for room
             try {
-            messangerService.AddChatUser(inmsg);
+            // Реєструємо сесію для відстеження відключення
+            sessionListener.registerSession(sessionId, inmsg.getUuid());
+
             Clientdetail cd = clientService.GetClientDetailByUUID(inmsg.getUuid());
+            String fullName = cd.getCustname() + " " + cd.getCustsurname();
+
+            // Публікуємо подію в RabbitMQ
+            presenceService.publishPresenceEvent(
+                    ChatPresenceEvent.EventType.USER_CONNECTED,
+                    inmsg.getUuid(),
+                    fullName
+            );
 
             List<ChatMessage> publicMessageList = messangerService.GetChatPublicRoomList(inmsg.getRoomuuid());
             ChatMessage cmsg = new ChatMessage();

@@ -5,6 +5,7 @@ import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.repository.ChatRepository;
 import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
 import media.toloka.rfa.media.messanger.repository.MessangerRepository;
+import media.toloka.rfa.media.messanger.model.ChatPresenceEvent;
 import media.toloka.rfa.radio.client.service.ClientService;
 //import media.toloka.rfa.radio.message.service.MessageService;
 import media.toloka.rfa.radio.model.Clientaddress;
@@ -32,6 +33,10 @@ public class MessangerService {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private ChatPresenceService presenceService;
 
     private SimpMessagingTemplate template;
 
@@ -101,7 +106,6 @@ public class MessangerService {
         Map<String, Date> lastLivetime = chatReferenceSingleton.GetUserLastLiveTime();
         List<String> todel = new ArrayList<>();
 
-        Map<String, String> userlist = chatReferenceSingleton.GetUsersMap();
         Date curdate = new Date();
 //        String ttt;
         for (Map.Entry<String, Date> entry : lastLivetime.entrySet()) {
@@ -110,10 +114,9 @@ public class MessangerService {
                 todel.add(entry.getKey());
             }
         }
-        for (int i = 0; i < todel.size(); i++){
-            userlist.remove(todel.get(i));
-            lastLivetime.remove(todel.get(i));
-            logger.warn("Видалили користувача зі списку активних  uuid={}",todel.get(i));
+        for (String uuid : todel) {
+            logger.warn("Видаляємо неактивного користувача uuid={}", uuid);
+            presenceService.publishPresenceEvent(ChatPresenceEvent.EventType.USER_DISCONNECTED, uuid, null);
         }
     }
 
@@ -128,6 +131,7 @@ public class MessangerService {
 
     public void SaveRoom(MessageRoom stRoom) {
         messageRoomRepository.save(stRoom);
+        presenceService.publishPresenceEvent(ChatPresenceEvent.EventType.ROOM_UPDATED, stRoom.getUuid(), stRoom.getRoomname());
     }
 
     public MessageRoom GetChatRoomByUUID(String roomuuid) {
