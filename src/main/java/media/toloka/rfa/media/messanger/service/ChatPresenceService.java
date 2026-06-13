@@ -32,6 +32,14 @@ public class ChatPresenceService {
     }
 
     /**
+     * Запит синхронізації стану від інших вузлів.
+     */
+    public void requestGlobalSync() {
+        log.info("Запит на глобальну синхронізацію стану чату...");
+        publishPresenceEvent(ChatPresenceEvent.EventType.SYNC_REQUEST, null, null);
+    }
+
+    /**
      * Слухач подій від RabbitMQ. Виконується на кожному вузлі сервера.
      */
     @RabbitListener(queues = "#{chatPresenceQueue.name}")
@@ -41,6 +49,31 @@ public class ChatPresenceService {
         ChatReferenceSingleton chatRef = ChatReferenceSingleton.getInstance();
         
         switch (event.getType()) {
+            case SYNC_REQUEST:
+                // Якщо хтось просить синхронізацію - публікуємо все, що знаємо
+                log.info("Отримано запит на синхронізацію. Надсилаємо локальний стан...");
+                chatRef.GetUsersMap().forEach((uuid, name) -> {
+                    Date lastLive = chatRef.GetUserLastLiveTime().get(uuid);
+                    ChatPresenceEvent response = new ChatPresenceEvent(
+                            ChatPresenceEvent.EventType.USER_CONNECTED,
+                            uuid,
+                            name,
+                            lastLive != null ? lastLive.getTime() : System.currentTimeMillis()
+                    );
+                    rabbitTemplate.convertAndSend(ChatPresenceConfig.CHAT_PRESENCE_EXCHANGE, "", response);
+                });
+                // Можна також продублювати активні кімнати, якщо вони мають динамічний статус
+                chatRef.GetRoomsMap().forEach((uuid, name) -> {
+                    ChatPresenceEvent response = new ChatPresenceEvent(
+                            ChatPresenceEvent.EventType.ROOM_UPDATED,
+                            uuid,
+                            name,
+                            System.currentTimeMillis()
+                    );
+                    rabbitTemplate.convertAndSend(ChatPresenceConfig.CHAT_PRESENCE_EXCHANGE, "", response);
+                });
+                break;
+
             case USER_CONNECTED:
                 chatRef.GetUsersMap().put(event.getUuid(), event.getName());
                 chatRef.GetUserLastLiveTime().put(event.getUuid(), new Date(event.getTimestamp()));

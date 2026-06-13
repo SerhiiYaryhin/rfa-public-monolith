@@ -18,7 +18,8 @@ public class ChatPresenceEvent implements Serializable {
         USER_CONNECTED,
         USER_DISCONNECTED,
         ROOM_UPDATED,
-        ROOM_DELETED
+        ROOM_DELETED,
+        SYNC_REQUEST
     }
 
     private EventType type;
