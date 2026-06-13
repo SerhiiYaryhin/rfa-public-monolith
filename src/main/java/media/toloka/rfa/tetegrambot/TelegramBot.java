@@ -38,9 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-
-//import static jdk.javadoc.internal.tool.Main.execute;
-
 @Profile("Telegram")
 @Component
 //@RequiredArgsConstructor
@@ -70,11 +67,22 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
     private Properties prop;
 
-    public TelegramBot(/* Dispatcher dispatcher, */ UserSessionService userSessionService) {
-        telegramClient = new OkHttpTelegramClient(getBotToken());
-//        this.dispatcher1 = dispatcher;
-        this.userSessionService = userSessionService;
-    }
+//    public TelegramBot(/* Dispatcher dispatcher, */ UserSessionService userSessionService) {
+//        telegramClient = new OkHttpTelegramClient(getBotToken());
+////        this.dispatcher1 = dispatcher;
+//        this.userSessionService = userSessionService;
+//    }
+
+public TelegramBot(/* Dispatcher dispatcher, */ UserSessionService userSessionService) {
+    // Створюємо клієнт за замовчуванням
+    this.telegramClient = new OkHttpTelegramClient(getBotToken());
+
+    // Перевіряємо, чи є можливість передати URL безпосередньо (найчастіше в 7.10.x це працює так):
+    // System.setProperty("org.telegram.telegrambots.baseUrl", "https://rfa.toloka.media/telegram-api");
+
+    this.userSessionService = userSessionService;
+}
+
 
     public TelegramClient getTelegramClient() {
         return telegramClient;
