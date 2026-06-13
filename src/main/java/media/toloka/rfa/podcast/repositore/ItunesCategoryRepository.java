@@ -14,7 +14,7 @@ public interface ItunesCategoryRepository
     List<PodcastItunesCategory> findByChanel(ChanelRepository icr);
     //    PodcastChannel getByStoreuuid(String storeUuid);
     PodcastItunesCategory getByUuid(String ChanelUuid);
-    PodcastItunesCategory save(PodcastItunesCategory icr);
+//    PodcastItunesCategory save(PodcastItunesCategory icr);
 
 
 }

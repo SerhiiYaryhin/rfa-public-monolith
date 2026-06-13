@@ -13,5 +13,5 @@ public interface AlbumCoverRepository extends JpaRepository<Albumсover, Long> {
 //    Optional
     List<Albumсover> findByClientdetail(Clientdetail cd);
     //List<Albumсover> findByClientdetailAnd(Clientdetail cd, EStoreFileType sft);
-    Albumсover getById(Long id);
+    Albumсover getReferenceById(Long id);
 }

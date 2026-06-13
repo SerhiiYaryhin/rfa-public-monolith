@@ -23,7 +23,7 @@ public class AccAccountsPlanService {
         return accAccountsPlanRepositore.getByUuid(uuid);
     }
 
-    public Page FindAll(PageRequest acc) {
+    public Page<AccAccountsPlan> FindAll(PageRequest acc) {
         return accAccountsPlanRepositore.findAll(acc);
     }
 

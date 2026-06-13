@@ -13,7 +13,7 @@ import java.util.List;
 public interface StationRepo extends JpaRepository<Station, Long> {
     List<Station> findStationByClientdetail(Clientdetail Clientdetailrfa);
 
-    Station save(Station station);
+//    Station save(Station station);
 
     Station getStationByDbname(String rstring);
 

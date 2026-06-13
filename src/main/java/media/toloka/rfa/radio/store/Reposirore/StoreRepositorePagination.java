@@ -21,7 +21,7 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
     Page<Store> findByStorefiletype(Pageable pageable, EStoreFileType storefiletype);
 
     Page findByClientdetail(Pageable storePage, Clientdetail cd);
-    Page findByClientdetailOrderByIdDesc(Pageable storePage, Clientdetail cd);
+    Page<Store> findByClientdetailOrderByIdDesc(Pageable storePage, Clientdetail cd);
 
     Store getByUuid(String uuid);
     Store getByFilepatch(String filepatch);
@@ -34,7 +34,7 @@ public interface StoreRepositorePagination extends PagingAndSortingRepository<St
             + "a.clientdetail = ?1 AND  "
             + "LOWER(a.contentMimeType) LIKE LOWER(CONCAT('%', 'image/', '%'))"
             + "ORDER BY a.createdate DESC") // OR " +
-    Page findByStorelAllPictures(Pageable pageable, Clientdetail cd);
+    Page<Store> findByStorelAllPictures(Pageable pageable, Clientdetail cd);
 
     @Query(value = "SELECT a FROM Store a WHERE "
             + "a.clientdetail = ?1 AND  "

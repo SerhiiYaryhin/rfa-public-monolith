@@ -148,7 +148,7 @@ public class ClientService {
     }
 
     public Clientaddress GetAddress(Long id) {
-        return clientAddressRepository.getById(id);
+        return clientAddressRepository.getReferenceById(id);
     }
 
     public void SaveAddress(Clientaddress fclientaddress) {
@@ -229,7 +229,7 @@ public class ClientService {
     }
 
     public Clientaddress GetClientAddressById(Long idAddress) {
-        return clientAddressRepository.getById(idAddress);
+        return clientAddressRepository.getReferenceById(idAddress);
     }
 
 //    public void DeleteUser(Users curuser) {

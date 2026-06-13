@@ -19,7 +19,7 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
 //    Optional
     List<Track> findByClientdetail(Clientdetail cd);
     Page findByClientdetail(Pageable storePage, Clientdetail cd);
-    Page findByClientdetailOrderByUploaddateDesc(Pageable storePage, Clientdetail cd);
+    Page<Track> findByClientdetailOrderByUploaddateDesc(Pageable storePage, Clientdetail cd);
 
     List<Track> findAllByOrderByUploaddateAsc();
     List<Track> findAllTop10ByOrderByUploaddateAsc();
@@ -27,11 +27,11 @@ public interface TrackRepository extends JpaRepository<Track, Long>, PagingAndSo
     @Query("SELECT t FROM Track t WHERE t.apruve = true AND t.publishstatus = true ORDER BY t.uploaddate DESC LIMIT 10")
     List<Track> findTop10Approved();
 
-    Track getById(Long id);
+    Track getReferenceById(Long id);
     Track getByStoreuuid(String storeUuid);
     List<Track> findByStoreitem(Store storeitem);
 
-    Page findAllByOrderByUploaddateDesc(Pageable storePage);
+    Page<Track> findAllByOrderByUploaddateDesc(Pageable storePage);
 
     Track getByUuid(String trackUuid);
 

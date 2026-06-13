@@ -86,10 +86,16 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
+                // старий варіант
+//                .logout(logout -> logout
+//                        .invalidateHttpSession(true)
+//                        .clearAuthentication(true)
+//                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+//                        .logoutSuccessUrl("/")
+//                        .permitAll()
+//                )
                 .logout(logout -> logout
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .logoutUrl("/logout") // 👈 Замість AntPathRequestMatcher. Spring сам створить правильний матчер
                         .logoutSuccessUrl("/")
                         .permitAll()
                 )

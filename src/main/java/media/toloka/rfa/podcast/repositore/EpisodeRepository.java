@@ -19,7 +19,7 @@ public interface EpisodeRepository
     PodcastItem getByUuid(String episodeUuid);
     List<PodcastItem> findByEnclosurestore(Store store);
     List<PodcastItem> findByImagestoreitem(Store store);
-    PodcastItem save(PodcastItem episode);
+//    PodcastItem save(PodcastItem episode);
 
     Page<PodcastItem> findByChanelOrderByDateDesc(PodcastChannel chanel, Pageable pageable);
 

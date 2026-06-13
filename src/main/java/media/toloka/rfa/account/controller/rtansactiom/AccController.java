@@ -52,7 +52,7 @@ public class AccController {
 
         Clientdetail operatorcd = clientService.GetClientDetailByUser(user);
 
-        Page pageStore = accService.GetPageAcc(page, 10);
+        Page<AccAccountsPlan> pageStore = accService.GetPageAcc(page, 10);
         List<AccAccountsPlan> storeList = pageStore.stream().toList();
         List<EAccActivePassive> eAccActivePassives = Arrays.asList(EAccActivePassive.values());
 

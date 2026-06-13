@@ -47,7 +47,7 @@ public class CreaterController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
 
         Integer curpage = Math.max(0, page); // Переконуємося, що сторінка не від'ємна
-        Page pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
+        Page<Post> pageStore = createrService.GetPostPageByClientDetail(curpage, 10, cd);
         List<Post> viewList = pageStore.getContent();
 
         model.addAttribute("viewList", viewList );

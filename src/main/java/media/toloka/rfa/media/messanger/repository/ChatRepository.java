@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
 
-    ChatMessage getById(Long id);
+    ChatMessage getReferenceById(Long id);
     ChatMessage getByUuid(String uuid);
 
 //    @Query(

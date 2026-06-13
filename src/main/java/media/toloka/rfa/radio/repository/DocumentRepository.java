@@ -15,7 +15,7 @@ public interface DocumentRepository extends JpaRepository<Documents, Long> {
 
     List<Documents> findByClientdetail(Clientdetail Clientdetailrfa);
 
-    Documents getById(Long id);
+    Documents getReferenceById(Long id);
 
     List<Documents> findByStatusLessThan(EDocumentStatus eDocumentStatus);
     List<Documents> findByStatusNot(EDocumentStatus eDocumentStatus);

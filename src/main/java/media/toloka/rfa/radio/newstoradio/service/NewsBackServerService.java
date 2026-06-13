@@ -38,7 +38,7 @@ public class NewsBackServerService {
     final Logger logger = LoggerFactory.getLogger(RPCSpeachService.class);
 
 
-    public Page GetNewsPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+    public Page<News> GetNewsPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable NewsPage = PageRequest.of(pageNumber, pageCount);
         return newsRepositore.findByClientdetailOrderByCreatedateDesc(NewsPage, cd);
     }

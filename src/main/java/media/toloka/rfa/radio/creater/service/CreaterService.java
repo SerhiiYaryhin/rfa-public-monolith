@@ -88,11 +88,9 @@ public class CreaterService {
         return storeService.GetAllTrackByClientId(cd);
     }
 
-    public Page GetTrackPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
+    public Page<Track> GetTrackPageByClientDetail(int pageNumber, int pageCount, Clientdetail cd) {
         Pageable TrackPage = PageRequest.of(pageNumber, pageCount);
-//        Page page = trackRepository.findByClientdetail(TrackPage,cd);
-        Page page = trackRepository.findByClientdetailOrderByUploaddateDesc(TrackPage,cd);
-        return page;
+        return trackRepository.findByClientdetailOrderByUploaddateDesc(TrackPage,cd);
 
     }
 
@@ -129,7 +127,7 @@ public class CreaterService {
 
     /** Пошук треку за його внутрішнім ID */
     public Track GetTrackById(Long idTrack) {
-        return trackRepository.getById(idTrack);
+        return trackRepository.getReferenceById(idTrack);
     }
 
     /** Пошук треку за UUID зі сховища */
@@ -166,7 +164,7 @@ public class CreaterService {
     }
 
     public Album GetAlbumById(Long id) {
-        Album album = albumRepository.getById(id);
+        Album album = albumRepository.getReferenceById(id);
         return album;
     }
 
@@ -220,17 +218,16 @@ public class CreaterService {
                 new java.util.Date());
     }
 
-    public Page GetPostPage(int pageNumber, int pageCount) {
+    public Page<Post> GetPostPage(int pageNumber, int pageCount) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
 //        Page page = postRepositore.findAllByOrderByPublishdateDesc(storePage);
-        Page page = postRepositore.findAllByPublishdateIsNotNullOrderByPublishdateDesc(storePage);
-        return page;
+        return postRepositore.findAllByPublishdateIsNotNullOrderByPublishdateDesc(storePage);
     }
 
 
     // todo переробити на роботу зі сховищем
     public Albumсover GetAlbumCoverById(Long alcoid) {
-        return albumCoverRepository.getById(alcoid);
+        return albumCoverRepository.getReferenceById(alcoid);
     }
 
     public void PublicTrackToChat(Track track, Clientdetail cd) {
@@ -317,9 +314,9 @@ public class CreaterService {
         return token.getToken();
     }
 
-    public Page GetPostPageByClientDetail(Integer pageNumber, int pageCount, Clientdetail cd) {
+    public Page<Post> GetPostPageByClientDetail(Integer pageNumber, int pageCount, Clientdetail cd) {
         Pageable storePage = PageRequest.of(pageNumber, pageCount);
-        Page page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
-        return page;
+//        Page<> page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
+        return postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
     }
 }

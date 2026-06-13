@@ -12,5 +12,5 @@ public interface ContractRepo extends JpaRepository<Contract, Long> {
 
 //    Optional
     List<Contract> findByClientdetail(Clientdetail cd);
-    Contract getById(Long id);
+    Contract getReferenceById(Long id);
 }

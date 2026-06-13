@@ -35,7 +35,7 @@ public class PostService {
 
 
     public Post GetPostById(Long idPost) {
-        Post post = postRepositore.getById(idPost);
+        Post post = postRepositore.getReferenceById(idPost);
         return post;
     }
 

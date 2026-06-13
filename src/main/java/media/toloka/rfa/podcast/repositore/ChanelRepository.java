@@ -22,7 +22,7 @@ public interface ChanelRepository extends JpaRepository<PodcastChannel, String>,
     Page<PodcastChannel> findByApruveTrueAndPublishingTrueOrderByLastbuilddateDesc(Pageable pageable);
 
     List<PodcastChannel> findByImagechanelstore(Store store);
-    PodcastChannel save(PodcastChannel chanel);
+//    PodcastChannel save(PodcastChannel chanel);
 
     List<PodcastChannel> findByApruve(boolean b);
     Page<PodcastChannel> findByApruveTrueOrderByLastbuilddateDesc(Pageable pageable);

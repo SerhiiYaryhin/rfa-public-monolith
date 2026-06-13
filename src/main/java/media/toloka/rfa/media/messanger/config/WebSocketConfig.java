@@ -51,13 +51,13 @@ public class WebSocketConfig  implements WebSocketMessageBrokerConfigurer {
                 "/private",
                 "/public",
                 "/heartbeats")
-                .setTaskScheduler(heartBeatScheduler())
+                .setTaskScheduler(taskScheduler())
                 .setHeartbeatValue(new long[]{8000,8000});
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Bean
-    public TaskScheduler heartBeatScheduler() {
+    public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(5);
         scheduler.setThreadNamePrefix("broker-task-");

@@ -13,6 +13,5 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 //    Optional
     List<Album> findByClientdetail(Clientdetail cd);
     List<Album> findByStoreuuidalbumcover(String storeuuidalbumcover);
-    Album getById(Long id);
-    Album findByUuid(String uuid);
+    Album getReferenceById(Long id);
 }
