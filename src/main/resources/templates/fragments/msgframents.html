@@ -1,67 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
 </head>
-<body style="line-height: 1.15em">
+<body>
+
+<!-- Список кімнат у боковій панелі -->
 <div th:fragment="listroom">
-    <!--        <a class="btn btn-primary" th:href="@{'/creater/editpost/'+${0}}">Створити пост</a>-->
-
-    <div style="overflow-y: scroll; max-height: 25vh;line-height: 1.2em" id="headroomlist">
-        <div><b><u>Активні кімнати</u></b></div>
-        <div id="roomlist">
-        </div>
-<!--        <div th:each="room : ${roomlist}"  >-->
-<!--            <span th:utext="${room.roomname}" th:id="${room.uuid}" onclick="selectroom(this)" style="font-size: 0.7rem"/>-->
-<!--        </div>-->
+    <div class="px-3 py-2 bg-light small fw-bold text-uppercase text-muted">Кімнати</div>
+    <div id="roomlist" class="list-group list-group-flush">
+        <!-- Динамічно заповнюється через chat.js -->
     </div>
 </div>
 
+<!-- Список користувачів у боковій панелі -->
 <div th:fragment="listuser">
-<!--    <div style="overflow-y: scroll; max-height: 500vh; line-height: 1.2em" id="roomlist">-->
-    <div class="roomlist" id="roomlist">
-        <div><b><u>Співрозмовники</u></b></div>
-        <div id="userlist">
-        </div>
-
-        <!--        <div th:each="user : ${userlist}">-->
-<!--            <span th:utext="${user.custname}+' '+${user.custsurname}" th:id="${user.uuid}" onclick="selectuser(this)" style="font-size: 0.7rem;"/>-->
-<!--        </div>-->
+    <div class="px-3 py-2 bg-light small fw-bold text-uppercase text-muted mt-2">Співрозмовники</div>
+    <div id="userlist" class="list-group list-group-flush">
+        <!-- Динамічно заповнюється через chat.js -->
     </div>
 </div>
 
-<div th:fragment="areamessage">
-<!--    <textarea  rows="15" cols="50" id="messagearea"></textarea>-->
-<!--    <div class="mb-3">-->
-    <div><b><u>Повідомлення</u></b></div>
-<!--    <div style="overflow-y: scroll; height: 52vh; line-height: 1.2em" id="publicarea">-->
-    <div class="areapublic" id="publicarea">
-    </div>
-<!--    </div>-->
-<!--    <textarea rows="15" cols="50" id="aboutDescription" style="resize: none;" data-role="none"></textarea>-->
-</div>
+<!-- Стилі для елементів списку (додано для chat.js) -->
+<style>
+    .chat-item { border: none !important; padding: 12px 20px !important; transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .chat-item:hover { background-color: #f1f5f9 !important; }
+    .chat-item.active { background-color: #eef2ff !important; border-left: 4px solid #6c5ce7 !important; }
+    
+    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; font-size: 0.9rem; flex-shrink: 0; }
+    .active .chat-avatar { background: #6c5ce7; color: #fff; }
+    
+    .chat-info { overflow: hidden; }
+    .chat-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; margin-bottom: 2px; }
+    .chat-status { font-size: 0.75rem; color: #94a3b8; }
+</style>
 
-<div th:fragment="areaprivatemessage"  >
-    <div><b><u>Приватні повідомлення</u></b></div>
-<!--    <div style="overflow-y: scroll; max-height: 20vh;" id="privatearea">-->
-    <div style="overflow-y: scroll; height: 20vh;line-height: 1.2em" id="privatearea">
-    </div>
-</div>
-
-<div th:fragment="areamessagecontrol" >
-    <div id="controlarea" >
-<!--    <div style="overflow-y: scroll; max-height: 12vh;" id="controlarea" >-->
-        <section>
-            <span  id="connectstatus">Кому:</span>
-        </section>
-        <div style=" margin-right: 25px; margin-left: 25px;">
-            <input type="text" name="name"  class="form-control" id="newmessage" />
-            <button style="margin-bottom: 20px" type="button" onclick="sendpublic(this)" id="sendmessage">Всім</button>
-            <button style="margin-bottom: 20px" type="button" onclick="sendprivate(this)" id="sendprivate">Приват</button>
-        </div>
-    </div>
-</div>
+<!-- Ці фрагменти більше не потрібні окремо, бо інтегровані в messenger.html, 
+     але залишаємо порожніми для зворотної сумісності, якщо треба -->
+<div th:fragment="areamessage"></div>
+<div th:fragment="areaprivatemessage"></div>
+<div th:fragment="areamessagecontrol"></div>
 
 </body>
 </html>

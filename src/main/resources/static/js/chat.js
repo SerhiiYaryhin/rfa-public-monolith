@@ -1,353 +1,257 @@
 'use strict';
 
-var usernamePage = document.querySelector('#username-page');
-var chatPage = document.querySelector('#chat-page');
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-//var connectingElement = document.querySelector('');
-var connectingElement = document.getElementById('connectstatus');
+/**
+ * Логіка сучасного чату RFA
+ * Включає підтримку WebSockets (STOMP), Емодзі та адаптивний рендеринг повідомлень у вигляді бульбашок.
+ */
+
 var stompClient = null;
-var username = null;
-var clientuuid = null;
+var clientuuid = null; // Поточний UUID співрозмовника (якщо приватний чат)
 var toclientname = null;
 var subcurroom = null;
 var subprivate = null;
-var subpublic = null
-var subhello = null;
+var subpublic = null;
 var subusers = null;
 var subroom = null;
-var subMediaToPublic = null; // підписка для публікації повідомлень з медіа в пабліку
-var subheartbeats = null;
+var subMediaToPublic = null;
 
+const messagesArea = document.getElementById('mainMessagesArea');
 
-
-
-
-//var colors = [
-//    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
-//    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
-//];
+/**
+ * Встановлення з'єднання через SockJS та STOMP
+ */
 function connect() {
-    //username = document.querySelector('#name').value.trim();
-//    var socket = new WebSocket("ws://localhost:8080/rfachat");
-//    var socket = new WebSocket("https://rfa.toloka.media/rfachat");
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
     stompClient.connect({
         heartbeatIncoming: 8000,
-        heartbeatOutgoing: 8000},
-        onConnected, onError, onCloseEventCallback);
-        stompClient.debug = debugToConsole;
-        stompClient.reconnect_delay = 300;
+        heartbeatOutgoing: 8000
+    }, onConnected, onError);
+    
+    stompClient.debug = null; // Вимикаємо зайвий лог у консоль
 }
 
-function onCloseEventCallback(str) {
-    console.log("========== CLOSE EVENT "+str);
-}
-
-function debugToConsole (str) {
-    console.log("========== DEBUG "+str);
-}
-
+/**
+ * Callback при успішному підключенні
+ */
 function onConnected() {
-
-    subcurroom = stompClient.subscribe('/topic/'+curroom, onPublicMessageReceived);
-
-    subpublic = stompClient.subscribe('/public/'+curuuid, onPublicMessageReceived);
-
-    subprivate = stompClient.subscribe('/private/'+curuuid, onPrivateMessageReceived);
-
-    subusers = stompClient.subscribe('/userslist/'+curuuid, onUserList);
-
-    subroom = stompClient.subscribe('/roomslist/'+curuuid, onRoomList);
-
-    subheartbeats = stompClient.subscribe('/heartbeats', onHeartbeats);
-
+    // Підписки на канали
+    subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+    subpublic = stompClient.subscribe('/public/' + curuuid, onPublicMessageReceived);
+    subprivate = stompClient.subscribe('/private/' + curuuid, onPrivateMessageReceived);
+    subusers = stompClient.subscribe('/userslist/' + curuuid, onUserList);
+    subroom = stompClient.subscribe('/roomslist/' + curuuid, onRoomList);
     subMediaToPublic = stompClient.subscribe('/media', onMediaPublic);
 
-
-    stompClient.send("/app/hello",
-        {},
-        JSON.stringify({
+    // Вітаємося з сервером
+    stompClient.send("/app/hello", {}, JSON.stringify({
         uuid: curuuid,
         roomuuid: curroom,
         send: Date.now()
-        })
-    );
+    }));
+
+    // Початкове завантаження списків
     getuserlist();
     getroomlist();
-
-    ligthOnRoom(curroom);
 }
 
-function getuserlist() {
-   stompClient.send("/app/userslist",
-        {},
-        JSON.stringify({
-        uuid: curuuid,
-        send: Date.now()
-        })
-    );
- }
-
-function getroomlist() {
-    stompClient.send("/app/roomslist",
-        {},
-        JSON.stringify({
-        uuid: curuuid,
-        roomuuid: curroom,
-        send: Date.now()
-        })
-    );
+/**
+ * Рендеринг повідомлення у вигляді бульбашки (bubble)
+ */
+function renderBubble(msg, isPrivate = false) {
+    const isMe = msg.fromuuid === curuuid;
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'} animate__animated animate__fadeInUp animate__faster`;
+    
+    // Текст або HTML (для медіа)
+    const content = document.createElement('div');
+    content.innerHTML = msg.body;
+    
+    // Мета-інформація (час, ім'я)
+    const meta = document.createElement('div');
+    meta.className = 'bubble-meta';
+    const time = date2string(msg.send);
+    meta.innerHTML = `<span>${isMe ? '' : msg.fromname + ' • '}</span><span>${time}</span>`;
+    
+    bubble.appendChild(content);
+    bubble.appendChild(meta);
+    
+    const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
+    container.appendChild(bubble);
+    
+    // Автопрокрутка до останнього повідомлення
+    messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
 }
 
-function onUserList(payload) {
-// userlist
-//    console.log("==== onUserList ==========================================");
-    let jbody = JSON.parse(payload.body);
-    // clear userlist
-    document.getElementById('userlist').innerHTML = '';
-    // перелік користувачів передається в body повідомлення - масив Маp???
-    // тепер цикл по jbody.body
-    let bodyuserslist = JSON.parse(jbody.body);
-    bodyuserslist.forEach(function(elem, ind) {
-        // elem to json
-//        console.log(elem);
-        let ejson = JSON.parse(elem);
-        // create span with name
-        let spanname = document.createElement('span');
-        spanname.textContent = ejson.name;
-        ejson.uuid.includes(curusername) ? spanname.style.color = 'red' : spanname.style.color = 'black';
-
-        spanname.onclick= function () {selectuserFromPublic(ejson.uuid, ejson.name)};
-        // create div with id = userUuid from
-        let iDiv = document.createElement('div');
-        iDiv.id =  ejson.uuid;
-        //iDiv.onclick= function () {selectuser(ejson.uuid)};
-
-        // add span to div
-        iDiv.appendChild(spanname);
-        // add user div to userList
-        document.getElementById('userlist').appendChild(iDiv);
-    });
-}
-
-function onRoomList(payload) {
-// roomlist
-    let jbody = JSON.parse(payload.body);
-    // clear userlist
-    document.getElementById('roomlist').innerHTML = '';
-    // перелік кімнат передається в body повідомлення - масив Маp???
-    // тепер цикл по jbody.body
-    let bodyuserslist = JSON.parse(jbody.body);
-    bodyuserslist.forEach(function(elem, ind) {
-        // elem to json
-//        console.log(elem);
-        let ejson = JSON.parse(elem);
-        // create span with name
-        let spanname = document.createElement('span');
-        spanname.textContent = ejson.name;
-        ejson.uuid.includes(curroom) ? spanname.style.color = 'green' : spanname.style.color = 'black';
-        spanname.id = ejson.uuid;
-        spanname.onclick= function () {selectroom(ejson.uuid)};
-        // create div with id = userUuid from
-        let iDiv = document.createElement('div');
-
-        // add span to div
-        iDiv.appendChild(spanname);
-        // add user div to userList
-        document.getElementById('roomlist').appendChild(iDiv);
-    });
-}
-
+/**
+ * Обробка вхідних публічних повідомлень
+ */
 function onPublicMessageReceived(payload) {
-    var jbody = JSON.parse(payload.body);
-
-    var iDiv = document.createElement('div');
-    if (jbody.rtype === 0 ) {
-        iDiv.innerHTML = jbody.body;
-
-//        document.getElementById('publicarea').appendChild(iDiv);
-//        var objDiv = document.getElementById("publicarea");
-//        objDiv.scrollTop = objDiv.scrollHeight;
-
-    } else {
-        var spanname = document.createElement('span');
-        spanname.textContent = date2string(jbody.send)+" "+jbody.fromname+': ';
-
-        var spanbody = document.createElement('span');
-        spanbody.textContent = jbody.body;
-
-        //var iDiv = document.createElement('div');
-            iDiv.id = jbody.fromuuid;
-            iDiv.onclick= function () {selectuserFromPublic(jbody.fromuuid, jbody.fromname)};
-
-        iDiv.appendChild(spanname);
-        iDiv.appendChild(spanbody);
-    }
-
-    document.getElementById('publicarea').appendChild(iDiv);
-
-    var objDiv = document.getElementById("publicarea");
-    objDiv.scrollTop = objDiv.scrollHeight;
+    var msg = JSON.parse(payload.body);
+    renderBubble(msg, false);
 }
 
+/**
+ * Обробка вхідних приватних повідомлень
+ */
 function onPrivateMessageReceived(payload) {
-    var jbody = JSON.parse(payload.body);
-
-    var spanname = document.createElement('span');
-    if (curuuid.includes(jbody.fromuuid)) {
-        spanname.textContent = date2string(jbody.send)+' > '+jbody.toname+': ';
-    } else {
-        spanname.textContent = date2string(jbody.send)+" "+jbody.fromname+': ';
-    }
-
-    var spanbody = document.createElement('span');
-    spanbody.textContent = jbody.body;
-
-    var iDiv = document.createElement('div');
-    if (curuuid.includes(jbody.fromuuid)) {
-        iDiv.id = jbody.touuid;
-        iDiv.onclick= function () {selectuserFromPublic(jbody.touuid, jbody.toname)};
-    } else {
-        iDiv.id = jbody.fromuuid;
-        iDiv.onclick= function () {selectuserFromPublic(jbody.fromuuid, jbody.fromname)};
-    }
-
-//    iDiv.setAttribute("onclick", "selectuser(this)");
-
-    iDiv.appendChild(spanname);
-    iDiv.appendChild(spanbody);
-    document.getElementById('privatearea').appendChild(iDiv);
-
-    var objDiv = document.getElementById("privatearea");
-    objDiv.scrollTop = objDiv.scrollHeight;
-//    console.log("==== PRIVATE ==========================================");
+    var msg = JSON.parse(payload.body);
+    // Якщо повідомлення від/до поточного вибраного користувача - показуємо
+    renderBubble(msg, true);
 }
 
-function unsubscribeRoom(lcurroom) {subcurroom.unsubscribe();}
-
-function subscribeRoom(lcurroom) {
-//        console.log("subscribeRoom");
-        subcurroom = stompClient.subscribe('/topic/'+lcurroom, onPublicMessageReceived);
-            stompClient.send("/app/hello",{},
-                JSON.stringify({
-                    uuid: curuuid,
-                    roomuuid: curroom,
-                    send: Date.now()
-                })
-            );
-    }
-
-function LigthOffRoom(lcurroom) {
-        document.getElementById(lcurroom).style.color = 'black';
-    }
-
-function ligthOnRoom(lcurroom) {
-        document.getElementById(lcurroom).style.color = 'green';
-    }
-
-function selectroom(toroom) {
-// відписуємося від кімнати
-    unsubscribeRoom(curroom);
-    LigthOffRoom(curroom);
-// clear public
-    var myNode = document.getElementById("publicarea");
-    myNode.innerHTML = '';
-// clear private
-    var myNode = document.getElementById("privatearea");
-    myNode.innerHTML = '';
-// підписуємося на кімнату
-//    console.log('////////// before change room: '+curroom);
-    curroom = toroom
-//    console.log('////////// after change room: '+curroom);
-    subscribeRoom(curroom);
-    ligthOnRoom(curroom);
+/**
+ * Оновлення списку користувачів
+ */
+function onUserList(payload) {
+    let jbody = JSON.parse(payload.body);
+    const container = document.getElementById('userlist');
+    container.innerHTML = '';
+    
+    let users = JSON.parse(jbody.body);
+    users.forEach(function(uJson) {
+        let u = JSON.parse(uJson);
+        const item = document.createElement('div');
+        item.className = `chat-item list-group-item ${clientuuid === u.uuid ? 'active' : ''}`;
+        
+        const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        
+        item.innerHTML = `
+            <div class="chat-avatar">${initials}</div>
+            <div class="chat-info">
+                <div class="chat-name">${u.name}</div>
+                <div class="chat-status">Написати особисто</div>
+            </div>
+        `;
+        
+        item.onclick = () => selectuserFromPublic(u.uuid, u.name);
+        container.appendChild(item);
+    });
 }
 
-function sendpublic(event) {
-    stompClient.send("/app/public",
-        {},
-        JSON.stringify({
+/**
+ * Оновлення списку кімнат
+ */
+function onRoomList(payload) {
+    let jbody = JSON.parse(payload.body);
+    const container = document.getElementById('roomlist');
+    container.innerHTML = '';
+    
+    let rooms = JSON.parse(jbody.body);
+    rooms.forEach(function(rJson) {
+        let r = JSON.parse(rJson);
+        const item = document.createElement('div');
+        item.className = `chat-item list-group-item ${curroom === r.uuid ? 'active' : ''}`;
+        
+        item.innerHTML = `
+            <div class="chat-avatar"><i class="fas fa-hashtag"></i></div>
+            <div class="chat-info">
+                <div class="chat-name">${r.name}</div>
+                <div class="chat-status">Публічна кімната</div>
+            </div>
+        `;
+        
+        item.onclick = () => selectroom(r.uuid, r.name);
+        container.appendChild(item);
+    });
+}
+
+/**
+ * Вибір кімнати
+ */
+function selectroom(uuid, name) {
+    if (curroom === uuid) return;
+    
+    subcurroom.unsubscribe();
+    curroom = uuid;
+    
+    document.getElementById('publicarea').innerHTML = '';
+    document.getElementById('privatearea').innerHTML = '';
+    document.getElementById('chatTitle').innerText = name;
+    
+    // Скидаємо приватного співрозмовника при переході в кімнату
+    clientuuid = null;
+    toclientname = null;
+    
+    subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+    
+    // Оновлюємо списки
+    getroomlist();
+    
+    // На мобілках ховаємо сайдбар
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+/**
+ * Вибір користувача для приватного чату
+ */
+function selectuserFromPublic(uuid, name) {
+    clientuuid = uuid;
+    toclientname = name;
+    
+    document.getElementById('chatTitle').innerText = `Чат з ${name}`;
+    document.getElementById('connectstatus').innerHTML = '<i class="fas fa-lock me-1"></i> Приватний канал';
+    
+    getuserlist();
+    
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+/**
+ * Відправка публічного повідомлення
+ */
+function sendpublic() {
+    const input = document.getElementById('newmessage');
+    if (!input.value.trim()) return;
+
+    stompClient.send("/app/public", {}, JSON.stringify({
         uuid: curuuid,
         send: Date.now(),
         fromname: curusername,
         fromuuid: curuuid,
-        body: document.getElementById('newmessage').value,
+        body: input.value,
         roomuuid: curroom
-        })
-    );
-    document.getElementById('newmessage').value = "";
+    }));
+    input.value = "";
 }
 
-function sendprivate(event) {
-    let sinput = document.getElementById('newmessage').value;
-    if (sinput.length === 0 ) {return}
-    stompClient.send("/app/private",
-        {},
-        JSON.stringify({uuid: curuuid,
+/**
+ * Відправка приватного повідомлення
+ */
+function sendprivate() {
+    const input = document.getElementById('newmessage');
+    if (!input.value.trim() || !clientuuid) return;
+
+    stompClient.send("/app/private", {}, JSON.stringify({
+        uuid: curuuid,
         send: Date.now(),
         fromname: curusername,
         fromuuid: curuuid,
         toname: toclientname,
         touuid: clientuuid,
-        body: sinput
-        })
-    );
-    document.getElementById('newmessage').value = "";
+        body: input.value
+    }));
+    input.value = "";
 }
 
-function selectuserFromPublic(luuid, lname) {
-    clientuuid = luuid;
-    toclientname = lname;
-    document.getElementById('connectstatus').innerHTML = 'Кому написати: '+lname;
-    document.getElementById('connectstatus').style.color = "red";
+// Допоміжні функції
+function getuserlist() { stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() })); }
+function getroomlist() { stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() })); }
+function onError() { console.error("WebSocket Connection Error"); }
 
-}
-
-function selectuser(event ) {
-    var spanname = document.getElementById(event.id);
-    clientuuid = spanname.id;
-    toclientname = spanname.innerText;
-//    console.log(toclientname);
-    document.getElementById('connectstatus').innerHTML = 'Кому:'+spanname.innerText;
-}
-
-function onError(){
-    console.log("Щось пішло не так при коннекті :( ");
-}
-
-function date2string (idate) {
+function date2string(idate) {
     let d = new Date(idate);
-    let day = '0' + d.getDate();
-    let month = '0'+ (d.getMonth()+1);
-    let year = "0" + d.getFullYear();
-    let hours = "0" + d.getHours();
-    let minutes = "0" + d.getMinutes();
-    let datestring = day.slice(-2) + "." + month.slice(-2) + "." + year.slice(-2) + " " + hours.slice(-2) + ":" + minutes.slice(-2);
-    // 16-05-2015 09:50
-    return datestring;
-
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function onHeartbeats () {
+function onMediaPublic(payload) {
+    var msg = JSON.parse(payload.body);
+    renderBubble(msg, false);
 }
 
-function onMediaPublic (payload) {
-    var jbody = JSON.parse(payload.body);
-    var iDiv = document.createElement('div'); //головний div повідомлення
-        iDiv.innerHTML = jbody.body;
-
-        document.getElementById('publicarea').appendChild(iDiv);
-        var objDiv = document.getElementById("publicarea");
-        objDiv.scrollTop = objDiv.scrollHeight;
-}
-
-window.addEventListener('DOMContentLoaded', event => {
-connect();
-
-var intervaluser = setInterval(getuserlist, 8000);
-var intervalroom = setInterval(getroomlist, 8000);
-})
+// Ініціалізація при завантаженні
+window.addEventListener('DOMContentLoaded', () => {
+    connect();
+    setInterval(getuserlist, 10000); // Оновлюємо список рідше для економії трафіку
+    setInterval(getroomlist, 10000);
+});

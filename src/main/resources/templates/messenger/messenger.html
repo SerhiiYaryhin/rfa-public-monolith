@@ -6,62 +6,188 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <frame-options policy="SAMEORIGIN"/>
-    <title>Толока - радіо для всіх!</title>
-    <!-- Favicon-->
+    <title>Толока Чат - Спілкування в ефірі</title>
+    
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-    <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="/css/bootstrap.min.css"  rel="stylesheet" />
-    <!--    <link href="/css/infoblock.css"  rel="stylesheet" />-->
-    <!-- sockJS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- SockJS & STOMP -->
     <script src="/js/sockjs.min.js"></script>
-<!--    <script src="/js/stomp.min.js"></script>-->
     <script src="/js/stomp.js"></script>
-    <script src="/js/chat.js"></script>
-    <link href="/css/MyStyle.css"  rel="stylesheet" />
+    
+    <!-- Emoji Picker Element (Modern UTF-8 Support) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
+    
+    <style>
+        :root {
+            --chat-bg: #f0f2f5;
+            --sidebar-width: 320px;
+            --accent-color: #6c5ce7;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+        }
 
+        body { font-family: 'Inter', sans-serif; background-color: var(--chat-bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .chat-container { display: flex; height: calc(100vh - 70px); margin-top: 70px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        
+        /* Sidebar Styling */
+        .chat-sidebar { width: var(--sidebar-width); border-right: 1px solid #edf2f7; display: flex; flex-direction: column; background: #f8fafc; z-index: 10; transition: transform 0.3s ease; }
+        
+        /* Main Content Styling */
+        .chat-main { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #fff; }
+        
+        .chat-header { padding: 15px 25px; border-bottom: 1px solid #edf2f7; display: flex; align-items: center; justify-content: space-between; background: var(--glass-bg); backdrop-filter: blur(10px); }
 
+        .messages-area { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
+        
+        /* Chat Bubbles */
+        .bubble { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
+        .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
+        .bubble-me { align-self: flex-end; background: var(--accent-color); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
+        
+        .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.6; display: flex; align-items: center; gap: 5px; }
+        .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
+
+        /* Input Area */
+        .input-area { padding: 20px 25px; border-top: 1px solid #edf2f7; background: #fff; display: flex; align-items: center; gap: 15px; }
+        .input-group-custom { flex-grow: 1; position: relative; }
+        .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; }
+        .chat-input:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
+
+        .btn-emoji { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.3rem; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .btn-emoji:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+
+        .btn-send { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-color); color: #fff; border: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
+        .btn-send:hover { transform: scale(1.05) rotate(-10deg); background: #5b4cc4; }
+
+        /* Emoji Picker Styling */
+        emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
+        emoji-picker.visible { display: block; }
+
+        /* Mobile Specific */
+        @media (max-width: 768px) {
+            .chat-sidebar { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform: translateX(0); }
+            .chat-sidebar.hidden { transform: translateX(-100%); }
+            .chat-main { width: 100%; }
+            .btn-back { display: block !important; }
+            .bubble { max-width: 85%; }
+        }
+
+        .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 15px; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body style="line-height: 1.15em">
-<header>
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}">  </div>
-</header>
-<div style="padding-top: 100px">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-2 col-sm-2">
+<body>
+    <header>
+        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+    </header>
+
+    <div class="chat-container">
+        <!-- Sidebar -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Чати</h5>
+                <button class="btn btn-sm btn-light rounded-pill"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="flex-grow-1 overflow-y-auto">
                 <div th:insert="~{/fragments/msgframents :: listroom}"/>
                 <div th:insert="~{/fragments/msgframents :: listuser}"/>
             </div>
-            <div class="col-lg-10 col-sm-10">
-                <div class="bg-subtle bg-opacity-10 border border-info ">
-                    <div th:insert="~{/fragments/msgframents :: areamessage}"/>
+        </aside>
+
+        <!-- Main Chat -->
+        <main class="chat-main">
+            <header class="chat-header">
+                <div class="d-flex align-items-center">
+                    <button class="btn-back" onclick="toggleSidebar()"><i class="fas fa-arrow-left"></i></button>
+                    <div>
+                        <h6 class="fw-bold mb-0" id="chatTitle">Публічний чат</h6>
+                        <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
+                    </div>
                 </div>
-                <div class="bg-primary-subtle text-primary-emphasis border-info">
-                    <div th:insert="~{/fragments/msgframents :: areaprivatemessage}"/>
+                <div class="dropdown">
+                    <button class="btn btn-light rounded-circle" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>Інфо</a></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-ban me-2"></i>Очистити чат</a></li>
+                    </ul>
                 </div>
+            </header>
+
+            <!-- Unified Message Area -->
+            <div class="messages-area" id="mainMessagesArea">
+                <!-- Public messages will be here -->
+                <div id="publicarea" class="d-flex flex-column gap-3"></div>
+                <!-- Private messages will be here -->
+                <div id="privatearea" class="d-flex flex-column gap-3"></div>
             </div>
-        </div>
-        <div class="row" style="margin-right: 0px; margin-left: 0px;">
-            <div class="bg-info bg-opacity-10 ">
-                <div th:insert="~{/fragments/msgframents :: areamessagecontrol}"/>
-            </div>
-        </div>
+
+            <!-- Input Area -->
+            <footer class="input-area">
+                <div class="input-group-custom">
+                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">
+                    <button class="btn-emoji" id="emojiToggle">😀</button>
+                </div>
+                
+                <emoji-picker id="picker"></emoji-picker>
+
+                <button class="btn-send" onclick="handleSend()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </footer>
+        </main>
     </div>
-</div>
 
-<script>
-    var curuuid = "[[${curuuid}]]" ;
-    var curusername = "[[${curusername}]]" ;
-    var curroom = "[[${curroom}]]" ;
+    <script th:inline="javascript">
+        var curuuid = "[[${curuuid}]]" ;
+        var curusername = "[[${curusername}]]" ;
+        var curroom = "[[${curroom}]]" ;
 
-</script>
+        // Mobile Sidebar Toggle
+        function toggleSidebar() {
+            document.getElementById('chatSidebar').classList.toggle('hidden');
+        }
 
-<script src="/js/bootstrap.bundle.min.js"></script>
+        // Emoji Picker Logic
+        const picker = document.getElementById('picker');
+        const input = document.getElementById('newmessage');
+        const emojiToggle = document.getElementById('emojiToggle');
+
+        emojiToggle.onclick = (e) => {
+            e.stopPropagation();
+            picker.classList.toggle('visible');
+        };
+
+        picker.addEventListener('emoji-click', event => {
+            input.value += event.detail.unicode;
+            picker.classList.remove('visible');
+            input.focus();
+        });
+
+        document.addEventListener('click', () => picker.classList.remove('visible'));
+        picker.onclick = (e) => e.stopPropagation();
+
+        // Handle Send based on context (Public/Private)
+        function handleSend() {
+            // This will be wired in chat.js
+            if (window.clientuuid) {
+                window.sendprivate();
+            } else {
+                window.sendpublic();
+            }
+        }
+    </script>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/chat.js"></script>
 </body>
 </html>
