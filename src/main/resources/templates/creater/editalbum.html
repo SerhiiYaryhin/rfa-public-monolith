@@ -11,29 +11,38 @@
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tiny.cloud/1/jfs2v9uma7vkxn632w42djz02jxqivtjdlovkkqzafgboa10/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    
+    <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; color: #2d3436; }
-        .edit-card { background: #fff; border-radius: 24px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.06); margin-top: 50px; margin-bottom: 50px; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; color: #2d3436; min-height: 100vh; display: flex; flex-direction: column; }
+        .edit-card { background: #fff; border-radius: 24px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.06); margin-top: 30px; margin-bottom: 50px; overflow: hidden; }
         .card-header-gradient { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: #fff; padding: 40px 30px; border: none; }
         .form-label { font-weight: 600; color: #636e72; margin-bottom: 8px; font-size: 0.9rem; }
         .form-control { border-radius: 12px; padding: 12px 18px; border: 2px solid #edf2f7; transition: all 0.3s; background-color: #f8fafc; }
         .form-control:focus { border-color: #6c5ce7; background-color: #fff; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
         .btn-save { background: #6c5ce7; color: #fff; border-radius: 12px; padding: 14px 35px; font-weight: 700; transition: 0.3s; border: none; }
         .btn-save:hover { background: #5b4cc4; transform: translateY(-2px); color: #fff; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); }
-        
+
         .album-cover-box { position: relative; width: 250px; height: 250px; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; cursor: pointer; transition: 0.3s; margin: 0 auto 30px; }
         .album-cover-box:hover { border-color: #6c5ce7; background: #f0f0ff; }
         .album-cover-img { width: 100%; height: 100%; object-fit: cover; }
         .album-cover-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; }
         .album-cover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; color: #fff; }
         .album-cover-box:hover .album-cover-overlay { opacity: 1; }
-        
-        .track-list-item { background: #f8fafc; border-radius: 15px; padding: 15px 20px; margin-bottom: 10px; border: 1px solid #edf2f7; transition: 0.2s; }
+
+        .track-list-item { background: #f8fafc; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #edf2f7; transition: 0.2s; }
         .track-list-item:hover { background: #fff; transform: translateX(5px); border-color: #6c5ce7; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        
+
         .track-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
-        .progress-bar-custom { height: 6px; border-radius: 10px; background: #6c5ce7; }
+        .btn-action { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; border: none; background: transparent; }
+        .btn-play { color: #6c5ce7; background: rgba(108, 92, 231, 0.1); }
+        .btn-play:hover { background: #6c5ce7; color: #fff; }
+        .btn-remove { color: #ff7675; }
+        .btn-remove:hover { background: #ff7675; color: #fff; }
+
+        /* Custom Audio Player */
+        .mini-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 50px; padding: 10px 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 1000; transition: 0.3s; }
+        .mini-player.hidden { bottom: -100px; }
     </style>
 </head>
 <body>
@@ -43,27 +52,29 @@
 
     <div class="container" style="padding-top: 80px;">
         <div class="row justify-content-center">
-            <div class="col-lg-11 col-xl-10">
-                
-                <div class="edit-card animate__animated animate__fadeIn">
+            <div class="col-lg-12 col-xl-11">
+
+                <div class="edit-card">
                     <div class="card-header-gradient d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="track-badge mb-2 d-inline-block">АЛЬБОМ</span>
+                            <span class="track-badge mb-2 d-inline-block">КЕРУВАННЯ АЛЬБОМОМ</span>
                             <h2 class="mb-1 fw-bold" th:text="${album.name ?: 'Новий альбом'}">Назва альбому</h2>
-                            <p class="mb-0 opacity-75">Управління колекцією треків та оформленням</p>
+                            <p class="mb-0 opacity-75">Редагування інформації, обкладинки та списку треків</p>
                         </div>
-                        <i class="fas fa-compact-disc fa-4x opacity-25 d-none d-md-block"></i>
+                        <div class="d-none d-md-block">
+                            <i class="fas fa-compact-disc fa-4x opacity-25"></i>
+                        </div>
                     </div>
-                    
+
                     <div class="card-body p-4 p-md-5">
                         <div class="row">
                             <!-- Ліва колонка: Обкладинка та Треки -->
-                            <div class="col-lg-5 mb-5 mb-lg-0 border-end-lg">
+                            <div class="col-lg-5 mb-5 mb-lg-0 border-end">
                                 <div class="text-center">
                                     <h5 class="fw-bold mb-4">Обкладинка альбому</h5>
-                                    
+
                                     <div class="album-cover-box shadow-sm" onclick="document.getElementById('coverInput').click()">
-                                        <img id="coverPreview" th:if="${album.storeuuidalbumcover != null}" 
+                                        <img id="coverPreview" th:if="${album.storeuuidalbumcover != null}"
                                              th:src="'/store/content/' + ${album.storeuuidalbumcover}" class="album-cover-img">
                                         <div id="coverPlaceholder" th:if="${album.storeuuidalbumcover == null}" class="album-cover-placeholder">
                                             <i class="fas fa-image fa-3x mb-2"></i>
@@ -74,12 +85,8 @@
                                         </div>
                                         <input type="file" id="coverInput" hidden accept="image/*" onchange="handleCoverUpload(this.files[0])">
                                     </div>
-                                    
+
                                     <div id="uploadProgress" class="d-none mb-4 mx-auto" style="max-width: 250px;">
-                                        <div class="d-flex justify-content-between mb-1 small">
-                                            <span>Завантаження...</span>
-                                            <span id="uploadPercent">0%</span>
-                                        </div>
                                         <div class="progress" style="height: 6px;">
                                             <div id="progressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
                                         </div>
@@ -89,29 +96,37 @@
                                 <div class="mt-4">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="fw-bold mb-0">Треки альбому</h5>
-                                        <span class="badge bg-light text-primary rounded-pill" th:text="${trackList != null ? trackList.size() : 0}">0</span>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openAddTrackModal()">
+                                            <i class="fas fa-plus me-1"></i> Додати
+                                        </button>
                                     </div>
-                                    
-                                    <div class="track-list" th:if="${trackList != null && !trackList.isEmpty()}">
-                                        <div th:each="track : ${trackList}" class="track-list-item d-flex align-items-center">
+
+                                    <div class="track-list" id="albumTracks">
+                                        <div th:each="track : ${trackList}" class="track-list-item d-flex align-items-center" th:id="'track-' + ${track.uuid}">
                                             <div class="me-3">
-                                                <i class="fas fa-play-circle text-primary fs-5"></i>
+                                                <button class="btn-action btn-play" th:if="${track.storeitem != null}"
+                                                        th:onclick="'playTrack(\'' + ${track.name} + '\', \'/store/audio/' + ${track.storeitem.uuid} + '\')'">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                                <i class="fas fa-exclamation-triangle text-warning" th:if="${track.storeitem == null}" title="Файл відсутній"></i>
                                             </div>
                                             <div class="flex-grow-1 overflow-hidden">
-                                                <div class="fw-bold text-truncate" th:text="${track.name}">Назва треку</div>
-                                                <div class="small text-muted" th:text="${track.autor}">Виконавець</div>
+                                                <div class="fw-bold text-truncate small" th:text="${track.name}">Назва треку</div>
+                                                <div class="x-small text-muted" style="font-size: 0.75rem;" th:text="${track.autor}">Виконавець</div>
                                             </div>
-                                            <div>
-                                                <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="btn btn-link btn-sm text-muted">
-                                                    <i class="fas fa-edit"></i>
+                                            <div class="d-flex gap-1">
+                                                <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="btn-action" title="Редагувати">
+                                                    <i class="fas fa-edit text-muted"></i>
                                                 </a>
+                                                <button class="btn-action btn-remove" th:onclick="'removeTrack(\'' + ${track.uuid} + '\')'" title="Видалити з альбому">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <div th:if="${trackList == null || trackList.isEmpty()}" class="text-center py-5 bg-light rounded-4 border-2 border-dashed">
-                                        <i class="fas fa-music text-muted mb-3 opacity-50 fa-2x"></i>
-                                        <p class="small text-muted px-4">В цьому альбомі поки немає треків. Додайте їх у розділі "Треки".</p>
+
+                                    <div id="noTracksMsg" th:if="${trackList == null || trackList.isEmpty()}" class="text-center py-5 bg-light rounded-4 border-2 border-dashed">
+                                        <p class="small text-muted mb-0">В альбомі поки немає треків</p>
                                     </div>
                                 </div>
                             </div>
@@ -119,14 +134,14 @@
                             <!-- Права колонка: Параметри -->
                             <div class="col-lg-7 ps-lg-5">
                                 <h5 class="fw-bold mb-4">Основна інформація</h5>
-                                
+
                                 <form th:action="@{/creater/editalbum}" method="post" th:object="${album}">
                                     <input type="hidden" th:field="*{id}" id="albumId"/>
                                     <input type="hidden" th:field="*{uuid}"/>
 
                                     <div class="mb-3">
                                         <label class="form-label">Назва альбому</label>
-                                        <input type="text" th:field="*{name}" class="form-control" placeholder="Назва вашого проекту..." required>
+                                        <input type="text" th:field="*{name}" class="form-control" placeholder="Назва альбому..." required>
                                     </div>
 
                                     <div class="row g-3 mb-3">
@@ -154,11 +169,11 @@
                                     </div>
 
                                     <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5">
-                                        <a href="/creater/albums" class="btn btn-light rounded-pill px-4 font-weight-bold">
-                                            <i class="fas fa-times me-2"></i>Скасувати
+                                        <a href="/creater/albums" class="btn btn-light rounded-pill px-4">
+                                            Скасувати
                                         </a>
                                         <button type="submit" class="btn btn-save shadow">
-                                            <i class="fas fa-check me-2"></i>Зберегти альбом
+                                            <i class="fas fa-check me-2"></i>Зберегти зміни
                                         </button>
                                     </div>
                                 </form>
@@ -166,91 +181,196 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="text-center mb-5">
-                    <a href="/creater/albums" class="btn btn-link text-decoration-none text-muted fw-bold">
-                        <i class="fas fa-chevron-left me-1"></i> Повернутися до списку альбомів
-                    </a>
-                </div>
-
             </div>
         </div>
     </div>
 
-    <footer class="mt-auto">
+    <!-- Modal for adding tracks -->
+    <div class="modal fade" id="addTrackModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Додати трек до альбому</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="availableTracksList" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Tracks will be loaded here -->
+                        <div class="text-center py-4 text-muted">Завантаження...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini Audio Player -->
+    <div id="miniPlayer" class="mini-player hidden">
+        <button class="btn btn-primary rounded-circle p-0" style="width: 40px; height: 40px;" onclick="togglePlay()">
+            <i id="playIcon" class="fas fa-pause"></i>
+        </button>
+        <div class="overflow-hidden">
+            <div id="playerTrackName" class="fw-bold text-truncate" style="max-width: 150px; font-size: 0.9rem;"></div>
+            <div class="progress" style="height: 4px; width: 150px;">
+                <div id="playerProgress" class="progress-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        <button class="btn-close" onclick="closePlayer()"></button>
+        <audio id="mainAudio" class="d-none"></audio>
+    </div>
+
+    <footer class="mt-auto py-4">
         <div th:insert="~{/fragments/common :: footer}"></div>
     </footer>
 
+    <script th:src="@{/js/jquery.min.js}"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/toastr.min.js}"></script>
     <script th:inline="javascript">
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
+        const albumId = /*[[${album.id}]]*/ 0;
+
         tinymce.init({
             selector: '#albumDescription',
-            height: 300,
-            plugins: 'lists link code help wordcount',
-            toolbar: 'undo redo | blocks | bold italic | bullist numlist | link | code',
+            height: 250,
+            plugins: 'lists link code',
+            toolbar: 'bold italic | bullist numlist | link',
             menubar: false,
             skin: 'oxide',
-            content_style: 'body { font-family: Inter, sans-serif; font-size: 15px; }',
-            border_radius: '12px'
+            content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
+            border_radius: '10px'
         });
 
+        // Album Cover Upload
         async function handleCoverUpload(file) {
             if (!file) return;
-            
-            // Валідація
             if (!file.type.startsWith('image/')) {
-                alert('Будь ласка, оберіть зображення');
+                toastr.error('Будь ласка, оберіть зображення');
                 return;
             }
 
-            const id = document.getElementById('albumId').value;
             const formData = new FormData();
             formData.append('file', file);
             
             const progress = document.getElementById('uploadProgress');
             const bar = document.getElementById('progressBar');
-            const percent = document.getElementById('uploadPercent');
-            
             progress.classList.remove('d-none');
             
-            const xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener('progress', e => {
-                if (e.lengthComputable) {
-                    const p = Math.round((e.loaded / e.total) * 100);
-                    bar.style.width = p + '%';
-                    percent.innerText = p + '%';
+            try {
+                const response = await fetch(`/api/creater/album/replace-cover/${albumId}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('coverPreview').src = result.url;
+                    toastr.success('Обкладинку оновлено');
                 }
-            });
-
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result.success) {
-                            const preview = document.getElementById('coverPreview');
-                            const placeholder = document.getElementById('coverPlaceholder');
-                            
-                            if (preview) {
-                                preview.src = result.url;
-                            } else {
-                                // Якщо прев'ю ще не було
-                                placeholder.outerHTML = `<img id="coverPreview" src="${result.url}" class="album-cover-img">`;
-                            }
-                            
-                            progress.classList.add('d-none');
-                            toastr.success('Обкладинку оновлено!');
-                        }
-                    } else {
-                        alert('Помилка завантаження: ' + xhr.status);
-                        progress.classList.add('d-none');
-                    }
-                }
-            };
-
-            xhr.open('POST', `/api/creater/album/replace-cover/${id}`, true);
-            xhr.setRequestHeader('X-CSRF-TOKEN', /*[[${_csrf.token}]]*/ '');
-            xhr.send(formData);
+            } catch (e) {
+                toastr.error('Помилка завантаження');
+            } finally {
+                progress.classList.add('d-none');
+            }
         }
+
+        // Track Management
+        async function removeTrack(uuid) {
+            if (!confirm('Видалити цей трек з альбому?')) return;
+            try {
+                const res = await fetch(`/api/creater/album/${albumId}/remove-track/${uuid}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+                if (res.ok) {
+                    document.getElementById(`track-${uuid}`).remove();
+                    toastr.info('Трек видалено з альбому');
+                    checkTracksEmpty();
+                }
+            } catch (e) { toastr.error('Помилка'); }
+        }
+
+        async function openAddTrackModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addTrackModal'));
+            modal.show();
+            const list = document.getElementById('availableTracksList');
+            list.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+            
+            try {
+                const res = await fetch(`/api/creater/album/${albumId}/available-tracks`);
+                const tracks = await res.json();
+                if (tracks.length === 0) {
+                    list.innerHTML = '<p class="text-center py-4 small text-muted">Немає доступних треків</p>';
+                    return;
+                }
+                list.innerHTML = tracks.map(t => `
+                    <button type="button" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex justify-content-between align-items-center" onclick="addTrackToAlbum('${t.uuid}', '${t.name}', '${t.autor}')">
+                        <div class="text-truncate">
+                            <div class="fw-bold small">${t.name}</div>
+                            <div class="x-small text-muted">${t.autor}</div>
+                        </div>
+                        <i class="fas fa-plus-circle text-primary"></i>
+                    </button>
+                `).join('');
+            } catch (e) { list.innerHTML = '<p class="text-danger">Помилка завантаження</p>'; }
+        }
+
+        async function addTrackToAlbum(uuid, name, autor) {
+            try {
+                const res = await fetch(`/api/creater/album/${albumId}/add-track/${uuid}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+                if (res.ok) {
+                    toastr.success('Трек додано!');
+                    location.reload(); // Simple way to update the list and avoid complex DOM manipulation
+                }
+            } catch (e) { toastr.error('Помилка'); }
+        }
+
+        function checkTracksEmpty() {
+            const list = document.getElementById('albumTracks');
+            if (list.children.length === 0) {
+                document.getElementById('noTracksMsg').classList.remove('d-none');
+            }
+        }
+
+        // Mini Player Logic
+        const player = document.getElementById('miniPlayer');
+        const audio = document.getElementById('mainAudio');
+        const playIcon = document.getElementById('playIcon');
+        const progressBar = document.getElementById('playerProgress');
+
+        function playTrack(name, url) {
+            document.getElementById('playerTrackName').innerText = name;
+            audio.src = url;
+            audio.play();
+            player.classList.remove('hidden');
+            playIcon.className = 'fas fa-pause';
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.className = 'fas fa-pause';
+            } else {
+                audio.pause();
+                playIcon.className = 'fas fa-play';
+            }
+        }
+
+        function closePlayer() {
+            audio.pause();
+            player.classList.add('hidden');
+        }
+
+        audio.ontimeupdate = () => {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = pct + '%';
+        };
+
+        audio.onended = () => {
+            playIcon.className = 'fas fa-play';
+        };
     </script>
 </body>
 </html>
