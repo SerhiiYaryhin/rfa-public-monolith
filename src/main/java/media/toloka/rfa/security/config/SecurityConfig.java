@@ -95,7 +95,8 @@ public class SecurityConfig {
 //                        .permitAll()
 //                )
                 .logout(logout -> logout
-                        .logoutUrl("/logout") // 👈 Замість AntPathRequestMatcher. Spring сам створить правильний матчер
+                        // Явно кажемо перехоплювати саме GET-запит на /logout
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                         .logoutSuccessUrl("/")
                         .permitAll()
                 )
