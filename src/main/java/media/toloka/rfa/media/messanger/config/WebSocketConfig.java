@@ -33,17 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Використовуємо RabbitMQ як зовнішній брокер (STOMP Relay)
-        config.enableStompBrokerRelay(
-                "/topic",
-                "/queue",
-                "/hello",
-                "/updatepublic",
-                "/updateprivat",
-                "/roomslist",
-                "/userslist",
-                "/private",
-                "/public",
-                "/heartbeats")
+        config.enableStompBrokerRelay("/topic", "/queue")
                 .setRelayHost(host)
                 .setRelayPort(61613) // Стандартний порт STOMP для RabbitMQ
                 .setClientLogin(username)

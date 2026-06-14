@@ -2,17 +2,17 @@ package media.toloka.rfa.media.messanger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
-import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
 import media.toloka.rfa.media.messanger.config.WebSocketEventListener;
-import media.toloka.rfa.media.messanger.model.ChatPresenceEvent;
-import media.toloka.rfa.media.messanger.service.ChatPresenceService;
-import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.media.messanger.model.ChatListElement;
 import media.toloka.rfa.media.messanger.model.ChatMessage;
-import media.toloka.rfa.media.messanger.service.MessangerService;
-import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.media.messanger.model.ChatPresenceEvent;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
+import media.toloka.rfa.media.messanger.service.ChatPresenceService;
+import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
+import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +74,10 @@ public class ChatController {
             );
 
             List<ChatMessage> publicMessageList = messangerService.GetChatPublicRoomList(inmsg.getRoomuuid());
-            ChatMessage cmsg = new ChatMessage();
             Iterator<ChatMessage> iterator = publicMessageList.iterator();
             while (iterator.hasNext()) {
                 ChatMessage imsg = iterator.next();
-                this.template.convertAndSend("/public/"+inmsg.getUuid(), imsg);
+                this.template.convertAndSend("/topic/chat.public."+inmsg.getUuid(), imsg);
             }
             List<ChatMessage> privateMessageList = messangerService.GetMessagesAsc(inmsg.getUuid());
             Iterator<ChatMessage> iteratorp = privateMessageList.iterator();
@@ -91,7 +90,7 @@ public class ChatController {
                         messangerService.SaveMessage(imsg);
                     }
                 }
-                this.template.convertAndSend("/private/"+inmsg.getUuid(), imsg);
+                this.template.convertAndSend("/topic/chat.private."+inmsg.getUuid(), imsg);
             }
         } catch (Exception e) {
         logger.info("PutChatPullInitMessage Exception");
@@ -123,7 +122,7 @@ public class ChatController {
 //            System.out.println(json);
             cmsg.setBody(json);
             cmsg.setUuid(inmsg.getUuid());
-            this.template.convertAndSend("/userslist/"+cmsg.getUuid(), cmsg);
+            this.template.convertAndSend("/topic/chat.userslist."+cmsg.getUuid(), cmsg);
         } catch (Exception e) {
             logger.info("GetRoomUserList Exception");
             e.printStackTrace();
@@ -168,7 +167,7 @@ public class ChatController {
 //            System.out.println(json);
             cmsg.setBody(json);
             cmsg.setUuid(inmsg.getUuid());
-            this.template.convertAndSend("/userslist/"+cmsg.getUuid(), cmsg);
+            this.template.convertAndSend("/topic/chat.roomslist."+inmsg.getUuid(), cmsg);
         } catch (Exception e) {
             logger.info("GetRoomUserList Exception");
             e.printStackTrace();
@@ -183,7 +182,7 @@ public class ChatController {
         try {
             List<ChatMessage> publicMessageList = messangerService.GetChatPublicRoomList(inmsg.getRoomuuid());
             for (ChatMessage imsg : publicMessageList) {
-                this.template.convertAndSend("/public/" + inmsg.getUuid(), imsg);
+                this.template.convertAndSend("/topic/chat.public." + inmsg.getUuid(), imsg);
             }
         } catch (Exception e) {
             logger.error("Error fetching room history", e);
@@ -198,7 +197,7 @@ public class ChatController {
         try {
             List<ChatMessage> privateMessageList = messangerService.GetMessagesAsc(inmsg.getUuid());
             for (ChatMessage imsg : privateMessageList) {
-                this.template.convertAndSend("/private/" + inmsg.getUuid(), imsg);
+                this.template.convertAndSend("/topic/chat.private." + inmsg.getUuid(), imsg);
             }
         } catch (Exception e) {
             logger.error("Error fetching private history", e);
@@ -224,9 +223,9 @@ public class ChatController {
             message.setSend(new Date());
             if (cd != null) {
                 if (message.getTouuid().indexOf(message.getFromuuid()) == -1) {
-                    this.template.convertAndSend("/private/"+cd.getUuid(), message); // TO
+                    this.template.convertAndSend("/topic/chat.private."+cd.getUuid(), message); // TO
                 }
-                this.template.convertAndSend("/private/"+message.getFromuuid(), message); // FROM
+                this.template.convertAndSend("/topic/chat.private."+message.getFromuuid(), message); // FROM
             }
         } catch (Exception e) {
             logger.info("PutChatPrivateMessage Exception");
