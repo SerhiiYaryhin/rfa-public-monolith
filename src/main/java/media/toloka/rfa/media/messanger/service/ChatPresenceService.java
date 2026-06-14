@@ -75,7 +75,9 @@ public class ChatPresenceService {
                 break;
 
             case USER_CONNECTED:
-                chatRef.GetUsersMap().put(event.getUuid(), event.getName());
+                if (event.getName() != null) {
+                    chatRef.GetUsersMap().put(event.getUuid(), event.getName());
+                }
                 chatRef.GetUserLastLiveTime().put(event.getUuid(), new Date(event.getTimestamp()));
                 notifyClientsPresenceUpdate();
                 break;
