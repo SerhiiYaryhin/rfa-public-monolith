@@ -81,6 +81,7 @@ public class MessangerService {
     public void SaveMessageFromChat(ChatMessage message) {
 //        Clientdetail cd = clientService.GetClientDetailByUuid(message.getFromuuid());
         chatRepository.save(message);
+        logger.info("Повідомлення збережено в БД: UUID={}, From={}", message.getUuid(), message.getFromname());
     }
 
     public void AddChatUser(ChatMessage inmsg) {

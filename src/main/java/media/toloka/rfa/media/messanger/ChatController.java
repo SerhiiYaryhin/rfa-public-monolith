@@ -209,9 +209,12 @@ public class ChatController {
         try {
             this.template.convertAndSend("/topic/"+inmsg.getRoomuuid(), inmsg);
         } catch (Exception e) {
-            logger.info("PutChatPrivateMessage Exception");
+            logger.info("PutChatPublicMessage Exception");
             e.printStackTrace();
         }
+        // Генеруємо новий UUID для повідомлення перед збереженням, 
+        // щоб він не співпадав з UUID користувача, який може прийти з фронтенду
+        inmsg.setUuid(UUID.randomUUID().toString());
         inmsg.setRtype(RECORD_TYPE_TEXT.ordinal());
         messangerService.SaveMessageFromChat(inmsg);
     }
@@ -231,6 +234,8 @@ public class ChatController {
             logger.info("PutChatPrivateMessage Exception");
             e.printStackTrace();
         }
+        // Генеруємо новий UUID для повідомлення перед збереженням
+        message.setUuid(UUID.randomUUID().toString());
         message.setRtype(RECORD_TYPE_TEXT.ordinal());
         messangerService.SaveMessageFromChat(message);
     }
