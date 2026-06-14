@@ -59,7 +59,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/rfachat")
-                .setAllowedOrigins("https://rfa.toloka.media", "https://localhost")
+                .setAllowedOrigins(
+                        "https://rfa.toloka.media", 
+                        "https://test.rfa.toloka.media", 
+                        "https://localhost", 
+                        "http://localhost:3080")
                 .withSockJS();
     }
 

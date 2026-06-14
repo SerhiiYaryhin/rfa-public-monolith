@@ -28,7 +28,10 @@ function connect() {
         heartbeatOutgoing: 8000
     }, onConnected, onError);
     
-    stompClient.debug = null; // Вимикаємо зайвий лог у консоль
+    // Вмикаємо логи для діагностики
+    stompClient.debug = function(str) {
+        console.log("STOMP: " + str);
+    };
 }
 
 /**
