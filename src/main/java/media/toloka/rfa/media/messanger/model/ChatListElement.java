@@ -6,4 +6,5 @@ import lombok.Data;
 public class ChatListElement {
     private String uuid;
     private String name;
+    private int unreadCount;
 }

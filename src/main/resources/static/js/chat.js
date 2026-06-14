@@ -167,6 +167,8 @@ function onPrivateMessageReceived(payload) {
         } else if (msg.fromuuid !== curuuid) {
             // Нотифікація про повідомлення в іншому діалозі
             if (window.toastr) toastr.info('Нове повідомлення від ' + msg.fromname);
+            // Оновлюємо список користувачів, щоб побачити бейдж
+            getuserlist();
         }
     } catch (e) { console.error("Error parsing private message", e); }
 }
@@ -188,13 +190,15 @@ function onUserList(payload) {
             item.className = `chat-item list-group-item ${clientuuid === u.uuid ? 'active' : ''}`;
             
             const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+            const badge = u.unreadCount > 0 ? `<span class="badge rounded-pill bg-danger animate__animated animate__pulse animate__infinite" style="font-size: 0.7rem;">${u.unreadCount}</span>` : '';
             
             item.innerHTML = `
                 <div class="chat-avatar">${initials}</div>
-                <div class="chat-info">
+                <div class="chat-info flex-grow-1">
                     <div class="chat-name">${u.name}</div>
                     <div class="chat-status">Написати особисто</div>
                 </div>
+                <div class="chat-meta">${badge}</div>
             `;
             
             item.onclick = () => selectuserFromPublic(u.uuid, u.name);

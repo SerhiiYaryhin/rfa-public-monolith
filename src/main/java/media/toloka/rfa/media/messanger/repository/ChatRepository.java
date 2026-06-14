@@ -20,4 +20,9 @@ public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
     @Query("SELECT cm FROM ChatMessage cm WHERE cm.roomuuid = ?1 ORDER BY send ASC LIMIT 1000")
     List<ChatMessage> findByRoomuuidOrderBySendAsc(String roomuuid);
 
+    @Query("SELECT COUNT(cm) FROM ChatMessage cm WHERE cm.fromuuid = ?1 AND cm.touuid = ?2 AND cm.reading = false")
+    int countUnreadMessages(String fromUuid, String toUuid);
+
+    @Query("SELECT cm FROM ChatMessage cm WHERE cm.fromuuid = ?1 AND cm.touuid = ?2 AND cm.reading = false")
+    List<ChatMessage> findUnreadMessages(String fromUuid, String toUuid);
 }

@@ -126,6 +126,23 @@ public class MessangerService {
         return 0;
     }
 
+    public int GetUnreadCount(String fromUuid, String toUuid) {
+        return chatRepository.countUnreadMessages(fromUuid, toUuid);
+    }
+
+    public void MarkAsRead(String fromUuid, String toUuid) {
+        List<ChatMessage> unread = chatRepository.findUnreadMessages(fromUuid, toUuid);
+        if (!unread.isEmpty()) {
+            Date now = new Date();
+            for (ChatMessage msg : unread) {
+                msg.setReading(true);
+                msg.setRead(now);
+            }
+            chatRepository.saveAll(unread);
+            logger.info("Повідомлення від {} до {} позначено як прочитані (кількість: {})", fromUuid, toUuid, unread.size());
+        }
+    }
+
     public Object GetQuantityAllMessage(String uuid) {
         return 0;
     }

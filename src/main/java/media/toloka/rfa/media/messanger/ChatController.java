@@ -110,13 +110,15 @@ public class ChatController {
 
             Map<String, String> usersMap =  chatReference.GetUsersMap();
             Gson gson = new GsonBuilder().create();
-            ChatListElement chatListElement = new ChatListElement();
             for (Map.Entry<String, String> entry : usersMap.entrySet()) {
+                ChatListElement chatListElement = new ChatListElement();
                 chatListElement.setUuid(entry.getKey());
                 chatListElement.setName(entry.getValue());
+                // Отримуємо кількість непрочитаних від цього користувача до поточного
+                chatListElement.setUnreadCount(messangerService.GetUnreadCount(entry.getKey(), inmsg.getUuid()));
+                
                 String jcl = gson.toJson(chatListElement);
                 usersListMap.add(jcl);
-//                System.out.println(entry.getKey() + ":" + entry.getValue());
             }
             String json = gson.toJson(usersListMap);
 //            System.out.println(json);
@@ -195,6 +197,11 @@ public class ChatController {
     @MessageMapping("/private/history")
     public void getPrivateHistory(ChatMessage inmsg) {
         try {
+            // Позначаємо повідомлення як прочитані при відкритті чату
+            messangerService.MarkAsRead(inmsg.getTouuid(), inmsg.getUuid());
+            // Оновлюємо списки у всіх (щоб прибрати бейдж)
+            presenceService.publishPresenceEvent(ChatPresenceEvent.EventType.USER_CONNECTED, inmsg.getUuid(), null);
+
             List<ChatMessage> privateMessageList = messangerService.GetMessagesAsc(inmsg.getUuid());
             for (ChatMessage imsg : privateMessageList) {
                 this.template.convertAndSend("/topic/chat.private." + inmsg.getUuid(), imsg);
