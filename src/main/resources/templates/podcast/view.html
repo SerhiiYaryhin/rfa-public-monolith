@@ -215,6 +215,24 @@
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
     let episodeArray = [];
+    /*[# th:each="item : ${episodes}"]*/
+    episodeArray.push({
+        uuid: [[${item.uuid}]],
+        title: [[${item.title}]],
+        storeuuid: [[${item.enclosurestore.uuid}]],
+        filename: [[${item.enclosurestore.filename}]]
+    });
+    /*[/]*/
+
+    // Ініціалізація при завантаженні
+    window.addEventListener('DOMContentLoaded', () => {
+        initEpisodeList();
+        // Встановлюємо UUID першого епізоду як поточного для старта з головного плеєра
+        const player = document.getElementById('rfapodcastlayer');
+        if (player && episodeArray.length > 0) {
+            player.setmyEpisodeCurrentUUID(episodeArray[0].uuid);
+        }
+    });
 
     function setEpisodToPlayer(itemid, name, storeid, file) {
         const player = document.getElementById('rfapodcastlayer');
@@ -228,7 +246,7 @@
 
             // Готуємо заголовки для запиту
             const headers = {
-                'Content-Type': 'application/json' // або інший твій content-type, якщо треба
+                'Content-Type': 'application/json' 
             };
 
             // Якщо CSRF-токен існує в системі, додаємо його до запиту
@@ -249,52 +267,16 @@
                 .catch(e => console.error('Error incrementing track looked count', e));
 
             // Ініціалізуємо список епізодів для перемикання (Next/Prev)
-            if (episodeArray.length === 0) {
-                initEpisodeList();
-            }
-        }
-    }
-
-    function setEpisodToPlayer_old(itemid, name, storeid, file) {
-        const player = document.getElementById('rfapodcastlayer');
-        if (player) {
-            // В rfapodcastplayer.js метод myChangeTrack приймає: id, name, storeid, file
-            player.myChangeTrack(itemid, name, storeid, file);
-            // Збільшуємо лічильник прослуховувань
-            try {
-                fetch('/api/1.0/podcast/' + itemid + '/inc-looked', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value || ''
-                    }
-                });
-            } catch (e) {
-                console.error('Error incrementing track looked count', e);
-            }
-            // Ініціалізуємо список епізодів для перемикання (Next/Prev)
-            if (episodeArray.length === 0) {
-                initEpisodeList();
-            }
+            initEpisodeList();
         }
     }
 
     function initEpisodeList() {
-        // Можна додати складнішу логіку отримання всіх UUID зі сторінки
         const player = document.getElementById('rfapodcastlayer');
         if (player && typeof player.setEpisodeList === 'function') {
-            // Placeholder для списку епізодів
-            // player.setEpisodeList(episodeArray);
+            player.setEpisodeList(episodeArray);
         }
     }
-</script>
-</body>
-</html>/ Можна додати складнішу логіку отримання всіх UUID зі сторінки
-const player = document.getElementById('rfapodcastlayer');
-if (player && typeof player.setEpisodeList === 'function') {
-// Placeholder для списку епізодів
-// player.setEpisodeList(episodeArray);
-}
-}
 </script>
 </body>
 </html>

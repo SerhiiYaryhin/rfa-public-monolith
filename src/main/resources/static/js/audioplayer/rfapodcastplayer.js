@@ -203,24 +203,41 @@ const everything = function(element) {
         }
     });
 
-    audio.addEventListener("ended", (event) => { // працює
-      let ttt = element.getEpisodeList(); // функція описана в HTML файлі
-      let ppp = element.getmyEpisodeCurrentUUID();
-      let itemuuid = null;
-      let ii = null;
-      let i = 0;
-      for (i; i < ttt.length; ++i) {
-        if (ttt[i] === ppp)  {
-          itemuuid = ttt[i];
-          ii = i;
-          break;
+    audio.addEventListener("ended", (event) => {
+        let episodes = element.getEpisodeList();
+        let currentUUID = element.getmyEpisodeCurrentUUID();
+        
+        if (!episodes || episodes.length === 0) return;
+
+        // Шукаємо індекс поточного епізоду
+        let currentIndex = -1;
+        for (let i = 0; i < episodes.length; i++) {
+            // episodes може містити об'єкти або просто рядки (UUID)
+            let item = episodes[i];
+            let itemUuid = (typeof item === 'object') ? item.uuid : item;
+            
+            if (itemUuid === currentUUID) {
+                currentIndex = i;
+                break;
+            }
         }
-      }
-        ii = ii+1;
-        if (ii > ttt.length - 1) {
-            ii = 0;
+
+        // Якщо знайшли, і це не останній епізод — вмикаємо наступний
+        if (currentIndex !== -1 && currentIndex < episodes.length - 1) {
+            let next = episodes[currentIndex + 1];
+            
+            if (typeof next === 'object') {
+                // Граємо локально, бо маємо всі дані
+                element.myChangeTrack(next.uuid, next.title, next.storeuuid, next.filename);
+            } else {
+                // Стара логіка: запитуємо дані у сервера
+                element.getNextEpisode(currentUUID, next);
+            }
+        } else {
+            // Зупиняємо анімацію, якщо плейлист закінчився
+            playAnimation.playSegments([0, 14], true);
+            playState = 'play';
         }
-        element.getNextEpisode(element.getmyEpisodeCurrentUUID(), ttt[ii]);
     });
 
     audio.addEventListener('progress', displayBufferedAmount);
