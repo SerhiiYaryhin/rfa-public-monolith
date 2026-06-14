@@ -316,6 +316,16 @@ function onMediaPublic(payload) {
     renderBubble(msg, false);
 }
 
+// Експортуємо функції у глобальну область для HTML
+window.sendpublic = sendpublic;
+window.sendprivate = sendprivate;
+window.uploadImage = uploadImage;
+window.selectroom = selectroom;
+window.selectuserFromPublic = selectuserFromPublic;
+window.toggleSidebar = function() {
+    document.getElementById('chatSidebar').classList.toggle('hidden');
+};
+
 // Ініціалізація при завантаженні
 window.addEventListener('DOMContentLoaded', () => {
     connect();

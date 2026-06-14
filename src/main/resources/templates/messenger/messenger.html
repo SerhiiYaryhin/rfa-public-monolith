@@ -154,9 +154,11 @@
     </div>
 
     <script th:inline="javascript">
-        var curuuid = "[[${curuuid}]]" ;
-        var curusername = "[[${curusername}]]" ;
-        var curroom = "[[${curroom}]]" ;
+        /*<![CDATA[*/
+        var curuuid = /*[[${curuuid}]]*/ '';
+        var curusername = /*[[${curusername}]]*/ '';
+        var curroom = /*[[${curroom}]]*/ '';
+        /*]]>*/
 
         // Mobile Sidebar Toggle
         function toggleSidebar() {
@@ -164,30 +166,37 @@
         }
 
         // Emoji Picker Logic
-        const picker = document.getElementById('picker');
-        const input = document.getElementById('newmessage');
-        const emojiToggle = document.getElementById('emojiToggle');
+        document.addEventListener('DOMContentLoaded', () => {
+            const picker = document.getElementById('picker');
+            const input = document.getElementById('newmessage');
+            const emojiToggle = document.getElementById('emojiToggle');
 
-        emojiToggle.onclick = (e) => {
-            e.stopPropagation();
-            picker.classList.toggle('visible');
-        };
+            if (emojiToggle) {
+                emojiToggle.onclick = (e) => {
+                    e.stopPropagation();
+                    picker.classList.toggle('visible');
+                };
+            }
 
-        picker.addEventListener('emoji-click', event => {
-            input.value += event.detail.unicode;
-            picker.classList.remove('visible');
-            input.focus();
+            if (picker) {
+                picker.addEventListener('emoji-click', event => {
+                    input.value += event.detail.unicode;
+                    picker.classList.remove('visible');
+                    input.focus();
+                });
+            }
+
+            document.addEventListener('click', () => {
+                if (picker) picker.classList.remove('visible');
+            });
+            if (picker) picker.onclick = (e) => e.stopPropagation();
         });
-
-        document.addEventListener('click', () => picker.classList.remove('visible'));
-        picker.onclick = (e) => e.stopPropagation();
 
         // Handle Send based on context (Public/Private)
         function handleSend() {
-            // This will be wired in chat.js
-            if (window.clientuuid) {
+            if (typeof window.sendprivate === 'function' && window.clientuuid) {
                 window.sendprivate();
-            } else {
+            } else if (typeof window.sendpublic === 'function') {
                 window.sendpublic();
             }
         }
