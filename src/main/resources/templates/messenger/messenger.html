@@ -5,7 +5,7 @@
 >
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Толока Чат - Спілкування в ефірі</title>
     
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
@@ -29,19 +29,68 @@
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--chat-bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--chat-bg); 
+            height: 100dvh; /* Динамічна висота для мобільних */
+            margin: 0;
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+        }
         
-        .chat-container { display: flex; height: calc(100vh - 70px); margin-top: 70px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        header { flex-shrink: 0; z-index: 100; }
+
+        .chat-container { 
+            display: flex; 
+            flex: 1; 
+            background: #fff; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            overflow: hidden;
+            position: relative;
+        }
         
         /* Sidebar Styling */
-        .chat-sidebar { width: var(--sidebar-width); border-right: 1px solid #edf2f7; display: flex; flex-direction: column; background: #f8fafc; z-index: 10; transition: transform 0.3s ease; }
+        .chat-sidebar { 
+            width: var(--sidebar-width); 
+            border-right: 1px solid #edf2f7; 
+            display: flex; 
+            flex-direction: column; 
+            background: #f8fafc; 
+            z-index: 50; 
+            transition: transform 0.3s ease; 
+        }
         
         /* Main Content Styling */
-        .chat-main { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #fff; }
+        .chat-main { 
+            flex: 1;
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            background: #fff; 
+            min-width: 0;
+        }
         
-        .chat-header { padding: 15px 25px; border-bottom: 1px solid #edf2f7; display: flex; align-items: center; justify-content: space-between; background: var(--glass-bg); backdrop-filter: blur(10px); }
+        .chat-header { 
+            padding: 12px 20px; 
+            border-bottom: 1px solid #edf2f7; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(10px); 
+            flex-shrink: 0;
+        }
 
-        .messages-area { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
+        .messages-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); 
+        }
         
         /* Chat Bubbles */
         .bubble { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
@@ -52,7 +101,17 @@
         .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
 
         /* Input Area */
-        .input-area { padding: 20px 25px; border-top: 1px solid #edf2f7; background: #fff; display: flex; align-items: center; gap: 15px; }
+        .input-area { 
+            padding: 15px 20px; 
+            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
+            border-top: 1px solid #edf2f7; 
+            background: #fff; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex-shrink: 0;
+        }
+        
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; }
         .chat-input:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
@@ -74,9 +133,12 @@
             .chat-main { width: 100%; }
             .btn-back { display: block !important; }
             .bubble { max-width: 85%; }
+            
+            /* Виправляємо відступ зверху, якщо хедер фіксований */
+            header { position: sticky; top: 0; }
         }
 
-        .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 15px; }
+        .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 10px; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -107,10 +169,10 @@
         <!-- Main Chat -->
         <main class="chat-main">
             <header class="chat-header">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center overflow-hidden">
                     <button class="btn-back" onclick="toggleSidebar()"><i class="fas fa-arrow-left"></i></button>
-                    <div>
-                        <h6 class="fw-bold mb-0" id="chatTitle">Публічний чат</h6>
+                    <div class="text-truncate">
+                        <h6 class="fw-bold mb-0 text-truncate" id="chatTitle">Публічний чат</h6>
                         <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
                     </div>
                 </div>
@@ -125,12 +187,11 @@
 
             <!-- Unified Message Area -->
             <div class="messages-area" id="mainMessagesArea">
-                <!-- Public messages will be here -->
                 <div id="publicarea" class="d-flex flex-column gap-3"></div>
-                <!-- Private messages will be here -->
                 <div id="privatearea" class="d-flex flex-column gap-3"></div>
             </div>
 
+            <!-- Input Area -->
             <footer class="input-area">
                 <div class="d-flex gap-2">
                     <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">
@@ -190,6 +251,16 @@
                 if (picker) picker.classList.remove('visible');
             });
             if (picker) picker.onclick = (e) => e.stopPropagation();
+            
+            // Fix for mobile keyboard: scroll to bottom on input focus
+            if (input) {
+                input.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        const area = document.getElementById('mainMessagesArea');
+                        area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+                    }, 300);
+                });
+            }
         });
 
         // Handle Send based on context (Public/Private)
