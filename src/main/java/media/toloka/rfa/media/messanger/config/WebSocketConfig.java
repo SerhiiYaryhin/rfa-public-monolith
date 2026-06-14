@@ -1,7 +1,6 @@
 package media.toloka.rfa.media.messanger.config;
 
-import org.eclipse.jetty.websocket.api.WebSocketBehavior;
-import org.eclipse.jetty.websocket.api.WebSocketPolicy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -10,37 +9,31 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
-
+/**
+ * Конфігурація WebSocket з використанням RabbitMQ STOMP Relay.
+ * Це забезпечує доставку повідомлень між усіма вузлами кластера.
+ */
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig  implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-//    @Autowired
-//    private TaskScheduler stompTaskScheduler;
-//@Bean
-//public DefaultHandshakeHandler handshakeHandler() {
-//    WebSocketPolicy policy = new WebSocketPolicy(WebSocketBehavior.SERVER);
-//    policy.setInputBufferSize(8192);
-//    policy.setIdleTimeout(600000);
-//    return new DefaultHandshakeHandler(
-//            new JettyRequestUpgradeStrategy(new WebSocketServerFactory(policy)));
-//}
+    @Value("${rabbitmq.host}")
+    private String host;
+
+    @Value("${rabbitmq.username}")
+    private String username;
+
+    @Value("${rabbitmq.password}")
+    private String password;
+
+    @Value("${rabbitmq.virtualhost}")
+    private String virtualHost;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-//        config.enableSimpleBroker("/topic");
-//        sessionRepositoryInterceptor.setMatchingMessageTypes(EnumSet.of(SimpMessageType.CONNECT,
-//                SimpMessageType.MESSAGE, SimpMessageType.SUBSCRIBE,
-//                SimpMessageType.UNSUBSCRIBE, SimpMessageType.HEARTBEAT));
-//
-//        config.setApplicationDestinationPrefixes(...);
-//        config.enableSimpleBroker(...)
-//             .setTaskScheduler(new DefaultManagedTaskScheduler()).setHeartbeatValue(new long[]{0,20000});
-        config.enableSimpleBroker(
-                "/user",
+        // Використовуємо RabbitMQ як зовнішній брокер (STOMP Relay)
+        config.enableStompBrokerRelay(
                 "/topic",
                 "/queue",
                 "/hello",
@@ -51,38 +44,31 @@ public class WebSocketConfig  implements WebSocketMessageBrokerConfigurer {
                 "/private",
                 "/public",
                 "/heartbeats")
-                .setTaskScheduler(taskScheduler())
-                .setHeartbeatValue(new long[]{8000,8000});
+                .setRelayHost(host)
+                .setRelayPort(61613) // Стандартний порт STOMP для RabbitMQ
+                .setClientLogin(username)
+                .setClientPasscode(password)
+                .setSystemLogin(username)
+                .setSystemPasscode(password)
+                .setVirtualHost(virtualHost);
+
+        // Префікс для повідомлень, які обробляються контролерами (@MessageMapping)
         config.setApplicationDestinationPrefixes("/app");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/rfachat")
+                .setAllowedOrigins("https://rfa.toloka.media", "https://localhost")
+                .withSockJS();
     }
 
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(5);
-        scheduler.setThreadNamePrefix("broker-task-");
+        scheduler.setThreadNamePrefix("stomp-relay-task-");
         scheduler.initialize();
         return scheduler;
-//        return new ThreadPoolTaskScheduler();
     }
-
-
-//    @Bean
-//    private TaskScheduler heartBeatScheduler() {
-//        TaskScheduler sheduler = new StompHeartbeatSheduler();
-//        initialize()
-//        sheduler.in
-//        return sheduler;
-//    }
-
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-//        registry.addEndpoint("/rfa");
-        registry.addEndpoint("/rfachat").setAllowedOrigins("https://rfa.toloka.media","https://localhost").withSockJS();
-    }
-
-//    @Bean
-//    public TaskScheduler heartBeatScheduler() {
-//        return new ThreadPoolTaskScheduler();
-//    }
 }

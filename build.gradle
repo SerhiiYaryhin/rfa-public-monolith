@@ -101,6 +101,7 @@ dependencies {
 	// stomp web socket
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.springframework:spring-messaging")
+	implementation("io.projectreactor.netty:reactor-netty") // Необхідно для STOMP Relay через RabbitMQ
 
 // для RSS
 	// https://mvnrepository.com/artifact/dev.stalla/stalla    //stallaVersion
