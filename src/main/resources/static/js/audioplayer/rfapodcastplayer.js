@@ -102,6 +102,12 @@ const everything = function(element) {
 
     element.myaudio = audio;
     audio.src = element.getAttribute('data-src');
+    
+    // Ініціалізуємо назву треку при завантаженні
+    const trackNameDisplay = shadow.getElementById('trackName');
+    if (trackNameDisplay) {
+        trackNameDisplay.textContent = element.getAttribute('data-autor');
+    }
 
     const playAnimation = lottieWeb.loadAnimation({
         container: playIconContainer,
