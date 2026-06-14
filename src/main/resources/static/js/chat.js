@@ -3,6 +3,7 @@
 /**
  * Логіка сучасного чату RFA
  * Включає підтримку WebSockets (STOMP), Емодзі та адаптивний рендеринг повідомлень у вигляді бульбашок.
+ * Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
  */
 
 var stompClient = null;
@@ -16,12 +17,19 @@ var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
 
+var reconnectTimeout = null;
+var reconnectDelay = 1000; // Початкова затримка перепідключення 1с
+
 const messagesArea = document.getElementById('mainMessagesArea');
 
 /**
  * Встановлення з'єднання через SockJS та STOMP
  */
 function connect() {
+    // Якщо вже підключені — нічого не робимо
+    if (stompClient && stompClient.connected) return;
+
+    console.log("Attempting to connect to STOMP...");
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
     
@@ -40,7 +48,12 @@ function connect() {
  * Callback при успішному підключенні
  */
 function onConnected() {
-    console.log("Connected to STOMP");
+    console.log("Connected to STOMP cluster");
+    reconnectDelay = 1000; // Скидаємо затримку при успішному вході
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+
+    const statusEl = document.getElementById('connectstatus');
+    if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
     // Підписки на канали (використовуємо стандартизовані RabbitMQ префікси)
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
@@ -63,6 +76,35 @@ function onConnected() {
     getroomlist();
 }
 
+/**
+ * Обробка помилок та розриву з'єднання
+ */
+function onError(error) { 
+    console.error("STOMP Error/Disconnect:", error);
+    
+    const statusEl = document.getElementById('connectstatus');
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="fas fa-sync-alt fa-spin me-1"></i> Відключено. Перепідключення...</span>';
+    
+    // Exponential backoff для перепідключення
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    reconnectTimeout = setTimeout(() => {
+        reconnectDelay = Math.min(reconnectDelay * 2, 30000); // Не більше 30 секунд між спробами
+        connect();
+    }, reconnectDelay);
+}
+
+/**
+ * Детекція повернення користувача на вкладку (критично для мобільних пристроїв)
+ */
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        console.log("App wake up. Checking connection...");
+        if (!stompClient || !stompClient.connected) {
+            connect();
+        }
+    }
+});
+
 function onPresenceUpdate(msg) {
     console.log("=== Presence Update Signal ===");
     getuserlist();
@@ -73,7 +115,7 @@ function onPresenceUpdate(msg) {
  * Рендеринг повідомлення у вигляді бульбашки (bubble)
  */
 function renderBubble(msg, isPrivate = false) {
-    // Унікальний ID для запобігання дублікатам (особливо при завантаженні історії)
+    // Унікальний ID для запобігання дублікатам (особливо при завантаженні історії або перепідключенні)
     const msgId = `msg-${msg.send}-${msg.fromuuid}`;
     if (document.getElementById(msgId)) return;
 
@@ -98,7 +140,7 @@ function renderBubble(msg, isPrivate = false) {
     const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
     if (container) {
         container.appendChild(bubble);
-        // Автопрокрутка
+        // Плавна автопрокрутка
         messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
     }
 }
@@ -123,7 +165,7 @@ function onPrivateMessageReceived(payload) {
         if (clientuuid && (msg.fromuuid === clientuuid || msg.touuid === clientuuid)) {
             renderBubble(msg, true);
         } else if (msg.fromuuid !== curuuid) {
-            // Нотифікація
+            // Нотифікація про повідомлення в іншому діалозі
             if (window.toastr) toastr.info('Нове повідомлення від ' + msg.fromname);
         }
     } catch (e) { console.error("Error parsing private message", e); }
@@ -203,17 +245,20 @@ function selectroom(uuid, name) {
     document.getElementById('publicarea').innerHTML = '';
     document.getElementById('privatearea').innerHTML = '';
     document.getElementById('chatTitle').innerText = name;
-    document.getElementById('connectstatus').innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
+    
+    const statusEl = document.getElementById('connectstatus');
+    if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
     
     clientuuid = null;
     toclientname = null;
     
-    subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
-    
-    stompClient.send("/app/room/history", {}, JSON.stringify({
-        uuid: curuuid,
-        roomuuid: curroom
-    }));
+    if (stompClient && stompClient.connected) {
+        subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+        stompClient.send("/app/room/history", {}, JSON.stringify({
+            uuid: curuuid,
+            roomuuid: curroom
+        }));
+    }
     
     getroomlist();
     if (window.innerWidth <= 768) toggleSidebar();
@@ -229,15 +274,18 @@ function selectuserFromPublic(uuid, name) {
     toclientname = name;
     
     document.getElementById('chatTitle').innerText = `Чат з ${name}`;
-    document.getElementById('connectstatus').innerHTML = '<i class="fas fa-lock me-1"></i> Приватний канал';
+    const statusEl = document.getElementById('connectstatus');
+    if (statusEl) statusEl.innerHTML = '<i class="fas fa-lock me-1"></i> Приватний канал';
 
     document.getElementById('publicarea').innerHTML = '';
     document.getElementById('privatearea').innerHTML = '';
 
-    stompClient.send("/app/private/history", {}, JSON.stringify({
-        uuid: curuuid,
-        touuid: clientuuid
-    }));
+    if (stompClient && stompClient.connected) {
+        stompClient.send("/app/private/history", {}, JSON.stringify({
+            uuid: curuuid,
+            touuid: clientuuid
+        }));
+    }
     
     getuserlist();
     if (window.innerWidth <= 768) toggleSidebar();
@@ -248,7 +296,7 @@ function selectuserFromPublic(uuid, name) {
  */
 function sendpublic() {
     const input = document.getElementById('newmessage');
-    if (!input.value.trim()) return;
+    if (!input || !input.value.trim() || !stompClient || !stompClient.connected) return;
 
     stompClient.send("/app/public", {}, JSON.stringify({
         uuid: curuuid,
@@ -266,7 +314,7 @@ function sendpublic() {
  */
 function sendprivate() {
     const input = document.getElementById('newmessage');
-    if (!input.value.trim() || !clientuuid) return;
+    if (!input || !input.value.trim() || !clientuuid || !stompClient || !stompClient.connected) return;
 
     stompClient.send("/app/private", {}, JSON.stringify({
         uuid: curuuid,
@@ -292,13 +340,14 @@ async function uploadImage(file) {
 
     const formData = new FormData();
     formData.append('file', file);
-    document.getElementById('newmessage').placeholder = 'Завантаження...';
+    const input = document.getElementById('newmessage');
+    if (input) input.placeholder = 'Завантаження...';
 
     try {
         const response = await fetch('/api/chat/upload-image', { method: 'POST', body: formData });
         const result = await response.json();
         
-        if (result.success) {
+        if (result.success && stompClient && stompClient.connected) {
             const imgHtml = `<img src="${result.url}" class="img-fluid rounded-3 mt-2 mb-2" style="max-height: 300px; cursor: pointer;" onclick="window.open('${result.url}', '_blank')">`;
             
             if (clientuuid) {
@@ -314,7 +363,7 @@ async function uploadImage(file) {
             }
         }
     } catch (e) { console.error('Upload error:', e); }
-    finally { document.getElementById('newmessage').placeholder = 'Напишіть повідомлення...'; }
+    finally { if (input) input.placeholder = 'Напишіть повідомлення...'; }
 }
 
 // Допоміжні функції
@@ -327,10 +376,6 @@ function getroomlist() {
     if (stompClient && stompClient.connected) {
         stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() })); 
     }
-}
-function onError(error) { 
-    console.error("STOMP Error:", error);
-    document.getElementById('connectstatus').innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Помилка з\'єднання</span>';
 }
 
 function date2string(idate) {
@@ -352,7 +397,8 @@ window.uploadImage = uploadImage;
 window.selectroom = selectroom;
 window.selectuserFromPublic = selectuserFromPublic;
 window.toggleSidebar = function() {
-    document.getElementById('chatSidebar').classList.toggle('hidden');
+    const sidebar = document.getElementById('chatSidebar');
+    if (sidebar) sidebar.classList.toggle('hidden');
 };
 
 // Ініціалізація при завантаженні
