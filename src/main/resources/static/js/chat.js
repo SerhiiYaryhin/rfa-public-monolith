@@ -103,8 +103,17 @@ function onPublicMessageReceived(payload) {
  */
 function onPrivateMessageReceived(payload) {
     var msg = JSON.parse(payload.body);
-    // Якщо повідомлення від/до поточного вибраного користувача - показуємо
-    renderBubble(msg, true);
+    // Показуємо повідомлення лише якщо ми в приватному чаті з цією людиною
+    if (clientuuid && (msg.fromuuid === clientuuid || msg.touuid === clientuuid)) {
+        renderBubble(msg, true);
+    } else if (msg.fromuuid !== curuuid) {
+        // Якщо це не наше власне повідомлення і ми в іншому чаті - показуємо нотифікацію
+        if (typeof toastr !== 'undefined') {
+            toastr.info('Нове приватне повідомлення від ' + msg.fromname);
+        } else {
+            console.log('Нове приватне повідомлення від ' + msg.fromname);
+        }
+    }
 }
 
 /**
@@ -169,18 +178,25 @@ function onRoomList(payload) {
 function selectroom(uuid, name) {
     if (curroom === uuid) return;
     
-    subcurroom.unsubscribe();
+    if (subcurroom) subcurroom.unsubscribe();
     curroom = uuid;
     
     document.getElementById('publicarea').innerHTML = '';
     document.getElementById('privatearea').innerHTML = '';
     document.getElementById('chatTitle').innerText = name;
+    document.getElementById('connectstatus').innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
     
     // Скидаємо приватного співрозмовника при переході в кімнату
     clientuuid = null;
     toclientname = null;
     
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+    
+    // Запитуємо історію повідомлень для нової кімнати
+    stompClient.send("/app/room/history", {}, JSON.stringify({
+        uuid: curuuid,
+        roomuuid: curroom
+    }));
     
     // Оновлюємо списки
     getroomlist();
@@ -193,11 +209,23 @@ function selectroom(uuid, name) {
  * Вибір користувача для приватного чату
  */
 function selectuserFromPublic(uuid, name) {
+    if (clientuuid === uuid) return;
+
     clientuuid = uuid;
     toclientname = name;
     
     document.getElementById('chatTitle').innerText = `Чат з ${name}`;
     document.getElementById('connectstatus').innerHTML = '<i class="fas fa-lock me-1"></i> Приватний канал';
+
+    // Очищуємо вікно повідомлень для чистого перемикання
+    document.getElementById('publicarea').innerHTML = '';
+    document.getElementById('privatearea').innerHTML = '';
+
+    // Запитуємо приватну історію
+    stompClient.send("/app/private/history", {}, JSON.stringify({
+        uuid: curuuid,
+        touuid: clientuuid
+    }));
     
     getuserlist();
     

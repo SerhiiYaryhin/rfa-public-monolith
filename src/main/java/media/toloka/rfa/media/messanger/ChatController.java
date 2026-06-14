@@ -144,7 +144,6 @@ public class ChatController {
             List<String > usersListMap =  new ArrayList<>();
 
             Map<String, String> roomList =  chatReference.GetRoomsMap();
-            roomList.clear();
 
             if (roomList.size() == 0) {
                 // Init list rooms
@@ -169,10 +168,40 @@ public class ChatController {
 //            System.out.println(json);
             cmsg.setBody(json);
             cmsg.setUuid(inmsg.getUuid());
-            this.template.convertAndSend("/roomslist/"+inmsg.getUuid(), cmsg);
+            this.template.convertAndSend("/userslist/"+cmsg.getUuid(), cmsg);
         } catch (Exception e) {
             logger.info("GetRoomUserList Exception");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Отримання історії повідомлень для конкретної кімнати.
+     */
+    @MessageMapping("/room/history")
+    public void getRoomHistory(ChatMessage inmsg) {
+        try {
+            List<ChatMessage> publicMessageList = messangerService.GetChatPublicRoomList(inmsg.getRoomuuid());
+            for (ChatMessage imsg : publicMessageList) {
+                this.template.convertAndSend("/public/" + inmsg.getUuid(), imsg);
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching room history", e);
+        }
+    }
+
+    /**
+     * Отримання історії приватних повідомлень користувача.
+     */
+    @MessageMapping("/private/history")
+    public void getPrivateHistory(ChatMessage inmsg) {
+        try {
+            List<ChatMessage> privateMessageList = messangerService.GetMessagesAsc(inmsg.getUuid());
+            for (ChatMessage imsg : privateMessageList) {
+                this.template.convertAndSend("/private/" + inmsg.getUuid(), imsg);
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching private history", e);
         }
     }
 
