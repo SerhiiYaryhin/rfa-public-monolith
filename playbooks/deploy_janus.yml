@@ -1,6 +1,6 @@
 ---
 - name: Deploy Janus Gateway via Docker using Ansible
-  hosts: all # Або ваша цільова група для сервера janus.rfa
+  hosts: janus.rfa # Або ваша цільова група для сервера janus.rfa
   become: yes
 
   vars:

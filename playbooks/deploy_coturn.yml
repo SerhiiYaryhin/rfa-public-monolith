@@ -1,6 +1,6 @@
 ---
 - name: Deploy and Configure Coturn for RFA WebRTC
-  hosts: all # За потреби замініть на вашу конкретну групу з inventory
+  hosts: gate.rfa # За потреби замініть на вашу конкретну групу з inventory
   become: yes
 
   vars:
