@@ -37,7 +37,7 @@
         rule: allow
         port: '49152:65535'
         proto: udp
-        state: absent
+        delete: yes # <--- ВИПРАВЛЕНО: замість state: absent використовуємо деструктор правила
 
     - name: Allow new exact TURN dynamic media ports (UDP)
       ufw:
