@@ -1,0 +1,17 @@
+# /opt/janus/conf/janus.transport.http.jcfg
+general: {
+    json = "jackson"
+    base_path = "/janus"
+    http = true
+    port = 8088
+    interface = "0.0.0.0"
+    
+    https = false
+}
+
+admin: {
+    admin_base_path = "/admin"
+    admin_http = true
+    admin_port = 7088
+    admin_interface = "0.0.0.0"
+}

@@ -1,0 +1,15 @@
+# /opt/janus/conf/janus.transport.websockets.jcfg
+general: {
+    json = "jackson"
+    ws = true
+    ws_port = 8188
+    ws_interface = "0.0.0.0"
+    
+    wss = false                  # TLS зазвичай проксується через Nginx на gate.rfa
+}
+
+admin: {
+    admin_ws = true
+    admin_ws_port = 8189
+    admin_ws_interface = "0.0.0.0"
+}

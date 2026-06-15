@@ -1,21 +1,16 @@
 ---
 - name: Deploy Janus Gateway via Docker using Ansible
-  hosts: janus.rfa # Або ваша цільова група для сервера janus.rfa
+  hosts: janus.rfa
   become: yes
 
   vars:
-    # Ті самі змінні, що й для Coturn, щоб вони синхронізувалися
     coturn_realm: "rfa.toloka.media"
     coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
-    
-    # Секретний ключ для вашого Spring Boot додатка
     janus_admin_secret: "RFA_Super_Secret_Admin_Key"
-    
-    # Шлях на віддаленому сервері для конфігів
     janus_base_dir: "/opt/janus"
 
   tasks:
-    - name: Ensure Docker SDK for Python is installed (потрібно для Ansible Docker модулів)
+    - name: Ensure Docker SDK for Python is installed
       apt:
         name: python3-docker
         state: present
@@ -42,12 +37,25 @@
         dest: "{{ janus_base_dir }}/conf/janus.plugin.audiobridge.jcfg"
         mode: '0644'
 
+    - name: Deploy Janus WebSockets config from template
+      template:
+        src: templates/janus.transport.websockets.jcfg.j2
+        dest: "{{ janus_base_dir }}/conf/janus.transport.websockets.jcfg"
+        mode: '0644'
+
+    - name: Deploy Janus HTTP config from template
+      template:
+        src: templates/janus.transport.http.jcfg.j2
+        dest: "{{ janus_base_dir }}/conf/janus.transport.http.jcfg"
+        mode: '0644'
+
     - name: Run Janus Gateway Container
       community.docker.docker_container:
         name: rfa-janus
-        image: sucwangsr/janus-webrtc-gateway-docker:latest # <--- НАДІЙНИЙ ОБРАЗ ВІД СПІЛЬНОТИ
+        image: sucwangsr/janus-webrtc-gateway-docker:latest
         state: started
         restart_policy: unless-stopped
         network_mode: host
+        recreate: yes # <--- Важливо: змусить Ansible перестворити контейнер із новими файлами
         volumes:
           - "{{ janus_base_dir }}/conf:/usr/local/etc/janus"
