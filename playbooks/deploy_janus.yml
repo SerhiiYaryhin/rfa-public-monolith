@@ -28,6 +28,19 @@
         group: root
         mode: '0755'
 
+    - name: Stop janus service and force kill ghost processes to free ports
+      block:
+        - name: Stop Janus service if running
+          systemd:
+            name: janus
+            state: stopped
+          failed_when: false
+
+        - name: Force kill any remaining zombie janus processes
+          shell: killall -9 janus
+          failed_when: false
+          changed_when: false
+
     - name: Deploy janus.jcfg configuration
       template:
         src: templates/janus.jcfg.j2
@@ -41,6 +54,18 @@
       template:
         src: templates/janus.plugin.audiobridge.jcfg.j2
         dest: /etc/janus/janus.plugin.audiobridge.jcfg
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart janus
+
+    - name: Ensure recordplay plugin config exists to prevent fatal errors
+      copy:
+        dest: /etc/janus/janus.plugin.recordplay.jcfg
+        content: |
+          general: {
+              path = "/tmp"
+          }
         owner: root
         group: root
         mode: '0644'
