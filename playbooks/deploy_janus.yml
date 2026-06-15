@@ -70,7 +70,6 @@
         state: started
         enabled: true
 
-
   handlers:
     - name: restart janus
       systemd:
