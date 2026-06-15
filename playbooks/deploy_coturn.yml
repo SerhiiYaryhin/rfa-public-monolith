@@ -1,0 +1,72 @@
+---
+- name: Deploy and Configure Coturn for RFA WebRTC
+  hosts: all # За потреби замініть на вашу конкретну групу з inventory
+  become: yes
+
+  vars:
+    coturn_realm: "rfa.toloka.media"
+    coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
+    janus_internal_host: "janus.rfa"
+
+  tasks:
+    - name: Update apt cache and install Coturn
+      apt:
+        name: coturn
+        state: present
+        update_cache: yes
+
+    - name: Enable Coturn daemon in defaults
+      lineinfile:
+        path: /etc/default/coturn
+        regexp: '^TURNSERVER_ENABLED='
+        line: 'TURNSERVER_ENABLED=1'
+
+    - name: Deploy turnserver.conf from templates
+      template:
+        src: templates/turnserver.conf.j2
+        dest: /etc/turnserver.conf
+        owner: turnserver
+        group: turnserver
+        mode: '0644'
+      notify: Restart Coturn Service
+
+    # --- ОПТИМІЗАЦІЯ ТА ОЧИЩЕННЯ UFW ---
+
+    - name: Remove old wide UDP ports rule from UFW
+      ufw:
+        rule: allow
+        port: '49152:65535'
+        proto: udp
+        state: absent
+
+    - name: Allow new exact TURN dynamic media ports (UDP)
+      ufw:
+        rule: allow
+        port: '49152:49999'
+        proto: udp
+
+    - name: Allow Coturn signaling ports (STUN/TURN)
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: any
+      loop:
+        - '3478'
+        - '5349'
+
+    - name: Reload UFW to apply changes
+      ufw:
+        state: reloaded
+
+    - name: Ensure Coturn is started and enabled
+      systemd:
+        name: coturn
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Coturn Service
+      systemd:
+        name: coturn
+        state: restarted
+

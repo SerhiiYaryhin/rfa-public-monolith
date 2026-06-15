@@ -1,0 +1,19 @@
+# /etc/janus/janus.jcfg - Згенеровано Ansible для RFA
+general: {
+    configs_folder = "/usr/local/etc/janus"
+    plugins_folder = "/usr/local/lib/janus/plugins"
+    transports_folder = "/usr/local/lib/janus/transports"
+    
+    token_auth = true
+    admin_secret = "{{ janus_admin_secret }}"
+}
+
+nat: {
+    stun_server = "{{ coturn_realm }}"
+    stun_port = 3478
+    
+    turn_server = "{{ coturn_realm }}"
+    turn_port = 3478
+    turn_type = "udp"
+    turn_secret = "{{ coturn_static_secret }}"
+}

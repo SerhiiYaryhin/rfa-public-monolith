@@ -1,0 +1,21 @@
+# /etc/turnserver.conf - Згенеровано Ansible для RFA WebRTC
+listening-port=3478
+tls-listening-port=5349
+
+# Слухати на всіх інтерфейсах внутрішньої мережі
+listening-ip=0.0.0.0
+
+# Зовнішнє доменне імʼя для підключення клієнтів
+realm={{ coturn_realm }}
+
+# REST API аутентифікація для Janus
+use-auth-secret
+static-secret={{ coturn_static_secret }}
+
+# Фіксований діапазон UDP портів за вашою вимогою
+min-port=49152
+max-port=49999
+
+# Логування
+log-file=/var/log/turnserver.log
+simple-log

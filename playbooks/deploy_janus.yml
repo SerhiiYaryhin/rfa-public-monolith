@@ -1,0 +1,53 @@
+---
+- name: Deploy Janus Gateway via Docker using Ansible
+  hosts: all # Або ваша цільова група для сервера janus.rfa
+  become: yes
+
+  vars:
+    # Ті самі змінні, що й для Coturn, щоб вони синхронізувалися
+    coturn_realm: "rfa.toloka.media"
+    coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
+    
+    # Секретний ключ для вашого Spring Boot додатка
+    janus_admin_secret: "RFA_Super_Secret_Admin_Key"
+    
+    # Шлях на віддаленому сервері для конфігів
+    janus_base_dir: "/opt/janus"
+
+  tasks:
+    - name: Ensure Docker SDK for Python is installed (потрібно для Ansible Docker модулів)
+      apt:
+        name: python3-docker
+        state: present
+        update_cache: yes
+
+    - name: Create configuration directories for Janus
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ janus_base_dir }}"
+        - "{{ janus_base_dir }}/conf"
+
+    - name: Deploy Janus main config from template
+      template:
+        src: templates/janus.jcfg.j2
+        dest: "{{ janus_base_dir }}/conf/janus.jcfg"
+        mode: '0644'
+
+    - name: Deploy Janus AudioBridge config from template
+      template:
+        src: templates/janus.plugin.audiobridge.jcfg.j2
+        dest: "{{ janus_base_dir }}/conf/janus.plugin.audiobridge.jcfg"
+        mode: '0644'
+
+    - name: Run Janus Gateway Container
+      community.docker.docker_container:
+        name: rfa-janus
+        image: canopsis/janus-gateway:latest
+        state: started
+        restart_policy: unless-stopped
+        network_mode: host
+        volumes:
+          - "{{ janus_base_dir }}/conf:/usr/local/etc/janus"
