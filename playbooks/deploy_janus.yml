@@ -45,7 +45,7 @@
     - name: Run Janus Gateway Container
       community.docker.docker_container:
         name: rfa-janus
-        image: janusgateway/janus:latest # <--- ВИПРАВЛЕНО: Використовуємо офіційний образ замість canopsis
+        image: bennof/janus-gateway:latest # <--- ВИПРАВЛЕНО: Стабільна збірка від спільноти
         state: started
         restart_policy: unless-stopped
         network_mode: host
