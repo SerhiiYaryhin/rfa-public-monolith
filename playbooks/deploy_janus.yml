@@ -1,5 +1,5 @@
 ---
-- name: Deploy Janus Gateway via Docker using Ansible
+- name: Deploy Native Janus Gateway on Ubuntu 24.04
   hosts: janus.rfa
   become: yes
 
@@ -7,67 +7,71 @@
     coturn_realm: "rfa.toloka.media"
     coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
     janus_admin_secret: "RFA_Super_Secret_Admin_Key"
-    janus_base_dir: "/opt/janus"
 
   tasks:
-    - name: Ensure Docker SDK for Python is installed
+    - name: Install Janus Gateway and transport dependencies from Ubuntu Repos
       apt:
-        name: python3-docker
+        name:
+          - janus
+          - libmicrohttpd-dev
+          - libjansson-dev
+          - libssl-dev
+          - libglib2.0-dev
         state: present
         update_cache: yes
 
-    - name: Create configuration directories for Janus
+    - name: Ensure Janus system configuration directory exists
       file:
-        path: "{{ item }}"
+        path: /etc/janus
         state: directory
+        owner: root
+        group: root
         mode: '0755'
-      loop:
-        - "{{ janus_base_dir }}"
-        - "{{ janus_base_dir }}/conf"
 
-    - name: Deploy Janus main config from template
+    - name: Deploy janus.jcfg configuration
       template:
         src: templates/janus.jcfg.j2
-        dest: "{{ janus_base_dir }}/conf/janus.jcfg"
+        dest: /etc/janus/janus.jcfg
+        owner: root
+        group: root
         mode: '0644'
+      notify: restart janus
 
-    - name: Deploy Janus AudioBridge config from template
+    - name: Deploy Janus AudioBridge config
       template:
         src: templates/janus.plugin.audiobridge.jcfg.j2
-        dest: "{{ janus_base_dir }}/conf/janus.plugin.audiobridge.jcfg"
+        dest: /etc/janus/janus.plugin.audiobridge.jcfg
+        owner: root
+        group: root
         mode: '0644'
+      notify: restart janus
 
-    - name: Deploy Janus WebSockets config from template
-      template:
-        src: templates/janus.transport.websockets.jcfg.j2
-        dest: "{{ janus_base_dir }}/conf/janus.transport.websockets.jcfg"
-        mode: '0644'
-
-    - name: Deploy Janus HTTP config from template
+    - name: Deploy Janus HTTP transport config
       template:
         src: templates/janus.transport.http.jcfg.j2
-        dest: "{{ janus_base_dir }}/conf/janus.transport.http.jcfg"
+        dest: /etc/janus/janus.transport.http.jcfg
+        owner: root
+        group: root
         mode: '0644'
+      notify: restart janus
 
+    - name: Deploy Janus WebSockets transport config
+      template:
+        src: templates/janus.transport.websockets.jcfg.j2
+        dest: /etc/janus/janus.transport.websockets.jcfg
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart janus
 
-    - name: Запуск Docker контейнера з новим чистим Janus Gateway
-      community.docker.docker_container:
-        name: rfa-janus-core  # Нове ім'я для чистого контейнера
-        image: ghcr.io/bartbalaz/janus-gateway:0.14.2
+    - name: Ensure Janus systemd service is enabled and running
+      systemd:
+        name: janus
         state: started
-        restart_policy: unless-stopped
-        network_mode: host
-        command: ["/usr/local/bin/janus", "-F", "/usr/local/etc/janus"]
-        volumes:
-          - "/home/rfa-worker/janus/configs:/usr/local/etc/janus"
+        enabled: true
 
-#    - name: Run Janus Gateway Container
-#      community.docker.docker_container:
-#        name: rfa-janus
-#        image: sucwangsr/janus-webrtc-gateway-docker:latest
-#        state: started
-#        restart_policy: unless-stopped
-#        network_mode: host
-#        recreate: yes # <--- Важливо: змусить Ansible перестворити контейнер із новими файлами
-#        volumes:
-#          - "{{ janus_base_dir }}/conf:/usr/local/etc/janus"
+  handlers:
+    - name: restart janus
+      systemd:
+        name: janus
+        state: restarted
