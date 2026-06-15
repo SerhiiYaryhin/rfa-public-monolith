@@ -53,7 +53,7 @@
     - name: Запуск Docker контейнера з новим чистим Janus Gateway
       community.docker.docker_container:
         name: rfa-janus-core  # Нове ім'я для чистого контейнера
-        image: cgascoigne/janus-gateway:latest
+        image: bartbalaz/janus-gateway:latest
         state: started
         restart_policy: unless-stopped
         network_mode: host
