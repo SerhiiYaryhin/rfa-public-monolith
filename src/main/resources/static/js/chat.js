@@ -222,7 +222,9 @@ function onRoomList(payload) {
         rooms.forEach(function(rJson) {
             let r = JSON.parse(rJson);
             const item = document.createElement('div');
-            item.className = `chat-item list-group-item ${curroom === r.uuid ? 'active' : ''}`;
+            // Підсвічуємо кімнату тільки якщо ми НЕ в приватному чаті
+            const isActive = curroom === r.uuid && !clientuuid;
+            item.className = `chat-item list-group-item ${isActive ? 'active' : ''}`;
             
             item.innerHTML = `
                 <div class="chat-avatar"><i class="fas fa-hashtag"></i></div>
@@ -242,7 +244,7 @@ function onRoomList(payload) {
  * Вибір кімнати
  */
 function selectroom(uuid, name) {
-    if (curroom === uuid) return;
+    if (curroom === uuid && !clientuuid) return;
     
     if (subcurroom) subcurroom.unsubscribe();
     curroom = uuid;
@@ -254,6 +256,7 @@ function selectroom(uuid, name) {
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
     
+    // Скидаємо приватний режим
     clientuuid = null;
     toclientname = null;
     
@@ -265,7 +268,10 @@ function selectroom(uuid, name) {
         }));
     }
     
+    // Оновлюємо обидва списки для коректної підсвітки
     getroomlist();
+    getuserlist();
+    
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
@@ -292,7 +298,10 @@ function selectuserFromPublic(uuid, name) {
         }));
     }
     
+    // Оновлюємо обидва списки для коректної підсвітки
     getuserlist();
+    getroomlist();
+    
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
