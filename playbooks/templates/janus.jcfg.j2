@@ -1,19 +1,32 @@
-# /etc/janus/janus.jcfg - Згенеровано Ansible для RFA
+# /etc/janus/janus.jcfg - Згенеровано Ansible для RFA (NAT Optimized)
 general: {
     configs_folder = "/etc/janus"
     plugins_folder = "/usr/lib/x86_64-linux-gnu/janus/plugins"
     transports_folder = "/usr/lib/x86_64-linux-gnu/janus/transports"
-
+    
     token_auth = true
     admin_secret = "{{ janus_admin_secret }}"
 }
 
 nat: {
-    stun_server = "{{ coturn_realm }}"
+    # Janus використовує внутрішній шлюз для визначення своєї публічної адреси
+    stun_server = "{{ internal_gateway }}"
     stun_port = 3478
-
-    turn_server = "{{ coturn_realm }}"
+    
+    nice_debug = false
+    
+    # Використовуємо TURN через внутрішній шлюз для ретрансляції медіа
+    turn_server = "{{ internal_gateway }}"
     turn_port = 3478
     turn_type = "udp"
     turn_secret = "{{ coturn_static_secret }}"
+    
+    # Якщо ви знаєте статику, можна прописати явно, 
+    # але STUN через gate.rfa зазвичай достатньо:
+    # nat_1_1_mapping = "IP_АДРЕСА_RFA_TOLOKA_MEDIA"
+}
+
+media: {
+    # Дозволяємо роботу через IPv4
+    ipv6 = false
 }
