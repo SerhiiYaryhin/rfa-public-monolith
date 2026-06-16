@@ -1,0 +1,34 @@
+FROM ubuntu:noble
+
+# Уникаємо інтерактивних запитів при інсталяції
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Встановлюємо Janus та необхідні залежності
+RUN apt-get update && apt-get install -y \
+    janus \
+    libmicrohttpd-dev \
+    libjansson-dev \
+    libssl-dev \
+    libsrtp2-dev \
+    libsofia-sip-ua-dev \
+    libglib2.0-dev \
+    libopus-dev \
+    libogg-dev \
+    libcurl4-openssl-dev \
+    pkg-config \
+    gengetopt \
+    libtool \
+    automake \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Створюємо робочі директорії
+RUN mkdir -p /etc/janus
+
+# Janus за замовчуванням очікує конфіги в /etc/janus (або ми вкажемо при запуску)
+# Копіювання конфігів ми зробимо через Volume для гнучкості, 
+# або прямо в образ для "чистоти". Виберемо Volume для легких правок.
+
+EXPOSE 8088 8188 7088 7188 10000-10200/udp
+
+CMD ["/usr/bin/janus", "--configs-folder=/etc/janus", "--disable-colors", "--log-stdout"]
