@@ -5,11 +5,15 @@
   remote_user: rfa-worker
 
   vars:
-    coturn_realm: "rfa.toloka.media"
-    coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
-    janus_admin_secret: "RFA_Super_Secret_Admin_Key"
+    # Мережева топологія
+    external_domain: "rfa.toloka.media"
+    internal_gateway: "gate.rfa"
     
-    # Шляхи для нативної інсталяції
+    # Coturn налаштування (Janus звертається до нього всередині мережі)
+    coturn_static_secret: "YOUR_GENERATED_LONG_SECRET_KEY"
+    
+    # Janus налаштування
+    janus_admin_secret: "RFA_Super_Secret_Admin_Key"
     janus_config_dir: "/etc/janus"
     janus_old_docker_dir: "/opt/janus"
     janus_container_name: "rfa-janus"
@@ -81,7 +85,19 @@
             dest: "{{ janus_config_dir }}/janus.plugin.audiobridge.jcfg"
             mode: '0644'
 
-        - name: 2.6. Enable and restart Janus service
+        - name: 2.6. Deploy Janus HTTP transport config from template
+          template:
+            src: templates/janus.transport.http.jcfg.j2
+            dest: "{{ janus_config_dir }}/janus.transport.http.jcfg"
+            mode: '0644'
+
+        - name: 2.7. Deploy Janus WebSocket transport config from template
+          template:
+            src: templates/janus.transport.websockets.jcfg.j2
+            dest: "{{ janus_config_dir }}/janus.transport.websockets.jcfg"
+            mode: '0644'
+
+        - name: 2.8. Enable and restart Janus service
           systemd:
             name: janus
             state: restarted
