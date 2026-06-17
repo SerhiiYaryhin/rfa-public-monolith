@@ -27,7 +27,7 @@ public class JanusLiveController {
     @PostMapping("/start")
     public ResponseEntity<?> start(@RequestParam String stationId, @RequestParam String streamUrl) {
         JanusLiveStream stream = radioLiveService.startBroadcast(stationId, streamUrl);
-        logger.info("stationId: {} ,streamUrl:{}",stationId,streamUrl);
+        logger.info("Start stationId: {} ,streamUrl:{}",stationId,streamUrl);
         return ResponseEntity.ok(Map.of(
                 "status", "started",
                 "room_id", stream.getJanusRoomId(),
