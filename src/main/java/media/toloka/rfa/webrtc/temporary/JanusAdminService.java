@@ -1,4 +1,4 @@
-package media.toloka.rfa.webrtc.service;
+package media.toloka.rfa.webrtc.temporary;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
