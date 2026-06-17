@@ -1,0 +1,23 @@
+[Unit]
+Description=RFA FFmpeg WebRTC Stream Agent
+After=network.target
+
+[Service]
+# Користувач, від імені якого запускається скрипт
+User=ysv
+WorkingDirectory=/home/ysv/rfa-agent
+
+# Команда для запуску вашої програми (вказуємо абсолютні шляхи)
+ExecStart=/usr/bin/python3 /home/ysv/rfa-agent/rfa-ffmpeg-agent.py
+
+# Автоматичне перезапускання скрипта, якщо він впаде через помилку мережі
+Restart=always
+RestartSec=5
+
+# Логування виводу консолі в системний журнал
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=rfa-ffmpeg-agent
+
+[Install]
+WantedBy=multi-user.target
