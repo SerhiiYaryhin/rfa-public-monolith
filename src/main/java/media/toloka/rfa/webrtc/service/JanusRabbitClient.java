@@ -34,7 +34,7 @@ public class JanusRabbitClient {
      * а не загальний шаблон для керування радіостанціями.
      */
     public JanusRabbitClient(@Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
-                             @Value("${rabbitmq.queueJanus}") String janusQueue) {
+                             @Value("${rabbitmq.queueJanus:janus-commands}") String janusQueue) {
         this.rabbitTemplate = rabbitTemplate;
         this.janusQueue = janusQueue;
     }
