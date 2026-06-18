@@ -17,9 +17,9 @@ import java.util.Optional;
 @Service
 public class PortAllocationService {
 
-    // Початковий та кінцевий порти згідно з конфігурацією firewall сервера Janus
-    private static final int START_PORT = 10000;
-    private static final int END_PORT = 15000;
+    // Початковий та кінцевий порти згідно з конфігурацією rtp_port_range у janus.jcfg
+    private static final int START_PORT = 49152;
+    private static final int END_PORT = 49999;
 
     private final JanusStreamRepository repository;
 
