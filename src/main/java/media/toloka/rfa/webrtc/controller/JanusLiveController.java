@@ -75,4 +75,13 @@ public class JanusLiveController {
             "message", ok ? "Зв'язок з Janus встановлено успішно" : "Помилка зв'язку (перевірте RabbitMQ та секрети)"
         ));
     }
+
+    /**
+     * Отримання динамічного токена для WebRTC підключення.
+     */
+    @GetMapping("/token")
+    public ResponseEntity<?> getToken() {
+        String token = radioLiveService.generateAndRegisterToken();
+        return ResponseEntity.ok(Map.of("token", token));
+    }
 }

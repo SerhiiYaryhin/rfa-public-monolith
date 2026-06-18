@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>RFA WebRTC - Тест Прямого Ефіру</title>
+    <title>RFA WebRTC - Тест Прямого Ефіру з Токеном</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f0f2f5; color: #1c1e21; }
         .container { max-width: 650px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin: auto; }
@@ -18,29 +18,28 @@
         audio { width: 100%; margin-top: 25px; border-radius: 30px; }
         .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-right: 5px; }
         .badge-info { background: #1877f2; color: white; }
+        .badge-success { background: #42b72a; color: white; }
     </style>
 
-    <!-- adapter.min.js забезпечує кросбраузерність WebRTC функцій -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.3/adapter.min.js"></script>
-    <!-- janus.js — офіційна бібліотека для роботи з Janus Gateway -->
     <script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
 </head>
 <body>
 
 <div class="container">
-    <h2>📡 WebRTC Live Broadcast Test</h2>
+    <h2>📡 WebRTC Test (Token Auth)</h2>
     
     <div class="info-box">
-        Цей тест використовує плагін <strong>AudioBridge</strong> для підключення до прямого ефіру. 
-        На відміну від плагіна Streaming, AudioBridge дозволяє не лише слухати, а й повноцінно брати участь у дискусіях.
+        Ця сторінка використовує <strong>динамічні токени</strong>. Спочатку вона отримує токен у Spring Boot API, 
+        реєструє його в Janus через RabbitMQ, і лише потім відкриває WebRTC з'єднання.
     </div>
 
     <div class="form-group">
-        <label for="roomId">Room ID (отриманий з API):</label>
-        <input type="text" id="roomId" placeholder="Введіть числовий ID кімнати (наприклад: 1234)" value="">
+        <label for="roomId">Room ID:</label>
+        <input type="text" id="roomId" placeholder="ID кімнати з API" value="">
     </div>
 
-    <button id="connectBtn" onclick="startJanusStream()">🔗 Підключитися до ефіру</button>
+    <button id="connectBtn" onclick="initiateWithToken()">🔗 Отримати токен та підключитися</button>
 
     <audio id="audioPlayer" controls autoplay></audio>
 
@@ -51,99 +50,92 @@
     let janusInstance = null;
     let audioBridge = null;
 
-    // Адреса WebSocket шлюзу Janus через Nginx проксі
     const serverUrl = "wss://test.rfa.toloka.media/janus-ws";
 
-    /**
-     * Вивід логів на сторінку для відладки
-     */
     function log(message, type = 'INFO') {
         const consoleDiv = document.getElementById("logConsole");
         const time = new Date().toLocaleTimeString();
-        consoleDiv.innerHTML += `<div><span class="badge badge-info">${time}</span> ${message}</div>`;
+        const badgeClass = type === 'SUCCESS' ? 'badge-success' : 'badge-info';
+        consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
         consoleDiv.scrollTop = consoleDiv.scrollHeight;
-        console.log(`[${type}] ${message}`);
     }
 
     /**
-     * Основна функція запуску WebRTC з'єднання
+     * Крок 0: Отримання токена з бекенда
      */
-    function startJanusStream() {
+    async function initiateWithToken() {
         const roomId = parseInt(document.getElementById("roomId").value);
         if (isNaN(roomId)) {
-            alert("Будь ласка, введіть числовий ID кімнати!");
+            alert("Будь ласка, введіть Room ID!");
             return;
         }
 
         document.getElementById("connectBtn").disabled = true;
-        log("Ініціалізація WebRTC стеку...");
+        log("Запит токена в API...");
 
-        // Крок 1: Глобальна ініціалізація Janus
+        try {
+            const response = await fetch('/api/v1/webrtc/stream/token');
+            const data = await response.json();
+            const token = data.token;
+            
+            log("Токен отримано: " + token.substring(0, 15) + "...", 'SUCCESS');
+            startJanusStream(roomId, token);
+
+        } catch (e) {
+            log("Помилка отримання токена: " + e.message, 'ERROR');
+            document.getElementById("connectBtn").disabled = false;
+        }
+    }
+
+    /**
+     * Основна функція підключення
+     */
+    function startJanusStream(roomId, token) {
+        log("Ініціалізація Janus з токеном...");
+
         Janus.init({
             debug: "all",
             callback: function() {
-                log("Janus.js ініціалізовано. Спроба відкрити WebSocket...");
-
-                // Крок 2: Створення екземпляру Janus (Сесія)
                 janusInstance = new Janus({
                     server: serverUrl,
-                    apisecret: "janusrocks", // ДОДАНО: Секретний ключ для авторизації сесії
+                    token: token, // ВИКОРИСТОВУЄМО ТОКЕН ЗАМІСТЬ APISECRET
                     success: function() {
-                        log("WebSocket з'єднання встановлено!");
+                        log("WebSocket підключено (авторизовано токеном)");
 
-                        // Крок 3: Прикріплення до плагіна AudioBridge
                         janusInstance.attach({
                             plugin: "janus.plugin.audiobridge",
+                            token: token, // Передаємо токен також і при прикріпленні до плагіна
                             success: function(pluginHandle) {
                                 audioBridge = pluginHandle;
-                                log("Плагін AudioBridge успішно підключено.");
+                                log("Плагін AudioBridge підключено.");
                                 
-                                // Крок 4: Вхід у кімнату (JOIN)
-                                // Ми входимо як слухач (muted: true за замовчуванням для ефіру)
                                 let join = {
                                     request: "join",
                                     room: roomId,
-                                    display: "Web-Tester-" + Janus.randomString(4)
+                                    display: "User-" + Janus.randomString(4)
                                 };
-                                log("Надсилаємо запит на вхід у кімнату: " + roomId);
                                 audioBridge.send({ message: join });
                             },
                             error: function(error) {
-                                log("Помилка Attach: " + error, 'ERROR');
-                                document.getElementById("connectBtn").disabled = false;
+                                log("Помилка плагіна: " + error, 'ERROR');
                             },
-                            // Обробка вхідних повідомлень від плагіна
                             onmessage: function(msg, jsep) {
-                                log("Отримано подію Janus: " + (msg["audiobridge"] || msg["janus"]));
-
-                                // Якщо Janus надсилає JSEP (WebRTC пропозицію)
                                 if (jsep) {
-                                    log("Обробка JSEP пропозиції від сервера...");
                                     audioBridge.createAnswer({
                                         jsep: jsep,
-                                        media: { audioSend: false, audioRecv: true, video: false }, // Тільки прийом звуку
+                                        media: { audioSend: false, audioRecv: true, video: false },
                                         success: function(jsepAnswer) {
-                                            log("SDP Answer сформовано. Завершуємо Handshake...");
-                                            let configure = { request: "configure", muted: true };
-                                            audioBridge.send({ message: configure, jsep: jsepAnswer });
-                                        },
-                                        error: function(error) {
-                                            log("WebRTC Answer Error: " + JSON.stringify(error), 'ERROR');
+                                            audioBridge.send({ 
+                                                message: { request: "configure", muted: true }, 
+                                                jsep: jsepAnswer 
+                                            });
                                         }
                                     });
                                 }
                             },
-                            // Крок 5: Обробка віддаленого медіапотоку
                             onremotestream: function(stream) {
-                                log("УСПІХ: Отримано аудіопотік реального часу!");
-                                const player = document.getElementById("audioPlayer");
-                                // Прив'язка WebRTC потоку до стандартного тегу <audio>
-                                Janus.attachMediaStream(player, stream);
-                                player.play();
-                            },
-                            oncleanup: function() {
-                                log("З'єднання очищено.");
-                                document.getElementById("connectBtn").disabled = false;
+                                log("Аудіопотік отримано успішно!", 'SUCCESS');
+                                Janus.attachMediaStream(document.getElementById("audioPlayer"), stream);
                             }
                         });
                     },

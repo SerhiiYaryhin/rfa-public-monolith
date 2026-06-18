@@ -75,6 +75,16 @@ public class RadioLiveService {
     }
 
     /**
+     * Генерує унікальний токен для користувача та реєструє його в Janus.
+     * Це дозволяє фронтенду підключатися без знання статичного api_secret.
+     */
+    public String generateAndRegisterToken() {
+        String token = "rfa-token-" + java.util.UUID.randomUUID().toString().substring(0, 12);
+        janusClient.registerUserToken(token);
+        return token;
+    }
+
+    /**
      * Перевірка зв'язку з Janus Admin API.
      */
     public boolean pingJanus() {
