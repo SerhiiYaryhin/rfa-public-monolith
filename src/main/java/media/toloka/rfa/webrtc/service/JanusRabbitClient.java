@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Оновлений RPC-клієнт для Janus.
+ * Оскільки Client API (janus-commands) повертає 403, ми використовуємо 
+ * Admin API (janus-admin-commands) для всього циклу роботи.
+ */
 @Service
 public class JanusRabbitClient {
 
@@ -54,7 +59,7 @@ public class JanusRabbitClient {
     public Long createDynamicRoom(String roomDescription) {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "room-create-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
+            Map<String, Object> request = createAdminBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
             request.put("body", Map.of(
@@ -64,7 +69,7 @@ public class JanusRabbitClient {
                     "is_private", false
             ));
 
-            Map<String, Object> response = sendAndReceive(request);
+            Map<String, Object> response = sendAndReceiveAdmin(request);
             validatePluginResponse(response);
             return ((Number) ((Map)((Map)response.get("plugindata")).get("data")).get("room")).longValue();
         });
@@ -73,7 +78,7 @@ public class JanusRabbitClient {
     public Long createDynamicRoomWithRadio(String roomDescription, Integer rtpPort) {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "room-rtp-create-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
+            Map<String, Object> request = createAdminBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
             request.put("body", Map.of(
@@ -88,7 +93,7 @@ public class JanusRabbitClient {
                     "rtp_stream_channels", 2
             ));
 
-            Map<String, Object> response = sendAndReceive(request);
+            Map<String, Object> response = sendAndReceiveAdmin(request);
             validatePluginResponse(response);
             return ((Number) ((Map)((Map)response.get("plugindata")).get("data")).get("room")).longValue();
         });
@@ -105,7 +110,25 @@ public class JanusRabbitClient {
         sendAndReceiveAdmin(request);
     }
 
-    // --- СЕСІЙНА ЛОГІКА ---
+    public void toggleMute(Long roomId, Long participantJanusId, boolean mute) {
+        executeInSession((sessionId, handleId) -> {
+            String transactionId = (mute ? "mute-" : "unmute-") + generateShortUUID();
+            Map<String, Object> request = createAdminBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+            request.put("body", Map.of(
+                    "request", "configure",
+                    "room", roomId,
+                    "id", participantJanusId,
+                    "muted", mute
+            ));
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+            validatePluginResponse(response);
+            return null;
+        });
+    }
+
+    // --- СЕСІЙНА ЛОГІКА ЧЕРЕЗ ADMIN API ---
 
     private <T> T executeInSession(JanusAction<T> action) {
         Long sessionId = createSession();
@@ -119,49 +142,24 @@ public class JanusRabbitClient {
 
     private Long createSession() {
         String transactionId = "session-create-" + generateShortUUID();
-        
-        // Спробуємо спочатку з apiSecret
-        Map<String, Object> request = createBaseRequest("create", transactionId);
-        Map<String, Object> response = sendAndReceive(request);
-
-        // Якщо 403, спробуємо з adminSecret як apisecret
-        if ("error".equals(response.get("janus"))) {
-            Map<String, Object> error = (Map<String, Object>) response.get("error");
-            if (error != null && ((Number)error.get("code")).intValue() == 403) {
-                log.warn("403 з apiSecret, пробуємо з adminSecret...");
-                request.put("apisecret", adminSecret);
-                request.put("api_secret", adminSecret); // на випадок іншої версії
-                response = sendAndReceive(request);
-            }
-        }
-
-        // Якщо все ще 403, спробуємо БЕЗ секрету
-        if ("error".equals(response.get("janus"))) {
-            Map<String, Object> error = (Map<String, Object>) response.get("error");
-            if (error != null && ((Number)error.get("code")).intValue() == 403) {
-                log.warn("403 з adminSecret, пробуємо БЕЗ секрету...");
-                request.remove("apisecret");
-                request.remove("api_secret");
-                response = sendAndReceive(request);
-            }
-        }
+        Map<String, Object> request = createAdminBaseRequest("create", transactionId);
+        Map<String, Object> response = sendAndReceiveAdmin(request);
 
         if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Не вдалося створити сесію Janus: " + response);
+            throw new RuntimeException("Не вдалося створити сесію Janus через Admin API: " + response);
         }
-        
         return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
 
     private Long attachPlugin(Long sessionId, String plugin) {
         String transactionId = "attach-" + generateShortUUID();
-        Map<String, Object> request = createBaseRequest("attach", transactionId);
+        Map<String, Object> request = createAdminBaseRequest("attach", transactionId);
         request.put("session_id", sessionId);
         request.put("plugin", plugin);
 
-        Map<String, Object> response = sendAndReceive(request);
+        Map<String, Object> response = sendAndReceiveAdmin(request);
         if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Не вдалося прикріпити плагін: " + response);
+            throw new RuntimeException("Не вдалося прикріпити плагін через Admin API: " + response);
         }
         return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
@@ -169,22 +167,19 @@ public class JanusRabbitClient {
     private void destroySession(Long sessionId) {
         try {
             String transactionId = "destroy-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("destroy", transactionId);
+            Map<String, Object> request = createAdminBaseRequest("destroy", transactionId);
             request.put("session_id", sessionId);
-            sendAndReceive(request);
+            sendAndReceiveAdmin(request);
         } catch (Exception e) {
             log.warn("Session destroy failed: {}", e.getMessage());
         }
     }
 
-    private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
+    private Map<String, Object> createAdminBaseRequest(String janusType, String transactionId) {
         Map<String, Object> request = new HashMap<>();
         request.put("janus", janusType);
         request.put("transaction", transactionId);
-        if (apiSecret != null && !apiSecret.isEmpty()) {
-            request.put("apisecret", apiSecret);
-            request.put("api_secret", apiSecret); 
-        }
+        request.put("admin_secret", adminSecret); // Використовуємо адмін-секрет для всіх команд
         return request;
     }
 
@@ -198,12 +193,6 @@ public class JanusRabbitClient {
         if (data != null && data.containsKey("error")) {
             throw new RuntimeException("Plugin error: " + data.get("error"));
         }
-    }
-
-    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        Object res = rabbitTemplate.convertSendAndReceive(request);
-        if (res == null) throw new RuntimeException("Таймаут Janus API");
-        return (Map<String, Object>) res;
     }
 
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
