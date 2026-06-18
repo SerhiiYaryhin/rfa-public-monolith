@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Сутність для збереження стану активних динамічних кімнат та RTP-портів у базі даних.
- * Забезпечує захист від конфліктів портів при перезапуску серверів RFA.
+ * Сутність (Entity) для збереження стану активних WebRTC трансляцій у базі даних.
+ * 
+ * Цей об'єкт відіграє ключову роль у запобіганні конфліктам ресурсів:
+ * 1. Забезпечує унікальність UDP портів (rtpPort).
+ * 2. Дозволяє Spring Boot знати, яка радіостанція наразі має відкриту кімнату в Janus.
+ * 3. Зберігає інформацію про процес FFmpeg (ffmpegPid) для можливості його примусової зупинки.
  */
 @Entity
 @Table(name = "janus_live_streams")
@@ -15,26 +19,43 @@ public class JanusLiveStream {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Унікальний ідентифікатор радіостанції (наприклад, "toloka-radio", "rfa-rock")
+    /**
+     * Унікальний ідентифікатор радіостанції.
+     * Наприклад: "rock-fm", "toloka-news".
+     */
     @Column(name = "station_id", nullable = false, unique = true, length = 50)
     private String stationId;
 
-    // ID кімнати, який динамічно повернув Janus медіасервер
+    /**
+     * Числовий ID кімнати, який динамічно згенерував Janus медіасервер.
+     * Необхідний фронтенду для підключення через WebRTC.
+     */
     @Column(name = "janus_room_id", nullable = false)
     private Long janusRoomId;
 
-    // Динамічний UDP порт, виділений під FFmpeg потік цієї станції
+    /**
+     * UDP порт на сервері Janus (janus.rfa), виділений для прийому аудіо від FFmpeg.
+     * Кожна станція повинна мати унікальний порт у межах сервера.
+     */
     @Column(name = "rtp_port", nullable = false, unique = true)
     private Integer rtpPort;
 
-    // Process ID (PID) запущеного FFmpeg процесу на віддаленому сервері трансляцій
+    /**
+     * Ідентифікатор процесу FFmpeg на віддаленому сервері трансляцій.
+     * Використовується для моніторингу та зупинки процесу перекодування.
+     */
     @Column(name = "ffmpeg_pid")
     private Integer ffmpegPid;
 
+    /**
+     * Час створення запису. Використовується для аналітики та очищення старих "завислих" сесій.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Автоматично виставляємо час створення перед збереженням в БД
+    /**
+     * Колбек Hibernate для автоматичного виставлення дати створення перед збереженням у БД.
+     */
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

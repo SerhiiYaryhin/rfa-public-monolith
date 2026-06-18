@@ -8,6 +8,13 @@ import org.springframework.amqp.support.converter.MessageConverter;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Кастомний конвертер повідомлень для RabbitMQ на базі бібліотеки Google Gson.
+ * 
+ * Необхідний для коректної серіалізації та десеріалізації повідомлень Janus, 
+ * оскільки Janus використовує специфічну структуру JSON, яку стандартні конвертери
+ * Spring (Jackson) іноді обробляють некоректно у поєднанні з RabbitMQ RPC.
+ */
 public class GsonAmqpMessageConverter implements MessageConverter {
 
     private final Gson gson;
@@ -16,8 +23,10 @@ public class GsonAmqpMessageConverter implements MessageConverter {
         this.gson = gson;
     }
 
-    // Конвертація з Java-об'єкта в повідомлення для RabbitMQ (відправка)
-    // ЗМІНЕНО НАЗВУ МЕТОДУ: з createMessage на toMessage
+    /**
+     * Конвертація з Java-об'єкта (Map) у бінарне повідомлення для RabbitMQ (відправка).
+     * Встановлює правильні заголовки JSON та кодування UTF-8.
+     */
     @Override
     public Message toMessage(Object object, MessageProperties messageProperties) throws MessageConversionException {
         String json = this.gson.toJson(object);
@@ -30,11 +39,14 @@ public class GsonAmqpMessageConverter implements MessageConverter {
         return new Message(bytes, messageProperties);
     }
 
-    // Конвертація з повідомлення RabbitMQ в Java-об'єкт (прийом відповідей від Janus)
+    /**
+     * Конвертація з повідомлення RabbitMQ назад у Java-об'єкт (прийом відповідей).
+     * Розпаковує JSON у універсальну структуру Map<String, Object>.
+     */
     @Override
     public Object fromMessage(Message message) throws MessageConversionException {
         String json = new String(message.getBody(), StandardCharsets.UTF_8);
-        // Розпаковуємо як універсальну карту
+        // Розпаковуємо як універсальну карту (LinkedTreeMap у Gson)
         return this.gson.fromJson(json, Object.class);
     }
 }

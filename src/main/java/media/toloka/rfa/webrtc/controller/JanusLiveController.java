@@ -1,7 +1,6 @@
 package media.toloka.rfa.webrtc.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.podcast.AdminPodcastController;
 import media.toloka.rfa.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.webrtc.service.RadioLiveService;
 import org.slf4j.Logger;
@@ -11,6 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * REST-контролер для керування живими WebRTC трансляціями.
+ * 
+ * Цей контролер надає зовнішній API для запуску та зупинки ефірів радіостанцій.
+ * Він взаємодіє з RadioLiveService, який координує роботу медіасервера Janus
+ * та FFmpeg агентів.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/webrtc/stream")
@@ -22,28 +28,51 @@ public class JanusLiveController {
         this.radioLiveService = radioLiveService;
     }
 
-    final Logger logger = LoggerFactory.getLogger(JanusLiveController.class);
+    private static final Logger logger = LoggerFactory.getLogger(JanusLiveController.class);
 
+    /**
+     * Запуск трансляції радіостанції в WebRTC.
+     * 
+     * @param stationId Унікальний ID станції (наприклад, "rfa-rock")
+     * @param streamUrl Посилання на Icecast потік джерела (наприклад, "http://icecast.rfa/rock.mp3")
+     * @return Дані про створену кімнату: ID кімнати Janus та виділений RTP порт
+     */
     @PostMapping("/start")
     public ResponseEntity<?> start(@RequestParam String stationId, @RequestParam String streamUrl) {
+        logger.info("Запит на запуск стріму: stationId={}, streamUrl={}", stationId, streamUrl);
         JanusLiveStream stream = radioLiveService.startBroadcast(stationId, streamUrl);
-        logger.info("Start stationId: {} ,streamUrl:{}",stationId,streamUrl);
+        
         return ResponseEntity.ok(Map.of(
                 "status", "started",
                 "room_id", stream.getJanusRoomId(),
-                "rtp_port", stream.getRtpPort()
+                "rtp_port", stream.getRtpPort(),
+                "station_id", stationId
         ));
     }
 
+    /**
+     * Зупинка активної трансляції.
+     * Припиняє роботу FFmpeg процесу та видаляє кімнату в Janus (автоматично за таймаутом або явно).
+     * 
+     * @param stationId ID станції, яку потрібно вимкнути
+     */
     @PostMapping("/stop")
     public ResponseEntity<?> stop(@RequestParam String stationId) {
+        logger.info("Запит на зупинку стріму: stationId={}", stationId);
         radioLiveService.stopBroadcast(stationId);
         return ResponseEntity.ok(Map.of("status", "stopped", "station_id", stationId));
     }
 
+    /**
+     * Тестовий ендпоінт для перевірки зв'язку з Janus Admin API.
+     * Допомагає діагностувати проблеми з RabbitMQ та авторизацією.
+     */
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {
         boolean ok = radioLiveService.pingJanus();
-        return ResponseEntity.ok(Map.of("janus_admin_api", ok ? "up" : "down"));
+        return ResponseEntity.ok(Map.of(
+            "janus_admin_api", ok ? "up" : "down",
+            "message", ok ? "Зв'язок з Janus встановлено успішно" : "Помилка зв'язку (перевірте RabbitMQ та секрети)"
+        ));
     }
 }
