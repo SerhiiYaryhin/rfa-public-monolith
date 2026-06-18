@@ -33,6 +33,10 @@ public class JanusRabbitClient {
     @Value("${janus.secret}")
     private String apiSecret;
 
+    public String getApiSecret() {
+        return apiSecret;
+    }
+
     public JanusRabbitClient(@Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
                              @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate,
                              @Value("${rabbitmq.queueJanus:janus-commands}") String janusQueue) {

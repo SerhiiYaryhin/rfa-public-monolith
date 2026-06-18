@@ -82,7 +82,11 @@ public class JanusLiveController {
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
         String token = radioLiveService.generateAndRegisterToken();
-        return ResponseEntity.ok(Map.of("token", token));
+        String apiSecret = radioLiveService.getApiSecret();
+        return ResponseEntity.ok(Map.of(
+            "token", token,
+            "api_secret", apiSecret
+        ));
     }
 
     /**

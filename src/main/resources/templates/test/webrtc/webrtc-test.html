@@ -445,8 +445,7 @@
         <h2>📡 WebRTC Test (Token Auth)</h2>
         
         <div class="info-box">
-            Ця сторінка використовує <strong>динамічні токени</strong>. Спочатку вона отримує токен у Spring Boot API, 
-            реєструє його в Janus через RabbitMQ, і лише потім відкриває WebRTC з'єднання.
+            Ця сторінка використовує <strong>гнучку авторизацію</strong>. Ви можете вибрати тип авторизації, який підтримує ваш сервер Janus.
         </div>
 
         <div class="form-group">
@@ -454,7 +453,36 @@
             <input type="text" id="roomId" placeholder="Введіть ID кімнати або виберіть праворуч" value="">
         </div>
 
-        <button id="connectBtn" class="btn" onclick="initiateWithToken()">🔗 Отримати токен та підключитися</button>
+        <fieldset style="border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; box-sizing: border-box;">
+            <legend style="padding: 0 8px; color: #38bdf8; font-size: 13px; font-weight: bold;">Налаштування авторизації в Janus</legend>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
+                    <input type="radio" name="authType" value="token" checked onchange="toggleAuthFields()"> Динамічний токен
+                </label>
+                <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
+                    <input type="radio" name="authType" value="secret" onchange="toggleAuthFields()"> API Secret
+                </label>
+                <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
+                    <input type="radio" name="authType" value="both" onchange="toggleAuthFields()"> Токен + API Secret
+                </label>
+                <label style="display: inline-block; font-weight: normal; cursor: pointer; color: var(--text-main);">
+                    <input type="radio" name="authType" value="none" onchange="toggleAuthFields()"> Без паролів
+                </label>
+            </div>
+
+            <div id="tokenFieldContainer" class="form-group" style="margin-bottom: 12px;">
+                <label for="customToken">Token (Токен):</label>
+                <input type="text" id="customToken" placeholder="Буде отримано автоматично або введіть свій" value="">
+            </div>
+
+            <div id="secretFieldContainer" class="form-group" style="margin-bottom: 0; display: none;">
+                <label for="customSecret">API Secret (Секрет):</label>
+                <input type="text" id="customSecret" placeholder="Введіть API Secret (наприклад, janusrocks)" value="janusrocks">
+            </div>
+        </fieldset>
+
+        <button id="connectBtn" class="btn" onclick="initiateConnection()">🔗 Підключитися</button>
 
         <audio id="audioPlayer" controls autoplay></audio>
 
@@ -494,6 +522,29 @@
         
         consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
         consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    /**
+     * Відображення/приховування полів вводу авторизації
+     */
+    function toggleAuthFields() {
+        const authType = document.querySelector('input[name="authType"]:checked').value;
+        const tokenContainer = document.getElementById("tokenFieldContainer");
+        const secretContainer = document.getElementById("secretFieldContainer");
+
+        if (authType === 'token') {
+            tokenContainer.style.display = 'block';
+            secretContainer.style.display = 'none';
+        } else if (authType === 'secret') {
+            tokenContainer.style.display = 'none';
+            secretContainer.style.display = 'block';
+        } else if (authType === 'both') {
+            tokenContainer.style.display = 'block';
+            secretContainer.style.display = 'block';
+        } else {
+            tokenContainer.style.display = 'none';
+            secretContainer.style.display = 'none';
+        }
     }
 
     /**
@@ -592,94 +643,137 @@
      */
     function selectAndConnect(roomId) {
         document.getElementById("roomId").value = roomId;
-        initiateWithToken();
+        initiateConnection();
     }
 
     /**
-     * Крок 0: Отримання токена з бекенда
+     * Ініціалізація з'єднання з вибором типу авторизації
      */
-    async function initiateWithToken() {
+    async function initiateConnection() {
         const roomId = parseInt(document.getElementById("roomId").value);
         if (isNaN(roomId)) {
             alert("Будь ласка, введіть Room ID!");
             return;
         }
 
+        const authType = document.querySelector('input[name="authType"]:checked').value;
+        let token = null;
+        let apisecret = null;
+
         document.getElementById("connectBtn").disabled = true;
-        log("Запит токена в API для кімнати " + roomId + "...");
 
-        try {
-            const response = await fetch('/api/v1/webrtc/stream/token');
-            const data = await response.json();
-            const token = data.token;
-            
-            log("Токен отримано: " + token.substring(0, 15) + "...", 'SUCCESS');
-            startJanusStream(roomId, token);
-
-        } catch (e) {
-            log("Помилка отримання токена: " + e.message, 'ERROR');
-            document.getElementById("connectBtn").disabled = false;
+        if (authType === 'token' || authType === 'both') {
+            const customToken = document.getElementById("customToken").value.trim();
+            if (customToken) {
+                token = customToken;
+                log("Використовуємо вказаний токен: " + token.substring(0, 15) + "...");
+            } else {
+                log("Запит динамічного токена та секретів в API...");
+                try {
+                    const response = await fetch('/api/v1/webrtc/stream/token');
+                    const data = await response.json();
+                    token = data.token;
+                    document.getElementById("customToken").value = token;
+                    log("Токен отримано: " + token.substring(0, 15) + "...", 'SUCCESS');
+                    
+                    if (data.api_secret) {
+                        document.getElementById("customSecret").value = data.api_secret;
+                        apisecret = data.api_secret;
+                    }
+                } catch (e) {
+                    log("Помилка отримання токена: " + e.message, 'ERROR');
+                    document.getElementById("connectBtn").disabled = false;
+                    return;
+                }
+            }
         }
+
+        if (authType === 'secret' || authType === 'both') {
+            const fieldSecret = document.getElementById("customSecret").value.trim();
+            if (fieldSecret) {
+                apisecret = fieldSecret;
+            }
+            log("Використовуємо API Secret: " + (apisecret ? apisecret.substring(0, 4) + "***" : "порожній"));
+        }
+
+        startJanusStream(roomId, token, apisecret);
     }
 
     /**
      * Основна функція підключення
      */
-    function startJanusStream(roomId, token) {
-        log("Ініціалізація Janus з токеном...");
+    function startJanusStream(roomId, token, apisecret) {
+        log("Ініціалізація Janus з обраними параметрами авторизації...");
+
+        let janusConfig = {
+            server: serverUrl,
+            success: function() {
+                log("WebSocket підключено до Janus");
+
+                let attachConfig = {
+                    plugin: "janus.plugin.audiobridge",
+                    success: function(pluginHandle) {
+                        audioBridge = pluginHandle;
+                        log("Плагін AudioBridge прикріплено.");
+                        
+                        let join = {
+                            request: "join",
+                            room: roomId,
+                            display: "User-" + Janus.randomString(4)
+                        };
+                        audioBridge.send({ message: join });
+                    },
+                    error: function(error) {
+                        log("Помилка плагіна: " + error, 'ERROR');
+                        document.getElementById("connectBtn").disabled = false;
+                    },
+                    onmessage: function(msg, jsep) {
+                        if (jsep) {
+                            audioBridge.createAnswer({
+                                jsep: jsep,
+                                media: { audioSend: false, audioRecv: true, video: false },
+                                success: function(jsepAnswer) {
+                                    audioBridge.send({ 
+                                        message: { request: "configure", muted: true }, 
+                                        jsep: jsepAnswer 
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    onremotestream: function(stream) {
+                        log("Аудіопотік отримано успішно!", 'SUCCESS');
+                        Janus.attachMediaStream(document.getElementById("audioPlayer"), stream);
+                    }
+                };
+
+                // Додаємо авторизаційні параметри для прикріплення плагіна
+                if (token) attachConfig.token = token;
+                if (apisecret) attachConfig.apisecret = apisecret;
+
+                janusInstance.attach(attachConfig);
+            },
+            error: function(error) {
+                log("Помилка сесії: " + error, 'ERROR');
+                document.getElementById("connectBtn").disabled = false;
+            }
+        };
+
+        // Додаємо авторизаційні параметри для створення сесії
+        if (token) janusConfig.token = token;
+        if (apisecret) janusConfig.apisecret = apisecret;
+
+        // Знищуємо попередній інстанс якщо він існує
+        if (janusInstance) {
+            try {
+                janusInstance.destroy();
+            } catch(e) {}
+        }
 
         Janus.init({
             debug: "all",
             callback: function() {
-                janusInstance = new Janus({
-                    server: serverUrl,
-                    token: token,
-                    success: function() {
-                        log("WebSocket підключено (авторизовано токеном)");
-
-                        janusInstance.attach({
-                            plugin: "janus.plugin.audiobridge",
-                            token: token,
-                            success: function(pluginHandle) {
-                                audioBridge = pluginHandle;
-                                log("Плагін AudioBridge підключено.");
-                                
-                                let join = {
-                                    request: "join",
-                                    room: roomId,
-                                    display: "User-" + Janus.randomString(4)
-                                };
-                                audioBridge.send({ message: join });
-                            },
-                            error: function(error) {
-                                log("Помилка плагіна: " + error, 'ERROR');
-                                document.getElementById("connectBtn").disabled = false;
-                            },
-                            onmessage: function(msg, jsep) {
-                                if (jsep) {
-                                    audioBridge.createAnswer({
-                                        jsep: jsep,
-                                        media: { audioSend: false, audioRecv: true, video: false },
-                                        success: function(jsepAnswer) {
-                                            audioBridge.send({ 
-                                                message: { request: "configure", muted: true }, 
-                                                jsep: jsepAnswer 
-                                            });
-                                        }
-                                    });
-                                }
-                            },
-                            onremotestream: function(stream) {
-                                log("Аудіопотік отримано успішно!", 'SUCCESS');
-                                Janus.attachMediaStream(document.getElementById("audioPlayer"), stream);
-                            }
-                        });
-                    },
-                    error: function(error) {
-                        log("Помилка сесії: " + error, 'ERROR');
-                        document.getElementById("connectBtn").disabled = false;
-                    }
-                });
+                janusInstance = new Janus(janusConfig);
             }
         });
     }

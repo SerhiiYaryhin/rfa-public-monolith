@@ -153,4 +153,11 @@ public class RadioLiveService {
 
         return rooms;
     }
+
+    /**
+     * Отримання глобального api_secret медіасервера.
+     */
+    public String getApiSecret() {
+        return janusClient.getApiSecret();
+    }
 }
