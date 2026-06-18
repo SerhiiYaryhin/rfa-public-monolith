@@ -33,16 +33,37 @@ public class JanusRabbitClient {
     }
 
     /**
-     * Динамічне створення кімнати голосового чату (адміністративна команда).
+     * Перевірка зв'язку з Janus Admin API (ping).
+     */
+    public boolean pingJanus() {
+        String transactionId = "ping-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "ping",
+                "admin_secret", adminSecret,
+                "transaction", transactionId
+        );
+        try {
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+            return "success".equals(response.get("janus")) || "pong".equals(response.get("janus"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Динамічне створення кімнати голосового чату (через Admin API).
      */
     public Long createDynamicRoom(String roomDescription) {
         String transactionId = "room-create-" + generateShortUUID();
 
+        // Для Admin API формат повідомлення до плагіна інший:
+        // janus: admin_plugin_message, plugin: ..., request: { ... }
         Map<String, Object> request = Map.of(
-                "janus", "message",
+                "janus", "admin_plugin_message",
                 "admin_secret", adminSecret,
+                "plugin", "janus.plugin.audiobridge",
                 "transaction", transactionId,
-                "body", Map.of(
+                "request", Map.of(
                         "request", "create",
                         "description", roomDescription,
                         "sampling", 48000,
@@ -50,15 +71,15 @@ public class JanusRabbitClient {
                 )
         );
 
-        // Створення кімнати — адміністративна дія, відправляємо в admin queue
         Map<String, Object> response = sendAndReceiveAdmin(request);
 
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        if (data == null || !data.containsKey("room")) {
-            throw new IllegalStateException("Janus не повернув ID створеної кімнати. Відповідь: " + response);
+        // В Admin API відповідь від плагіна приходить у полі "response"
+        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
+        if (pluginResponse == null || !pluginResponse.containsKey("room")) {
+            throw new IllegalStateException("Janus Admin API не повернув ID кімнати. Відповідь: " + response);
         }
 
-        Double roomID = (Double) data.get("room");
+        Double roomID = (Double) pluginResponse.get("room");
         return roomID.longValue();
     }
 
@@ -145,16 +166,17 @@ public class JanusRabbitClient {
     }
 
     /**
-     * Створення кімнати з RTP (адміністративна команда).
+     * Створення кімнати з RTP (через Admin API).
      */
     public Long createDynamicRoomWithRadio(String roomDescription, Integer rtpPort) {
         String transactionId = "room-rtp-create-" + generateShortUUID();
 
         Map<String, Object> request = Map.of(
-                "janus", "message",
+                "janus", "admin_plugin_message",
                 "admin_secret", adminSecret,
+                "plugin", "janus.plugin.audiobridge",
                 "transaction", transactionId,
-                "body", Map.of(
+                "request", Map.of(
                         "request", "create",
                         "description", roomDescription,
                         "sampling", 48000,
@@ -169,12 +191,12 @@ public class JanusRabbitClient {
 
         Map<String, Object> response = sendAndReceiveAdmin(request);
 
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        if (data == null || !data.containsKey("room")) {
-            throw new IllegalStateException("Janus не повернув ID створеної RTP-кімнати. Відповідь: " + response);
+        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
+        if (pluginResponse == null || !pluginResponse.containsKey("room")) {
+            throw new IllegalStateException("Janus Admin API не повернув ID RTP-кімнати. Відповідь: " + response);
         }
 
-        Double roomID = (Double) data.get("room");
+        Double roomID = (Double) pluginResponse.get("room");
         return roomID.longValue();
     }
 }

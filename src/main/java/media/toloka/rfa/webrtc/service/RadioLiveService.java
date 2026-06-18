@@ -55,6 +55,10 @@ public class RadioLiveService {
         });
     }
 
+    public boolean pingJanus() {
+        return janusClient.pingJanus();
+    }
+
     /**
      * Допоміжний метод для відправки JSON у RabbitMQ
      */

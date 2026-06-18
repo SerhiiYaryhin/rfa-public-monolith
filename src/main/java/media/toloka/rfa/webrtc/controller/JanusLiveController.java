@@ -40,4 +40,10 @@ public class JanusLiveController {
         radioLiveService.stopBroadcast(stationId);
         return ResponseEntity.ok(Map.of("status", "stopped", "station_id", stationId));
     }
+
+    @GetMapping("/ping")
+    public ResponseEntity<?> ping() {
+        boolean ok = radioLiveService.pingJanus();
+        return ResponseEntity.ok(Map.of("janus_admin_api", ok ? "up" : "down"));
+    }
 }

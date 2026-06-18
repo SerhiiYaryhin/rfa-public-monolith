@@ -5,6 +5,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,12 @@ public class JanusRabbitConfig {
 
     @Value("${rabbitmq.queueJanusAdmin:janus-admin-commands}")
     private String queueJanusAdmin;
+
+    @Value("${rabbitmq.queueJanusFrom:from-janus}")
+    private String queueJanusFrom;
+
+    @Value("${rabbitmq.queueJanusAdminFrom:from-janus-admin}")
+    private String queueJanusAdminFrom;
 
     @Value("${rabbitmq.reply.timeout:5000}")
     private Integer replyTimeout;
@@ -62,6 +69,7 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanus);
+        rabbitTemplate.setReplyAddress(queueJanusFrom);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
@@ -71,9 +79,28 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusAdminRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
+        rabbitTemplate.setReplyAddress(queueJanusAdminFrom);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer janusReplyListenerContainer(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+                                                                      @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusFrom));
+        container.setMessageListener(rabbitTemplate);
+        return container;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+                                                                           @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusAdminFrom));
+        container.setMessageListener(rabbitTemplate);
+        return container;
     }
 
     @Bean
