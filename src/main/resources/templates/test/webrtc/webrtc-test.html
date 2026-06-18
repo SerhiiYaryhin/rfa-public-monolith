@@ -87,6 +87,7 @@
                 // Крок 2: Створення екземпляру Janus (Сесія)
                 janusInstance = new Janus({
                     server: serverUrl,
+                    apisecret: "janusrocks", // ДОДАНО: Секретний ключ для авторизації сесії
                     success: function() {
                         log("WebSocket з'єднання встановлено!");
 
