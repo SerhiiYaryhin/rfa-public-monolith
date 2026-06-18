@@ -122,6 +122,12 @@
             box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.25);
         }
 
+        input[type="text"]:disabled {
+            background-color: rgba(15, 23, 42, 0.3);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
         .btn {
             background-color: var(--success);
             color: white;
@@ -461,6 +467,9 @@
                     <input type="radio" name="authType" value="token" checked onchange="toggleAuthFields()"> Динамічний токен
                 </label>
                 <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
+                    <input type="radio" name="authType" value="manual_token" onchange="toggleAuthFields()"> Власний токен
+                </label>
+                <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
                     <input type="radio" name="authType" value="secret" onchange="toggleAuthFields()"> API Secret
                 </label>
                 <label style="display: inline-block; font-weight: normal; margin-right: 15px; cursor: pointer; color: var(--text-main);">
@@ -473,7 +482,7 @@
 
             <div id="tokenFieldContainer" class="form-group" style="margin-bottom: 12px;">
                 <label for="customToken">Token (Токен):</label>
-                <input type="text" id="customToken" placeholder="Буде отримано автоматично або введіть свій" value="">
+                <input type="text" id="customToken" placeholder="Буде отримано автоматично при підключенні" value="" disabled>
             </div>
 
             <div id="secretFieldContainer" class="form-group" style="margin-bottom: 0; display: none;">
@@ -531,15 +540,25 @@
         const authType = document.querySelector('input[name="authType"]:checked').value;
         const tokenContainer = document.getElementById("tokenFieldContainer");
         const secretContainer = document.getElementById("secretFieldContainer");
+        const tokenInput = document.getElementById("customToken");
 
         if (authType === 'token') {
             tokenContainer.style.display = 'block';
+            tokenInput.disabled = true;
+            tokenInput.placeholder = "Буде отримано автоматично при підключенні";
+            secretContainer.style.display = 'none';
+        } else if (authType === 'manual_token') {
+            tokenContainer.style.display = 'block';
+            tokenInput.disabled = false;
+            tokenInput.placeholder = "Введіть ваш токен тут";
             secretContainer.style.display = 'none';
         } else if (authType === 'secret') {
             tokenContainer.style.display = 'none';
             secretContainer.style.display = 'block';
         } else if (authType === 'both') {
             tokenContainer.style.display = 'block';
+            tokenInput.disabled = true;
+            tokenInput.placeholder = "Буде отримано автоматично при підключенні";
             secretContainer.style.display = 'block';
         } else {
             tokenContainer.style.display = 'none';
@@ -662,32 +681,38 @@
 
         document.getElementById("connectBtn").disabled = true;
 
+        // 1. Отримання токена (якщо вибрано динамічний токен або комбінований режим)
         if (authType === 'token' || authType === 'both') {
-            const customToken = document.getElementById("customToken").value.trim();
-            if (customToken) {
-                token = customToken;
-                log("Використовуємо вказаний токен: " + token.substring(0, 15) + "...");
-            } else {
-                log("Запит динамічного токена та секретів в API...");
-                try {
-                    const response = await fetch('/api/v1/webrtc/stream/token');
-                    const data = await response.json();
-                    token = data.token;
-                    document.getElementById("customToken").value = token;
-                    log("Токен отримано: " + token.substring(0, 15) + "...", 'SUCCESS');
-                    
-                    if (data.api_secret) {
-                        document.getElementById("customSecret").value = data.api_secret;
-                        apisecret = data.api_secret;
-                    }
-                } catch (e) {
-                    log("Помилка отримання токена: " + e.message, 'ERROR');
-                    document.getElementById("connectBtn").disabled = false;
-                    return;
+            log("Запит динамічного токена та секретів в API...");
+            try {
+                const response = await fetch('/api/v1/webrtc/stream/token');
+                const data = await response.json();
+                token = data.token;
+                document.getElementById("customToken").value = token;
+                log("Токен отримано: " + token.substring(0, 15) + "...", 'SUCCESS');
+                
+                if (data.api_secret) {
+                    document.getElementById("customSecret").value = data.api_secret;
+                    apisecret = data.api_secret;
                 }
+            } catch (e) {
+                log("Помилка отримання токена: " + e.message, 'ERROR');
+                document.getElementById("connectBtn").disabled = false;
+                return;
+            }
+        } else if (authType === 'manual_token') {
+            const fieldToken = document.getElementById("customToken").value.trim();
+            if (fieldToken) {
+                token = fieldToken;
+                log("Використовуємо вказаний вручну токен: " + token.substring(0, 15) + "...");
+            } else {
+                log("Помилка: Токен не вказано!", 'ERROR');
+                document.getElementById("connectBtn").disabled = false;
+                return;
             }
         }
 
+        // 2. Отримання секрету
         if (authType === 'secret' || authType === 'both') {
             const fieldSecret = document.getElementById("customSecret").value.trim();
             if (fieldSecret) {
@@ -781,6 +806,7 @@
     // Завантажувати список кімнат при старті та кожні 5 секунд
     document.addEventListener("DOMContentLoaded", function() {
         loadRooms();
+        toggleAuthFields();
         setInterval(loadRooms, 5000);
     });
 </script>
