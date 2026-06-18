@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * Високорівневий сервіс для керування прямими ефірами через WebRTC.
@@ -111,5 +113,44 @@ public class RadioLiveService {
         } catch (Exception e) {
             throw new RuntimeException("Помилка відправки команди FFmpeg: " + e.getMessage());
         }
+    }
+
+    /**
+     * Отримання повної інформації про активні кімнати Janus, їхніх учасників
+     * та статус трансляції (чи підключено Icecast-потік до цієї кімнати).
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getActiveRoomsInfo() {
+        List<Map<String, Object>> rooms;
+        try {
+            rooms = janusClient.getRoomsAndParticipants();
+        } catch (Exception e) {
+            rooms = Collections.emptyList();
+        }
+
+        Map<Long, JanusLiveStream> activeStreamsMap = new HashMap<>();
+        try {
+            for (JanusLiveStream stream : portService.getAllActiveStreams()) {
+                activeStreamsMap.put(stream.getJanusRoomId(), stream);
+            }
+        } catch (Exception e) {
+            // DB error fallback
+        }
+
+        for (Map<String, Object> room : rooms) {
+            Number roomIdNum = (Number) room.get("room");
+            if (roomIdNum != null) {
+                Long roomId = roomIdNum.longValue();
+                JanusLiveStream activeStream = activeStreamsMap.get(roomId);
+                if (activeStream != null) {
+                    room.put("is_streaming", true);
+                    room.put("station_id", activeStream.getStationId());
+                } else {
+                    room.put("is_streaming", false);
+                }
+            }
+        }
+
+        return rooms;
     }
 }

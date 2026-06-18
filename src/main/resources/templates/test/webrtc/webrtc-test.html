@@ -4,21 +4,434 @@
     <meta charset="UTF-8">
     <title>RFA WebRTC - Тест Прямого Ефіру з Токеном</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f0f2f5; color: #1c1e21; }
-        .container { max-width: 650px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin: auto; }
-        h2 { color: #1877f2; margin-top: 0; text-align: center; }
-        .info-box { background-color: #e7f3ff; border-left: 5px solid #1877f2; padding: 15px; margin-bottom: 25px; font-size: 14px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: #4b4f56; }
-        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background-color: #42b72a; color: white; border: none; padding: 14px; font-size: 18px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: background 0.3s; }
-        button:hover { background-color: #36a420; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        .status { margin-top: 25px; padding: 15px; border-radius: 6px; background-color: #1c1e21; color: #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 13px; height: 200px; overflow-y: auto; border: 1px solid #333; }
-        audio { width: 100%; margin-top: 25px; border-radius: 30px; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-right: 5px; }
-        .badge-info { background: #1877f2; color: white; }
-        .badge-success { background: #42b72a; color: white; }
+        :root {
+            --primary: #1877f2;
+            --primary-hover: #166fe5;
+            --success: #42b72a;
+            --success-hover: #36a420;
+            --danger: #e41e3f;
+            --background: #0f172a;
+            --panel-bg: #1e293b;
+            --card-bg: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #475569;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .app-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            max-width: 1250px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            flex: 1;
+            min-width: 320px;
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .panel-left {
+            flex: 1;
+            max-width: 550px;
+        }
+
+        .panel-right {
+            flex: 1.2;
+            min-width: 400px;
+        }
+
+        @media (max-width: 950px) {
+            .app-layout {
+                flex-direction: column;
+            }
+            .panel {
+                max-width: 100%;
+                min-width: 100%;
+            }
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #38bdf8;
+            text-align: center;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .info-box {
+            background-color: rgba(24, 119, 242, 0.15);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #93c5fd;
+            border-radius: 0 8px 8px 0;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.6);
+            color: var(--text-main);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.25);
+        }
+
+        .btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--success-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+
+        .status {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #020617;
+            color: #10b981;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .status div {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 25px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-info { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-success { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-error { background: rgba(228, 30, 63, 0.2); color: #f43f5e; border: 1px solid rgba(228, 30, 63, 0.3); }
+
+        /* Rooms section styling */
+        .rooms-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rooms-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #38bdf8;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-refresh:hover {
+            background: var(--border);
+        }
+
+        .rooms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            max-height: 580px;
+            padding-right: 5px;
+        }
+
+        .room-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            border-color: #64748b;
+        }
+
+        .room-card-live {
+            border-left: 4px solid var(--danger);
+            background: linear-gradient(to right, rgba(228, 30, 63, 0.05), var(--card-bg));
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .room-title-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .room-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .room-id {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .station-tag {
+            background: rgba(24, 119, 242, 0.2);
+            color: #60a5fa;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            align-self: flex-start;
+            font-weight: bold;
+            border: 1px solid rgba(24, 119, 242, 0.3);
+            margin-top: 2px;
+        }
+
+        .badge-live-pulse {
+            background: rgba(228, 30, 63, 0.25);
+            color: #f43f5e;
+            border: 1px solid rgba(228, 30, 63, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .room-body {
+            margin-bottom: 15px;
+            background: rgba(15, 23, 42, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .participants-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .no-users {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-avatar {
+            font-size: 14px;
+        }
+
+        .user-name {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .user-id {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .state-badge {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .state-badge.talking {
+            background: rgba(234, 179, 8, 0.2);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .state-badge.muted {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .state-badge.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .room-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-join-room {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-join-room:hover {
+            background: var(--primary-hover);
+        }
+
+        .no-rooms {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .no-rooms-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .error-box {
+            background: rgba(228, 30, 63, 0.1);
+            border: 1px solid rgba(228, 30, 63, 0.2);
+            color: #f43f5e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.3/adapter.min.js"></script>
@@ -26,24 +439,44 @@
 </head>
 <body>
 
-<div class="container">
-    <h2>📡 WebRTC Test (Token Auth)</h2>
-    
-    <div class="info-box">
-        Ця сторінка використовує <strong>динамічні токени</strong>. Спочатку вона отримує токен у Spring Boot API, 
-        реєструє його в Janus через RabbitMQ, і лише потім відкриває WebRTC з'єднання.
+<div class="app-layout">
+    <!-- Ліва панель: Підключення та консоль -->
+    <div class="panel panel-left">
+        <h2>📡 WebRTC Test (Token Auth)</h2>
+        
+        <div class="info-box">
+            Ця сторінка використовує <strong>динамічні токени</strong>. Спочатку вона отримує токен у Spring Boot API, 
+            реєструє його в Janus через RabbitMQ, і лише потім відкриває WebRTC з'єднання.
+        </div>
+
+        <div class="form-group">
+            <label for="roomId">Room ID (ID кімнати):</label>
+            <input type="text" id="roomId" placeholder="Введіть ID кімнати або виберіть праворуч" value="">
+        </div>
+
+        <button id="connectBtn" class="btn" onclick="initiateWithToken()">🔗 Отримати токен та підключитися</button>
+
+        <audio id="audioPlayer" controls autoplay></audio>
+
+        <div id="logConsole" class="status">-- СИСТЕМНИЙ ЖУРНАЛ --</div>
     </div>
 
-    <div class="form-group">
-        <label for="roomId">Room ID:</label>
-        <input type="text" id="roomId" placeholder="ID кімнати з API" value="">
+    <!-- Права панель: Список кімнат та користувачів -->
+    <div class="panel panel-right">
+        <div class="rooms-header">
+            <h3 class="rooms-title">🔊 Активні кімнати та користувачі</h3>
+            <button class="btn-refresh" onclick="loadRooms()">
+                🔄 Оновити
+            </button>
+        </div>
+        
+        <div id="roomsList" class="rooms-list">
+            <div class="no-rooms">
+                <div class="no-rooms-icon">⏳</div>
+                <div class="no-rooms-text">Завантаження даних про кімнати...</div>
+            </div>
+        </div>
     </div>
-
-    <button id="connectBtn" onclick="initiateWithToken()">🔗 Отримати токен та підключитися</button>
-
-    <audio id="audioPlayer" controls autoplay></audio>
-
-    <div id="logConsole" class="status">-- СИСТЕМНИЙ ЖУРНАЛ --</div>
 </div>
 
 <script>
@@ -55,9 +488,111 @@
     function log(message, type = 'INFO') {
         const consoleDiv = document.getElementById("logConsole");
         const time = new Date().toLocaleTimeString();
-        const badgeClass = type === 'SUCCESS' ? 'badge-success' : 'badge-info';
+        let badgeClass = 'badge-info';
+        if (type === 'SUCCESS') badgeClass = 'badge-success';
+        if (type === 'ERROR') badgeClass = 'badge-error';
+        
         consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
         consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    /**
+     * Завантаження списку кімнат з API
+     */
+    async function loadRooms() {
+        try {
+            const response = await fetch('/api/v1/webrtc/stream/rooms');
+            if (!response.ok) {
+                throw new Error("HTTP status " + response.status);
+            }
+            const rooms = await response.json();
+            
+            const roomsListDiv = document.getElementById("roomsList");
+            if (!rooms || rooms.length === 0) {
+                roomsListDiv.innerHTML = `
+                    <div class="no-rooms">
+                        <div class="no-rooms-icon">📭</div>
+                        <div class="no-rooms-text">Немає активних кімнат у Janus.</div>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            rooms.forEach(room => {
+                const isStreaming = room.is_streaming;
+                const roomId = room.room;
+                const description = room.description || `Кімната ${roomId}`;
+                const stationId = room.station_id || '';
+                const participants = room.participants || [];
+
+                let streamBadge = '';
+                let roomClass = 'room-card';
+                if (isStreaming) {
+                    streamBadge = `<span class="badge badge-live-pulse">🔴 LIVE</span>`;
+                    roomClass += ' room-card-live';
+                }
+
+                let participantsHtml = '';
+                if (participants.length === 0) {
+                    participantsHtml = '<div class="no-users">Немає користувачів у кімнаті</div>';
+                } else {
+                    participantsHtml = '<ul class="user-list">';
+                    participants.forEach(p => {
+                        const isMuted = p.muted;
+                        const isTalking = p.talking;
+                        let stateBadge = '';
+                        if (isTalking) {
+                            stateBadge = '<span class="state-badge talking">📢 говорить</span>';
+                        } else if (isMuted) {
+                            stateBadge = '<span class="state-badge muted">🔇 вимкнено</span>';
+                        } else {
+                            stateBadge = '<span class="state-badge active">🎙️ активний</span>';
+                        }
+                        participantsHtml += `
+                            <li class="user-item">
+                                <span class="user-avatar">👤</span>
+                                <span class="user-name">${p.display || 'Анонім'} <span class="user-id">(${p.id})</span></span>
+                                ${stateBadge}
+                            </li>`;
+                    });
+                    participantsHtml += '</ul>';
+                }
+
+                html += `
+                    <div class="${roomClass}">
+                        <div class="room-header">
+                            <div class="room-title-container">
+                                <span class="room-name">${description}</span>
+                                <span class="room-id">ID: ${roomId}</span>
+                                ${stationId ? `<span class="station-tag">${stationId}</span>` : ''}
+                            </div>
+                            ${streamBadge}
+                        </div>
+                        <div class="room-body">
+                            <div class="participants-title">Учасники (${participants.length}):</div>
+                            ${participantsHtml}
+                        </div>
+                        <div class="room-actions">
+                            <button class="btn-join-room" onclick="selectAndConnect(${roomId})">🔌 Підключитися</button>
+                        </div>
+                    </div>`;
+            });
+            roomsListDiv.innerHTML = html;
+        } catch (e) {
+            console.error("Помилка завантаження кімнат:", e);
+            document.getElementById("roomsList").innerHTML = `
+                <div class="error-box">
+                    ⚠️ Помилка завантаження даних з API: ${e.message}
+                </div>`;
+        }
+    }
+
+    /**
+     * Вибрати кімнату та підключитися
+     */
+    function selectAndConnect(roomId) {
+        document.getElementById("roomId").value = roomId;
+        initiateWithToken();
     }
 
     /**
@@ -71,7 +606,7 @@
         }
 
         document.getElementById("connectBtn").disabled = true;
-        log("Запит токена в API...");
+        log("Запит токена в API для кімнати " + roomId + "...");
 
         try {
             const response = await fetch('/api/v1/webrtc/stream/token');
@@ -98,13 +633,13 @@
             callback: function() {
                 janusInstance = new Janus({
                     server: serverUrl,
-                    token: token, // ВИКОРИСТОВУЄМО ТОКЕН ЗАМІСТЬ APISECRET
+                    token: token,
                     success: function() {
                         log("WebSocket підключено (авторизовано токеном)");
 
                         janusInstance.attach({
                             plugin: "janus.plugin.audiobridge",
-                            token: token, // Передаємо токен також і при прикріпленні до плагіна
+                            token: token,
                             success: function(pluginHandle) {
                                 audioBridge = pluginHandle;
                                 log("Плагін AudioBridge підключено.");
@@ -118,6 +653,7 @@
                             },
                             error: function(error) {
                                 log("Помилка плагіна: " + error, 'ERROR');
+                                document.getElementById("connectBtn").disabled = false;
                             },
                             onmessage: function(msg, jsep) {
                                 if (jsep) {
@@ -147,6 +683,12 @@
             }
         });
     }
+
+    // Завантажувати список кімнат при старті та кожні 5 секунд
+    document.addEventListener("DOMContentLoaded", function() {
+        loadRooms();
+        setInterval(loadRooms, 5000);
+    });
 </script>
 
 </body>

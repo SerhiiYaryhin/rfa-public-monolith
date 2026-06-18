@@ -84,4 +84,13 @@ public class JanusLiveController {
         String token = radioLiveService.generateAndRegisterToken();
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    /**
+     * Отримання списку активних кімнат, їхніх учасників та статусу трансляції.
+     */
+    @GetMapping("/rooms")
+    public ResponseEntity<?> getRooms() {
+        logger.info("Запит на отримання списку кімнат та користувачів");
+        return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
+    }
 }

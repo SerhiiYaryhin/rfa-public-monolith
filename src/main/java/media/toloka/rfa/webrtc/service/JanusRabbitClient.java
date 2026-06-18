@@ -125,6 +125,59 @@ public class JanusRabbitClient {
         sendAndReceiveAdmin(request);
     }
 
+    /**
+     * Отримання списку кімнат та їхніх учасників за один сеанс зв'язку з Janus.
+     */
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> getRoomsAndParticipants() {
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "rooms-list-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+            request.put("body", Map.of("request", "list"));
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("list");
+            if (rooms == null) {
+                return List.of();
+            }
+
+            for (Map<String, Object> room : rooms) {
+                try {
+                    Number roomIdNum = (Number) room.get("room");
+                    if (roomIdNum == null) continue;
+                    Long roomId = roomIdNum.longValue();
+
+                    String partTransactionId = "part-list-" + generateShortUUID();
+                    Map<String, Object> partRequest = createBaseRequest("message", partTransactionId);
+                    partRequest.put("session_id", sessionId);
+                    partRequest.put("handle_id", handleId);
+                    partRequest.put("body", Map.of(
+                            "request", "listparticipants",
+                            "room", roomId
+                    ));
+
+                    Map<String, Object> partResponse = sendAndReceive(partRequest);
+                    validatePluginResponse(partResponse);
+
+                    Map<String, Object> partPluginData = (Map<String, Object>) partResponse.get("plugindata");
+                    Map<String, Object> partData = (Map<String, Object>) partPluginData.get("data");
+                    List<Map<String, Object>> participants = (List<Map<String, Object>>) partData.get("participants");
+                    room.put("participants", participants != null ? participants : List.of());
+                } catch (Exception e) {
+                    log.error("Помилка отримання учасників для кімнати " + room.get("room"), e);
+                    room.put("participants", List.of());
+                }
+            }
+            return rooms;
+        });
+    }
+
     // --- СЕСІЙНА ЛОГІКА ---
 
     private <T> T executeInSession(JanusAction<T> action) {

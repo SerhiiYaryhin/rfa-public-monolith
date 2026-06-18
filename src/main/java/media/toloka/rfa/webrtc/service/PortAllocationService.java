@@ -5,6 +5,7 @@ import media.toloka.rfa.webrtc.repository.JanusStreamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,5 +66,13 @@ public class PortAllocationService {
     @Transactional
     public void deleteStream(String stationId) {
         repository.deleteByStationId(stationId);
+    }
+
+    /**
+     * Отримання списку всіх активних стрімів.
+     */
+    @Transactional(readOnly = true)
+    public List<JanusLiveStream> getAllActiveStreams() {
+        return repository.findAll();
     }
 }
