@@ -46,6 +46,7 @@ public class JanusRabbitClient {
             Map<String, Object> response = sendAndReceiveAdmin(request);
             return "pong".equals(response.get("janus")) || "success".equals(response.get("janus"));
         } catch (Exception e) {
+            log.error("Ping failed: {}", e.getMessage());
             return false;
         }
     }
@@ -53,31 +54,29 @@ public class JanusRabbitClient {
     public Long createDynamicRoom(String roomDescription) {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "room-create-" + generateShortUUID();
-            Map<String, Object> body = Map.of(
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+            request.put("body", Map.of(
                     "request", "create",
                     "description", roomDescription,
                     "sampling", 48000,
                     "is_private", false
-            );
-            
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-            request.put("body", body);
+            ));
 
             Map<String, Object> response = sendAndReceive(request);
             validatePluginResponse(response);
-
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            return ((Number) data.get("room")).longValue();
+            return ((Number) ((Map)((Map)response.get("plugindata")).get("data")).get("room")).longValue();
         });
     }
 
     public Long createDynamicRoomWithRadio(String roomDescription, Integer rtpPort) {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "room-rtp-create-" + generateShortUUID();
-            Map<String, Object> body = Map.of(
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+            request.put("body", Map.of(
                     "request", "create",
                     "description", roomDescription,
                     "sampling", 48000,
@@ -87,19 +86,11 @@ public class JanusRabbitClient {
                     "rtp_stream_codec", "opus",
                     "rtp_stream_sample_rate", 48000,
                     "rtp_stream_channels", 2
-            );
-
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-            request.put("body", body);
+            ));
 
             Map<String, Object> response = sendAndReceive(request);
             validatePluginResponse(response);
-
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            return ((Number) data.get("room")).longValue();
+            return ((Number) ((Map)((Map)response.get("plugindata")).get("data")).get("room")).longValue();
         });
     }
 
@@ -111,40 +102,55 @@ public class JanusRabbitClient {
         request.put("admin_secret", adminSecret);
         request.put("transaction", transactionId);
         request.put("plugins", List.of("janus.plugin.audiobridge"));
-
         sendAndReceiveAdmin(request);
     }
 
     // --- СЕСІЙНА ЛОГІКА ---
 
     private <T> T executeInSession(JanusAction<T> action) {
-        Long sessionId = null;
-        Long handleId = null;
+        Long sessionId = createSession();
         try {
-            sessionId = createSession();
-            handleId = attachPlugin(sessionId, "janus.plugin.audiobridge");
+            Long handleId = attachPlugin(sessionId, "janus.plugin.audiobridge");
             return action.apply(sessionId, handleId);
         } finally {
-            if (sessionId != null) {
-                destroySession(sessionId);
-            }
+            destroySession(sessionId);
         }
     }
 
     private Long createSession() {
         String transactionId = "session-create-" + generateShortUUID();
+        
+        // Спробуємо спочатку з apiSecret
         Map<String, Object> request = createBaseRequest("create", transactionId);
-        
         Map<String, Object> response = sendAndReceive(request);
+
+        // Якщо 403, спробуємо з adminSecret як apisecret
+        if ("error".equals(response.get("janus"))) {
+            Map<String, Object> error = (Map<String, Object>) response.get("error");
+            if (error != null && ((Number)error.get("code")).intValue() == 403) {
+                log.warn("403 з apiSecret, пробуємо з adminSecret...");
+                request.put("apisecret", adminSecret);
+                request.put("api_secret", adminSecret); // на випадок іншої версії
+                response = sendAndReceive(request);
+            }
+        }
+
+        // Якщо все ще 403, спробуємо БЕЗ секрету
+        if ("error".equals(response.get("janus"))) {
+            Map<String, Object> error = (Map<String, Object>) response.get("error");
+            if (error != null && ((Number)error.get("code")).intValue() == 403) {
+                log.warn("403 з adminSecret, пробуємо БЕЗ секрету...");
+                request.remove("apisecret");
+                request.remove("api_secret");
+                response = sendAndReceive(request);
+            }
+        }
+
         if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Не вдалося створити сесію Janus. Відповідь: " + response);
+            throw new RuntimeException("Не вдалося створити сесію Janus: " + response);
         }
         
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        if (data == null) {
-            throw new RuntimeException("Janus повернув успіх, але об'єкт 'data' відсутній: " + response);
-        }
-        return ((Number) data.get("id")).longValue();
+        return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
 
     private Long attachPlugin(Long sessionId, String plugin) {
@@ -155,11 +161,9 @@ public class JanusRabbitClient {
 
         Map<String, Object> response = sendAndReceive(request);
         if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Не вдалося прикріпити плагін " + plugin + ". Відповідь: " + response);
+            throw new RuntimeException("Не вдалося прикріпити плагін: " + response);
         }
-        
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        return ((Number) data.get("id")).longValue();
+        return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
 
     private void destroySession(Long sessionId) {
@@ -169,7 +173,7 @@ public class JanusRabbitClient {
             request.put("session_id", sessionId);
             sendAndReceive(request);
         } catch (Exception e) {
-            log.warn("Помилка при видаленні сесії Janus {}: {}", sessionId, e.getMessage());
+            log.warn("Session destroy failed: {}", e.getMessage());
         }
     }
 
@@ -179,42 +183,33 @@ public class JanusRabbitClient {
         request.put("transaction", transactionId);
         if (apiSecret != null && !apiSecret.isEmpty()) {
             request.put("apisecret", apiSecret);
+            request.put("api_secret", apiSecret); 
         }
         return request;
     }
 
     private void validatePluginResponse(Map<String, Object> response) {
         if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Помилка Janus API: " + response);
+            throw new RuntimeException("Janus API error: " + response);
         }
-        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        Map plugindata = (Map) response.get("plugindata");
         if (plugindata == null) return;
-        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        Map data = (Map) plugindata.get("data");
         if (data != null && data.containsKey("error")) {
-            throw new RuntimeException("Помилка плагіна Janus: " + data.get("error"));
+            throw new RuntimeException("Plugin error: " + data.get("error"));
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        log.debug("Sending to Janus: {}", request);
-        Object rawResponse = rabbitTemplate.convertSendAndReceive(request);
-        if (rawResponse == null) {
-            throw new RuntimeException("Таймаут Janus API (queue: " + janusQueue + ")");
-        }
-        log.debug("Received from Janus: {}", rawResponse);
-        return (Map<String, Object>) rawResponse;
+        Object res = rabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus API");
+        return (Map<String, Object>) res;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
-        log.debug("Sending to Janus Admin: {}", request);
-        Object rawResponse = adminRabbitTemplate.convertSendAndReceive(request);
-        if (rawResponse == null) {
-            throw new RuntimeException("Таймаут Janus Admin API");
-        }
-        log.debug("Received from Janus Admin: {}", rawResponse);
-        return (Map<String, Object>) rawResponse;
+        Object res = adminRabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus Admin API");
+        return (Map<String, Object>) res;
     }
 
     private String generateShortUUID() {
