@@ -12,8 +12,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * RPC-клієнт для взаємодії з медіасервером Janus через RabbitMQ.
- * Використовує Admin API для керування кімнатами та токенами.
+ * Оновлений RPC-клієнт для Janus.
+ * Оскільки прямі адмін-команди до плагінів заблоковані (error 457),
+ * ми використовуємо повний цикл: Create Session -> Attach Handle -> Send Message.
  */
 @Service
 public class JanusRabbitClient {
@@ -35,9 +36,6 @@ public class JanusRabbitClient {
         this.janusQueue = janusQueue;
     }
 
-    /**
-     * Перевірка зв'язку (Core command)
-     */
     public boolean pingJanus() {
         String transactionId = "ping-" + generateShortUUID();
         Map<String, Object> request = Map.of(
@@ -47,67 +45,77 @@ public class JanusRabbitClient {
         );
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            return "success".equals(response.get("janus")) || "pong".equals(response.get("janus"));
+            return "pong".equals(response.get("janus")) || "success".equals(response.get("janus"));
         } catch (Exception e) {
-            log.error("Janus ping failed: {}", e.getMessage());
             return false;
         }
     }
 
     /**
-     * Створення кімнати (Admin Plugin Message)
+     * Створення кімнати через повний цикл API
      */
     public Long createDynamicRoom(String roomDescription) {
-        String transactionId = "room-create-" + generateShortUUID();
-        
-        // Формат для адмін-команд плагінам: janus=admin_plugin_message, plugin=..., request={...}
-        Map<String, Object> request = Map.of(
-                "janus", "admin_plugin_message",
-                "admin_secret", adminSecret,
-                "transaction", transactionId,
-                "plugin", "janus.plugin.audiobridge",
-                "request", Map.of(
-                        "request", "create",
-                        "description", roomDescription,
-                        "sampling", 48000,
-                        "is_private", false
-                )
-        );
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "room-create-" + generateShortUUID();
+            Map<String, Object> request = Map.of(
+                    "janus", "message",
+                    "session_id", sessionId,
+                    "handle_id", handleId,
+                    "transaction", transactionId,
+                    "admin_secret", adminSecret,
+                    "body", Map.of(
+                            "request", "create",
+                            "description", roomDescription,
+                            "sampling", 48000,
+                            "is_private", false
+                    )
+            );
 
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        return extractRoomIdFromAdminResponse(response);
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            return ((Number) data.get("room")).longValue();
+        });
     }
 
     /**
-     * Створення RTP кімнати для радіо (Admin Plugin Message)
+     * Створення RTP кімнати через повний цикл API
      */
     public Long createDynamicRoomWithRadio(String roomDescription, Integer rtpPort) {
-        String transactionId = "room-rtp-create-" + generateShortUUID();
-        
-        Map<String, Object> request = Map.of(
-                "janus", "admin_plugin_message",
-                "admin_secret", adminSecret,
-                "transaction", transactionId,
-                "plugin", "janus.plugin.audiobridge",
-                "request", Map.of(
-                        "request", "create",
-                        "description", roomDescription,
-                        "sampling", 48000,
-                        "is_private", false,
-                        "rtp_stream", true,
-                        "rtp_stream_port", rtpPort,
-                        "rtp_stream_codec", "opus",
-                        "rtp_stream_sample_rate", 48000,
-                        "rtp_stream_channels", 2
-                )
-        );
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "room-rtp-create-" + generateShortUUID();
+            Map<String, Object> request = Map.of(
+                    "janus", "message",
+                    "session_id", sessionId,
+                    "handle_id", handleId,
+                    "transaction", transactionId,
+                    "admin_secret", adminSecret,
+                    "body", Map.of(
+                            "request", "create",
+                            "description", roomDescription,
+                            "sampling", 48000,
+                            "is_private", false,
+                            "rtp_stream", true,
+                            "rtp_stream_port", rtpPort,
+                            "rtp_stream_codec", "opus",
+                            "rtp_stream_sample_rate", 48000,
+                            "rtp_stream_channels", 2
+                    )
+            );
 
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        return extractRoomIdFromAdminResponse(response);
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            return ((Number) data.get("room")).longValue();
+        });
     }
 
     /**
-     * Реєстрація токена (Core command)
+     * Реєстрація токена залишається через Admin API (вона працює як Core command)
      */
     public void registerUserToken(String userToken) {
         String transactionId = "token-reg-" + generateShortUUID();
@@ -118,60 +126,84 @@ public class JanusRabbitClient {
                 "transaction", transactionId,
                 "plugins", List.of("janus.plugin.audiobridge")
         );
-
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Помилка реєстрації токена: " + response);
-        }
+        sendAndReceiveAdmin(request);
     }
 
-    /**
-     * Керування мікрофоном (Admin Plugin Message)
-     * Дозволяє модератору керувати учасником без створення клієнтської сесії
-     */
-    public void toggleMute(Long roomId, Long participantJanusId, boolean mute) {
-        String transactionId = (mute ? "mute-" : "unmute-") + generateShortUUID();
-        Map<String, Object> request = Map.of(
-                "janus", "admin_plugin_message",
-                "admin_secret", adminSecret,
-                "transaction", transactionId,
-                "plugin", "janus.plugin.audiobridge",
-                "request", Map.of(
-                        "request", "configure",
-                        "room", roomId,
-                        "id", participantJanusId,
-                        "muted", mute
-                )
-        );
+    // --- ДОПОМІЖНІ МЕТОДИ ДЛЯ СЕСІЙ ---
 
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
-        if (pluginResponse != null && pluginResponse.containsKey("error")) {
-            throw new RuntimeException("Janus AudioBridge error: " + pluginResponse.get("error"));
-        }
+    @FunctionalInterface
+    private interface JanusAction<T> {
+        T apply(Long sessionId, Long handleId);
     }
 
-    @SuppressWarnings("unchecked")
-    private Long extractRoomIdFromAdminResponse(Map<String, Object> response) {
-        // У відповіді на admin_plugin_message результат від плагіна лежить у полі "response"
-        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
-        if (pluginResponse == null || !pluginResponse.containsKey("room")) {
-            throw new IllegalStateException("Janus не повернув ID кімнати. Повна відповідь: " + response);
-        }
-        return ((Number) pluginResponse.get("room")).longValue();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
+    private <T> T executeInSession(JanusAction<T> action) {
+        Long sessionId = null;
+        Long handleId = null;
         try {
-            Object rawResponse = adminRabbitTemplate.convertSendAndReceive(request);
-            if (rawResponse == null) {
-                throw new RuntimeException("Таймаут відповіді від Janus Admin API");
+            // 1. Create Session
+            sessionId = createSession();
+            // 2. Attach Plugin
+            handleId = attachPlugin(sessionId, "janus.plugin.audiobridge");
+            // 3. Execute Action
+            return action.apply(sessionId, handleId);
+        } finally {
+            // 4. Destroy Session (Clean up)
+            if (sessionId != null) {
+                destroySession(sessionId);
             }
-            return (Map<String, Object>) rawResponse;
+        }
+    }
+
+    private Long createSession() {
+        String transactionId = "session-create-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "create",
+                "transaction", transactionId,
+                "admin_secret", adminSecret
+        );
+        Map<String, Object> response = sendAndReceive(request);
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        return ((Number) data.get("id")).longValue();
+    }
+
+    private Long attachPlugin(Long sessionId, String plugin) {
+        String transactionId = "attach-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "attach",
+                "session_id", sessionId,
+                "plugin", plugin,
+                "transaction", transactionId,
+                "admin_secret", adminSecret
+        );
+        Map<String, Object> response = sendAndReceive(request);
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        return ((Number) data.get("id")).longValue();
+    }
+
+    private void destroySession(Long sessionId) {
+        try {
+            String transactionId = "destroy-" + generateShortUUID();
+            Map<String, Object> request = Map.of(
+                    "janus", "destroy",
+                    "session_id", sessionId,
+                    "transaction", transactionId,
+                    "admin_secret", adminSecret
+            );
+            sendAndReceive(request);
         } catch (Exception e) {
-            log.error("Error communicating with Janus Admin API: {}", e.getMessage());
-            throw e;
+            log.warn("Failed to destroy Janus session {}: {}", sessionId, e.getMessage());
+        }
+    }
+
+    private void validatePluginResponse(Map<String, Object> response) {
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Помилка Janus API: " + response);
+        }
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) return;
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data != null && data.containsKey("error")) {
+            throw new RuntimeException("Помилка плагіна Janus: " + data.get("error"));
         }
     }
 
@@ -179,6 +211,13 @@ public class JanusRabbitClient {
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
         Object rawResponse = rabbitTemplate.convertSendAndReceive(request);
         if (rawResponse == null) throw new RuntimeException("Таймаут Janus API");
+        return (Map<String, Object>) rawResponse;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
+        Object rawResponse = adminRabbitTemplate.convertSendAndReceive(request);
+        if (rawResponse == null) throw new RuntimeException("Таймаут Janus Admin API");
         return (Map<String, Object>) rawResponse;
     }
 
