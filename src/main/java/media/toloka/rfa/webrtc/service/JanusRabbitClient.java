@@ -51,19 +51,16 @@ public class JanusRabbitClient {
     }
 
     /**
-     * Динамічне створення кімнати голосового чату (через Admin API).
+     * Динамічне створення кімнати голосового чату (через Client API).
      */
     public Long createDynamicRoom(String roomDescription) {
         String transactionId = "room-create-" + generateShortUUID();
 
-        // Для Admin API формат повідомлення до плагіна інший:
-        // janus: admin_plugin_message, plugin: ..., request: { ... }
         Map<String, Object> request = Map.of(
-                "janus", "admin_plugin_message",
+                "janus", "message",
                 "admin_secret", adminSecret,
-                "plugin", "janus.plugin.audiobridge",
                 "transaction", transactionId,
-                "request", Map.of(
+                "body", Map.of(
                         "request", "create",
                         "description", roomDescription,
                         "sampling", 48000,
@@ -71,20 +68,23 @@ public class JanusRabbitClient {
                 )
         );
 
-        Map<String, Object> response = sendAndReceiveAdmin(request);
+        Map<String, Object> response = sendAndReceive(request);
 
-        // В Admin API відповідь від плагіна приходить у полі "response"
-        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
-        if (pluginResponse == null || !pluginResponse.containsKey("room")) {
-            throw new IllegalStateException("Janus Admin API не повернув ID кімнати. Відповідь: " + response);
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) {
+            throw new IllegalStateException("Janus не повернув plugindata. Відповідь: " + response);
+        }
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data == null || !data.containsKey("room")) {
+            throw new IllegalStateException("Janus не повернув ID кімнати. Відповідь: " + response);
         }
 
-        Double roomID = (Double) pluginResponse.get("room");
+        Double roomID = (Double) data.get("room");
         return roomID.longValue();
     }
 
     /**
-     * Реєстрація токена доступу (адміністративна команда).
+     * Реєстрація токена доступу (через Admin API).
      */
     public void registerUserToken(String userToken) {
         String transactionId = "token-reg-" + generateShortUUID();
@@ -137,7 +137,6 @@ public class JanusRabbitClient {
     @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
         try {
-            // Використовуємо routingKey з налаштувань шаблону
             Object rawResponse = rabbitTemplate.convertSendAndReceive(request);
             if (rawResponse == null) {
                 throw new RuntimeException("Таймаут відповіді від Janus API через RabbitMQ (queue: " + janusQueue + ")");
@@ -166,17 +165,16 @@ public class JanusRabbitClient {
     }
 
     /**
-     * Створення кімнати з RTP (через Admin API).
+     * Створення кімнати з RTP (через Client API).
      */
     public Long createDynamicRoomWithRadio(String roomDescription, Integer rtpPort) {
         String transactionId = "room-rtp-create-" + generateShortUUID();
 
         Map<String, Object> request = Map.of(
-                "janus", "admin_plugin_message",
+                "janus", "message",
                 "admin_secret", adminSecret,
-                "plugin", "janus.plugin.audiobridge",
                 "transaction", transactionId,
-                "request", Map.of(
+                "body", Map.of(
                         "request", "create",
                         "description", roomDescription,
                         "sampling", 48000,
@@ -189,14 +187,18 @@ public class JanusRabbitClient {
                 )
         );
 
-        Map<String, Object> response = sendAndReceiveAdmin(request);
+        Map<String, Object> response = sendAndReceive(request);
 
-        Map<String, Object> pluginResponse = (Map<String, Object>) response.get("response");
-        if (pluginResponse == null || !pluginResponse.containsKey("room")) {
-            throw new IllegalStateException("Janus Admin API не повернув ID RTP-кімнати. Відповідь: " + response);
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) {
+            throw new IllegalStateException("Janus не повернув plugindata для RTP. Відповідь: " + response);
+        }
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data == null || !data.containsKey("room")) {
+            throw new IllegalStateException("Janus не повернув ID RTP-кімнати. Відповідь: " + response);
         }
 
-        Double roomID = (Double) pluginResponse.get("room");
+        Double roomID = (Double) data.get("room");
         return roomID.longValue();
     }
 }
