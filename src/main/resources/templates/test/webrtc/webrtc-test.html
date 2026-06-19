@@ -926,7 +926,7 @@
                         media: { audioSend: false, audioRecv: true, video: false }, // Тільки прийом звуку
                         success: function(jsepAnswer) {
                             log("SDP Answer сформовано. Завершуємо Handshake...", 'INFO');
-                            let configure = { request: "configure", muted: true };
+                            let configure = { request: "configure", muted: false };
                             audioBridge.send({ message: configure, jsep: jsepAnswer });
                         },
                         error: function(error) {
