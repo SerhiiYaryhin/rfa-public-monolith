@@ -94,6 +94,13 @@ public class RadioLiveService {
     }
 
     /**
+     * Отримання списку всіх активних кімнат AudioBridge та їхніх учасників.
+     */
+    public List<Map<String, Object>> listRoomsAndParticipants() {
+        return janusClient.getRoomsAndParticipants();
+    }
+
+    /**
      * Формує та надсилає JSON-команду для FFmpeg Агента через RabbitMQ.
      */
     private void sendFfmpegCommand(String command, String stationId, String streamUrl, String rtpUrl) {

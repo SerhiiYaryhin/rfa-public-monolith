@@ -206,4 +206,88 @@ public class JanusRabbitClient {
     // --- СЕСІЙНА ЛОГІКА ---
 
     private <T> T executeInSession(JanusAction<T> action) {
+        Long sessionId = createSession();
+        try {
+            Long handleId = attachPlugin(sessionId, "janus.plugin.audiobridge");
+            return action.apply(sessionId, handleId);
+        } finally {
+            destroySession(sessionId);
+        }
+    }
+
+    private Long createSession() {
+        String transactionId = "session-create-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("create", transactionId);
+        Map<String, Object> response = sendAndReceive(request);
+
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Помилка створення сесії: " + response);
+        }
+        return ((Number) ((Map)response.get("data")).get("id")).longValue();
+    }
+
+    private Long attachPlugin(Long sessionId, String plugin) {
+        String transactionId = "attach-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("attach", transactionId);
+        request.put("session_id", sessionId);
+        request.put("plugin", plugin);
+
+        Map<String, Object> response = sendAndReceive(request);
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Помилка прикріплення плагіна: " + response);
+        }
+        return ((Number) ((Map)response.get("data")).get("id")).longValue();
+    }
+
+    private void destroySession(Long sessionId) {
+        try {
+            String transactionId = "destroy-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("destroy", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Destroy session failed: {}", e.getMessage());
+        }
+    }
+
+    private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("janus", janusType);
+        request.put("transaction", transactionId);
+        request.put("apisecret", apiSecret); // Використовуємо підтверджений 'janusrocks'
+        return request;
+    }
+
+    private void validatePluginResponse(Map<String, Object> response) {
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Janus API error: " + response);
+        }
+        Map plugindata = (Map) response.get("plugindata");
+        if (plugindata == null) return;
+        Map data = (Map) plugindata.get("data");
+        if (data != null && data.containsKey("error")) {
+            throw new RuntimeException("Plugin error: " + data.get("error"));
+        }
+    }
+
+    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
+        Object res = rabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus API");
+        return (Map<String, Object>) res;
+    }
+
+    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
+        Object res = adminRabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus Admin API");
+        return (Map<String, Object>) res;
+    }
+
+    private String generateShortUUID() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    @FunctionalInterface
+    private interface JanusAction<T> {
+        T apply(Long sessionId, Long handleId);
+    }
 }
