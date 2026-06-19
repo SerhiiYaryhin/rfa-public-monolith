@@ -156,6 +156,14 @@
             transform: none;
             opacity: 0.6;
         }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: #c41c37;
+        }
 
         .status {
             margin-top: 25px;
@@ -301,6 +309,19 @@
             border: 1px solid rgba(24, 119, 242, 0.3);
             margin-top: 2px;
         }
+        
+        .rtp-port-tag {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            align-self: flex-start;
+            font-weight: bold;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            margin-top: 2px;
+            margin-left: 5px;
+        }
 
         .badge-live-pulse {
             background: rgba(228, 30, 63, 0.25);
@@ -403,9 +424,10 @@
             display: flex;
             justify-content: flex-end;
             margin-top: 10px;
+            gap: 10px;
         }
 
-        .btn-join-room {
+        .btn-action-room {
             background: var(--primary);
             color: white;
             border: none;
@@ -417,8 +439,15 @@
             transition: background 0.2s;
         }
 
-        .btn-join-room:hover {
+        .btn-action-room:hover {
             background: var(--primary-hover);
+        }
+        
+        .btn-stop-stream {
+            background: var(--danger);
+        }
+        .btn-stop-stream:hover {
+            background: #c41c37;
         }
 
         .no-rooms {
@@ -458,11 +487,25 @@
         </div>
 
         <div class="form-group">
+            <label for="stationId">Station ID (ID радіостанції):</label>
+            <input type="text" id="stationId" placeholder="Наприклад: rock-fm" value="test_station">
+        </div>
+
+        <div class="form-group">
             <label for="roomId">Room ID (ID кімнати):</label>
             <input type="text" id="roomId" placeholder="Введіть ID кімнати або виберіть праворуч" value="">
         </div>
 
-        <fieldset style="border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; box-sizing: border-box;">
+        <div class="form-group">
+            <label for="streamUrl">Stream URL (URL потоку радіо):</label>
+            <input type="text" id="streamUrl" placeholder="Наприклад: http://icecast.rfa:8000/ukraine" value="http://icecast.rfa:8000/ukraine">
+        </div>
+        
+        <button id="startStreamBtn" class="btn btn-action-room" onclick="startStreamToRoom()">▶️ Запустити потік на радіо</button>
+        <button id="stopStreamBtn" class="btn btn-action-room btn-danger" onclick="stopStreamFromRoom()" style="margin-top: 10px;">⏹️ Зупинити потік з радіо</button>
+
+
+        <fieldset style="border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-top: 20px; margin-bottom: 20px; box-sizing: border-box;">
             <legend style="padding: 0 8px; color: #38bdf8; font-size: 13px; font-weight: bold;">Налаштування авторизації в Janus</legend>
             
             <div class="form-group" style="margin-bottom: 15px;">
@@ -494,7 +537,7 @@
             </div>
         </fieldset>
 
-        <button id="connectBtn" class="btn" onclick="initiateConnection()">🔗 Підключитися</button>
+        <button id="connectBtn" class="btn" onclick="initiateConnection()">🔗 Підключитися до кімнати</button>
 
         <audio id="audioPlayer" controls autoplay></audio>
 
@@ -597,11 +640,11 @@
 
             let html = '';
             rooms.forEach(room => {
-                const isStreaming = room.rtp_stream; // Перевірка, чи є RTP стрім (індикатор LIVE)
+                const isStreaming = room.is_streaming; // Перевірка, чи є RTP стрім (індикатор LIVE)
                 const roomId = room.room;
                 const description = room.description || `Кімната ${roomId}`;
                 const stationId = room.station_id || ''; // Якщо є інфа про станцію, напр. з БД
-                const participants = room.participants || [];
+                const rtpPort = room.rtp_port || ''; // Порт, на який йде трансляція
 
                 let streamBadge = '';
                 let roomClass = 'room-card';
@@ -643,6 +686,7 @@
                                 <span class="room-name">${description}</span>
                                 <span class="room-id">ID: ${roomId}</span>
                                 ${stationId ? `<span class="station-tag">${stationId}</span>` : ''}
+                                ${rtpPort ? `<span class="rtp-port-tag">RTP: ${rtpPort}</span>` : ''}
                             </div>
                             ${streamBadge}
                         </div>
@@ -651,7 +695,8 @@
                             ${participantsHtml}
                         </div>
                         <div class="room-actions">
-                            <button class="btn-join-room" onclick="selectAndConnect(${roomId})">🔌 Підключитися</button>
+                            ${isStreaming ? `<button class="btn-action-room btn-stop-stream" onclick="stopStreamFromRoom('${stationId}')">⏹️ Зупинити радіо</button>` : ''}
+                            <button class="btn-action-room" onclick="selectAndConnect(${roomId})">🔌 Підключитися</button>
                         </div>
                     </div>`;
             });
@@ -670,6 +715,8 @@
      */
     function selectAndConnect(roomId) {
         document.getElementById("roomId").value = roomId;
+        // Можливо, також встановити stationId, якщо він є в room об'єкті
+        // document.getElementById("stationId").value = room.station_id;
         initiateConnection();
     }
 
@@ -722,19 +769,82 @@
         }
 
         // 2. Отримання секрету (якщо потрібно)
-        if (authType === 'secret' || authType === 'both' || authType === 'manual_token') { // Секрет може знадобитися навіть з ручним токеном
+        if (authType === 'secret' || authType === 'both' || (authType === 'manual_token' && document.getElementById("customSecret").value.trim())) { 
             const fieldSecret = document.getElementById("customSecret").value.trim();
             if (fieldSecret) {
                 apisecret = fieldSecret;
-            } else if (authType === 'secret' || authType === 'both') { // Якщо очікуємо секрет, але його немає
+            } else if (authType === 'secret' || authType === 'both') { 
                 log("Помилка: API Secret не вказано для обраного режиму!", 'ERROR');
                 document.getElementById("connectBtn").disabled = false;
                 return;
             }
+        } else if (authType === 'none') {
+            apisecret = undefined; // Явно встановлюємо undefined для режиму "Без паролів"
         }
         
         startJanusStream(roomId, token, apisecret);
     }
+
+    /**
+     * Запускає трансляцію радіостанції в обрану кімнату.
+     */
+    async function startStreamToRoom() {
+        const stationId = document.getElementById("stationId").value.trim();
+        const streamUrl = document.getElementById("streamUrl").value.trim();
+
+        if (!stationId) { alert("Будь ласка, введіть Station ID!"); return; }
+        if (!streamUrl) { alert("Будь ласка, введіть Stream URL!"); return; }
+
+        log(`Запуск потоку: Station ID=${stationId}, Stream URL=${streamUrl}`, 'INFO');
+        try {
+            const response = await fetch('/api/v1/webrtc/stream/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ stationId: stationId, streamUrl: streamUrl })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+            }
+            const data = await response.json();
+            log(`Потік запущено успішно! Room ID: ${data.room_id}, RTP Port: ${data.rtp_port}`, 'SUCCESS');
+            document.getElementById("roomId").value = data.room_id; // Автозаповнення Room ID
+            loadRooms(); // Оновити список кімнат
+        } catch (e) {
+            log("Помилка запуску потоку: " + e.message, 'ERROR');
+        }
+    }
+
+    /**
+     * Зупиняє трансляцію радіостанції.
+     */
+    async function stopStreamFromRoom(stationIdToStop = null) {
+        let currentStationId = stationIdToStop;
+        if (!currentStationId) {
+            currentStationId = document.getElementById("stationId").value.trim();
+        }
+
+        if (!currentStationId) { alert("Будь ласка, введіть Station ID або виберіть стрім для зупинки!"); return; }
+
+        log(`Зупинка потоку: Station ID=${currentStationId}`, 'INFO');
+        try {
+            const response = await fetch('/api/v1/webrtc/stream/stop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ stationId: currentStationId })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+            }
+            const data = await response.json();
+            log(`Потік зупинено успішно! Station ID: ${data.station_id}`, 'SUCCESS');
+            loadRooms(); // Оновити список кімнат
+        } catch (e) {
+            log("Помилка зупинки потоку: " + e.message, 'ERROR');
+        }
+    }
+
 
     /**
      * Ініціалізує Janus.js та підключається до кімнати
