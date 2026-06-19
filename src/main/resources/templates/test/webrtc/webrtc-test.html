@@ -645,6 +645,7 @@
                 const description = room.description || `Кімната ${roomId}`;
                 const stationId = room.station_id || ''; // Якщо є інфа про станцію, напр. з БД
                 const rtpPort = room.rtp_port || ''; // Порт, на який йде трансляція
+                const participants = room.participants || []; // Оголошення змінної participants
 
                 let streamBadge = '';
                 let roomClass = 'room-card';
