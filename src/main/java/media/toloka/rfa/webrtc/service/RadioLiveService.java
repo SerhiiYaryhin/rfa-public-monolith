@@ -2,6 +2,8 @@ package media.toloka.rfa.webrtc.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import media.toloka.rfa.webrtc.model.JanusLiveStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,9 @@ public class RadioLiveService {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
+    private static final Logger log = LoggerFactory.getLogger(RadioLiveService.class);
+
+
     public RadioLiveService(JanusRabbitClient janusClient,
                             PortAllocationService portService,
                             RabbitTemplate rabbitTemplate,
@@ -47,11 +52,14 @@ public class RadioLiveService {
     public JanusLiveStream startBroadcast(String stationId, String sourceStreamUrl) {
         // Якщо ефір вже запущено — повертаємо існуючий стрім
         return portService.getStreamByStation(stationId).orElseGet(() -> {
+            log.info("Потрапили в незапущену станцію: {}",stationId);
             // Шукаємо вільний порт
             Integer freePort = portService.findNextFreePort();
+            log.info("Порт для трансляції на Janus: {}",freePort);
 
             // 1. Створюємо кімнату в Janus з підтримкою RTP на виділеному порту
             Long janusRoomId = janusClient.createDynamicRoomWithRadio("Ефір: " + stationId, freePort);
+            log.info("ID кімнати в Янус: {}", janusRoomId);
 
             // 2. Надсилаємо команду FFmpeg Агенту для запуску трансляції.
             // FFmpeg почне читати sourceStreamUrl і пересилати його в Opus/RTP на janus.rfa:freePort
@@ -133,6 +141,7 @@ public class RadioLiveService {
 
             // Серіалізуємо в JSON та відправляємо в чергу
             String jsonPayload = objectMapper.writeValueAsString(message);
+            log.info("Відправляємо в Rabbit: {}",jsonPayload);
             rabbitTemplate.convertAndSend("ffmpeg-agent-commands", jsonPayload);
 
         } catch (Exception e) {
