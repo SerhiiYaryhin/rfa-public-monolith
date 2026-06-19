@@ -19,6 +19,10 @@ public interface JanusStreamJpaRepository extends JpaRepository<JanusLiveStream,
     @Override
     Optional<JanusLiveStream> findByStationId(String stationId);
 
+    /** Пошук за janus_room_id */
+    @Override
+    Optional<JanusLiveStream> findByJanusRoomId(Long janusRoomId);
+
     /** Видалення за station_id (автоматичне генерування DELETE WHERE station_id = ?) */
     @Override
     void deleteByStationId(String stationId);

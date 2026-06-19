@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; // ДОДАНО
 import java.util.Collections;
 
 /**
@@ -95,9 +96,26 @@ public class RadioLiveService {
 
     /**
      * Отримання списку всіх активних кімнат AudioBridge та їхніх учасників.
+     * Збагачує дані Janus інформацією про трансляцію радіостанції з локальної БД.
      */
     public List<Map<String, Object>> listRoomsAndParticipants() {
-        return janusClient.getRoomsAndParticipants();
+        List<Map<String, Object>> janusRooms = janusClient.getRoomsAndParticipants();
+        
+        // Збагачуємо інформацію про кімнати даними з нашої БД
+        for (Map<String, Object> room : janusRooms) {
+            Long janusRoomId = ((Number) room.get("room")).longValue();
+            Optional<JanusLiveStream> liveStreamOpt = portService.getStreamByJanusRoomId(janusRoomId);
+            
+            if (liveStreamOpt.isPresent()) {
+                JanusLiveStream liveStream = liveStreamOpt.get();
+                room.put("is_streaming", true);
+                room.put("station_id", liveStream.getStationId());
+                room.put("rtp_port", liveStream.getRtpPort());
+            } else {
+                room.put("is_streaming", false);
+            }
+        }
+        return janusRooms;
     }
 
     /**

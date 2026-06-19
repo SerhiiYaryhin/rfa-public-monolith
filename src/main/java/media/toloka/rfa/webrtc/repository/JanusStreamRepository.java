@@ -19,6 +19,9 @@ public interface JanusStreamRepository {
     /** Пошук стріму за ідентифікатором станції */
     Optional<JanusLiveStream> findByStationId(String stationId);
     
+    /** Пошук стріму за ID кімнати Janus */
+    Optional<JanusLiveStream> findByJanusRoomId(Long janusRoomId);
+    
     /** Список усіх активних стрімів */
     List<JanusLiveStream> findAll();
     

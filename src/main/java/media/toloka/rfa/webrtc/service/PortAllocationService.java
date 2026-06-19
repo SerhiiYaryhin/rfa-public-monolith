@@ -61,6 +61,14 @@ public class PortAllocationService {
     }
 
     /**
+     * Отримання стріму за ID кімнати Janus.
+     */
+    @Transactional(readOnly = true)
+    public Optional<JanusLiveStream> getStreamByJanusRoomId(Long janusRoomId) {
+        return repository.findByJanusRoomId(janusRoomId);
+    }
+
+    /**
      * Видалення стріму з бази (звільнення порту).
      */
     @Transactional
