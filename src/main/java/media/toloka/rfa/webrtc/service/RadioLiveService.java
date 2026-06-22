@@ -1,10 +1,17 @@
 package media.toloka.rfa.webrtc.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
+import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.security.model.Users;
 import media.toloka.rfa.webrtc.model.JanusLiveStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +37,11 @@ public class RadioLiveService {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
+    @Autowired
+    private ClientService clientService;
+    @Autowired
+    private MessangerService messangerService;
+
     private static final Logger log = LoggerFactory.getLogger(RadioLiveService.class);
 
 
@@ -41,6 +53,17 @@ public class RadioLiveService {
         this.portService = portService;
         this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
+    }
+
+    /**
+     * Ініціалізація сервера.
+     * При старті сервера чистимо всі аудіо кімнати в Janus
+     * та створюємо кімнати для радіостанцій з онлайном.
+     *
+     */
+    @Transactional
+    public void clearAndCreate() {
+
     }
 
     /**
@@ -107,7 +130,7 @@ public class RadioLiveService {
      * Збагачує дані Janus інформацією про трансляцію радіостанції з локальної БД.
      */
     public List<Map<String, Object>> listRoomsAndParticipants() {
-        List<Map<String, Object>> janusRooms = janusClient.getRoomsAndParticipants();
+        List<Map<String, Object>> janusRooms = janusClient.getJanusRoomsAndParticipants();
         
         // Збагачуємо інформацію про кімнати даними з нашої БД
         for (Map<String, Object> room : janusRooms) {
@@ -152,15 +175,22 @@ public class RadioLiveService {
     /**
      * Отримання повної інформації про активні кімнати Janus, їхніх учасників
      * та статус трансляції (чи підключено Icecast-потік до цієї кімнати).
+     *
      */
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getActiveRoomsInfo() {
         List<Map<String, Object>> rooms;
         try {
-            rooms = janusClient.getRoomsAndParticipants();
+            // отримали перелік активних кімнат з Janus
+            rooms = janusClient.getJanusRoomsAndParticipants();
         } catch (Exception e) {
             rooms = Collections.emptyList();
         }
+
+        // Отримуємо перелік кімнат радіостанцій з прямим ефіром з бази
+        List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
+        // шукаємо наші кімнати з сайту в Janus. Якщо нема - створюємо. Якщо є зайві - знищуємо.
+
 
         Map<Long, JanusLiveStream> activeStreamsMap = new HashMap<>();
         try {
