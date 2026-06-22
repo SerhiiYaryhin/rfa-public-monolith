@@ -153,7 +153,7 @@ public class JanusRabbitClient {
                 return List.of();
             }
 
-            // Для кожної кімнати запитуємо список учасників
+            // Для кожної кімнати запитуємо список учасників в janus
             for (Map<String, Object> room : rooms) {
                 try {
                     Number roomIdNum = (Number) room.get("room");

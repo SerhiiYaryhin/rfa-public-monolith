@@ -15,7 +15,10 @@ import java.util.List;
 
 /**
  * Контролер для обслуговування сторінок тестування WebRTC.
- * 
+ *
+ * При запуску застосунку потрібно видалити всі кімнати в Janus і створити кімнати,
+ * спираючись на радіостанції, які відкрили кімнати для прямого ефіру.
+ *
  * На відміну від JanusLiveController, цей клас є звичайним @Controller,
  * що повертає HTML шаблони (Thymeleaf), а не JSON дані.
  */
@@ -40,7 +43,7 @@ public class TestWebRtcController {
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
 
-        // пердаємо параметри на сторінку
+        // передаємо параметри на сторінку
         model.addAttribute("clientdetail", clientService.GetClientDetailByUser(user));
         model.addAttribute("roomlist", liveRoom );
 

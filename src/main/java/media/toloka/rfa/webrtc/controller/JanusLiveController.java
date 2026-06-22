@@ -63,6 +63,19 @@ public class JanusLiveController {
         return ResponseEntity.ok(Map.of("status", "stopped", "station_id", stationId));
     }
 
+    @PostMapping("/getonlinestation")
+    public ResponseEntity<?> getOnlinesSation () {
+        //  Отримуємо перелік станцій, які зараз в онлайні з бази станцій
+
+        // отримуємо перелік аудіокімнат з Janus
+
+        // Порівнюємо. За необхідністю створюємо або знищуємо кімнати в Янусі
+
+        // повертаємо актуальний перелік кімнат радіостанцій
+
+        return ResponseEntity.ok(Map.of("status", "stopped", "station_id", "stationId"));
+    }
+
     /**
      * Тестовий ендпоінт для перевірки зв'язку з Janus Admin API.
      * Допомагає діагностувати проблеми з RabbitMQ та авторизацією.
