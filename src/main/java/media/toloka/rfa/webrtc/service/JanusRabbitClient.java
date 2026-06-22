@@ -134,7 +134,7 @@ public class JanusRabbitClient {
      * Виконується через Client API.
      */
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> getRoomsAndParticipants() {
+    public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
             // Запит на список кімнат
             String transactionId = "rooms-list-" + generateShortUUID();

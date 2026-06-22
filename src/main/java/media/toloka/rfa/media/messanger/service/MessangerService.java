@@ -2,6 +2,7 @@ package media.toloka.rfa.media.messanger.service;
 
 import media.toloka.rfa.media.messanger.model.ChatMessage;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
 import media.toloka.rfa.media.messanger.repository.ChatRepository;
 import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
 import media.toloka.rfa.media.messanger.repository.MessangerRepository;
@@ -72,6 +73,11 @@ public class MessangerService {
     public List<MessageRoom> GetChatRoomList() {
         return messageRoomRepository.findAll();
     }
+
+    public List<MessageRoom> GetLiveChatRoomList(EChatRoomType roomType) {
+        return messageRoomRepository.getByRoomtype(roomType);
+    }
+
 
     public MessageRoom GetRoomNameByUuid(String roomuuid) {
         return messageRoomRepository.getByUuid(roomuuid);
@@ -155,6 +161,10 @@ public class MessangerService {
     public MessageRoom GetChatRoomByUUID(String roomuuid) {
         return messageRoomRepository.getByUuid(roomuuid);
     }
+//
+//    public List<MessageRoom> GetLiveChatRoomList() {
+//        return messageRoomRepository.findAll();
+//    }
 
 //    public String GetChatRoomByUUID(String roomuuid) {
 //        return chatRepository.getByUuid(roomuuid);
