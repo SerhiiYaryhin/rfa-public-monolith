@@ -19,6 +19,8 @@ import java.util.Optional;
 public class PortAllocationService {
 
     // Початковий та кінцевий порти згідно з конфігурацією rtp_port_range у janus.jcfg
+    // todo винести порти в propertyes
+
     private static final int START_PORT = 49152;
     private static final int END_PORT = 49999;
 
@@ -61,7 +63,8 @@ public class PortAllocationService {
     }
 
     /**
-     * Отримання стріму за ID кімнати Janus.
+     * Отримання з бази стріму за ID кімнати Janus.
+     * todo спробувати отримати кімнати з janus
      */
     @Transactional(readOnly = true)
     public Optional<JanusLiveStream> getStreamByJanusRoomId(Long janusRoomId) {
