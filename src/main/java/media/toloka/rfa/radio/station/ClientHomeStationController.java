@@ -105,6 +105,11 @@ public class ClientHomeStationController {
         return "redirect:/user/controlstation?id=" + (station != null ? station.getId() : "");
     }
 
+    /**
+     *
+     * @param suuid UUID станції для якої створена онлайн кімната
+     * @return
+     */
     @GetMapping(value = "/user/stationslivebroadcast/{suuid}")
     public String toggleLiveBroadcast(@PathVariable String suuid) {
         Users user = clientService.GetCurrentUser();

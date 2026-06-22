@@ -1,6 +1,7 @@
 package media.toloka.rfa.media.messanger.webrtc.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.messanger.webrtc.service.RadioLiveService;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,10 +68,10 @@ public class JanusLiveController {
 
     @PostMapping("/getonlinestation")
     public ResponseEntity<?> getOnlinesSation () {
-        //  Отримуємо перелік станцій, які зараз в онлайні з бази станцій
-
+        //  Отримуємо перелік кімнат станцій, які зараз в онлайні з бази станцій
+        List<MessageRoom> messageRoomList =
         // отримуємо перелік аудіокімнат з Janus
-
+        List<Map<String, Object>> janusRoomsList = radioLiveService.getActiveRoomsInfo();
         // Порівнюємо. За необхідністю створюємо або знищуємо кімнати в Янусі
 
         // повертаємо актуальний перелік кімнат радіостанцій

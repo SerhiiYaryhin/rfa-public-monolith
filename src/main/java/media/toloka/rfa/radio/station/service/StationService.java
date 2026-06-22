@@ -120,6 +120,12 @@ public class StationService {
         return null;
     }
 
+    /**
+     * Створюємо станцію для клієнта
+     *
+     * @param clientdetail
+     * @return
+     */
     public Station CreateStation(Clientdetail clientdetail) {
         Station station = new Station();
         station.setName(null);
@@ -137,6 +143,10 @@ public class StationService {
         return station;
     }
 
+    /**
+     * Встановлюємо імʼя для бази для LibreTime
+     * @param st
+     */
     public void SetStationDBName(Station st) {
         while (true) {
             String rstring = rfaService.GetRandomString(16);
@@ -151,6 +161,12 @@ public class StationService {
         return stationRepo.getStationByDbname(rstring);
     }
 
+    /**
+     * Отримуємо URL головної сторінки станції
+     *
+     * @param station
+     * @return
+     */
     public String GetURLStation(Station station) {
         return "https://" + station.getDbname() + "." + basestationurl;
     }

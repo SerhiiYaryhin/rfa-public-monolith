@@ -63,10 +63,11 @@ public class Station {
     private String icecastsite; // TODO: PROPOSAL -> icecastSite
     @Expose
     private String icecastgenre; // TODO: PROPOSAL -> icecastGenre
+    //
     @Expose
     private Boolean stationstate; // TODO: PROPOSAL -> isRunning (CRITICAL: used in JSON/RabbitMQ)
     @Expose
-    private String roomuuid = null; // TODO: PROPOSAL -> roomUuid
+    private String roomuuid = null; // UUID кімнати для онлайн мовлення TODO: PROPOSAL -> roomUuid
     @Expose
     private String toradiouser; // TODO: PROPOSAL -> toRadioUser
     @Expose
