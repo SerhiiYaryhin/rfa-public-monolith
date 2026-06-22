@@ -107,7 +107,7 @@ public class RadioLiveService {
      * Збагачує дані Janus інформацією про трансляцію радіостанції з локальної БД.
      */
     public List<Map<String, Object>> listRoomsAndParticipants() {
-        List<Map<String, Object>> janusRooms = janusClient.getRoomsAndParticipants();
+        List<Map<String, Object>> janusRooms = janusClient.getJanusRoomsAndParticipants();
         
         // Збагачуємо інформацію про кімнати даними з нашої БД
         for (Map<String, Object> room : janusRooms) {
@@ -157,7 +157,8 @@ public class RadioLiveService {
     public List<Map<String, Object>> getActiveRoomsInfo() {
         List<Map<String, Object>> rooms;
         try {
-            rooms = janusClient.getRoomsAndParticipants();
+            // отримали перелік активних кімнат з Janus
+            rooms = janusClient.getJanusRoomsAndParticipants();
         } catch (Exception e) {
             rooms = Collections.emptyList();
         }
