@@ -1,4 +1,4 @@
-package media.toloka.rfa.webrtc.model;
+package media.toloka.rfa.media.messanger.webrtc.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public class JanusLiveStream {
      * Унікальний ідентифікатор радіостанції.
      * Наприклад: "rock-fm", "toloka-news".
      */
-    @Column(name = "station_id", nullable = false, unique = true, length = 50)
+    @Column(name = "station_id", nullable = false, unique = true, length = 36)
     private String stationId;
 
     /**

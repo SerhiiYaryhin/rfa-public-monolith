@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger;
+package media.toloka.rfa.media.messanger.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
-package media.toloka.rfa.webrtc.service;
+package media.toloka.rfa.media.messanger.webrtc.service;
 
-import media.toloka.rfa.webrtc.model.JanusLiveStream;
-import media.toloka.rfa.webrtc.repository.JanusStreamRepository;
+import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
+import media.toloka.rfa.media.messanger.webrtc.repository.JanusStreamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

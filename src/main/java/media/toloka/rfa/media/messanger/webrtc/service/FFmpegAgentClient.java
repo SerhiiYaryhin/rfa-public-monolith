@@ -1,4 +1,4 @@
-package media.toloka.rfa.webrtc.service;
+package media.toloka.rfa.media.messanger.webrtc.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

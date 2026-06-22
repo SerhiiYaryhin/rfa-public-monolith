@@ -1,4 +1,4 @@
-package media.toloka.rfa.webrtc.config;
+package media.toloka.rfa.media.messanger.webrtc.config;
 
 import com.google.gson.Gson;
 import org.springframework.amqp.core.Message;

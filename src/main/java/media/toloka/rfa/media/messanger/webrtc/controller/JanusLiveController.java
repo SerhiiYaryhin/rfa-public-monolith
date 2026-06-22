@@ -1,10 +1,11 @@
-package media.toloka.rfa.webrtc.controller;
+package media.toloka.rfa.media.messanger.webrtc.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.webrtc.model.JanusLiveStream;
-import media.toloka.rfa.webrtc.service.RadioLiveService;
+import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
+import media.toloka.rfa.media.messanger.webrtc.service.RadioLiveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,6 +96,15 @@ public class JanusLiveController {
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
         String token = radioLiveService.generateAndRegisterToken();
+        // Якщо користувач не авторизований або cd == null
+        if (token == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                            "error", "Unauthorized",
+                            "message", "Користувач повинен увійти в систему для користування чатом."
+                    ));
+        }
         String apiSecret = radioLiveService.getApiSecret();
         return ResponseEntity.ok(Map.of(
             "token", token,

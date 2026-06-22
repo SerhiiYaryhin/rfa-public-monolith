@@ -1,13 +1,13 @@
-package media.toloka.rfa.webrtc.service;
+package media.toloka.rfa.media.messanger.webrtc.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
 import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.radio.client.service.ClientService;
+import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.Users;
-import media.toloka.rfa.webrtc.model.JanusLiveStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -109,11 +109,16 @@ public class RadioLiveService {
     }
 
     /**
-     * Генерує унікальний токен для користувача та реєструє його в Janus.
+     * Отримує унікальний токен користувача та реєструє його в Janus.
      * Це дозволяє фронтенду підключатися без знання статичного api_secret.
      */
     public String generateAndRegisterToken() {
-        String token = "rfa-token-" + java.util.UUID.randomUUID().toString().substring(0, 12);
+//        String token = "rfa-token-" + java.util.UUID.randomUUID().toString().substring(0, 12);
+
+        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+        if (cd == null)  return null;
+        String token = cd.getUuid();
+
         janusClient.registerUserToken(token);
         return token;
     }

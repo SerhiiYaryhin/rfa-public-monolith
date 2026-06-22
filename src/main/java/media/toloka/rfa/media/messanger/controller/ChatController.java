@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger;
+package media.toloka.rfa.media.messanger.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

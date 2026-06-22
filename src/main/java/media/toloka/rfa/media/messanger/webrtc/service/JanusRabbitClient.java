@@ -1,4 +1,4 @@
-package media.toloka.rfa.webrtc.service;
+package media.toloka.rfa.media.messanger.webrtc.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +117,12 @@ public class JanusRabbitClient {
         }
     }
 
+    /**
+     *
+     * Реєструємо токен клієнта.
+     * Токен - UUID клієнта.
+     * @param userToken - токен, який використовує користувач для спілкування з Janus через WS
+     */
     public void registerUserToken(String userToken) {
         String transactionId = "token-reg-" + generateShortUUID();
         Map<String, Object> request = Map.of(

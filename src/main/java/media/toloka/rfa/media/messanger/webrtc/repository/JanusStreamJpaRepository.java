@@ -1,6 +1,6 @@
-package media.toloka.rfa.webrtc.repository;
+package media.toloka.rfa.media.messanger.webrtc.repository;
 
-import media.toloka.rfa.webrtc.model.JanusLiveStream;
+import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
