@@ -2,41 +2,38 @@ package media.toloka.rfa.media.messanger.webrtc.model.dto;
 
 import com.google.gson.annotations.Expose;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import media.toloka.rfa.radio.model.enumerate.EServerState;
-
 import java.util.Date;
 
 @Data
+@NoArgsConstructor
 public class StationDto {
 
-    @Expose
-    private Long id;
+    @Expose private Long id;
+    @Expose private String name;
+    @Expose private String description;
+    @Expose private String uuid;
+    @Expose private String roomuuid;
+    @Expose private Boolean stationstate;
+    @Expose private EServerState serverState; // Тип Enum
+    @Expose private String roomname;
+    @Expose private Boolean roomOnlineStatus;
+    @Expose private Date startonline;
 
-    @Expose
-    private String name; // Назва станції
-
-    @Expose
-    private String description; // Опис радіостанції
-
-    @Expose
-    private String uuid; // Бізнес-UUID станції
-
-    @Expose
-    private String roomuuid; // UUID кімнати для онлайн-мовлення
-
-    @Expose
-    private Boolean stationstate; // Чи запущена станція (isRunning)
-
-    @Expose
-    private EServerState serverState; // Стан сервера (активний, забанений тощо)
-
-    // Додаткові поля кімнати, які ми підтягуємо з бази через SQL JOIN
-    @Expose
-    private String roomname; // Назва кімнати з чату
-
-    @Expose
-    private Boolean roomOnlineStatus; // Чи в онлайні сама кімната в месенджері
-
-    @Expose
-    private Date startonline; // Коли кімната перейшла в онлайн
+    // Конструктор, який викликає JPQL
+    public StationDto(Long id, String name, String description, String uuid, String roomuuid,
+                      Boolean stationstate, EServerState serverState, String roomname,
+                      Boolean roomOnlineStatus, Date startonline) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.uuid = uuid;
+        this.roomuuid = roomuuid;
+        this.stationstate = stationstate;
+        this.serverState = serverState;
+        this.roomname = roomname;
+        this.roomOnlineStatus = roomOnlineStatus;
+        this.startonline = startonline;
+    }
 }

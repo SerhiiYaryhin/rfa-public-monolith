@@ -38,12 +38,23 @@ public interface StationRepo extends JpaRepository<Station, Long> {
             "AND m.roomOnlineStatus = true")
     List<Station> findStationsWithOnlineRooms();
 
-    @Query("SELECT new media.toloka.rfa.radio.dto.StationDto(" +
-            "s.id, s.name, s.description, s.uuid, s.roomuuid, s.stationstate, s.serverState, " +
-            "m.roomname, m.roomOnlineStatus, m.startonline) " +
+//    @Query("SELECT new media.toloka.rfa.radio.dto.StationDto(" +
+//            "s.id, s.name, s.description, s.uuid, s.roomuuid, s.stationstate, s.serverState, " +
+//            "m.roomname, m.roomOnlineStatus, m.startonline) " +
+//            "FROM Station s " +
+//            "INNER JOIN MessageRoom m ON s.roomuuid = m.uuid " +
+//            "WHERE s.roomuuid IS NOT NULL " +
+//            "AND m.roomOnlineStatus = true")
+//    List<StationDto> findActiveStationsDto();
+
+    @Query("SELECT new media.toloka.rfa.media.messanger.webrtc.model.dto.StationDto(" +
+            "  s.id, s.name, s.description, s.uuid, s.roomuuid, s.stationstate, s.serverState, " +
+            "  m.roomname, m.roomOnlineStatus, m.startonline) " +
             "FROM Station s " +
             "INNER JOIN MessageRoom m ON s.roomuuid = m.uuid " +
             "WHERE s.roomuuid IS NOT NULL " +
-            "AND m.roomOnlineStatus = true")
+            "  AND m.roomOnlineStatus = true")
     List<StationDto> findActiveStationsDto();
 }
+
+
