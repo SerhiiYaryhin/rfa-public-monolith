@@ -1,0 +1,397 @@
+    let janusInstance = null;
+    let audioBridge = null;
+    // const janusApiSecret = "janusrocks"; // API Secret, якщо використовується статично
+    const serverUrl = "wss://test.rfa.toloka.media/janus-ws";
+
+    /**
+    * Вивід логів на сторінку для відладки
+    */
+    function log(message, type = 'INFO') {
+    const consoleDiv = document.getElementById("logConsole");
+    const time = new Date().toLocaleTimeString();
+    let badgeClass = 'badge-info';
+    if (type === 'SUCCESS') badgeClass = 'badge-success';
+    if (type === 'ERROR') badgeClass = 'badge-error';
+    if (type === 'DEBUG') badgeClass = 'badge-debug'; // Використовуйте 'DEBUG' для дебаг-повідомлень
+
+    consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
+    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    console.log(`[${type}] ${message}`); // Додатковий вивід у консоль браузера
+}
+
+    /**
+    * Перемикач полів авторизації
+    */
+    function toggleAuthFields() {
+    const authType = document.querySelector('input[name="authType"]:checked').value;
+    const tokenContainer = document.getElementById("tokenFieldContainer");
+    const secretContainer = document.getElementById("secretFieldContainer");
+    const tokenInput = document.getElementById("customToken");
+    const secretInput = document.getElementById("customSecret");
+
+    // Скидання значень та стану полів
+    tokenInput.value = "";
+    tokenInput.disabled = true;
+    secretInput.value = "janusrocks"; // Завжди встановлюємо дефолтний секрет
+
+    tokenContainer.style.display = 'none';
+    secretContainer.style.display = 'none';
+
+    if (authType === 'token' || authType === 'both') {
+    tokenContainer.style.display = 'block';
+    tokenInput.placeholder = "Буде отримано автоматично при підключенні";
+}
+    if (authType === 'manual_token') {
+    tokenContainer.style.display = 'block';
+    tokenInput.disabled = false;
+    tokenInput.placeholder = "Введіть ваш токен тут";
+}
+    if (authType === 'secret' || authType === 'both') {
+    secretContainer.style.display = 'block';
+}
+}
+
+    /**
+    * Завантаження списку кімнат з API та відображення
+    */
+    async function loadRooms() {
+    log("Завантаження активних кімнат...", 'DEBUG');
+    try {
+    const response = await fetch('/api/v1/webrtc/stream/rooms');
+    if (!response.ok) {
+    throw new Error("HTTP status " + response.status);
+}
+    const rooms = await response.json();
+
+    const roomsListDiv = document.getElementById("roomsList");
+    if (!rooms || rooms.length === 0) {
+    roomsListDiv.innerHTML = `
+                    <div class="no-rooms">
+                        <div class="no-rooms-icon">📭</div>
+                        <div class="no-rooms-text">Немає активних кімнат у Janus.</div>
+                    </div>`;
+    return;
+}
+
+    let html = '';
+    rooms.forEach(room => {
+    const isStreaming = room.is_streaming; // Перевірка, чи є RTP стрім (індикатор LIVE)
+    const roomId = room.room;
+    const description = room.description || `Кімната ${roomId}`;
+    const stationId = room.station_id || ''; // Якщо є інфа про станцію, напр. з БД
+    const rtpPort = room.rtp_port || ''; // Порт, на який йде трансляція
+    const participants = room.participants || []; // Оголошення змінної participants
+
+    let streamBadge = '';
+    let roomClass = 'room-card';
+    if (isStreaming) {
+    streamBadge = `<span class="badge badge-live-pulse">🔴 LIVE</span>`;
+    roomClass += ' room-card-live';
+}
+
+    let participantsHtml = '';
+    if (participants.length === 0) {
+    participantsHtml = '<div class="no-users">Немає користувачів у кімнаті</div>';
+} else {
+    participantsHtml = '<ul class="user-list">';
+    participants.forEach(p => {
+    const isMuted = p.muted;
+    const isTalking = p.talking;
+    let stateBadge = '';
+    if (isTalking) {
+    stateBadge = '<span class="state-badge talking">📢 говорить</span>';
+} else if (isMuted) {
+    stateBadge = '<span class="state-badge muted">🔇 вимкнено</span>';
+} else {
+    stateBadge = '<span class="state-badge active">🎙️ активний</span>';
+}
+    participantsHtml += `
+                            <li class="user-item">
+                                <span class="user-avatar">👤</span>
+                                <span class="user-name">${p.display || 'Анонім'} <span class="user-id">(${p.id})</span></span>
+                                ${stateBadge}
+                            </li>`;
+});
+    participantsHtml += '</ul>';
+}
+
+    html += `
+                    <div class="${roomClass}">
+                        <div class="room-header">
+                            <div class="room-title-container">
+                                <span class="room-name">${description}</span>
+                                <span class="room-id">ID: ${roomId}</span>
+                                ${stationId ? `<span class="station-tag">${stationId}</span>` : ''}
+                                ${rtpPort ? `<span class="rtp-port-tag">RTP: ${rtpPort}</span>` : ''}
+                            </div>
+                            ${streamBadge}
+                        </div>
+                        <div class="room-body">
+                            <div class="participants-title">Учасники (${participants.length}):</div>
+                            ${participantsHtml}
+                        </div>
+                        <div class="room-actions">
+                            ${isStreaming ? `<button class="btn-action-room btn-stop-stream" onclick="stopStreamFromRoom('${stationId}')">⏹️ Зупинити радіо</button>` : ''}
+                            <button class="btn-action-room" onclick="selectAndConnect(${roomId})">🔌 Підключитися</button>
+                        </div>
+                    </div>`;
+});
+    roomsListDiv.innerHTML = html;
+} catch (e) {
+    log("Помилка завантаження моніторингу кімнат: " + e.message, 'ERROR');
+    document.getElementById("roomsList").innerHTML = `
+                <div class="error-box">
+                    ⚠️ Помилка завантаження даних з API: ${e.message}
+                </div>`;
+}
+}
+
+    /**
+    * Вибір кімнати та підключення
+    */
+    function selectAndConnect(roomId) {
+    document.getElementById("roomId").value = roomId;
+    // Можливо, також встановити stationId, якщо він є в room об'єкті
+    // document.getElementById("stationId").value = room.station_id;
+    initiateConnection();
+}
+
+    /**
+    * Ініціалізація з'єднання з Janus з вибором типу авторизації
+    */
+    async function initiateConnection() {
+    const roomId = parseInt(document.getElementById("roomId").value);
+    if (isNaN(roomId)) {
+    alert("Будь ласка, введіть Room ID!");
+    return;
+}
+
+    const authType = document.querySelector('input[name="authType"]:checked').value;
+    let token = null;
+    let apisecret = null; // Будемо використовувати це поле для api_secret
+
+    document.getElementById("connectBtn").disabled = true;
+    log("Розпочинаємо ініціалізацію з'єднання...", 'INFO');
+
+    // 1. Отримання токена (якщо потрібно)
+    if (authType === 'token' || authType === 'both') {
+    log("Запит динамічного токена та api_secret в API...", 'DEBUG');
+    try {
+    const response = await fetch('/api/v1/webrtc/stream/token');
+    if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+}
+    const data = await response.json();
+    token = data.token;
+    apisecret = data.api_secret; // Отримуємо api_secret від бекенда
+    document.getElementById("customToken").value = token;
+    document.getElementById("customSecret").value = apisecret; // Відображаємо отриманий секрет
+    log(`Токен отримано: ${token.substring(0, 10)}... (API Secret: ${apisecret.substring(0, 5)}...)`, 'SUCCESS');
+} catch (e) {
+    log("Помилка отримання токена/api_secret: " + e.message, 'ERROR');
+    document.getElementById("connectBtn").disabled = false;
+    return;
+}
+} else if (authType === 'manual_token') {
+    const fieldToken = document.getElementById("customToken").value.trim();
+    if (fieldToken) {
+    token = fieldToken;
+    log(`Використовуємо вказаний вручну токен: ${token.substring(0, 10)}...`, 'INFO');
+} else {
+    log("Помилка: Токен не вказано для ручного режиму!", 'ERROR');
+    document.getElementById("connectBtn").disabled = false;
+    return;
+}
+}
+
+    // 2. Отримання секрету (якщо потрібно)
+    if (authType === 'secret' || authType === 'both' || (authType === 'manual_token' && document.getElementById("customSecret").value.trim())) {
+    const fieldSecret = document.getElementById("customSecret").value.trim();
+    if (fieldSecret) {
+    apisecret = fieldSecret;
+} else if (authType === 'secret' || authType === 'both') {
+    log("Помилка: API Secret не вказано для обраного режиму!", 'ERROR');
+    document.getElementById("connectBtn").disabled = false;
+    return;
+}
+} else if (authType === 'none') {
+    apisecret = undefined; // Явно встановлюємо undefined для режиму "Без паролів"
+}
+
+    startJanusStream(roomId, token, apisecret);
+}
+
+    /**
+    * Запускає трансляцію радіостанції в обрану кімнату.
+    */
+    async function startStreamToRoom() {
+    const stationId = document.getElementById("stationId").value.trim();
+    const streamUrl = document.getElementById("streamUrl").value.trim();
+
+    if (!stationId) { alert("Будь ласка, введіть Station ID!"); return; }
+    if (!streamUrl) { alert("Будь ласка, введіть Stream URL!"); return; }
+
+    log(`Запуск потоку: Station ID=${stationId}, Stream URL=${streamUrl}`, 'INFO');
+    try {
+    const response = await fetch('/api/v1/webrtc/stream/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ stationId: stationId, streamUrl: streamUrl })
+});
+    if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+}
+    const data = await response.json();
+    log(`Потік запущено успішно! Room ID: ${data.room_id}, RTP Port: ${data.rtp_port}`, 'SUCCESS');
+    document.getElementById("roomId").value = data.room_id; // Автозаповнення Room ID
+    loadRooms(); // Оновити список кімнат
+} catch (e) {
+    log("Помилка запуску потоку: " + e.message, 'ERROR');
+}
+}
+
+    /**
+    * Зупиняє трансляцію радіостанції.
+    */
+    async function stopStreamFromRoom(stationIdToStop = null) {
+    let currentStationId = stationIdToStop;
+    if (!currentStationId) {
+    currentStationId = document.getElementById("stationId").value.trim();
+}
+
+    if (!currentStationId) { alert("Будь ласка, введіть Station ID або виберіть стрім для зупинки!"); return; }
+
+    log(`Зупинка потоку: Station ID=${currentStationId}`, 'INFO');
+    try {
+    const response = await fetch('/api/v1/webrtc/stream/stop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ stationId: currentStationId })
+});
+    if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+}
+    const data = await response.json();
+    log(`Потік зупинено успішно! Station ID: ${data.station_id}`, 'SUCCESS');
+    loadRooms(); // Оновити список кімнат
+} catch (e) {
+    log("Помилка зупинки потоку: " + e.message, 'ERROR');
+}
+}
+
+
+    /**
+    * Ініціалізує Janus.js та підключається до кімнати
+    */
+    function startJanusStream(roomId, token, apisecret) {
+    log("Ініціалізація Janus з параметрами: " +
+        `Token: ${token ? token.substring(0, 10) + '...' : 'N/A'}, ` +
+        `API Secret: ${apisecret ? apisecret.substring(0, 5) + '...' : 'N/A'}`, 'DEBUG');
+
+    // Конфігурація для Janus екземпляру
+    let janusConfig = {
+    server: serverUrl,
+    success: function() {
+    log("WebSocket підключено до Janus", 'SUCCESS');
+    // Після успішного підключення, прикріплюємося до плагіна
+    attachAudioBridgePlugin(roomId, token, apisecret);
+},
+    error: function(error) {
+    log("Помилка сесії Janus: " + error, 'ERROR');
+    document.getElementById("connectBtn").disabled = false;
+},
+    destroyed: function() {
+    log("Сесію Janus знищено.", 'INFO');
+    document.getElementById("connectBtn").disabled = false;
+}
+};
+
+    // Додаємо авторизаційні параметри для створення сесії
+    if (token) janusConfig.token = token;
+    if (apisecret) janusConfig.apisecret = apisecret;
+
+    // Знищуємо попередній інстанс якщо він існує
+    if (janusInstance) {
+    log("Знищення попередньої сесії Janus...", 'DEBUG');
+    janusInstance.destroy();
+    janusInstance = null; // Скидаємо інстанс
+}
+
+    // Глобальна ініціалізація Janus.js, потім створення інстансу
+    Janus.init({
+    debug: "all",
+    callback: function() {
+    janusInstance = new Janus(janusConfig);
+}
+});
+}
+
+    /**
+    * Прикріплення до плагіна AudioBridge та вхід у кімнату
+    */
+    function attachAudioBridgePlugin(roomId, token, apisecret) {
+    let attachConfig = {
+    plugin: "janus.plugin.audiobridge",
+    success: function(pluginHandle) {
+    audioBridge = pluginHandle;
+    log("Плагін AudioBridge прикріплено.", 'SUCCESS');
+
+    let join = {
+    request: "join",
+    room: roomId,
+    display: "Web-Tester-" + Janus.randomString(4)
+};
+    log("Надсилаємо запит на вхід у кімнату: " + roomId, 'INFO');
+    audioBridge.send({ message: join });
+},
+    error: function(error) {
+    log("Помилка прикріплення плагіна: " + error, 'ERROR');
+    document.getElementById("connectBtn").disabled = false;
+},
+    onmessage: function(msg, jsep) {
+    log("Отримано подію Janus від плагіна: " + JSON.stringify(msg), 'DEBUG');
+
+    // Якщо Janus надсилає JSEP (WebRTC пропозицію)
+    if (jsep) {
+    log("Обробка JSEP пропозиції від сервера...", 'INFO');
+    audioBridge.createAnswer({
+    jsep: jsep,
+    media: { audioSend: false, audioRecv: true, video: false }, // Тільки прийом звуку
+    success: function(jsepAnswer) {
+    log("SDP Answer сформовано. Завершуємо Handshake...", 'INFO');
+    let configure = { request: "configure", muted: false };
+    audioBridge.send({ message: configure, jsep: jsepAnswer });
+},
+    error: function(error) {
+    log("WebRTC Answer Error: " + JSON.stringify(error), 'ERROR');
+}
+});
+}
+},
+    onremotestream: function(stream) {
+    log("УСПІХ: Отримано аудіопотік реального часу!", 'SUCCESS');
+    const player = document.getElementById("audioPlayer");
+    Janus.attachMediaStream(player, stream);
+    player.play();
+},
+    oncleanup: function() {
+    log("З'єднання плагіна очищено.", 'INFO');
+}
+};
+
+    // Додаємо авторизаційні параметри для прикріплення плагіна
+    if (token) attachConfig.token = token;
+    if (apisecret) attachConfig.apisecret = apisecret;
+
+    janusInstance.attach(attachConfig);
+}
+
+
+    // Запускати функції при завантаженні сторінки
+    document.addEventListener("DOMContentLoaded", function() {
+    toggleAuthFields(); // Встановлює початковий стан полів авторизації
+    loadRooms(); // Завантажує кімнати одразу
+    setInterval(loadRooms, 5000); // Оновлює кімнати кожні 5 секунд
+});
