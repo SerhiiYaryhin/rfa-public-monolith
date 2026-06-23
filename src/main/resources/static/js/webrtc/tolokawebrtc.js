@@ -77,7 +77,7 @@
     rooms.forEach(room => {
     const isStreaming = room.is_streaming; // Перевірка, чи є RTP стрім (індикатор LIVE)
     const roomId = room.room;
-    const description = room.description || `Кімната ${roomId}`;
+    const description = room.name;
     const stationId = room.station_id || ''; // Якщо є інфа про станцію, напр. з БД
     const rtpPort = room.rtp_port || ''; // Порт, на який йде трансляція
     const participants = room.participants || []; // Оголошення змінної participants
