@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
 import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messanger.webrtc.model.dto.StationDto;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.radio.station.service.StationService;
 import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional; // ДОДАНО
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Високорівневий сервіс для керування прямими ефірами через WebRTC.
@@ -41,6 +40,8 @@ public class RadioLiveService {
     private ClientService clientService;
     @Autowired
     private MessangerService messangerService;
+    @Autowired
+    private StationService stationService;
 
     private static final Logger log = LoggerFactory.getLogger(RadioLiveService.class);
 
@@ -182,46 +183,130 @@ public class RadioLiveService {
      * та статус трансляції (чи підключено Icecast-потік до цієї кімнати).
      *
      */
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getActiveRoomsInfo() {
-        List<Map<String, Object>> rooms;
+
+    @Transactional
+    public List<StationDto> getActiveRoomsInfo() {
+        // 1. Джерело правди — База Даних: Отримуємо станції з онлайн-кімнатами
+        List<StationDto> activeStations = stationService.getActiveStations();
+
+        // Створюємо Set для швидкого пошуку валідних номерів кімнат (id кімнати в базі є ID для Janus)
+        Set<Long> validRoomIds = activeStations.stream()
+                .map(StationDto::getId) // Якщо ID станції слугує номером кімнати в Janus
+                .collect(Collectors.toSet());
+
+        // 2. Отримуємо те, що зараз реально крутиться в пам'яті Janus
+        List<Map<String, Object>> janusRooms;
         try {
-            // отримали перелік активних кімнат з Janus
-            rooms = janusClient.getJanusRoomsAndParticipants();
+            janusRooms = janusClient.getJanusRoomsAndParticipants();
         } catch (Exception e) {
-            rooms = Collections.emptyList();
+            log.error("Помилка отримання даних з Janus, повертаємо чисті дані з БД", e);
+            return activeStations; // fallback: повертаємо хоча б структуру з бази
         }
 
-        // Отримуємо перелік кімнат радіостанцій з прямим ефіром з бази
-        List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
-        // шукаємо наші кімнати з сайту в Janus. Якщо нема - створюємо. Якщо є зайві - знищуємо.
-
-
-        Map<Long, JanusLiveStream> activeStreamsMap = new HashMap<>();
-        try {
-            for (JanusLiveStream stream : portService.getAllActiveStreams()) {
-                activeStreamsMap.put(stream.getJanusRoomId(), stream);
-            }
-        } catch (Exception e) {
-            // DB error fallback
-        }
-
-        for (Map<String, Object> room : rooms) {
-            Number roomIdNum = (Number) room.get("room");
+        // Перетворюємо дані Janus у зручну мапу: Key = roomId, Value = дані кімнати (учасники тощо)
+        Map<Long, Map<String, Object>> janusRoomsMap = new HashMap<>();
+        for (Map<String, Object> jRoom : janusRooms) {
+            Number roomIdNum = (Number) jRoom.get("room");
             if (roomIdNum != null) {
-                Long roomId = roomIdNum.longValue();
-                JanusLiveStream activeStream = activeStreamsMap.get(roomId);
-                if (activeStream != null) {
-                    room.put("is_streaming", true);
-                    room.put("station_id", activeStream.getStationId());
-                } else {
-                    room.put("is_streaming", false);
+                janusRoomsMap.put(roomIdNum.longValue(), jRoom);
+            }
+        }
+
+        // 3. СИНХРОНІЗАЦІЯ ТА ОЧИЩЕННЯ ЗАЙВИХ КІМНАТ (Актуалізація)
+        for (Long janusRoomId : janusRoomsMap.keySet()) {
+            if (!validRoomIds.contains(janusRoomId)) {
+                // Кімната є в Janus, але в нашій Базі Даних вона вже НЕ в онлайні!
+                log.warn("Виявлено зайву кімнату в Janus з ID: {}. Починаємо очищення...", janusRoomId);
+
+                Map<String, Object> orphanRoom = janusRoomsMap.get(janusRoomId);
+                List<?> participants = (List<?>) orphanRoom.get("participants");
+
+                // Евакуація користувачів у головну кімнату чату
+                if (participants != null && !participants.isEmpty()) {
+                    log.info("Евакуація {} користувачів із кімнати {} до головного чату", participants.size(), janusRoomId);
+                    try {
+                        // Ваш месенджер-сервіс переводить людей в дефолтну кімнату
+                        messangerService.moveUsersToMainChatRoom(janusRoomId);
+                    } catch (Exception e) {
+                        log.error("Не вдалося перемістити користувачів у головний чат", e);
+                    }
+                }
+
+                // Видаляємо аудіокімнату з самого Janus, щоб не жерти ресурси
+                try {
+                    janusClient.destroyAudioBridgeRoom(janusRoomId);
+                    log.info("Кімнату {} успішно видалено з Janus", janusRoomId);
+                } catch (Exception e) {
+                    log.error("Помилка видалення кімнати з Janus", e);
                 }
             }
         }
 
-        return rooms;
+        // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
+        // Проходимо по наших активних станціях і додаємо до них динамічні дані (список учасників) з Janus
+        for (StationDto station : activeStations) {
+            Long roomId = station.getId(); // Або station.getRoomuuid(), залежно від того, що є ідентифікатором кімнати в Janus
+
+            Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
+            if (jRoomData != null) {
+                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу та список людей
+                station.setStationstate(true); // або використовуйте поле існуючого DTO
+                // Можна розширити StationDto полем `private Object participants;`
+                // station.setParticipants(jRoomData.get("participants"));
+            } else {
+                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — треба створити її в Janus на льоту!
+                try {
+                    log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
+                    janusClient.createAudioBridgeRoom(roomId, station.getName());
+                } catch (Exception e) {
+                    log.error("Не вдалося створити кімнату на льоту в Janus", e);
+                }
+            }
+        }
+
+        return activeStations;
     }
+
+//    @Transactional(readOnly = true)
+//    public List<Map<String, Object>> getActiveRoomsInfo() {
+//        List<Map<String, Object>> rooms;
+//        try {
+//            // отримали перелік активних кімнат з Janus
+//            rooms = janusClient.getJanusRoomsAndParticipants();
+//        } catch (Exception e) {
+//            rooms = Collections.emptyList();
+//        }
+//
+//        // Отримуємо перелік кімнат радіостанцій з прямим ефіром з бази
+//        List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
+//        // шукаємо наші кімнати з сайту в Janus. Якщо нема - створюємо. Якщо є зайві - знищуємо.
+//
+//
+//        Map<Long, JanusLiveStream> activeStreamsMap = new HashMap<>();
+//        try {
+//            for (JanusLiveStream stream : portService.getAllActiveStreams()) {
+//                activeStreamsMap.put(stream.getJanusRoomId(), stream);
+//            }
+//        } catch (Exception e) {
+//            // DB error fallback
+//        }
+//
+//        for (Map<String, Object> room : rooms) {
+//            Number roomIdNum = (Number) room.get("room");
+//            if (roomIdNum != null) {
+//                Long roomId = roomIdNum.longValue();
+//                JanusLiveStream activeStream = activeStreamsMap.get(roomId);
+//                if (activeStream != null) {
+//                    room.put("is_streaming", true);
+//                    room.put("station_id", activeStream.getStationId());
+//                } else {
+//                    room.put("is_streaming", false);
+//                }
+//            }
+//        }
+//
+//        return rooms;
+//    }
 
     /**
      * Отримання глобального api_secret медіасервера.

@@ -3,6 +3,7 @@ package media.toloka.rfa.radio.station.service;
 import com.google.gson.Gson;
 import media.toloka.rfa.config.gson.service.GsonService;
 import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messanger.webrtc.model.dto.StationDto;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.contract.service.ContractService;
 import media.toloka.rfa.radio.history.service.HistoryService;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +30,6 @@ import java.util.*;
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_FREE;
 import static media.toloka.rfa.radio.model.enumerate.EContractStatus.CONTRACT_PAY;
 import static media.toloka.rfa.radio.model.enumerate.EHistoryType.History_StationCreate;
-import static media.toloka.rfa.rpc.model.ERPCJobType.*;
 
 @Service
 @Transactional
@@ -240,4 +241,29 @@ public class StationService {
     public boolean CreateCheckApruveAddress(Clientdetail cd) {
         return clientService.GetClientAddressList(cd).stream().anyMatch(Clientaddress::getApruve);
     }
+
+    public List<Station> GetStationWithChatRoom() {
+        // Отримуємо станції, які мають кімнати.
+        return stationRepo.findByRoomuuidIsNotNull();
+    }
+
+    /**
+     * Отримуємо список станцій які мають кімнати з онлайн трансляцією.
+     * @return List<Station>
+     */
+    public List<Station> getStationsWithOnlineRooms() {
+        return stationRepo.findStationsWithOnlineRooms();
+    }
+
+    public List<StationDto> getActiveStations() {
+        return stationRepo.findActiveStationsDto();
+    }
+
+
+
+//    @Query("SELECT s FROM Station s " +
+//            "JOIN MessageRoom m ON s.roomuuid = m.uuid " +
+//            "WHERE s.roomuuid IS NOT NULL " +
+//            "AND m.roomOnlineStatus = true")
+//    List<Station> findStationsWithOnlineRooms();
 }

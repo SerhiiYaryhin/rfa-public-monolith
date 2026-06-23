@@ -292,6 +292,14 @@ public class JanusRabbitClient {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    public void destroyAudioBridgeRoom(Long janusRoomId) {
+        log.info("ToDo. Видаляємо аудіокімнату з самого Janus, щоб не жерти ресурси");
+    }
+
+    public void createAudioBridgeRoom(Long roomId, String name) {
+        log.info("ToDo. Якщо в базі стоїть статус \"онлайн\", а Janus про неї ще не знає — треба створити її в Janus на льоту!");
+    }
+
     @FunctionalInterface
     private interface JanusAction<T> {
         T apply(Long sessionId, Long handleId);

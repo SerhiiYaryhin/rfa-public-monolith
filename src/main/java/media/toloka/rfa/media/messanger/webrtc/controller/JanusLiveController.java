@@ -2,16 +2,23 @@ package media.toloka.rfa.media.messanger.webrtc.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
+import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
+import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.messanger.webrtc.service.RadioLiveService;
+import media.toloka.rfa.radio.model.Station;
+import media.toloka.rfa.radio.station.service.StationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST-контролер для керування живими WebRTC трансляціями.
@@ -32,6 +39,12 @@ public class JanusLiveController {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(JanusLiveController.class);
+
+    @Autowired
+    private MessangerService messangerService;
+
+    @Autowired
+    private StationService stationService;
 
     /**
      * Запуск трансляції радіостанції в WebRTC.
@@ -66,17 +79,17 @@ public class JanusLiveController {
         return ResponseEntity.ok(Map.of("status", "stopped", "station_id", stationId));
     }
 
-    @PostMapping("/getonlinestation")
+    @GetMapping("/getonlinestation")
     public ResponseEntity<?> getOnlinesSation () {
         //  Отримуємо перелік кімнат станцій, які зараз в онлайні з бази станцій
-        List<MessageRoom> messageRoomList =
+        List<Station> onlineStations = stationService.getStationsWithOnlineRooms();
         // отримуємо перелік аудіокімнат з Janus
-        List<Map<String, Object>> janusRoomsList = radioLiveService.getActiveRoomsInfo();
+//        List<Map<String, Object>> janusRoomsList = radioLiveService.getActiveRoomsInfo();
         // Порівнюємо. За необхідністю створюємо або знищуємо кімнати в Янусі
 
         // повертаємо актуальний перелік кімнат радіостанцій
 
-        return ResponseEntity.ok(Map.of("status", "stopped", "station_id", "stationId"));
+        return ResponseEntity.ok(onlineStations);
     }
 
     /**
@@ -120,6 +133,7 @@ public class JanusLiveController {
     @GetMapping("/rooms")
     public ResponseEntity<?> getRooms() {
         logger.info("Запит на отримання списку кімнат та користувачів");
+//        return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
         return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
     }
 }

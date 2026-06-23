@@ -161,6 +161,22 @@ public class MessangerService {
     public MessageRoom GetChatRoomByUUID(String roomuuid) {
         return messageRoomRepository.getByUuid(roomuuid);
     }
+
+    /**
+     * Отримуємо кімнати станцій, які мають статус онлайн трансляції
+     * @return List<MessageRoom>
+     */
+    public List<MessageRoom> getOnlineRoom() {
+        return messageRoomRepository.findByRoomOnlineStatusTrueAndRoomtype(EChatRoomType.CHATROOM_TYPE_STATION);
+    }
+
+    /**
+     * Переводимо людей в дефолтну кімнату
+     * @param janusRoomId
+     */
+    public void moveUsersToMainChatRoom(Long janusRoomId) {
+        logger.info(" ToDo Потрібно перевести людей в головну кімнату чату.");
+    }
 //
 //    public List<MessageRoom> GetLiveChatRoomList() {
 //        return messageRoomRepository.findAll();
