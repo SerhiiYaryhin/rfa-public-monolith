@@ -50,13 +50,13 @@ public class JanusLiveController {
      * Запуск трансляції радіостанції в WebRTC.
      * 
      * @param stationId Унікальний ID станції (наприклад, "rfa-rock")
-     * @param streamUrl Посилання на Icecast потік джерела (наприклад, "http://icecast.rfa/rock.mp3")
      * @return Дані про створену кімнату: ID кімнати Janus та виділений RTP порт
      */
     @PostMapping("/start")
-    public ResponseEntity<?> start(@RequestParam String stationId, @RequestParam String streamUrl) {
-        logger.info("Запит на запуск стріму: stationId={}, streamUrl={}", stationId, streamUrl);
-        JanusLiveStream stream = radioLiveService.startBroadcast(stationId, streamUrl);
+    public ResponseEntity<?> start(@RequestParam String stationId
+    {
+        logger.info("Запит на запуск стріму: stationId={}", stationId);
+        JanusLiveStream stream = radioLiveService.startBroadcast(stationId);
         
         return ResponseEntity.ok(Map.of(
                 "status", "started",

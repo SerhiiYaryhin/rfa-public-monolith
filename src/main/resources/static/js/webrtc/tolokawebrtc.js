@@ -132,7 +132,7 @@ async function loadRooms() {
                         </div>
                         <div class="room-actions">
                             ${isStreaming ? `<button class="btn-action-room btn-stop-stream" onclick="stopStreamFromRoom('${stationId}')">⏹️ Зупинити радіо</button>` : ''}
-                            <button class="btn-action-room" onclick="selectAndConnect(${roomId})">🔌 Підключитися</button>
+                            <button class="btn-action-room" onclick="startStreamToRoom(${roomId})">🔌 Стрім</button>
                             <button class="btn-action-room" onclick="connectRFAUserToRoom(${roomId})">🔌 Підключити користувача</button>
                         </div>
                     </div>`;
@@ -318,25 +318,25 @@ async function initiateConnection() {
 /**
  * Запускає трансляцію радіостанції в обрану кімнату.
  */
-async function startStreamToRoom() {
-    const stationId = document.getElementById("stationId").value.trim();
-    const streamUrl = document.getElementById("streamUrl").value.trim();
+async function startStreamToRoom(stationId) {
+    //const stationId = document.getElementById("stationId").value.trim();
+    //const streamUrl = document.getElementById("streamUrl").value.trim();
+    //
+    // if (!stationId) {
+    //     alert("Будь ласка, введіть Station ID!");
+    //     return;
+    // }
+    // if (!streamUrl) {
+    //     alert("Будь ласка, введіть Stream URL!");
+    //     return;
+    // }
 
-    if (!stationId) {
-        alert("Будь ласка, введіть Station ID!");
-        return;
-    }
-    if (!streamUrl) {
-        alert("Будь ласка, введіть Stream URL!");
-        return;
-    }
-
-    log(`Запуск потоку: Station ID=${stationId}, Stream URL=${streamUrl}`, 'INFO');
+    log(`Запуск потоку: Station ID=${stationId}`, 'INFO');
     try {
         const response = await fetch('/api/v1/webrtc/stream/start', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({stationId: stationId, streamUrl: streamUrl})
+            body: new URLSearchParams({stationId: stationId)
         });
         if (!response.ok) {
             const errorData = await response.json();

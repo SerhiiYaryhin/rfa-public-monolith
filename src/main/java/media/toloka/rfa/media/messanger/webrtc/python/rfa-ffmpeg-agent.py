@@ -30,6 +30,7 @@ def start_ffmpeg(station_id, stream_url, rtp_url):
         '-acodec', 'libopus',          # Обов'язковий кодек для WebRTC
         '-ar', '48000',                # Частота дискретизації (AudioBridge стандарт)
         '-ac', '2',                    # Стерео звук
+        '-payload_type', '111',         # (Ваше виправлення) Явно маркуємо RTP пакети як 111
         '-f', 'rtp',                   # Формат виводу — RTP
         rtp_url                        # Ціль (наприклад, rtp://janus.rfa:10010)
     ]

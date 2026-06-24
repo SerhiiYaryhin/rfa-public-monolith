@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Високорівневий сервіс для керування прямими ефірами через WebRTC.
- * 
+ * <p>
  * Цей сервіс координує роботу декількох систем:
  * 1. Janus (через JanusRabbitClient) — створення медіа-кімнати.
  * 2. Порти (через PortAllocationService) — виділення вільного UDP порту.
@@ -69,17 +69,21 @@ public class RadioLiveService {
 
     /**
      * Запуск трансляції радіостанції в WebRTC ефір.
+     *
      * @param stationId ID станції (наприклад, 'rfa-rock')
-     * @param sourceStreamUrl URL джерела (наприклад, Icecast потік)
      */
     @Transactional
-    public JanusLiveStream startBroadcast(String stationId, String sourceStreamUrl) {
+    public JanusLiveStream startBroadcast(String stationId)
+    //    , String sourceStreamUrl)
+    {
         // Якщо ефір вже запущено — повертаємо існуючий стрім
         return portService.getStreamByStation(stationId).orElseGet(() -> {
-            log.info("Потрапили в незапущену станцію: {}",stationId);
+            log.info("Потрапили в незапущену станцію: {}", stationId);
+            //todo Сформувати адресу звідки береться стрім
+            String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
             // Шукаємо вільний порт
             Integer freePort = portService.findNextFreePort();
-            log.info("Порт для трансляції на Janus: {}",freePort);
+            log.info("Порт для трансляції на Janus: {}", freePort);
 
             // 1. Створюємо кімнату в Janus з підтримкою RTP на виділеному порту
             Long janusRoomId = janusClient.createDynamicRoomWithRadio("Ефір: " + stationId, freePort);
@@ -117,7 +121,7 @@ public class RadioLiveService {
 //        String token = "rfa-token-" + java.util.UUID.randomUUID().toString().substring(0, 12);
 
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-        if (cd == null)  return null;
+        if (cd == null) return null;
         String token = cd.getUuid();
 
         janusClient.registerUserToken(token);
@@ -137,12 +141,12 @@ public class RadioLiveService {
      */
     public List<Map<String, Object>> listRoomsAndParticipants() {
         List<Map<String, Object>> janusRooms = janusClient.getJanusRoomsAndParticipants();
-        
+
         // Збагачуємо інформацію про кімнати даними з нашої БД
         for (Map<String, Object> room : janusRooms) {
             Long janusRoomId = ((Number) room.get("room")).longValue();
             Optional<JanusLiveStream> liveStreamOpt = portService.getStreamByJanusRoomId(janusRoomId);
-            
+
             if (liveStreamOpt.isPresent()) {
                 JanusLiveStream liveStream = liveStreamOpt.get();
                 room.put("is_streaming", true);
@@ -170,7 +174,7 @@ public class RadioLiveService {
 
             // Серіалізуємо в JSON та відправляємо в чергу
             String jsonPayload = objectMapper.writeValueAsString(message);
-            log.info("Відправляємо в Rabbit: {}",jsonPayload);
+            log.info("Відправляємо в Rabbit: {}", jsonPayload);
             rabbitTemplate.convertAndSend("ffmpeg-agent-commands", jsonPayload);
 
         } catch (Exception e) {
@@ -244,27 +248,6 @@ public class RadioLiveService {
 
 //        // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
 //        // Проходимо по наших активних станціях і додаємо до них динамічні дані (список учасників) з Janus
-//        for (StationDto station : activeStations) {
-//            Long roomId = station.getId(); // Або station.getRoomuuid(), залежно від того, що є ідентифікатором кімнати в Janus
-//
-//            Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
-//            if (jRoomData != null) {
-//                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу та список людей
-//                station.setStationstate(true); // або використовуйте поле існуючого DTO
-//                // Можна розширити StationDto полем `private Object participants;`
-//                // station.setParticipants(jRoomData.get("participants"));
-//            } else {
-//                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — треба створити її в Janus на льоту!
-//                try {
-//                    log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
-//                    janusClient.createAudioBridgeRoom(roomId, station.getName());
-//                } catch (Exception e) {
-//                    log.error("Не вдалося створити кімнату на льоту в Janus", e);
-//                }
-//            }
-//        }
-//
-//        return activeStations;
 
         // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
         for (StationDto station : activeStations) {
@@ -288,6 +271,8 @@ public class RadioLiveService {
                 // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — створюємо
                 try {
                     log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
+                    Integer currentRtpPort = station.get
+                    getgetRtp_port() != null ? Integer.valueOf(station.getRtp_port()) : 49152;
                     janusClient.createAudioBridgeRoom(roomId, station.getName());
                 } catch (Exception e) {
                     log.error("Не вдалося створити кімнату на льоту в Janus", e);

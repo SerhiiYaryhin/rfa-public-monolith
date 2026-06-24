@@ -336,14 +336,7 @@ public class JanusRabbitClient {
         }
     }
 
-
-//    public void destroyAudioBridgeRoom(Long janusRoomId) {
-//
-//        log.info("ToDo. Видаляємо аудіокімнату з самого Janus, щоб не жерти ресурси");
-//
-//    }
-
-    public void createAudioBridgeRoom(Long roomId, String name) {
+    public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
         if (roomId == null) {
             log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
             return;
@@ -370,7 +363,8 @@ public class JanusRabbitClient {
                 body.put("permanent", false);          // false — кімната існує в пам'яті до перезапуску Janus
 
                 // Додаткові аудіо-налаштування за бажанням:
-                body.put("sampling_rate", 16000);      // Частота дискретизації (16kHz, 48kHz тощо)
+                body.put("sampling_rate", 48000);      // Частота дискретизації (48kHz тощо)
+                body.put("audio_codec", "opus");       // Вказуємо Janus, що основний кодек мікшера кімнати — Opus
                 body.put("is_private", false);         // Чи прихована кімната від загального списку
                 body.put("audio_level_average", 25);   // Чутливість для виявлення того, хто говорить
 
