@@ -436,6 +436,9 @@ function startJanusStream(roomId, token, apisecret) {
  * Прикріплення до плагіна AudioBridge та вхід у кімнату (ОНОВЛЕНО)
  * Додано 4-й аргумент customDisplay, щоб відображати реальне ім'я користувача
  */
+/**
+ * Прикріплення до плагіна AudioBridge та вхід у кімнату із запуск WebRTC Handshake
+ */
 function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null) {
     let attachConfig = {
         plugin: "janus.plugin.audiobridge",
@@ -443,17 +446,15 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
             audioBridge = pluginHandle;
             log("Плагін AudioBridge прикріплено.", 'SUCCESS');
 
-            // Якщо передано customDisplay (ім'я користувача з БД) — беремо його,
-            // інакше (для звичайних тестів) генеруємо випадкове тестерське ім'я
+            // Визначаємо фінальне ім'я користувача
             const finalDisplay = customDisplay ? customDisplay : ("Web-Tester-" + Janus.randomString(4));
 
             let join = {
                 request: "join",
                 room: roomId,
-                display: finalDisplay // Використовуємо правильне ім'я
+                display: finalDisplay
             };
 
-            // Якщо для входу в кімнату потрібен токен, додаємо його до запиту плагіна
             if (token) join.token = token;
 
             log(`Надсилаємо запит на вхід у кімнату: ${roomId} під ім'ям: "${finalDisplay}"`, 'INFO');
@@ -469,14 +470,15 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
 
             const event = msg["audiobridge"];
 
-            // 1. Обробка успішного входу в кімнату
+            // 1. Опрацювання успішного входу (joined)
             if (event && event === "joined") {
-                const myDisplay = msg["display"] || "Учасник";
+                // Беремо ім'я, яке повернув Janus, або наше локальне
+                const myDisplay = msg["display"] || customDisplay || "Користувач";
                 const myId = msg["id"];
-                log(`Ви успішно увійшли в кімнату під ім'ям: ${myDisplay}. Ваш ID у Janus: ${myId}`, 'SUCCESS');
+                log(`Ви успішно увійшли в кімнату під ім'ям: "${myDisplay}". Ваш ID у Janus: ${myId}`, 'SUCCESS');
 
-                // Якщо сервер разом із подією "joined" не прислав jsep (а він його не шле за дефолтом),
-                // ми першими створюємо локальний WebRTC Offer для публікації мікрофона
+                // Якщо сервер разом із подією "joined" не прислав jsep (а він його не шле),
+                // ми ПЕРШИМИ створюємо локальний WebRTC Offer для публікації мікрофона
                 if (jsep === undefined || jsep === null) {
                     log("Ініціюємо створення локального WebRTC Offer (мікрофон)...", 'DEBUG');
                     audioBridge.createOffer({
@@ -487,7 +489,7 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
                             audioBridge.send({ message: configure, jsep: localJsep });
                         },
                         error: function (error) {
-                            log("Помилка створення локального WebRTC Offer: " + (typeof error === 'object' ? JSON.stringify(error) : error), 'ERROR');
+                            log("Помилка створення локального WebRTC Offer: " + JSON.stringify(error), 'ERROR');
                         }
                     });
                 }
@@ -498,19 +500,19 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
                 log(`Обробка JSEP від сервера (Тип: ${jsep.type})...`, 'INFO');
 
                 if (jsep.type === "answer") {
-                    // Якщо це відповідь на наш раніше відправлений мікрофонний Offer,
-                    // ми просто віддаємо її плагіну для завершення рукостискання
+                    // КРИТИЧНЕ ВИПРАВЛЕННЯ: якщо прийшла відповідь на наш мікрофон,
+                    // ми просто віддаємо її плагіну для завершення з'єднання!
                     audioBridge.handleRemoteJsep({
                         jsep: jsep,
                         success: function() {
-                            log("Медіа-рукостискання (Answer) успішно оброблено!", "SUCCESS");
+                            log("Медіа-рукостискання (Answer) успішно завершено!", "SUCCESS");
                         },
                         error: function(err) {
-                            log("Помилка handleRemoteJsep для Answer: " + JSON.stringify(err), "ERROR");
+                            log("Помилка реєстрації Answer: " + JSON.stringify(err), "ERROR");
                         }
                     });
                 } else if (jsep.type === "offer") {
-                    // Якщо раптом сервер сам пропонує потік (наприклад, при першому підключенні через старий метод)
+                    // Якщо ініціатором Offer виступає сервер (наприклад, для старих методів прослуховування)
                     log("Сервер прислав Offer. Генеруємо локальний Answer...", 'DEBUG');
                     audioBridge.createAnswer({
                         jsep: jsep,
@@ -532,7 +534,9 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
             const player = document.getElementById("audioPlayer");
             if (player) {
                 Janus.attachMediaStream(player, stream);
-                player.play().catch(e => log("Автопрогравання аудіо заблоковано браузером.", "WARN"));
+                player.play().catch(e => {
+                    log("Автопрогравання звуку заблоковано браузером. Клікніть мишкою по сторінці.", "WARN");
+                });
             }
         },
         oncleanup: function () {
