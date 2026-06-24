@@ -336,7 +336,7 @@ async function startStreamToRoom(stationId) {
         const response = await fetch('/api/v1/webrtc/stream/start', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({stationId: stationId)
+            body: new URLSearchParams({stationId: stationId})
         });
         if (!response.ok) {
             const errorData = await response.json();
