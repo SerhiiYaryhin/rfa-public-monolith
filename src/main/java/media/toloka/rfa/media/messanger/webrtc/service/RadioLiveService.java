@@ -242,19 +242,50 @@ public class RadioLiveService {
             }
         }
 
+//        // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
+//        // Проходимо по наших активних станціях і додаємо до них динамічні дані (список учасників) з Janus
+//        for (StationDto station : activeStations) {
+//            Long roomId = station.getId(); // Або station.getRoomuuid(), залежно від того, що є ідентифікатором кімнати в Janus
+//
+//            Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
+//            if (jRoomData != null) {
+//                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу та список людей
+//                station.setStationstate(true); // або використовуйте поле існуючого DTO
+//                // Можна розширити StationDto полем `private Object participants;`
+//                // station.setParticipants(jRoomData.get("participants"));
+//            } else {
+//                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — треба створити її в Janus на льоту!
+//                try {
+//                    log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
+//                    janusClient.createAudioBridgeRoom(roomId, station.getName());
+//                } catch (Exception e) {
+//                    log.error("Не вдалося створити кімнату на льоту в Janus", e);
+//                }
+//            }
+//        }
+//
+//        return activeStations;
+
         // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
-        // Проходимо по наших активних станціях і додаємо до них динамічні дані (список учасників) з Janus
         for (StationDto station : activeStations) {
-            Long roomId = station.getId(); // Або station.getRoomuuid(), залежно від того, що є ідентифікатором кімнати в Janus
+            Long roomId = station.getId();
 
             Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
             if (jRoomData != null) {
-                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу та список людей
-                station.setStationstate(true); // або використовуйте поле існуючого DTO
-                // Можна розширити StationDto полем `private Object participants;`
-                // station.setParticipants(jRoomData.get("participants"));
+                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу
+                station.setStationstate(true);
+
+                // --- ОСЬ ЦЕЙ БЛОК ТРЕБА ОНОВИТИ ТА РОЗКОМЕНТУВАТИ ---
+                List<Object> janusParticipants = (List<Object>) jRoomData.get("participants");
+                if (janusParticipants != null) {
+                    station.setParticipants(janusParticipants);
+                } else {
+                    station.setParticipants(new ArrayList<>());
+                }
+                // ----------------------------------------------------
+
             } else {
-                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — треба створити її в Janus на льоту!
+                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — створюємо
                 try {
                     log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
                     janusClient.createAudioBridgeRoom(roomId, station.getName());
@@ -267,51 +298,57 @@ public class RadioLiveService {
         return activeStations;
     }
 
-//    @Transactional(readOnly = true)
-//    public List<Map<String, Object>> getActiveRoomsInfo() {
-//        List<Map<String, Object>> rooms;
-//        try {
-//            // отримали перелік активних кімнат з Janus
-//            rooms = janusClient.getJanusRoomsAndParticipants();
-//        } catch (Exception e) {
-//            rooms = Collections.emptyList();
-//        }
-//
-//        // Отримуємо перелік кімнат радіостанцій з прямим ефіром з бази
-//        List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
-//        // шукаємо наші кімнати з сайту в Janus. Якщо нема - створюємо. Якщо є зайві - знищуємо.
-//
-//
-//        Map<Long, JanusLiveStream> activeStreamsMap = new HashMap<>();
-//        try {
-//            for (JanusLiveStream stream : portService.getAllActiveStreams()) {
-//                activeStreamsMap.put(stream.getJanusRoomId(), stream);
-//            }
-//        } catch (Exception e) {
-//            // DB error fallback
-//        }
-//
-//        for (Map<String, Object> room : rooms) {
-//            Number roomIdNum = (Number) room.get("room");
-//            if (roomIdNum != null) {
-//                Long roomId = roomIdNum.longValue();
-//                JanusLiveStream activeStream = activeStreamsMap.get(roomId);
-//                if (activeStream != null) {
-//                    room.put("is_streaming", true);
-//                    room.put("station_id", activeStream.getStationId());
-//                } else {
-//                    room.put("is_streaming", false);
-//                }
-//            }
-//        }
-//
-//        return rooms;
-//    }
 
     /**
      * Отримання глобального api_secret медіасервера.
      */
     public String getApiSecret() {
         return janusClient.getApiSecret();
+    }
+
+    /**
+     * Приєднує поточного користувача до аудіокімнати,
+     * реєструючи його токен в Janus.
+     *
+     * @param roomID - id аудіокімнати до якої ми приєднуємо користувача
+     * @return Map з даними для фронтенду
+     */
+    public Object connectClientToAudioRoom(Long roomID) {
+        // 1. Перевіряємо чи залогінений користувач
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            log.warn("Користувач не може бути приєднаний до кімнати {} бо він не залогінився.", roomID);
+            return Map.of("error", "Користувач не залогінений");
+        }
+
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        String userName = cd.getCustname() + " " + cd.getCustsurname();
+        String userUUID = cd.getUuid(); // Використовуємо UUID як унікальний токен для Janus
+
+        log.info("Процес підключення користувача {} (UUID: {}) до кімнати Janus ID: {}", userName, userUUID, roomID);
+
+        try {
+            // 2. Авторизуємо токен користувача в Janus через Admin API
+            // Це викличе команду "add_token" в Janus, щоб медіасервер приймав з'єднання з цим UUID
+            janusClient.registerUserToken(userUUID);
+
+            // 3. Формуємо відповідь для фронтенду
+            // Ці дані JS-скріпт використає для ініціалізації Janus.js або компіляції WebRTC
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("roomid", roomID);
+            result.put("token", userUUID);       // Передаємо UUID як токен авторизації
+            result.put("display", userName);     // Відображуване ім'я в аудіокімнаті
+            result.put("userId", cd.getId());
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("Помилка авторизації токена користувача в Janus для кімнати " + roomID, e);
+            return Map.of(
+                    "success", false,
+                    "error", "Не вдалося авторизувати користувача на медіасервері: " + e.getMessage()
+            );
+        }
     }
 }

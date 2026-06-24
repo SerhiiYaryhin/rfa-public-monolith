@@ -136,4 +136,35 @@ public class JanusLiveController {
 //        return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
         return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
     }
+
+    /**
+     * Підключаємо залогіненого клієнта в audioroom
+     *
+     * Якщо клієнт не залогінений, то не підключаємо.
+     */
+    @PostMapping("/connectclienttoroom")
+// 1. Змінюємо тип повернення на ResponseEntity<?>, щоб повернути правильний HTTP-статус
+    public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
+        logger.info("Запит на приєднання користувача до аудіокімнати");
+
+        // Перевіряємо на null, щоб уникнути NullPointerException
+        if (dataMap == null || !dataMap.containsKey("roomid")) {
+            return ResponseEntity.badRequest().body("Відсутній обов'язковий параметр roomid");
+        }
+
+        // 2. Безпечно дістаємо та конвертуємо в Long
+        Number roomIdNum = (Number) dataMap.get("roomid");
+        if (roomIdNum == null) {
+            return ResponseEntity.badRequest().body("Параметр roomid не може бути порожнім");
+        }
+        Long roomID = roomIdNum.longValue();
+
+        System.out.println("Отримано ID кімнати через POST: " + roomID);
+
+        // 3. Передаємо в сервіс та повертаємо статус 200 OK
+        return ResponseEntity.ok(radioLiveService.connectClientToAudioRoom(roomID));
+    }
+
+
+
 }

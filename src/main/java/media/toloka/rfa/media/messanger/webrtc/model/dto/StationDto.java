@@ -4,7 +4,10 @@ import com.google.gson.annotations.Expose;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import media.toloka.rfa.radio.model.enumerate.EServerState;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +23,10 @@ public class StationDto {
     @Expose private String roomname;
     @Expose private Boolean roomOnlineStatus;
     @Expose private Date startonline;
+
+    @Expose private List<Object> participants = new ArrayList<>();
+    public List<Object> getParticipants() { return participants; }
+    public void setParticipants(List<Object> participants) { this.participants = participants; }
 
     // Конструктор, який викликає JPQL
     public StationDto(Long id, String name, String description, String uuid, String roomuuid,

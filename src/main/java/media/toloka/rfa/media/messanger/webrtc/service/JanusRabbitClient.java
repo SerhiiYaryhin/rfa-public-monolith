@@ -232,6 +232,16 @@ public class JanusRabbitClient {
         return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
 
+    private void destroySession(Long sessionId) {
+        try {
+            String transactionId = "destroy-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("destroy", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Destroy session failed: {}", e.getMessage());
+        }
+    }
     private Long attachPlugin(Long sessionId, String plugin) {
         String transactionId = "attach-" + generateShortUUID();
         Map<String, Object> request = createBaseRequest("attach", transactionId);
@@ -245,16 +255,7 @@ public class JanusRabbitClient {
         return ((Number) ((Map)response.get("data")).get("id")).longValue();
     }
 
-    private void destroySession(Long sessionId) {
-        try {
-            String transactionId = "destroy-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("destroy", transactionId);
-            request.put("session_id", sessionId);
-            sendAndReceive(request);
-        } catch (Exception e) {
-            log.warn("Destroy session failed: {}", e.getMessage());
-        }
-    }
+
 
     private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
         Map<String, Object> request = new HashMap<>();
@@ -293,12 +294,107 @@ public class JanusRabbitClient {
     }
 
     public void destroyAudioBridgeRoom(Long janusRoomId) {
-        log.info("ToDo. Видаляємо аудіокімнату з самого Janus, щоб не жерти ресурси");
+        if (janusRoomId == null) {
+            log.warn("Спроба видалити кімнату з Janus із порожнім ID (null)");
+            return;
+        }
+
+        log.info("Надсилаємо запит на видалення аудіокімнати ID: {} з Janus", janusRoomId);
+
+        try {
+            executeInSession((sessionId, handleId) -> {
+                // 1. Створюємо унікальний ID транзакції для видалення
+                String transactionId = "room-destroy-" + generateShortUUID();
+
+                // 2. Формуємо базовий запит (тип "message")
+                Map<String, Object> request = createBaseRequest("message", transactionId);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+
+                // 3. Формуємо тіло команди для плагіна AudioBridge
+                Map<String, Object> body = new HashMap<>();
+                body.put("request", "destroy");      // Команда видалення кімнати
+                body.put("room", janusRoomId);         // ID кімнати, яку видаляємо
+                body.put("secret", apiSecret);        // Секрет плагіна (якщо налаштований в audiobridge)
+                body.put("permanent", false);         // false — видалити тільки з пам'яті (до перезапуску Janus)
+                // true — видалити назавжди (якщо вона була збережена в конфігах)
+
+                request.put("body", body);
+
+                // 4. Відправляємо в RabbitMQ та чекаємо на відповідь
+                Map<String, Object> response = sendAndReceive(request);
+
+                // 5. Валідуємо, чи Janus успішно виконав команду
+                validatePluginResponse(response);
+
+                log.info("Аудіокімнату ID: {} успішно видалено з медіасервера Janus", janusRoomId);
+                return null; // Оскільки метод executeInSession чекає повернення об'єкта, повертаємо null
+            });
+        } catch (Exception e) {
+            log.error("Не вдалося видалити кімнату " + janusRoomId + " з Janus: " + e.getMessage(), e);
+            // Тут можна прокинути виключення далі, якщо це критично для бізнес-логіки
+        }
     }
 
+
+//    public void destroyAudioBridgeRoom(Long janusRoomId) {
+//
+//        log.info("ToDo. Видаляємо аудіокімнату з самого Janus, щоб не жерти ресурси");
+//
+//    }
+
     public void createAudioBridgeRoom(Long roomId, String name) {
-        log.info("ToDo. Якщо в базі стоїть статус \"онлайн\", а Janus про неї ще не знає — треба створити її в Janus на льоту!");
+        if (roomId == null) {
+            log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
+            return;
+        }
+
+        log.info("Надсилаємо запит на створення аудіокімнати в Janus. ID: {}, Назва: {}", roomId, name);
+
+        try {
+            executeInSession((sessionId, handleId) -> {
+                // 1. Генеруємо унікальний ID транзакції
+                String transactionId = "room-create-" + generateShortUUID();
+
+                // 2. Формуємо базовий запит (тип "message")
+                Map<String, Object> request = createBaseRequest("message", transactionId);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+
+                // 3. Формуємо параметри кімнати для плагіна AudioBridge
+                Map<String, Object> body = new HashMap<>();
+                body.put("request", "create");         // Команда на створення
+                body.put("room", roomId);              // Числовий ID кімнати (беремо з нашої бази)
+                body.put("description", name);         // Зрозуміла назва кімнати (наприклад, назва станції)
+                body.put("secret", apiSecret);         // Секрет плагіна для безпеки (якщо треба)
+                body.put("permanent", false);          // false — кімната існує в пам'яті до перезапуску Janus
+
+                // Додаткові аудіо-налаштування за бажанням:
+                body.put("sampling_rate", 16000);      // Частота дискретизації (16kHz, 48kHz тощо)
+                body.put("is_private", false);         // Чи прихована кімната від загального списку
+                body.put("audio_level_average", 25);   // Чутливість для виявлення того, хто говорить
+
+                request.put("body", body);
+
+                // 4. Відправляємо в RabbitMQ і чекаємо відповіді
+                Map<String, Object> response = sendAndReceive(request);
+
+                // 5. Перевіряємо, чи успішно Janus створив кімнату
+                validatePluginResponse(response);
+
+                log.info("Аудіокімнату ID: {} ('{}') успішно створено на медіасервері Janus", roomId, name);
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Не вдалося створити кімнату " + roomId + " в Janus: " + e.getMessage(), e);
+            throw new RuntimeException("Помилка створення кімнати в Janus", e);
+        }
     }
+
+
+//    public void createAudioBridgeRoom(Long roomId, String name) {
+//        log.info("ToDo. Якщо в базі стоїть статус \"онлайн\", а Janus про неї ще не знає — треба створити її в Janus на льоту!");
+//    }
 
     @FunctionalInterface
     private interface JanusAction<T> {
