@@ -469,47 +469,59 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
 
             const event = msg["audiobridge"];
 
-            // Обробимо подію успішного входу (joined)
+            // 1. Обробка успішного входу в кімнату
             if (event && event === "joined") {
-                log(`Ви успішно увійшли в кімнату під ім'ям: ${msg["display"]}. Ваш ID у Janus: ${msg["id"]}`, 'SUCCESS');
+                const myDisplay = msg["display"] || "Учасник";
+                const myId = msg["id"];
+                log(`Ви успішно увійшли в кімнату під ім'ям: ${myDisplay}. Ваш ID у Janus: ${myId}`, 'SUCCESS');
 
-                // Якщо сервер не прислав JSEP пропозицію першим, ми ініціюємо її сами (для мікрофона)
+                // Якщо сервер разом із подією "joined" не прислав jsep (а він його не шле за дефолтом),
+                // ми першими створюємо локальний WebRTC Offer для публікації мікрофона
                 if (jsep === undefined || jsep === null) {
                     log("Ініціюємо створення локального WebRTC Offer (мікрофон)...", 'DEBUG');
                     audioBridge.createOffer({
-                        // Якщо користувач має право говорити — ставимо audioSend: true. Якщо тільки слухати — false
-                        media: {audioSend: true, audioRecv: true, video: false},
+                        media: { audioSend: true, audioRecv: true, video: false },
                         success: function (localJsep) {
                             log("Локальний SDP Offer сформовано. Надсилаємо конфігурацію в Janus...", 'INFO');
-                            let configure = {request: "configure", muted: false};
-                            audioBridge.send({message: configure, jsep: localJsep});
+                            let configure = { request: "configure", muted: false };
+                            audioBridge.send({ message: configure, jsep: localJsep });
                         },
                         error: function (error) {
-                            log("Помилка створення локального WebRTC Offer: " + JSON.stringify(error), 'ERROR');
+                            log("Помилка створення локального WebRTC Offer: " + (typeof error === 'object' ? JSON.stringify(error) : error), 'ERROR');
                         }
                     });
                 }
             }
 
-            // Якщо Janus надсилає/повертає JSEP
+            // 2. Обробка WebRTC JSEP сигналінгу від сервера
             if (jsep) {
-                log("Обробка JSEP від сервера...", 'INFO');
+                log(`Обробка JSEP від сервера (Тип: ${jsep.type})...`, 'INFO');
 
-                // Якщо ми самі створювали Offer (див. вище), то від сервера прийде Answer.
-                // Або якщо конфігурація медіа прийшла від сервера — робимо createAnswer
-                if (event === "joined" && (jsep.type === "answer" || audioBridge.webrtcStuff.pc.signalingState !== "stable")) {
-                    audioBridge.handleRemoteJsep({jsep: jsep});
-                } else {
+                if (jsep.type === "answer") {
+                    // Якщо це відповідь на наш раніше відправлений мікрофонний Offer,
+                    // ми просто віддаємо її плагіну для завершення рукостискання
+                    audioBridge.handleRemoteJsep({
+                        jsep: jsep,
+                        success: function() {
+                            log("Медіа-рукостискання (Answer) успішно оброблено!", "SUCCESS");
+                        },
+                        error: function(err) {
+                            log("Помилка handleRemoteJsep для Answer: " + JSON.stringify(err), "ERROR");
+                        }
+                    });
+                } else if (jsep.type === "offer") {
+                    // Якщо раптом сервер сам пропонує потік (наприклад, при першому підключенні через старий метод)
+                    log("Сервер прислав Offer. Генеруємо локальний Answer...", 'DEBUG');
                     audioBridge.createAnswer({
                         jsep: jsep,
-                        media: {audioSend: true, audioRecv: true, video: false},
+                        media: { audioSend: true, audioRecv: true, video: false },
                         success: function (jsepAnswer) {
                             log("SDP Answer сформовано. Завершуємо Handshake...", 'INFO');
-                            let configure = {request: "configure", muted: false};
-                            audioBridge.send({message: configure, jsep: jsepAnswer});
+                            let configure = { request: "configure", muted: false };
+                            audioBridge.send({ message: configure, jsep: jsepAnswer });
                         },
                         error: function (error) {
-                            log("WebRTC Answer Error: " + JSON.stringify(error), 'ERROR');
+                            log("WebRTC createAnswer Error: " + JSON.stringify(error), 'ERROR');
                         }
                     });
                 }
