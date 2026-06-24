@@ -53,7 +53,7 @@ public class JanusLiveController {
      * @return Дані про створену кімнату: ID кімнати Janus та виділений RTP порт
      */
     @PostMapping("/start")
-    public ResponseEntity<?> start(@RequestParam String stationId
+    public ResponseEntity<?> start(@RequestParam String stationId)
     {
         logger.info("Запит на запуск стріму: stationId={}", stationId);
         JanusLiveStream stream = radioLiveService.startBroadcast(stationId);

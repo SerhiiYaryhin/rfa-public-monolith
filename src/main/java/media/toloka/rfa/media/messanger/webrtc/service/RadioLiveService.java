@@ -78,7 +78,7 @@ public class RadioLiveService {
     {
         // Якщо ефір вже запущено — повертаємо існуючий стрім
         return portService.getStreamByStation(stationId).orElseGet(() -> {
-            log.info("Потрапили в незапущену станцію: {}", stationId);
+            log.info("Потрапили в не запущену станцію: {}", stationId);
             //todo Сформувати адресу звідки береться стрім
             String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
             // Шукаємо вільний порт
@@ -246,36 +246,57 @@ public class RadioLiveService {
             }
         }
 
-//        // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
-//        // Проходимо по наших активних станціях і додаємо до них динамічні дані (список учасників) з Janus
-
-        // 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
+// 4. ЗБАГАЧЕННЯ ДАНИХ ДЛЯ ФРОНТЕНДУ
         for (StationDto station : activeStations) {
             Long roomId = station.getId();
+            // Оскільки station.getId() є Long, а для пошуку стріму потрібен String stationId
+            String stationIdStr = String.valueOf(roomId);
 
             Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
             if (jRoomData != null) {
-                // Якщо Janus знає про цю кімнату, додаємо прапорець стрімінгу
+                // Ситуація 1: Кімната вже активна в Janus
                 station.setStationstate(true);
 
-                // --- ОСЬ ЦЕЙ БЛОК ТРЕБА ОНОВИТИ ТА РОЗКОМЕНТУВАТИ ---
                 List<Object> janusParticipants = (List<Object>) jRoomData.get("participants");
                 if (janusParticipants != null) {
                     station.setParticipants(janusParticipants);
                 } else {
                     station.setParticipants(new ArrayList<>());
                 }
-                // ----------------------------------------------------
 
             } else {
-                // Якщо в базі стоїть статус "онлайн", а Janus про неї ще не знає — створюємо
+                // Ситуація 2: Кімната активна в БД, але відсутня в Janus — створюємо на льоту
                 try {
-                    log.info("Кімната {} активна в БД, але відсутня в Janus. Створюємо...", roomId);
-                    Integer currentRtpPort = station.get
-                    getgetRtp_port() != null ? Integer.valueOf(station.getRtp_port()) : 49152;
-                    janusClient.createAudioBridgeRoom(roomId, station.getName());
+                    log.info("Кімната/Станція {} активна в БД, але відсутня в Janus. Ініціюємо створення...", roomId);
+
+                    // 1. Спочатку перевіряємо, чи є вже виділений порт для цієї станції в базі `janus_live_streams`
+                    Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationIdStr);
+
+                    int currentRtpPort;
+
+                    if (existingStream.isPresent()) {
+                        // Якщо запис існує, беремо порт, який вже закріплений за цією станцією
+                        currentRtpPort = existingStream.get().getRtpPort();
+                        log.info("Для станції {} знайдено існуючий RTP порт у базі: {}", stationIdStr, currentRtpPort);
+                    } else {
+                        // Якщо запису в базі немає (перший старт) — динамічно шукаємо НАСТУПНИЙ вільний порт
+                        currentRtpPort = portService.findNextFreePort();
+                        log.info("Для станції {} немає запису стріму. Виділено новий вільний порт: {}", stationIdStr, currentRtpPort);
+
+                        // "Застовблюємо" цей порт у базі даних (записуємо stream з PID = 0, бо ffmpeg ще не запущений)
+                        portService.saveActiveStream(stationIdStr, roomId, currentRtpPort, 0);
+                    }
+
+                    // 2. Створюємо кімнату в Janus, використовуючи оновлений метод із передачею порту та частоти 48000
+                    janusClient.createAudioBridgeRoom(roomId, station.getName(), currentRtpPort);
+
+                    // Після того як Janus створив кімнату, вона вважається запущеною
+                    station.setStationstate(true);
+                    station.setParticipants(new ArrayList<>());
+
                 } catch (Exception e) {
-                    log.error("Не вдалося створити кімнату на льоту в Janus", e);
+                    log.error("Не вдалося створити кімнату на льоту в Janus для станції " + roomId, e);
+                    station.setStationstate(false);
                 }
             }
         }
