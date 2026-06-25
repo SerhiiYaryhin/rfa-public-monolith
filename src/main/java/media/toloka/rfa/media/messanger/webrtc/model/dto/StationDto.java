@@ -14,7 +14,6 @@ import java.util.List;
 public class StationDto {
 
     @Expose private Long id;
-    @Expose private Long stationId;
     @Expose private String name;
     @Expose private String description;
     @Expose private String uuid;
@@ -30,11 +29,10 @@ public class StationDto {
     public void setParticipants(List<Object> participants) { this.participants = participants; }
 
     // Конструктор, який викликає JPQL
-    public StationDto(Long id, Long stationId, String name, String description, String uuid, String roomuuid,
+    public StationDto(Long id, String name, String description, String uuid, String roomuuid,
                       Boolean stationstate, EServerState serverState, String roomname,
                       Boolean roomOnlineStatus, Date startonline) {
         this.id = id;
-        this.stationId = stationId;
         this.name = name;
         this.description = description;
         this.uuid = uuid;
