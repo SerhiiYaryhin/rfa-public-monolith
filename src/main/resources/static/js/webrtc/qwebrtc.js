@@ -140,7 +140,7 @@ function attachAudioBridgePlugin() {
 
                     // ✅ ПРАВИЛЬНИЙ СПОСІБ: Створюємо MediaStream з треку
                     const stream = new MediaStream([track]);
-                    audio.srcObject = stream;
+                    audio.srcObject = stream;  // ← НЕ Janus.attachMediaStream!
 
                     audio.play().catch(e => {
                         log(`⚠️ Автопрогравання заблоковано: ${e.message}. Клікніть по сторінці.`, "WARN");
