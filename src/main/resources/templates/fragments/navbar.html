@@ -33,19 +33,19 @@
                 <i class="fas fa-bars ms-1"></i>
             </button>
         </div>
-            <div class="collapse navbar-collapse" id="navbarResponsive" sec:authorize="!isAuthenticated()">
-                <ul class="navbar-nav ">
-                    <li class="nav-item"><a class="nav-link" href="/guest/authors">Автори</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/podcast/all">Подкасти</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#services">Що це?</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#portfolio">Для кого?</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#contact">Напишіть нам</a></li>
-                    <!--                    <li class="nav-item"><a class="nav-link" href="/#about">Хто ми?</a></li>-->
-                    <li class="nav-item"><a class="nav-link" href="/#team">Наша команда</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/login">Вхід</a></li>
-                </ul>
-            </div>
+        <div class="collapse navbar-collapse" id="navbarResponsive" sec:authorize="!isAuthenticated()">
+            <ul class="navbar-nav ">
+                <li class="nav-item"><a class="nav-link" href="/guest/authors">Автори</a></li>
+                <li class="nav-item"><a class="nav-link" href="/podcast/all">Подкасти</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#news">Музичні новини</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#services">Що це?</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#portfolio">Для кого?</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#contact">Напишіть нам</a></li>
+                <!--                    <li class="nav-item"><a class="nav-link" href="/#about">Хто ми?</a></li>-->
+                <li class="nav-item"><a class="nav-link" href="/#team">Наша команда</a></li>
+                <li class="nav-item"><a class="nav-link" href="/login">Вхід</a></li>
+            </ul>
+        </div>
         <div sec:authorize="isAuthenticated()" class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                 <!-- Головна для різних ролей -->
@@ -82,8 +82,12 @@
                         <li><a class="dropdown-item" href="/creater/posts/0">Пости</a></li>
                         <li><a class="dropdown-item" href="/podcast/home">Подкасти</a></li>
                         <li><a class="dropdown-item" href="/creater/storage/0">Сховище</a></li>
-                        <li sec:authorize="hasRole('ROLE_AUTHOR')"><a class="dropdown-item fw-bold text-primary" href="/creater/author/dashboard">Кабінет автора</a></li>
-                        <li sec:authorize="hasRole('ROLE_USER') and !hasRole('ROLE_AUTHOR')"><a class="dropdown-item" href="/author/apply">Стати автором</a></li>
+                        <li sec:authorize="hasRole('ROLE_AUTHOR')"><a class="dropdown-item fw-bold text-primary"
+                                                                      href="/creater/author/dashboard">Кабінет
+                            автора</a></li>
+                        <li sec:authorize="hasRole('ROLE_USER') and !hasRole('ROLE_AUTHOR')"><a class="dropdown-item"
+                                                                                                href="/author/apply">Стати
+                            автором</a></li>
                         <li><a class="dropdown-item" href="/banners">Баннери</a></li>
                     </ul>
                 </li>  <!-- Creater -->
@@ -117,7 +121,8 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">Адмін</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarAdmin">
-                        <li><a class="dropdown-item fw-bold text-primary" href="/admin/approvals"><i class="fas fa-check-double me-2"></i>Схвалення</a></li>
+                        <li><a class="dropdown-item fw-bold text-primary" href="/admin/approvals"><i
+                                class="fas fa-check-double me-2"></i>Схвалення</a></li>
                         <li><a class="dropdown-item" href="/admin/users">Користувачі</a></li>
                         <li><a class="dropdown-item" href="/admin/addresses">Адреси</a></li>
                         <li><a class="dropdown-item" href="/admin/documents">Документи</a></li>
@@ -146,7 +151,8 @@
                                 <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>
                                 <li><a class="dropdown-item" href="/acc/reference/clients/list">Клієнти</a></li>
                                 <li><a class="dropdown-item" href="/acc/reference/goods/list">Послуги</a></li>
-                                <li><a class="dropdown-item" href="/acc/reference/measurement/list">Одиниці виміру</a></li>
+                                <li><a class="dropdown-item" href="/acc/reference/measurement/list">Одиниці виміру</a>
+                                </li>
                             </ul>
                         </li>
 
@@ -155,25 +161,32 @@
                         <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>
                     </ul>
                 </li>
-<!--                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">-->
-<!--                    <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"-->
-<!--                       data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>-->
-<!--                    <ul class="dropdown-menu" aria-labelledby="navbarAcc">-->
-<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>-->
-<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Клієнти</a></li>-->
-<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Послуги</a></li>-->
-<!--                        <li><a class="dropdown-item" href="/acc/acc/0">Одиниці виміру</a></li>-->
-<!--                        <li><a class="dropdown-item" href="/acc/transactionlist">Шаблони операцій</a></li>-->
-<!--                        <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>-->
-<!--                    </ul>-->
-<!--                </li>  &lt;!&ndash; admin &ndash;&gt;-->
-                <li sec:authorize="hasAnyRole('ROLE_CREATER', 'ROLE_MODERATOR', 'ROLE_ADMIN')" class="nav-item"><a class="nav-link" href="/creater/storage/0">Сховище</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
-                              style="color:red;font-size: 0.7em; font-weight: bold;"/>
-                    </a></li>
-                    <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
+                <!--                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item dropdown">-->
+                <!--                    <a class="nav-link dropdown-toggle" href="#" id="navbarAcc" role="button"-->
+                <!--                       data-bs-toggle="dropdown" aria-expanded="false">Гроші</a>-->
+                <!--                    <ul class="dropdown-menu" aria-labelledby="navbarAcc">-->
+                <!--                        <li><a class="dropdown-item" href="/acc/acc/0">Рахунки</a></li>-->
+                <!--                        <li><a class="dropdown-item" href="/acc/acc/0">Клієнти</a></li>-->
+                <!--                        <li><a class="dropdown-item" href="/acc/acc/0">Послуги</a></li>-->
+                <!--                        <li><a class="dropdown-item" href="/acc/acc/0">Одиниці виміру</a></li>-->
+                <!--                        <li><a class="dropdown-item" href="/acc/transactionlist">Шаблони операцій</a></li>-->
+                <!--                        <li><a class="dropdown-item" href="/acc/documents">CachFlow</a></li>-->
+                <!--                    </ul>-->
+                <!--                </li>  &lt;!&ndash; admin &ndash;&gt;-->
+                <li sec:authorize="hasAnyRole('ROLE_CREATER', 'ROLE_MODERATOR', 'ROLE_ADMIN')" class="nav-item"><a
+                        class="nav-link" href="/creater/storage/0">Сховище</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/chat">Чат
+                    <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}"
+                          th:text="'new: '+ ${quantitynewmessage}"
+                          style="color:red;font-size: 0.7em; font-weight: bold;"/>
+                    </a>
+                </li>
+                <li sec:authorize="hasAnyRole('ROLE_EDITOR','ROLE_MODERATOR', 'ROLE_ADMIN')" class="nav-item">
+                    <a class="nav-link" href="/test/webrtc/webrtc-test">Голосовий Чат</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
             </ul>
         </div>
     </nav>
@@ -211,7 +224,8 @@
                 <li class="nav-item"><a class="nav-link" href="/podcast/home">Подкаст</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}"
+                              th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/user/usereditinfo">Профайл</a></li>
@@ -232,7 +246,8 @@
                         <li class="nav-item"><a class="nav-link" href="/user/home/managestations">Станції</a></li>
                     </ul>
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат
-                    <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
+                    <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}"
+                          th:text="'new: '+ ${quantitynewmessage}"
                           style="color:red;font-size: 0.7em; font-weight: bold;"/>
                 </a>
                 </li>
@@ -254,7 +269,8 @@
                 <li class="nav-item"><a class="nav-link" href="/chat">Чат</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}"
+                              th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.75em; font-weight: bold;"/></a>
                 </li>
 
@@ -266,7 +282,8 @@
                 <li class="nav-item"><a class="nav-link" href="/moderator/home">Головна</a></li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Чат
-                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}" th:text="'new: '+ ${quantitynewmessage}"
+                        <span th:if="${quantitynewmessage != null && quantitynewmessage gt 0}"
+                              th:text="'new: '+ ${quantitynewmessage}"
                               style="color:red;font-size: 0.7em; font-weight: bold;"/></a>
                 </li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Вихід</a></li>
