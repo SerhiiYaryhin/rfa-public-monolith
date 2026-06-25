@@ -17,11 +17,17 @@ const ROOMS_REFRESH_INTERVAL = 5000;
 // ============================================================
 function log(message, type = 'INFO') {
     const consoleDiv = document.getElementById("logConsole");
-    if (!consoleDiv) { console.log(`[${type}] ${message}`); return; }
+    if (!consoleDiv) {
+        console.log(`[${type}] ${message}`);
+        return;
+    }
     const time = new Date().toLocaleTimeString();
     const badgeClasses = {
-        'INFO': 'badge-info', 'SUCCESS': 'badge-success',
-        'ERROR': 'badge-error', 'WARN': 'badge-error', 'DEBUG': 'badge-debug'
+        'INFO': 'badge-info',
+        'SUCCESS': 'badge-success',
+        'ERROR': 'badge-error',
+        'WARN': 'badge-error',
+        'DEBUG': 'badge-debug'
     };
     const badgeClass = badgeClasses[type] || 'badge-info';
     consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
@@ -78,8 +84,13 @@ function initJanusConnection() {
                         log(`❌ Помилка WebSocket: ${error}`, "ERROR");
                         if (!isReconnecting) {
                             isReconnecting = true;
-                            setTimeout(() => { isReconnecting = false; initJanusConnection().then(resolve).catch(reject); }, 5000);
-                        } else { reject(error); }
+                            setTimeout(() => {
+                                isReconnecting = false;
+                                initJanusConnection().then(resolve).catch(reject);
+                            }, 5000);
+                        } else {
+                            reject(error);
+                        }
                     },
                     destroyed: () => {
                         log("🔌 Сесію Janus знищено", "INFO");
@@ -127,11 +138,9 @@ function attachAudioBridgePlugin() {
                 log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
 
                 if (on && track.kind === 'audio') {
-                    // ✅ ВИКОРИСТОВУЄМО ІСНУЮЧИЙ СТАТИЧНИЙ ПЛЕЄР
                     let audio = document.getElementById("audioPlayer");
 
                     if (!audio) {
-                        // Fallback: якщо статичний плеєр відсутній, створюємо динамічний
                         audio = document.getElementById("remoteAudio-" + mid);
                         if (!audio) {
                             audio = document.createElement("audio");
@@ -145,7 +154,6 @@ function attachAudioBridgePlugin() {
                         log(`🎵 Використовуємо статичний плеєр audioPlayer`, "DEBUG");
                     }
 
-                    // ✅ ПРАВИЛЬНИЙ СПОСІБ: Створюємо MediaStream з треку
                     const stream = new MediaStream([track]);
                     audio.srcObject = stream;
 
@@ -167,7 +175,7 @@ function attachAudioBridgePlugin() {
 }
 
 // ============================================================
-// 4. ПЕРЕХІД МІЖ КІМНАТАМИ
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО!)
 // ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
@@ -178,14 +186,17 @@ async function switchRoom(newRoomId) {
         pendingRoomId = newRoomId;
         return;
     }
-    if (!audioBridge) { log("❌ AudioBridge відсутній", "ERROR"); return; }
+    if (!audioBridge) {
+        log("❌ AudioBridge відсутній", "ERROR");
+        return;
+    }
 
     log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
     try {
         const response = await fetch(`${BACKEND_API}/connectclienttoroom`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ roomid: newRoomId })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({roomid: newRoomId})
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const serverResponse = await response.json();
@@ -194,9 +205,20 @@ async function switchRoom(newRoomId) {
 
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
-            audioBridge.send({ message: { request: "leave" } });
+
+            // ✅ КРИТИЧНО: Очищаємо WebRTC PeerConnection ПЕРЕД виходом!
+            // Це скидає стан PC, щоб наступний join створив новий PC з нуля
+            try {
+                audioBridge.hangUp();
+                log("🧹 PeerConnection очищено через hangUp()", "DEBUG");
+            } catch (e) {
+                log(`⚠️ hangUp() помилка (не критично): ${e.message}`, "WARN");
+            }
+
+            audioBridge.send({message: {request: "leave"}});
             await new Promise(r => setTimeout(r, 300));
         }
+
         currentRoomId = newRoomId;
         currentDisplay = serverResponse.display;
         joinRoom(newRoomId, currentDisplay);
@@ -214,7 +236,7 @@ function joinRoom(roomId, display) {
         muted: false
     };
     log(`📤 Відправка: ${JSON.stringify(joinMessage)}`, "DEBUG");
-    audioBridge.send({ message: joinMessage });
+    audioBridge.send({message: joinMessage});
 }
 
 // ============================================================
@@ -229,6 +251,7 @@ function handleJanusMessage(msg, jsep) {
         return;
     }
 
+    // ✅ Обробляємо ТІЛЬКИ наш власний joined (з полем id)
     if (event === "joined" && msg.id) {
         const myId = msg.id;
         const myDisplay = msg.display || currentDisplay;
@@ -240,12 +263,12 @@ function handleJanusMessage(msg, jsep) {
             const offerStartTime = Date.now();
 
             audioBridge.createOffer({
-                media: { audioSend: true, audioRecv: true, video: false },
+                media: {audioSend: true, audioRecv: true, video: false},
                 success: (localJsep) => {
                     const elapsed = Date.now() - offerStartTime;
                     log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
                     audioBridge.send({
-                        message: { request: "configure", muted: false },
+                        message: {request: "configure", muted: false},
                         jsep: localJsep
                     });
                 },
@@ -254,14 +277,21 @@ function handleJanusMessage(msg, jsep) {
         }
     }
 
-    if (event === "joined" && !msg.id) {
+    // Повідомлення про вхід іншого користувача (без msg.id)
+    if (event === "joined" && !msg.id && msg.participants) {
         log(`👤 Інший користувач увійшов в кімнату`, "INFO");
         loadRooms();
     }
 
-    if (event === "left") { log(`👋 Хтось вийшов з кімнати`, "INFO"); loadRooms(); }
+    if (event === "left") {
+        log(`👋 Хтось вийшов з кімнати`, "INFO");
+        loadRooms();
+    }
     if (event === "kicked") log(`⚠️ Вас видалено з кімнати`, "WARN");
-    if (event === "destroyed") { currentRoomId = null; log(`💥 Кімнату знищено`, "WARN"); }
+    if (event === "destroyed") {
+        currentRoomId = null;
+        log(`💥 Кімнату знищено`, "WARN");
+    }
 
     if (jsep) {
         log(`📡 Отримано JSEP типу: ${jsep.type}`, "DEBUG");
@@ -271,20 +301,25 @@ function handleJanusMessage(msg, jsep) {
                 jsep: jsep,
                 success: () => {
                     log("✅ WebRTC Handshake завершено", "SUCCESS");
+
                     let checkCount = 0;
                     const checkInterval = setInterval(() => {
                         if (audioBridge.webrtcStuff?.pc) {
                             const pc = audioBridge.webrtcStuff.pc;
                             log(`🔍 ICE: ${pc.iceConnectionState} (${++checkCount})`, "DEBUG");
+
                             if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
                                 log("✅ ICE з'єднання встановлено!", "SUCCESS");
                                 clearInterval(checkInterval);
                             } else if (pc.iceConnectionState === "failed") {
-                                log("❌ ICE FAILED!", "ERROR");
+                                log("❌ ICE FAILED! Потрібен TURN сервер", "ERROR");
                                 clearInterval(checkInterval);
                             }
                         }
-                        if (checkCount >= 15) { clearInterval(checkInterval); }
+                        if (checkCount >= 15) {
+                            log("⚠️ ICE не встановився за 30 секунд", "WARN");
+                            clearInterval(checkInterval);
+                        }
                     }, 2000);
                 },
                 error: (err) => log(`❌ Answer Error: ${JSON.stringify(err)}`, "ERROR")
@@ -292,10 +327,10 @@ function handleJanusMessage(msg, jsep) {
         } else if (jsep.type === "offer") {
             audioBridge.createAnswer({
                 jsep: jsep,
-                media: { audioSend: true, audioRecv: true, video: false },
+                media: {audioSend: true, audioRecv: true, video: false},
                 success: (jsepAnswer) => {
                     audioBridge.send({
-                        message: { request: "configure", muted: false },
+                        message: {request: "configure", muted: false},
                         jsep: jsepAnswer
                     });
                 },
@@ -306,80 +341,7 @@ function handleJanusMessage(msg, jsep) {
 }
 
 // ============================================================
-// 6. УПРАВЛІННЯ СТРІМАМИ (НОВЕ!)
-// ============================================================
-
-/**
- * Запускає трансляцію радіостанції в кімнату.
- * @param {string} stationId - ID станції (наприклад, "802" або "rfa-rock")
- */
-async function startStreamToRoom(stationId) {
-    if (!stationId) {
-        log("❌ Station ID не вказано", "ERROR");
-        return;
-    }
-
-    log(`▶️ Запуск стріму: ${stationId}`, "INFO");
-
-    try {
-        const response = await fetch(
-            `${BACKEND_API}/start?stationId=${encodeURIComponent(stationId)}`,
-            { method: 'POST' }
-        );
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        log(`✅ Стрім запущено! Room: ${data.room_id}, Port: ${data.rtp_port}`, "SUCCESS");
-
-        // Оновлюємо список кімнат через 1 секунду (щоб Janus встиг створити кімнату)
-        setTimeout(loadRooms, 1000);
-
-    } catch (error) {
-        log(`❌ Помилка запуску стріму: ${error.message}`, "ERROR");
-    }
-}
-
-/**
- * Зупиняє трансляцію радіостанції.
- * @param {string} stationId - ID станції
- */
-async function stopStreamFromRoom(stationId) {
-    if (!stationId) {
-        log("❌ Station ID не вказано", "ERROR");
-        return;
-    }
-
-    if (!confirm(`Зупинити трансляцію станції ${stationId}?`)) {
-        return;
-    }
-
-    log(`⏹️ Зупинка стріму: ${stationId}`, "INFO");
-
-    try {
-        const response = await fetch(
-            `${BACKEND_API}/stop?stationId=${encodeURIComponent(stationId)}`,
-            { method: 'POST' }
-        );
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP ${response.status}`);
-        }
-
-        log(`✅ Стрім зупинено`, "SUCCESS");
-        setTimeout(loadRooms, 500);
-
-    } catch (error) {
-        log(`❌ Помилка зупинки стріму: ${error.message}`, "ERROR");
-    }
-}
-
-// ============================================================
-// 7. ЗАВАНТАЖЕННЯ КІМНАТ (ОНОВЛЕНО)
+// 6. ЗАВАНТАЖЕННЯ КІМНАТ
 // ============================================================
 async function loadRooms() {
     if (!isJanusReady) return;
@@ -395,70 +357,34 @@ async function loadRooms() {
 function renderRooms(rooms) {
     const container = document.getElementById("roomsList");
     if (!container) return;
-
     if (!rooms || rooms.length === 0) {
         container.innerHTML = `<div class="no-rooms"><div class="no-rooms-icon">📭</div><div class="no-rooms-text">Немає активних кімнат</div></div>`;
         return;
     }
-
     container.innerHTML = rooms.map(room => {
         const isCurrent = currentRoomId === room.id;
-        const isStreaming = room.stationstate === true;
-
-        // ✅ Кнопка переходу в кімнату
         const btnClass = isCurrent ? 'btn-action-room' : 'btn-action-room btn-join-room';
         const btnText = isCurrent ? '✓ Ви тут' : '🚪 Увійти';
         const btnDisabled = isCurrent ? 'disabled' : '';
         const btnAction = isCurrent ? '' : `onclick="switchRoom(${room.id})"`;
 
-        // ✅ Кнопки керування стрімом
-        let streamButtons = '';
-        const stationId = room.stationId || String(room.id);
-
-        if (isStreaming) {
-            // Стрім активний — показуємо кнопку "Зупинити"
-            streamButtons = `
-                <button class="btn-action-room btn-stop-stream" 
-                        onclick="stopStreamFromRoom('${stationId}')">
-                    ⏹️ Зупинити
-                </button>`;
-        } else {
-            // Стрім не активний — показуємо кнопку "Запустити"
-            streamButtons = `
-                <button class="btn-action-room btn-start-stream" 
-                        onclick="startStreamToRoom('${stationId}')">
-                    ▶️ Запустити
-                </button>`;
-        }
-
-        // ✅ Список учасників
         let participantsHtml = '<div class="no-users">Немає користувачів</div>';
         if (room.participants && room.participants.length > 0) {
             participantsHtml = '<ul class="user-list">' + room.participants.map(p => {
                 let state = p.talking ? 'talking' : (p.muted ? 'muted' : 'active');
                 let stateText = p.talking ? '📢 говорить' : (p.muted ? '🔇 вимкнено' : '🎙️ активний');
-                return `<li class="user-item">
-                    <span class="user-avatar">👤</span>
-                    <span class="user-name">${p.display || 'Анонім'} <span class="user-id">(${p.id})</span></span>
-                    <span class="state-badge ${state}">${stateText}</span>
-                </li>`;
+                return `<li class="user-item"><span class="user-avatar">👤</span><span class="user-name">${p.display || 'Анонім'} <span class="user-id">(${p.id})</span></span><span class="state-badge ${state}">${stateText}</span></li>`;
             }).join('') + '</ul>';
         }
 
-        // ✅ LIVE badge
-        const liveBadge = isStreaming
-            ? '<span class="badge badge-live-pulse">🔴 LIVE</span>'
-            : '';
-
         return `
-        <div class="room-card ${isStreaming ? 'room-card-live' : ''} ${isCurrent ? 'room-card-current' : ''}">
+        <div class="room-card ${room.stationstate ? 'room-card-live' : ''} ${isCurrent ? 'room-card-current' : ''}">
             <div class="room-header">
                 <div class="room-title-container">
                     <span class="room-name">${room.name}</span>
                     <span class="room-id">ID: ${room.id}</span>
-                    ${room.stationId ? `<span class="station-tag">${room.stationId}</span>` : ''}
                 </div>
-                ${liveBadge}
+                ${room.stationstate ? '<span class="badge badge-live-pulse">🔴 LIVE</span>' : ''}
             </div>
             <div class="room-body">
                 <div class="participants-title">Учасники (${room.participants ? room.participants.length : 0}):</div>
@@ -466,17 +392,21 @@ function renderRooms(rooms) {
             </div>
             <div class="room-actions">
                 <button class="${btnClass}" ${btnDisabled} ${btnAction}>${btnText}</button>
-                ${streamButtons}
             </div>
         </div>`;
     }).join('');
 }
 
-function enableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false); }
-function disableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true); }
+function enableRoomButtons() {
+    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false);
+}
+
+function disableRoomButtons() {
+    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);
+}
 
 // ============================================================
-// 8. ІНІЦІАЛІЗАЦІЯ
+// 7. ІНІЦІАЛІЗАЦІЯ
 // ============================================================
 document.addEventListener("DOMContentLoaded", async () => {
     log("🚀 Сторінку завантажено. Ініціалізація...", "INFO");
@@ -494,11 +424,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("beforeunload", () => {
-    if (janusInstance) janusInstance.destroy({ cleanupHandles: true });
+    if (janusInstance) janusInstance.destroy({cleanupHandles: true});
 });
 
-// ✅ Експорт функцій для onclick
 window.switchRoom = switchRoom;
 window.loadRooms = loadRooms;
-window.startStreamToRoom = startStreamToRoom;
-window.stopStreamFromRoom = stopStreamFromRoom;
