@@ -10,16 +10,17 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * Оптимізований RPC-клієнт для Janus.
+ * Оптимізований RPC-клієнт для Janus (v2).
  *
- * ВАЖЛИВО: Admin API Janus НЕ має команди для отримання списку кімнат плагіна!
- * Тому для роботи з кімнатами використовуємо Client API через executeInSession().
- * Admin API використовується тільки для:
- * - ping
- * - add_token / remove_token / list_tokens
+ * Ключові відмінності від v1:
+ * - Використовує Client API через executeInSession для роботи з плагінами
+ * - Admin API тільки для глобальних команд (list_tokens, add_token, ping)
+ * - createAudioBridgeRoom() передає RTP параметри для прийому зовнішнього потоку
+ * - Правильний парсинг відповідей (plugindata.data для Client API)
  */
 @Service
 public class JanusRabbitClientOptimized {
+
     private static final Logger log = LoggerFactory.getLogger(JanusRabbitClientOptimized.class);
 
     private final RabbitTemplate rabbitTemplate;
@@ -43,124 +44,177 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-    // РОБОТА З КІМНАТАМИ (через Client API + executeInSession)
+    // СТВОРЕННЯ КІМНАТ (Client API через executeInSession)
     // ============================================================
 
     /**
-     * Отримує ВСІ кімнати з учасниками за одну сесію.
-     * ВАЖЛИВО: Використовує Client API, а не Admin API!
+     * Створення аудіокімнати з явним ID та RTP портом.
+     * КРИТИЧНО: передає RTP параметри в Janus для прийому зовнішнього потоку.
+     *
+     * @param roomId ID кімнати (має збігатися з ID станції з БД)
+     * @param name Назва кімнати
+     * @param rtpPort UDP порт для прийому RTP потоку (може бути null для звичайної кімнати)
+     */
+    public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
+        if (roomId == null) {
+            log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
+            return;
+        }
+
+        log.info("Створення аудіокімнати в Janus. ID: {}, Назва: {}, RTP порт: {}", roomId, name, rtpPort);
+
+        try {
+            executeInSession((sessionId, handleId) -> {
+                String transactionId = "room-create-" + generateShortUUID();
+                Map<String, Object> request = createBaseRequest("message", transactionId);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("request", "create");
+                body.put("room", roomId);
+                body.put("description", name);
+                body.put("secret", apiSecret);
+                body.put("permanent", false);
+
+                // Аудіо налаштування
+                body.put("sampling_rate", 48000);
+                body.put("audio_codec", "opus");
+                body.put("is_private", false);
+                body.put("audio_level_average", 25);
+
+                // ✅ КРИТИЧНО: RTP STREAM ПАРАМЕТРИ для прийому зовнішнього потоку
+                if (rtpPort != null && rtpPort > 0) {
+                    body.put("rtp_stream", true);
+                    body.put("rtp_stream_port", rtpPort);
+                    body.put("rtp_stream_codec", "opus");
+                    body.put("rtp_stream_sample_rate", 48000);
+                    body.put("rtp_stream_channels", 2);
+                    log.info("Кімната {} налаштована для прийому RTP на порту {}", roomId, rtpPort);
+                }
+
+                request.put("body", body);
+
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+
+                log.info("Аудіокімнату ID: {} ('{}') успішно створено з RTP на порту {}", roomId, name, rtpPort);
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Не вдалося створити кімнату " + roomId + " в Janus: " + e.getMessage(), e);
+            throw new RuntimeException("Помилка створення кімнати в Janus", e);
+        }
+    }
+
+    /**
+     * Видалення аудіокімнати з Janus.
+     */
+    public void destroyAudioBridgeRoom(Long janusRoomId) {
+        if (janusRoomId == null) {
+            log.warn("Спроба видалити кімнату з Janus із порожнім ID (null)");
+            return;
+        }
+
+        log.info("Видалення аудіокімнати ID: {} з Janus", janusRoomId);
+
+        try {
+            executeInSession((sessionId, handleId) -> {
+                String transactionId = "room-destroy-" + generateShortUUID();
+                Map<String, Object> request = createBaseRequest("message", transactionId);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("request", "destroy");
+                body.put("room", janusRoomId);
+                body.put("secret", apiSecret);
+                body.put("permanent", false);
+                request.put("body", body);
+
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+
+                log.info("Аудіокімнату ID: {} успішно видалено з Janus", janusRoomId);
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Не вдалося видалити кімнату " + janusRoomId + " з Janus: " + e.getMessage(), e);
+        }
+    }
+
+    // ============================================================
+    // ОТРИМАННЯ СПИСКУ КІМНАТ (Client API через executeInSession)
+    // ============================================================
+
+    /**
+     * Отримання списку кімнат та їхніх учасників за один сеанс зв'язку з Janus.
      */
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> getAllRoomsWithParticipants() {
+    public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
-            String transactionId = "all-rooms-" + generateShortUUID();
+            String transactionId = "rooms-list-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
             request.put("body", Map.of("request", "list"));
 
-            try {
-                Map<String, Object> response = sendAndReceive(request);
-                validatePluginResponse(response);
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
 
-                Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-                if (plugindata == null) {
-                    log.warn("plugindata відсутній у відповіді");
-                    return List.<Map<String, Object>>of();
-                }
-
-                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-                if (data == null) {
-                    log.warn("data відсутній у plugindata");
-                    return List.<Map<String, Object>>of();
-                }
-
-                List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("list");
-                if (rooms == null) {
-                    log.info("У Janus немає жодної кімнати");
-                    return List.<Map<String, Object>>of();
-                }
-
-                log.debug("Отримано {} кімнат з Janus", rooms.size());
-
-                // Для кожної кімнати отримуємо учасників (в тій самій сесії!)
-                for (Map<String, Object> room : rooms) {
-                    try {
-                        Number roomIdNum = (Number) room.get("room");
-                        if (roomIdNum == null) continue;
-
-                        String partTransactionId = "part-" + generateShortUUID();
-                        Map<String, Object> partRequest = createBaseRequest("message", partTransactionId);
-                        partRequest.put("session_id", sessionId);
-                        partRequest.put("handle_id", handleId);
-                        partRequest.put("body", Map.of(
-                                "request", "listparticipants",
-                                "room", roomIdNum.longValue()
-                        ));
-
-                        Map<String, Object> partResponse = sendAndReceive(partRequest);
-                        validatePluginResponse(partResponse);
-
-                        Map<String, Object> partPlugindata = (Map<String, Object>) partResponse.get("plugindata");
-                        Map<String, Object> partData = (Map<String, Object>) partPlugindata.get("data");
-                        List<Map<String, Object>> participants = (List<Map<String, Object>>) partData.get("participants");
-
-                        room.put("participants", participants != null ? participants : List.of());
-                    } catch (Exception e) {
-                        log.error("Помилка отримання учасників для кімнати " + room.get("room"), e);
-                        room.put("participants", List.of());
-                    }
-                }
-
-                return rooms;
-
-            } catch (Exception e) {
-                log.error("Помилка отримання списку кімнат з Janus", e);
-                return List.of();
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            if (plugindata == null) {
+                log.warn("plugindata відсутній у відповіді");
+                return List.<Map<String, Object>>of();
             }
-        });
-    }
 
-    /**
-     * Отримує учасників конкретної кімнати через Client API.
-     */
-    @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> getRoomParticipants(Long roomId) {
-        return executeInSession((sessionId, handleId) -> {
-            String transactionId = "participants-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-            request.put("body", Map.of(
-                    "request", "listparticipants",
-                    "room", roomId
-            ));
-
-            try {
-                Map<String, Object> response = sendAndReceive(request);
-                validatePluginResponse(response);
-
-                Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-                if (plugindata == null) return List.of();
-
-                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-                if (data == null || data.get("participants") == null) {
-                    return List.of();
-                }
-
-                return (List<Map<String, Object>>) data.get("participants");
-
-            } catch (Exception e) {
-                log.error("Помилка отримання учасників кімнати " + roomId, e);
-                return List.of();
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            if (data == null) {
+                log.warn("data відсутній у plugindata");
+                return List.<Map<String, Object>>of();
             }
+
+            List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("list");
+            if (rooms == null) {
+                return List.<Map<String, Object>>of();
+            }
+
+            // Для кожної кімнати запитуємо список учасників
+            for (Map<String, Object> room : rooms) {
+                try {
+                    Number roomIdNum = (Number) room.get("room");
+                    if (roomIdNum == null) continue;
+                    Long roomId = roomIdNum.longValue();
+
+                    String partTransactionId = "part-list-" + generateShortUUID();
+                    Map<String, Object> partRequest = createBaseRequest("message", partTransactionId);
+                    partRequest.put("session_id", sessionId);
+                    partRequest.put("handle_id", handleId);
+                    partRequest.put("body", Map.of(
+                            "request", "listparticipants",
+                            "room", roomId
+                    ));
+
+                    Map<String, Object> partResponse = sendAndReceive(partRequest);
+                    validatePluginResponse(partResponse);
+
+                    Map<String, Object> partPluginData = (Map<String, Object>) partResponse.get("plugindata");
+                    Map<String, Object> partData = (Map<String, Object>) partPluginData.get("data");
+                    List<Map<String, Object>> participants = (List<Map<String, Object>>) partData.get("participants");
+                    room.put("participants", participants != null ? participants : List.of());
+                } catch (Exception e) {
+                    log.error("Помилка отримання учасників для кімнати " + room.get("room"), e);
+                    room.put("participants", List.of());
+                }
+            }
+            return rooms;
         });
     }
 
     /**
      * Отримує список ID усіх активних аудіокімнат у Janus.
-     * Використовує Client API через executeInSession.
      */
+    @SuppressWarnings("unchecked")
     public List<Long> getActiveRoomsIds() {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "list-rooms-" + generateShortUUID();
@@ -182,7 +236,6 @@ public class JanusRabbitClientOptimized {
                 Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
                 if (data == null) return roomIds;
 
-                @SuppressWarnings("unchecked")
                 List<Map<String, Object>> roomsList = (List<Map<String, Object>>) data.get("list");
                 if (roomsList == null) {
                     log.info("У Janus немає жодної створеної аудіокімнати.");
@@ -206,220 +259,134 @@ public class JanusRabbitClientOptimized {
         });
     }
 
+    // ============================================================
+    // РОБОТА З КОРИСТУВАЧАМИ (Client API через executeInSession)
+    // ============================================================
+
     /**
-     * Створює аудіокімнату через Client API.
+     * Перевіряє, чи є користувач в кімнаті.
      */
-    @SuppressWarnings("unchecked")
-    public Long createAudioRoom(Long roomId, String name, Integer rtpPort) {
+    public boolean isUserInAudioRoom(Long roomId, String userToken) {
         return executeInSession((sessionId, handleId) -> {
-            String transactionId = "create-room-" + generateShortUUID();
+            String transactionId = "check-user-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("request", "create");
-            body.put("room", roomId);
-            body.put("description", name);
-            body.put("sampling_rate", 48000);
-            body.put("audio_codec", "opus");
-            body.put("is_private", false);
-            body.put("permanent", false);
-            body.put("audio_level_average", 25);
-            if (rtpPort != null) {
-                body.put("rtp_stream", true);
-                body.put("rtp_stream_port", rtpPort);
-                body.put("rtp_stream_codec", "opus");
-                body.put("rtp_stream_sample_rate", 48000);
-                body.put("rtp_stream_channels", 2);
-            }
-            request.put("body", body);
+            request.put("body", Map.of(
+                    "request", "listparticipants",
+                    "room", roomId
+            ));
 
             try {
                 Map<String, Object> response = sendAndReceive(request);
-                log.debug("📥 Janus response (create room): {}", response);
-
                 validatePluginResponse(response);
 
                 Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-                if (plugindata == null) {
-                    log.warn("plugindata відсутній, повертаємо переданий roomId");
-                    return roomId;
-                }
+                if (plugindata == null) return false;
 
                 Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-                if (data == null) {
-                    log.warn("data відсутній, повертаємо переданий roomId");
-                    return roomId;
-                }
+                if (data == null || data.get("participants") == null) return false;
 
-                Object roomObj = data.get("room");
-                if (roomObj instanceof Number) {
-                    return ((Number) roomObj).longValue();
-                } else {
-                    log.info("Janus не повернув room у відповіді, використовуємо переданий ID: {}", roomId);
-                    return roomId;
-                }
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> participants = (List<Map<String, Object>>) data.get("participants");
 
-            } catch (RuntimeException e) {
-                if (e.getMessage() != null && (e.getMessage().contains("457") || e.getMessage().contains("already exists"))) {
-                    log.warn("Кімната {} вже існує в Janus (race condition), продовжуємо", roomId);
-                    return roomId;
+                for (Map<String, Object> p : participants) {
+                    String participantToken = (String) p.get("token");
+                    if (userToken.equals(participantToken)) {
+                        return true;
+                    }
                 }
-                throw e;
+            } catch (Exception e) {
+                log.warn("Не вдалося отримати список учасників для кімнати " + roomId, e);
             }
+            return false;
         });
     }
 
     /**
-     * Видаляє аудіокімнату через Client API.
-     */
-    public void destroyAudioRoom(Long roomId) {
-        if (roomId == null) return;
-
-        try {
-            executeInSession((sessionId, handleId) -> {
-                String transactionId = "destroy-room-" + generateShortUUID();
-                Map<String, Object> request = createBaseRequest("message", transactionId);
-                request.put("session_id", sessionId);
-                request.put("handle_id", handleId);
-                request.put("body", Map.of(
-                        "request", "destroy",
-                        "room", roomId,
-                        "permanent", false
-                ));
-
-                Map<String, Object> response = sendAndReceive(request);
-                validatePluginResponse(response);
-                return null;
-            });
-        } catch (Exception e) {
-            log.error("Помилка видалення кімнати " + roomId, e);
-        }
-    }
-
-    /**
-     * Видаляє користувача з кімнати через Client API.
-     */
-    public void kickUser(Long roomId, String userToken) {
-        if (roomId == null || userToken == null) return;
-
-        try {
-            List<Map<String, Object>> participants = getRoomParticipants(roomId);
-
-            Long participantId = participants.stream()
-                    .filter(p -> userToken.equals(p.get("token")))
-                    .map(p -> ((Number) p.get("id")).longValue())
-                    .findFirst()
-                    .orElse(null);
-
-            if (participantId == null) {
-                log.info("Користувача {} не знайдено в кімнаті {}", userToken, roomId);
-                return;
-            }
-
-            executeInSession((sessionId, handleId) -> {
-                String transactionId = "kick-" + generateShortUUID();
-                Map<String, Object> request = createBaseRequest("message", transactionId);
-                request.put("session_id", sessionId);
-                request.put("handle_id", handleId);
-                request.put("body", Map.of(
-                        "request", "kick",
-                        "room", roomId,
-                        "id", participantId
-                ));
-
-                Map<String, Object> response = sendAndReceive(request);
-                validatePluginResponse(response);
-                return null;
-            });
-
-            log.info("Користувача {} видалено з кімнати {}", userToken, roomId);
-
-        } catch (Exception e) {
-            log.error("Помилка видалення користувача з кімнати " + roomId, e);
-        }
-    }
-
-    /**
-     * Перевіряє, чи є користувач в кімнаті через Client API.
-     */
-    public boolean isUserInRoom(Long roomId, String userToken) {
-        List<Map<String, Object>> participants = getRoomParticipants(roomId);
-        return participants.stream()
-                .anyMatch(p -> userToken.equals(p.get("token")));
-    }
-
-    // ============================================================
-    // ADMIN API МЕТОДИ (тільки для глобальних команд)
-    // ============================================================
-
-    /**
-     * Перевіряє, чи є токен користувача в Janus (через Admin API).
+     * Примусово видаляє користувача з кімнати (kick).
      */
     @SuppressWarnings("unchecked")
-    public boolean isTokenRegistered(String userToken) {
-        if (userToken == null || userToken.trim().isEmpty()) {
-            return false;
+    public void kickUserFromAudioBridgeRoom(Long roomId, String userToken) {
+        if (roomId == null || userToken == null) {
+            log.warn("Неможливо виконати kick: roomId або userToken дорівнює null");
+            return;
         }
 
-        String transactionId = "check-token-" + generateShortUUID();
-        Map<String, Object> request = Map.of(
-                "janus", "list_tokens",
-                "transaction", transactionId,
-                "admin_secret", adminSecret
-        );
+        log.info("Спроба видалити користувача з токеном {} з кімнати {}", userToken, roomId);
 
         try {
-            Map<String, Object> response = sendAndReceiveAdmin(request);
-            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            executeInSession((sessionId, handleId) -> {
+                // КРОК 1: Отримуємо список учасників
+                String listTransaction = "list-p-" + generateShortUUID();
+                Map<String, Object> listRequest = createBaseRequest("message", listTransaction);
+                listRequest.put("session_id", sessionId);
+                listRequest.put("handle_id", handleId);
+                listRequest.put("body", Map.of(
+                        "request", "listparticipants",
+                        "room", roomId
+                ));
 
-            if (data == null) return false;
+                Map<String, Object> listResponse = sendAndReceive(listRequest);
+                validatePluginResponse(listResponse);
 
-            List<Map<String, Object>> tokensList = (List<Map<String, Object>>) data.get("tokens");
-            if (tokensList == null) return false;
+                Map<String, Object> plugindata = (Map<String, Object>) listResponse.get("plugindata");
+                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
 
-            return tokensList.stream()
-                    .map(t -> (String) t.get("token"))
-                    .anyMatch(userToken::equals);
+                if (data == null || data.get("participants") == null) {
+                    log.info("У кімнаті {} немає активних учасників", roomId);
+                    return null;
+                }
 
+                List<Map<String, Object>> participants = (List<Map<String, Object>>) data.get("participants");
+                Long janusParticipantId = null;
+
+                for (Map<String, Object> participant : participants) {
+                    String pToken = (String) participant.get("token");
+                    if (userToken.equals(pToken)) {
+                        janusParticipantId = ((Number) participant.get("id")).longValue();
+                        break;
+                    }
+                }
+
+                // КРОК 2: Виконуємо kick
+                if (janusParticipantId != null) {
+                    String kickTransaction = "kick-u-" + generateShortUUID();
+                    Map<String, Object> kickRequest = createBaseRequest("message", kickTransaction);
+                    kickRequest.put("session_id", sessionId);
+                    kickRequest.put("handle_id", handleId);
+                    kickRequest.put("body", Map.of(
+                            "request", "kick",
+                            "room", roomId,
+                            "id", janusParticipantId
+                    ));
+
+                    log.info("Надсилаємо команду kick для учасника ID: {} у кімнаті {}", janusParticipantId, roomId);
+                    Map<String, Object> kickResponse = sendAndReceive(kickRequest);
+                    validatePluginResponse(kickResponse);
+
+                    log.info("Користувача з токеном {} (Janus ID: {}) успішно видалено з кімнати {}",
+                            userToken, janusParticipantId, roomId);
+                } else {
+                    log.info("Користувача з токеном {} не знайдено в кімнаті {}", userToken, roomId);
+                }
+
+                return null;
+            });
         } catch (Exception e) {
-            log.error("Помилка перевірки токена в Janus", e);
-            return false;
+            log.error("Помилка при виконанні kick для кімнати " + roomId + ": " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Реєструє токен користувача в Janus (через Admin API).
-     */
-    public void registerToken(String userToken) {
-        String transactionId = "register-token-" + generateShortUUID();
-        Map<String, Object> request = Map.of(
-                "janus", "add_token",
-                "token", userToken,
-                "admin_secret", adminSecret,
-                "transaction", transactionId,
-                "plugins", List.of("janus.plugin.audiobridge")
-        );
-
-        try {
-            Map<String, Object> response = sendAndReceiveAdmin(request);
-            if ("success".equals(response.get("janus"))) {
-                log.info("Токен {} успішно зареєстровано в Janus", userToken);
-            } else {
-                log.warn("Помилка реєстрації токена: {}", response);
-            }
-        } catch (Exception e) {
-            log.error("Помилка реєстрації токена", e);
-        }
-    }
+    // ============================================================
+    // ADMIN API (тільки для глобальних команд)
+    // ============================================================
 
     /**
      * Перевірка зв'язку з Janus Admin API.
      */
     public boolean pingJanus() {
         String transactionId = "ping-" + generateShortUUID();
-
         Map<String, Object> request = Map.of(
                 "janus", "ping",
                 "admin_secret", adminSecret,
@@ -430,7 +397,92 @@ public class JanusRabbitClientOptimized {
             Map<String, Object> response = sendAndReceiveAdmin(request);
             return "pong".equals(response.get("janus")) || "success".equals(response.get("janus"));
         } catch (Exception e) {
-            log.error("Помилка ping Janus: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Реєстрація токена користувача в Janus.
+     */
+    public void registerUserToken(String userToken) {
+        String transactionId = "token-reg-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "add_token",
+                "token", userToken,
+                "admin_secret", adminSecret,
+                "transaction", transactionId,
+                "plugins", List.of("janus.plugin.audiobridge")
+        );
+
+        Map<String, Object> response = sendAndReceiveAdmin(request);
+        if ("success".equals(response.get("janus"))) {
+            log.info("Токен {} успішно зареєстровано в Janus", userToken);
+        } else {
+            log.warn("Помилка реєстрації токена: {}", response);
+        }
+    }
+
+    /**
+     * Отримання списку всіх зареєстрованих токенів.
+     */
+    @SuppressWarnings("unchecked")
+    public Set<String> getAllUsersTokenFromJanus() {
+        String transactionId = "user-token-list-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "list_tokens",
+                "transaction", transactionId,
+                "admin_secret", adminSecret
+        );
+
+        Map<String, Object> response = sendAndReceiveAdmin(request);
+        Set<String> setTokens = new HashSet<>();
+
+        Map<String, Object> tokensData = (Map<String, Object>) response.get("data");
+        if (tokensData == null) {
+            log.warn("Відповідь від Janus не містить блоку 'data'");
+            return setTokens;
+        }
+
+        List<Map<String, Object>> tokensList = (List<Map<String, Object>>) tokensData.get("tokens");
+        if (tokensList == null) {
+            log.warn("Блок 'data' не містить масиву 'tokens'");
+            return setTokens;
+        }
+
+        for (Map<String, Object> tokenInfo : tokensList) {
+            String tokenStr = (String) tokenInfo.get("token");
+            if (tokenStr != null) {
+                setTokens.add(tokenStr);
+            }
+        }
+
+        log.info("Успішно отримано {} токенів з Janus", setTokens.size());
+        return setTokens;
+    }
+
+    /**
+     * Перевірка наявності токена користувача в Janus.
+     */
+    public Boolean checkUserTokenInJanus(String uuidUser) {
+        if (uuidUser == null || uuidUser.trim().isEmpty()) {
+            log.warn("Спроба перевірити порожній UUID користувача");
+            return false;
+        }
+
+        log.info("Перевірка токена користувача (UUID: {}) в Janus", uuidUser);
+        try {
+            Set<String> activeTokens = getAllUsersTokenFromJanus();
+            boolean isRegistered = activeTokens.contains(uuidUser);
+
+            if (isRegistered) {
+                log.info("Токен (UUID: {}) знайдено в Janus", uuidUser);
+            } else {
+                log.warn("Токена (UUID: {}) НЕМАЄ в Janus", uuidUser);
+            }
+
+            return isRegistered;
+        } catch (Exception e) {
+            log.error("Помилка під час перевірки токена " + uuidUser + " в Janus: " + e.getMessage(), e);
             return false;
         }
     }
@@ -449,8 +501,9 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Long createSession() {
-        String transactionId = "session-" + generateShortUUID();
+        String transactionId = "session-create-" + generateShortUUID();
         Map<String, Object> request = createBaseRequest("create", transactionId);
         Map<String, Object> response = sendAndReceive(request);
 
@@ -458,7 +511,6 @@ public class JanusRabbitClientOptimized {
             throw new RuntimeException("Помилка створення сесії: " + response);
         }
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) response.get("data");
         return ((Number) data.get("id")).longValue();
     }
@@ -470,10 +522,11 @@ public class JanusRabbitClientOptimized {
             request.put("session_id", sessionId);
             sendAndReceive(request);
         } catch (Exception e) {
-            log.warn("Помилка знищення сесії: {}", e.getMessage());
+            log.warn("Destroy session failed: {}", e.getMessage());
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Long attachPlugin(Long sessionId, String plugin) {
         String transactionId = "attach-" + generateShortUUID();
         Map<String, Object> request = createBaseRequest("attach", transactionId);
@@ -485,7 +538,6 @@ public class JanusRabbitClientOptimized {
             throw new RuntimeException("Помилка прикріплення плагіна: " + response);
         }
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) response.get("data");
         return ((Number) data.get("id")).longValue();
     }

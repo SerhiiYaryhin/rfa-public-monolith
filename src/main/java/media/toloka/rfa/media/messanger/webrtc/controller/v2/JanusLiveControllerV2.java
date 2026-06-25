@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * Оптимізований REST-контролер для керування WebRTC трансляціями.
+ * REST-контролер для керування живими WebRTC трансляціями (v2).
  *
  * Ключові відмінності від v1:
  * - Новий endpoint: /api/v1q/webrtc/stream
- * - Використовує RadioLiveServiceV2 з оптимізованими запитами
- * - Прибрано зайві перевірки токенів у GET-запитах
+ * - Використовує RadioLiveServiceV2
  * - Безпечніше: api_secret НЕ передається клієнту
  */
 @RestController
@@ -37,9 +36,6 @@ public class JanusLiveControllerV2 {
 
     /**
      * Запуск трансляції радіостанції.
-     *
-     * @param stationId ID станції (наприклад, "rfa-rock")
-     * @return Дані про створену кімнату
      */
     @PostMapping("/start")
     public ResponseEntity<?> start(@RequestParam String stationId) {
@@ -67,8 +63,6 @@ public class JanusLiveControllerV2 {
 
     /**
      * Зупинка трансляції.
-     *
-     * @param stationId ID станції
      */
     @PostMapping("/stop")
     public ResponseEntity<?> stop(@RequestParam String stationId) {
@@ -100,8 +94,6 @@ public class JanusLiveControllerV2 {
      * Отримання токена користувача.
      *
      * ⚠️ БЕЗПЕКА: api_secret НЕ передається клієнту!
-     *
-     * @return Токен користувача (UUID)
      */
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
@@ -119,29 +111,22 @@ public class JanusLiveControllerV2 {
 
         // ✅ БЕЗПЕЧНО: тільки токен, без api_secret
         return ResponseEntity.ok(Map.of(
-                "token", token,
-                "display", getCurrentUserName() // опціонально
+                "token", token
         ));
     }
 
     // ============================================================
-    // СПИСОК КІМНАТ (ОПТИМІЗОВАНО)
+    // СПИСОК КІМНАТ
     // ============================================================
 
     /**
      * Отримання списку активних кімнат з учасниками.
-     *
-     * ОПТИМІЗАЦІЯ v2:
-     * - Прибрано checkUserTokenInJanus() з цього методу
-     * - Перевірка токена відбувається тільки при /token
-     * - Менше запитів до Janus = швидша відповідь
      */
     @GetMapping("/rooms")
     public ResponseEntity<?> getRooms() {
         logger.debug("Запит списку кімнат");
 
         try {
-            // ✅ ОПТИМІЗОВАНО: без зайвої перевірки токена
             return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
 
         } catch (Exception e) {
@@ -160,9 +145,6 @@ public class JanusLiveControllerV2 {
 
     /**
      * Підключення користувача до аудіокімнати.
-     *
-     * @param dataMap JSON з параметром "roomid"
-     * @return Дані для підключення до кімнати
      */
     @PostMapping("/connectclienttoroom")
     public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
@@ -216,22 +198,5 @@ public class JanusLiveControllerV2 {
                 "janus_admin_api", ok ? "up" : "down",
                 "message", ok ? "Зв'язок з Janus встановлено" : "Помилка зв'язку"
         ));
-    }
-
-    // ============================================================
-    // ДОПОМІЖНІ МЕТОДИ
-    // ============================================================
-
-    /**
-     * Отримує ім'я поточного користувача (опціонально для UI).
-     */
-    private String getCurrentUserName() {
-        try {
-            // Тут має бути ваша логіка отримання імені користувача
-            // Наприклад: clientService.GetCurrentUser().getName()
-            return "User"; // TODO: реалізувати
-        } catch (Exception e) {
-            return "Anonymous";
-        }
     }
 }
