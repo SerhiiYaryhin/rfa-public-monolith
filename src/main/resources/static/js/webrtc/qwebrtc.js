@@ -17,10 +17,7 @@ const ROOMS_REFRESH_INTERVAL = 5000;
 // ============================================================
 function log(message, type = 'INFO') {
     const consoleDiv = document.getElementById("logConsole");
-    if (!consoleDiv) {
-        console.log(`[${type}] ${message}`);
-        return;
-    }
+    if (!consoleDiv) { console.log(`[${type}] ${message}`); return; }
     const time = new Date().toLocaleTimeString();
     const badgeClasses = {
         'INFO': 'badge-info', 'SUCCESS': 'badge-success',
@@ -81,13 +78,8 @@ function initJanusConnection() {
                         log(`❌ Помилка WebSocket: ${error}`, "ERROR");
                         if (!isReconnecting) {
                             isReconnecting = true;
-                            setTimeout(() => {
-                                isReconnecting = false;
-                                initJanusConnection().then(resolve).catch(reject);
-                            }, 5000);
-                        } else {
-                            reject(error);
-                        }
+                            setTimeout(() => { isReconnecting = false; initJanusConnection().then(resolve).catch(reject); }, 5000);
+                        } else { reject(error); }
                     },
                     destroyed: () => {
                         log("🔌 Сесію Janus знищено", "INFO");
@@ -103,7 +95,7 @@ function initJanusConnection() {
 // ============================================================
 // 3. ПРИКРІПЛЕННЯ ПЛАГІНА
 // ============================================================
-function attachAudioBridgePlugin() {
+function attachAudioBridgePlugin(targetRoomId = null) {
     return new Promise((resolve, reject) => {
         log("🎙️ Прикріплення до AudioBridge...", "INFO");
         janusInstance.attach({
@@ -118,7 +110,11 @@ function attachAudioBridgePlugin() {
                 enableRoomButtons();
                 resolve();
 
-                if (pendingRoomId !== null) {
+                // Якщо вказано цільову кімнату — заходимо в неї
+                if (targetRoomId !== null) {
+                    log(`🚀 Автоматичний вхід в кімнату ${targetRoomId}...`, "INFO");
+                    switchRoom(targetRoomId);
+                } else if (pendingRoomId !== null) {
                     const target = pendingRoomId;
                     pendingRoomId = null;
                     log(`🚀 Виконую відкладений перехід в кімнату ${target}...`, "INFO");
@@ -203,53 +199,25 @@ async function switchRoom(newRoomId) {
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
 
-            // ✅ ВИПРАВЛЕНО: Ручне очищення WebRTC
-            cleanupWebRTC();
+            // ✅ ВИПРАВЛЕНО: Від'єднуємо плагін повністю
+            log("🔌 Від'єднуємо плагін AudioBridge...", "DEBUG");
+            audioBridge.detach();
+            audioBridge = null;
+            isJanusReady = false;
 
-            audioBridge.send({message: {request: "leave"}});
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise(r => setTimeout(r, 500));
+
+            // ✅ Прикріплюємо плагін заново
+            log("🎙️ Прикріплюємо плагін заново...", "DEBUG");
+            await attachAudioBridgePlugin(newRoomId);
+        } else {
+            // Перший вхід — просто заходимо в кімнату
+            currentRoomId = newRoomId;
+            currentDisplay = serverResponse.display;
+            joinRoom(newRoomId, currentDisplay);
         }
-        currentRoomId = newRoomId;
-        currentDisplay = serverResponse.display;
-        joinRoom(newRoomId, currentDisplay);
     } catch (error) {
         log(`❌ Помилка переходу: ${error.message}`, "ERROR");
-    }
-}
-
-/**
- * ✅ НОВА ФУНКЦІЯ: Ручне очищення WebRTC PeerConnection
- */
-function cleanupWebRTC() {
-    try {
-        if (audioBridge.webrtcStuff) {
-            if (audioBridge.webrtcStuff.pc) {
-                log("🧹 Закриваємо RTCPeerConnection...", "DEBUG");
-                audioBridge.webrtcStuff.pc.close();
-                audioBridge.webrtcStuff.pc = null;
-            }
-
-            if (audioBridge.webrtcStuff.myStream) {
-                log("🧹 Зупиняємо локальні треки...", "DEBUG");
-                audioBridge.webrtcStuff.myStream.getTracks().forEach(track => {
-                    track.stop();
-                });
-                audioBridge.webrtcStuff.myStream = null;
-            }
-
-            if (audioBridge.webrtcStuff.remoteStream) {
-                log("🧹 Видаляємо віддалені треки...", "DEBUG");
-                audioBridge.webrtcStuff.remoteStream.getTracks().forEach(track => {
-                    track.stop();
-                });
-                audioBridge.webrtcStuff.remoteStream = null;
-            }
-
-            audioBridge.webrtcStuff = null;
-            log("✅ WebRTC очищено вручну", "SUCCESS");
-        }
-    } catch (e) {
-        log(`⚠️ Помилка очищення WebRTC (не критично): ${e.message}`, "WARN");
     }
 }
 
@@ -307,15 +275,9 @@ function handleJanusMessage(msg, jsep) {
         loadRooms();
     }
 
-    if (event === "left") {
-        log(`👋 Хтось вийшов з кімнати`, "INFO");
-        loadRooms();
-    }
+    if (event === "left") { log(`👋 Хтось вийшов з кімнати`, "INFO"); loadRooms(); }
     if (event === "kicked") log(`⚠️ Вас видалено з кімнати`, "WARN");
-    if (event === "destroyed") {
-        currentRoomId = null;
-        log(`💥 Кімнату знищено`, "WARN");
-    }
+    if (event === "destroyed") { currentRoomId = null; log(`💥 Кімнату знищено`, "WARN"); }
 
     if (jsep) {
         log(`📡 Отримано JSEP типу: ${jsep.type}`, "DEBUG");
@@ -340,9 +302,7 @@ function handleJanusMessage(msg, jsep) {
                                 clearInterval(checkInterval);
                             }
                         }
-                        if (checkCount >= 15) {
-                            clearInterval(checkInterval);
-                        }
+                        if (checkCount >= 15) { clearInterval(checkInterval); }
                     }, 2000);
                 },
                 error: (err) => log(`❌ Answer Error: ${JSON.stringify(err)}`, "ERROR")
