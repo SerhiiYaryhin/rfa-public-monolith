@@ -23,8 +23,11 @@ function log(message, type = 'INFO') {
     }
     const time = new Date().toLocaleTimeString();
     const badgeClasses = {
-        'INFO': 'badge-info', 'SUCCESS': 'badge-success',
-        'ERROR': 'badge-error', 'WARN': 'badge-error', 'DEBUG': 'badge-debug'
+        'INFO': 'badge-info',
+        'SUCCESS': 'badge-success',
+        'ERROR': 'badge-error',
+        'WARN': 'badge-error',
+        'DEBUG': 'badge-debug'
     };
     const badgeClass = badgeClasses[type] || 'badge-info';
     consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
@@ -101,7 +104,7 @@ function initJanusConnection() {
 }
 
 // ============================================================
-// 3. ПРИКРІПЛЕННЯ ПЛАГІНА (ВИПРАВЛЕНО)
+// 3. ПРИКРІПЛЕННЯ ПЛАГІНА
 // ============================================================
 function attachAudioBridgePlugin() {
     return new Promise((resolve, reject) => {
@@ -131,7 +134,6 @@ function attachAudioBridgePlugin() {
                 log(`❌ Помилка прикріплення плагіна: ${error}`, "ERROR");
                 reject(error);
             },
-            // ✅ ВИПРАВЛЕНИЙ onremotetrack
             onremotetrack: (track, mid, on) => {
                 log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
 
@@ -146,9 +148,8 @@ function attachAudioBridgePlugin() {
                         log(`🎵 Створено аудіо елемент для треку ${mid}`, "DEBUG");
                     }
 
-                    // ✅ ПРАВИЛЬНИЙ СПОСІБ: Створюємо MediaStream з треку
                     const stream = new MediaStream([track]);
-                    audio.srcObject = stream;  // ← НЕ Janus.attachMediaStream!
+                    audio.srcObject = stream;
 
                     audio.play().catch(e => {
                         log(`⚠️ Автопрогравання заблоковано: ${e.message}. Клікніть по сторінці.`, "WARN");
@@ -274,7 +275,6 @@ function handleJanusMessage(msg, jsep) {
                 success: () => {
                     log("✅ WebRTC Handshake завершено", "SUCCESS");
 
-                    // ✅ Перевіряємо ICE state кожні 2 секунди
                     let checkCount = 0;
                     const checkInterval = setInterval(() => {
                         if (audioBridge.webrtcStuff?.pc) {
