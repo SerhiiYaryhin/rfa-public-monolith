@@ -47,6 +47,9 @@ public class RadioLiveServiceV2 {
     @Autowired
     private StationService stationService;
 
+    // ✅ Додайте lock для синхронізації операцій з кімнатами
+    private final Object roomsLock = new Object();
+
     public RadioLiveServiceV2(
             JanusRabbitClientOptimized janusClient,
             PortAllocationService portService,
@@ -154,107 +157,110 @@ public class RadioLiveServiceV2 {
      */
     @Transactional
     public List<StationDto> getActiveRoomsInfo() {
-        log.debug("Отримання списку активних кімнат (оптимізована версія)");
+        synchronized (roomsLock) {
+            log.debug("Отримання списку активних кімнат (оптимізована версія)");
 
-        // 1. Джерело правди — БД
-        List<StationDto> activeStations = stationService.getActiveStations();
-        Set<Long> validRoomIds = activeStations.stream()
-                .map(StationDto::getId)
-                .collect(Collectors.toSet());
+            // 1. Джерело правди — БД
+            List<StationDto> activeStations = stationService.getActiveStations();
+            Set<Long> validRoomIds = activeStations.stream()
+                    .map(StationDto::getId)
+                    .collect(Collectors.toSet());
 
-        // 2. Отримуємо кімнати з Janus (ОПТИМІЗОВАНО через Admin API)
-        List<Map<String, Object>> janusRooms;
-        try {
-            janusRooms = janusClient.getAllRoomsWithParticipants();
-            log.debug("Отримано {} кімнат з Janus", janusRooms.size());
-        } catch (Exception e) {
-            log.error("Помилка отримання даних з Janus, повертаємо дані з БД", e);
+            // 2. Отримуємо кімнати з Janus (ОПТИМІЗОВАНО через Admin API)
+            List<Map<String, Object>> janusRooms;
+            try {
+                janusRooms = janusClient.getAllRoomsWithParticipants();
+                log.debug("Отримано {} кімнат з Janus", janusRooms.size());
+            } catch (Exception e) {
+                log.error("Помилка отримання даних з Janus, повертаємо дані з БД", e);
+                return activeStations;
+            }
+
+            // 3. Перетворюємо в Map для швидкого пошуку
+            Map<Long, Map<String, Object>> janusRoomsMap = janusRooms.stream()
+                    .filter(r -> r.get("room") != null)
+                    .collect(Collectors.toMap(
+                            r -> ((Number) r.get("room")).longValue(),
+                            r -> r,
+                            (a, b) -> a
+                    ));
+
+            // 4. Синхронізація: видаляємо зайві кімнати з Janus
+            for (Long janusRoomId : janusRoomsMap.keySet()) {
+                if (!validRoomIds.contains(janusRoomId)) {
+                    log.warn("Зайва кімната в Janus: {}. Видаляємо...", janusRoomId);
+
+                    Map<String, Object> orphanRoom = janusRoomsMap.get(janusRoomId);
+                    List<?> participants = (List<?>) orphanRoom.get("participants");
+
+                    // Евакуація користувачів
+                    if (participants != null && !participants.isEmpty()) {
+                        log.info("Евакуація {} користувачів з кімнати {}",
+                                participants.size(), janusRoomId);
+                        try {
+                            messangerService.moveUsersToMainChatRoom(janusRoomId);
+                        } catch (Exception e) {
+                            log.error("Помилка евакуації користувачів", e);
+                        }
+                    }
+
+                    // Видаляємо кімнату
+                    try {
+                        janusClient.destroyAudioRoom(janusRoomId);
+                        log.info("Кімнату {} видалено з Janus", janusRoomId);
+                    } catch (Exception e) {
+                        log.error("Помилка видалення кімнати {}", janusRoomId, e);
+                    }
+                }
+
+            }
+
+            // 5. Збагачуємо дані станцій інформацією з Janus
+            for (StationDto station : activeStations) {
+                Long roomId = station.getId();
+                String stationIdStr = String.valueOf(roomId);
+
+                Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
+
+                if (jRoomData != null) {
+                    // Кімната є в Janus
+                    station.setStationstate(true);
+                    List<Object> participants = (List<Object>) jRoomData.get("participants");
+                    station.setParticipants(participants != null ? participants : new ArrayList<>());
+
+                } else {
+                    // Кімнати немає в Janus — створюємо на льоту
+                    log.info("Кімната {} відсутня в Janus. Створюємо...", roomId);
+
+                    try {
+                        // Перевіряємо чи є порт в БД
+                        Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationIdStr);
+                        int currentRtpPort;
+
+                        if (existingStream.isPresent()) {
+                            currentRtpPort = existingStream.get().getRtpPort();
+                            log.debug("Використовуємо існуючий порт: {}", currentRtpPort);
+                        } else {
+                            currentRtpPort = portService.findNextFreePort();
+                            log.debug("Виділено новий порт: {}", currentRtpPort);
+                            portService.saveActiveStream(stationIdStr, roomId, currentRtpPort, 0);
+                        }
+
+                        // Створюємо кімнату в Janus
+                        janusClient.createAudioRoom(roomId, station.getName(), currentRtpPort);
+
+                        station.setStationstate(true);
+                        station.setParticipants(new ArrayList<>());
+
+                    } catch (Exception e) {
+                        log.error("Помилка створення кімнати {}", roomId, e);
+                        station.setStationstate(false);
+                    }
+                }
+            }
+
             return activeStations;
         }
-
-        // 3. Перетворюємо в Map для швидкого пошуку
-        Map<Long, Map<String, Object>> janusRoomsMap = janusRooms.stream()
-                .filter(r -> r.get("room") != null)
-                .collect(Collectors.toMap(
-                        r -> ((Number) r.get("room")).longValue(),
-                        r -> r,
-                        (a, b) -> a
-                ));
-
-        // 4. Синхронізація: видаляємо зайві кімнати з Janus
-        for (Long janusRoomId : janusRoomsMap.keySet()) {
-            if (!validRoomIds.contains(janusRoomId)) {
-                log.warn("Зайва кімната в Janus: {}. Видаляємо...", janusRoomId);
-
-                Map<String, Object> orphanRoom = janusRoomsMap.get(janusRoomId);
-                List<?> participants = (List<?>) orphanRoom.get("participants");
-
-                // Евакуація користувачів
-                if (participants != null && !participants.isEmpty()) {
-                    log.info("Евакуація {} користувачів з кімнати {}",
-                            participants.size(), janusRoomId);
-                    try {
-                        messangerService.moveUsersToMainChatRoom(janusRoomId);
-                    } catch (Exception e) {
-                        log.error("Помилка евакуації користувачів", e);
-                    }
-                }
-
-                // Видаляємо кімнату
-                try {
-                    janusClient.destroyAudioRoom(janusRoomId);
-                    log.info("Кімнату {} видалено з Janus", janusRoomId);
-                } catch (Exception e) {
-                    log.error("Помилка видалення кімнати {}", janusRoomId, e);
-                }
-            }
-        }
-
-        // 5. Збагачуємо дані станцій інформацією з Janus
-        for (StationDto station : activeStations) {
-            Long roomId = station.getId();
-            String stationIdStr = String.valueOf(roomId);
-
-            Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
-
-            if (jRoomData != null) {
-                // Кімната є в Janus
-                station.setStationstate(true);
-                List<Object> participants = (List<Object>) jRoomData.get("participants");
-                station.setParticipants(participants != null ? participants : new ArrayList<>());
-
-            } else {
-                // Кімнати немає в Janus — створюємо на льоту
-                log.info("Кімната {} відсутня в Janus. Створюємо...", roomId);
-
-                try {
-                    // Перевіряємо чи є порт в БД
-                    Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationIdStr);
-                    int currentRtpPort;
-
-                    if (existingStream.isPresent()) {
-                        currentRtpPort = existingStream.get().getRtpPort();
-                        log.debug("Використовуємо існуючий порт: {}", currentRtpPort);
-                    } else {
-                        currentRtpPort = portService.findNextFreePort();
-                        log.debug("Виділено новий порт: {}", currentRtpPort);
-                        portService.saveActiveStream(stationIdStr, roomId, currentRtpPort, 0);
-                    }
-
-                    // Створюємо кімнату в Janus
-                    janusClient.createAudioRoom(roomId, station.getName(), currentRtpPort);
-
-                    station.setStationstate(true);
-                    station.setParticipants(new ArrayList<>());
-
-                } catch (Exception e) {
-                    log.error("Помилка створення кімнати {}", roomId, e);
-                    station.setStationstate(false);
-                }
-            }
-        }
-
-        return activeStations;
     }
 
     // ============================================================
@@ -266,53 +272,55 @@ public class RadioLiveServiceV2 {
      * Оптимізовано: використовує batch-запити для перевірки інших кімнат.
      */
     public Map<String, Object> connectClientToAudioRoom(Long roomID) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            log.warn("Користувач не залогінений");
-            return Map.of("success", false, "error", "Користувач не залогінений");
-        }
+        synchronized (roomsLock) {
+            Users user = clientService.GetCurrentUser();
+            if (user == null) {
+                log.warn("Користувач не залогінений");
+                return Map.of("success", false, "error", "Користувач не залогінений");
+            }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        String userName = cd.getCustname() + " " + cd.getCustsurname();
-        String userUUID = cd.getUuid();
+            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            String userName = cd.getCustname() + " " + cd.getCustsurname();
+            String userUUID = cd.getUuid();
 
-        log.info("Підключення користувача {} (UUID: {}) до кімнати {}",
-                userName, userUUID, roomID);
+            log.info("Підключення користувача {} (UUID: {}) до кімнати {}",
+                    userName, userUUID, roomID);
 
-        try {
-            // 1. Отримуємо список всіх активних кімнат (ОДИН запит)
-            List<Long> activeJanusRooms = janusClient.getActiveRoomsIds();
+            try {
+                // 1. Отримуємо список всіх активних кімнат (ОДИН запит)
+                List<Long> activeJanusRooms = janusClient.getActiveRoomsIds();
 
-            if (activeJanusRooms != null) {
-                // 2. Перевіряємо інші кімнати та видаляємо користувача
-                for (Long activeRoomId : activeJanusRooms) {
-                    if (!activeRoomId.equals(roomID)) {
-                        boolean isUserInRoom = janusClient.isUserInRoom(activeRoomId, userUUID);
+                if (activeJanusRooms != null) {
+                    // 2. Перевіряємо інші кімнати та видаляємо користувача
+                    for (Long activeRoomId : activeJanusRooms) {
+                        if (!activeRoomId.equals(roomID)) {
+                            boolean isUserInRoom = janusClient.isUserInRoom(activeRoomId, userUUID);
 
-                        if (isUserInRoom) {
-                            log.info("Користувач знайдений в кімнаті {}. Видаляємо...", activeRoomId);
-                            janusClient.kickUser(activeRoomId, userUUID);
+                            if (isUserInRoom) {
+                                log.info("Користувач знайдений в кімнаті {}. Видаляємо...", activeRoomId);
+                                janusClient.kickUser(activeRoomId, userUUID);
+                            }
                         }
                     }
                 }
+
+                // 3. Формуємо відповідь
+                Map<String, Object> result = new HashMap<>();
+                result.put("success", true);
+                result.put("roomid", roomID);
+                result.put("token", userUUID);
+                result.put("display", userName);
+                result.put("userId", cd.getId());
+
+                return result;
+
+            } catch (Exception e) {
+                log.error("Помилка підключення до кімнати {}", roomID, e);
+                return Map.of(
+                        "success", false,
+                        "error", "Помилка підключення: " + e.getMessage()
+                );
             }
-
-            // 3. Формуємо відповідь
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("roomid", roomID);
-            result.put("token", userUUID);
-            result.put("display", userName);
-            result.put("userId", cd.getId());
-
-            return result;
-
-        } catch (Exception e) {
-            log.error("Помилка підключення до кімнати {}", roomID, e);
-            return Map.of(
-                    "success", false,
-                    "error", "Помилка підключення: " + e.getMessage()
-            );
         }
     }
 

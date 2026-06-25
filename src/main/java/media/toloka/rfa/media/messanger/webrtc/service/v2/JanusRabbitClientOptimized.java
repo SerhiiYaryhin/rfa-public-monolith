@@ -9,10 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * Оптимізований RPC-клієнт для Janus з batch операціями.
- * Використовує Admin API для отримання всіх даних за мінімальну кількість запитів.
- */
 @Service
 public class JanusRabbitClientOptimized {
     private static final Logger log = LoggerFactory.getLogger(JanusRabbitClientOptimized.class);
@@ -42,7 +38,8 @@ public class JanusRabbitClientOptimized {
     // ============================================================
 
     /**
-     * Отримує ВСІ кімнати з учасниками за ОДИН запит через Admin API.
+     * Отримує ВСІ кімнати з учасниками через Admin API.
+     * ВИПРАВЛЕНО: правильний парсинг plugindata.data замість response
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getAllRoomsWithParticipants() {
@@ -58,15 +55,17 @@ public class JanusRabbitClientOptimized {
 
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            Map<String, Object> responseBody = (Map<String, Object>) response.get("response");
+            log.debug("📥 Janus response (list): {}", response);
 
-            if (responseBody == null) {
-                log.warn("Відповідь від Janus не містить блок 'response'");
+            // ✅ ВИПРАВЛЕНО: дані в plugindata.data, а НЕ в response
+            Map<String, Object> data = extractPluginData(response);
+            if (data == null) {
                 return List.of();
             }
 
-            List<Map<String, Object>> rooms = (List<Map<String, Object>>) responseBody.get("list");
+            List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("list");
             if (rooms == null) {
+                log.info("У Janus немає жодної кімнати");
                 return List.of();
             }
 
@@ -94,6 +93,7 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Отримує учасників конкретної кімнати через Admin API.
+     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getRoomParticipants(Long roomId) {
@@ -112,13 +112,13 @@ public class JanusRabbitClientOptimized {
 
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            Map<String, Object> responseBody = (Map<String, Object>) response.get("response");
+            Map<String, Object> data = extractPluginData(response);
 
-            if (responseBody == null || responseBody.get("participants") == null) {
+            if (data == null || data.get("participants") == null) {
                 return List.of();
             }
 
-            return (List<Map<String, Object>>) responseBody.get("participants");
+            return (List<Map<String, Object>>) data.get("participants");
 
         } catch (Exception e) {
             log.error("Помилка отримання учасників кімнати " + roomId, e);
@@ -129,6 +129,7 @@ public class JanusRabbitClientOptimized {
     /**
      * Перевіряє, чи є токен користувача в Janus.
      */
+    @SuppressWarnings("unchecked")
     public boolean isTokenRegistered(String userToken) {
         if (userToken == null || userToken.trim().isEmpty()) {
             return false;
@@ -187,30 +188,73 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Створює аудіокімнату через Client API.
+     * ВИПРАВЛЕНО:
+     * - Правильний парсинг відповіді (plugindata.data)
+     * - Обробка випадку, коли room не повернуто (повертаємо переданий roomId)
+     * - Обробка помилки "кімната вже існує"
      */
+    @SuppressWarnings("unchecked")
     public Long createAudioRoom(Long roomId, String name, Integer rtpPort) {
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "create-room-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
-            request.put("body", Map.of(
-                    "request", "create",
-                    "room", roomId,
-                    "description", name,
-                    "sampling_rate", 48000,
-                    "audio_codec", "opus",
-                    "is_private", false,
-                    "permanent", false,
-                    "audio_level_average", 25
-            ));
 
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "create");
+            body.put("room", roomId);
+            body.put("description", name);
+            body.put("sampling_rate", 48000);
+            body.put("audio_codec", "opus");
+            body.put("is_private", false);
+            body.put("permanent", false);
+            body.put("audio_level_average", 25);
+            if (rtpPort != null) {
+                body.put("rtp_stream", true);
+                body.put("rtp_stream_port", rtpPort);
+                body.put("rtp_stream_codec", "opus");
+                body.put("rtp_stream_sample_rate", 48000);
+                body.put("rtp_stream_channels", 2);
+            }
+            request.put("body", body);
 
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            return ((Number) data.get("room")).longValue();
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                log.debug("📥 Janus response (create room): {}", response);
+
+                // ✅ ВИПРАВЛЕНО: дані в plugindata.data
+                Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+                if (plugindata == null) {
+                    log.warn("plugindata відсутній, повертаємо переданий roomId");
+                    return roomId;
+                }
+
+                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+                if (data == null) {
+                    log.warn("data відсутній, повертаємо переданий roomId");
+                    return roomId;
+                }
+
+                // ✅ ВИПРАВЛЕНО: безпечне отримання room
+                Object roomObj = data.get("room");
+                if (roomObj instanceof Number) {
+                    return ((Number) roomObj).longValue();
+                } else {
+                    // Якщо Janus не повернув room (бо ми його явно вказали), повертаємо переданий
+                    log.info("Janus не повернув room у відповіді, використовуємо переданий ID: {}", roomId);
+                    return roomId;
+                }
+
+            } catch (RuntimeException e) {
+                // ✅ Обробка помилки "кімната вже існує" (race condition)
+                if (e.getMessage() != null && e.getMessage().contains("457") ||
+                        e.getMessage() != null && e.getMessage().contains("already exists")) {
+                    log.warn("Кімната {} вже існує в Janus (race condition), продовжуємо", roomId);
+                    return roomId;
+                }
+                throw e;
+            }
         });
     }
 
@@ -243,7 +287,9 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Видаляє користувача з кімнати через Admin API.
+     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
      */
+    @SuppressWarnings("unchecked")
     public void kickUser(Long roomId, String userToken) {
         if (roomId == null || userToken == null) return;
 
@@ -274,7 +320,7 @@ public class JanusRabbitClientOptimized {
                     )
             );
 
-            Map<String, Object> response = sendAndReceiveAdmin(request);
+            sendAndReceiveAdmin(request);
             log.info("Користувача {} видалено з кімнати {}", userToken, roomId);
 
         } catch (Exception e) {
@@ -297,7 +343,9 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Отримує список ID усіх активних аудіокімнат у Janus.
+     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
      */
+    @SuppressWarnings("unchecked")
     public List<Long> getActiveRoomsIds() {
         String transactionId = "list-rooms-" + generateShortUUID();
 
@@ -314,20 +362,17 @@ public class JanusRabbitClientOptimized {
         try {
             log.info("Запит до Janus на отримання списку активних аудіокімнат...");
             Map<String, Object> response = sendAndReceiveAdmin(request);
+            log.debug("📥 Janus response (list ids): {}", response);
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> responseBody = (Map<String, Object>) response.get("response");
-
-            if (responseBody == null) {
-                log.warn("В відповіді Janus відсутній блок 'response'");
+            // ✅ ВИПРАВЛЕНО: дані в plugindata.data
+            Map<String, Object> data = extractPluginData(response);
+            if (data == null) {
                 return roomIds;
             }
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> roomsList = (List<Map<String, Object>>) responseBody.get("list");
-
+            List<Map<String, Object>> roomsList = (List<Map<String, Object>>) data.get("list");
             if (roomsList == null) {
-                log.info("У Janus зараз немає жодної створеної аудіокімнати.");
+                log.info("У Janus немає жодної створеної аудіокімнати.");
                 return roomIds;
             }
 
@@ -371,6 +416,31 @@ public class JanusRabbitClientOptimized {
     // ============================================================
     // ДОПОМІЖНІ МЕТОДИ
     // ============================================================
+
+    /**
+     * ✅ НОВИЙ МЕТОД: Безпечне витягування plugindata.data з відповіді Admin API
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractPluginData(Map<String, Object> response) {
+        if (response == null) {
+            log.warn("Відповідь від Janus порожня (null)");
+            return null;
+        }
+
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) {
+            log.warn("Відповідь від Janus не містить блок 'plugindata'. Повна відповідь: {}", response);
+            return null;
+        }
+
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data == null) {
+            log.warn("plugindata не містить блок 'data'. Повна відповідь: {}", response);
+            return null;
+        }
+
+        return data;
+    }
 
     private <T> T executeInSession(JanusAction<T> action) {
         Long sessionId = createSession();
