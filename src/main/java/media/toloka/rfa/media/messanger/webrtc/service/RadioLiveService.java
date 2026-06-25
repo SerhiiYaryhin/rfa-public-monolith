@@ -341,42 +341,109 @@ public class RadioLiveService {
      * @param roomID - id аудіокімнати до якої ми приєднуємо користувача
      * @return Map з даними для фронтенду
      */
+
+    /**
+     * Приєднує поточного користувача до аудіокімнати.
+     * Попередньо перевіряє Janus і видаляє користувача з інших кімнат, якщо він там знаходився.
+     *
+     * @param roomID - id аудіокімнати до якої ми приєднуємо користувача
+     * @return Map з даними для фронтенду
+     */
     public Object connectClientToAudioRoom(Long roomID) {
         // 1. Перевіряємо чи залогінений користувач
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             log.warn("Користувач не може бути приєднаний до кімнати {} бо він не залогінився.", roomID);
-            return Map.of("error", "Користувач не залогінений");
+            return Map.of("success", false, "error", "Користувач не залогінений");
         }
 
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         String userName = cd.getCustname() + " " + cd.getCustsurname();
-        String userUUID = cd.getUuid(); // Використовуємо UUID як унікальний токен для Janus
+        String userUUID = cd.getUuid(); // Наш стабільний токен, вже зареєстрований при вході
 
-        log.info("Процес підключення користувача {} (UUID: {}) до кімнати Janus ID: {}", userName, userUUID, roomID);
+        log.info("Процес ротації та підключення користувача {} (UUID: {}) до кімнати Janus ID: {}", userName, userUUID, roomID);
 
         try {
-            // 2. Авторизуємо токен користувача в Janus через Admin API
-            // Це викличе команду "add_token" в Janus, щоб медіасервер приймав з'єднання з цим UUID
-            janusClient.registerUserToken(userUUID);
+            // 2. ЕВАКУАЦІЯ КОРИСТУВАЧА З ІНШИХ КІМНАТ
+            // Отримуємо список ID усіх активних кімнат у Janus
+            List<Long> activeJanusRooms = janusClient.getActiveRoomsIds();
 
-            // 3. Формуємо відповідь для фронтенду
-            // Ці дані JS-скріпт використає для ініціалізації Janus.js або компіляції WebRTC
+            if (activeJanusRooms != null) {
+                for (Long activeRoomId : activeJanusRooms) {
+                    // Перевіряємо тільки ІНШІ кімнати (не ту, в яку користувач хоче зайти зараз)
+                    if (!activeRoomId.equals(roomID)) {
+                        // Перевіряємо, чи присутній наш користувач (за токеном-UUID) у цій кімнаті
+                        boolean isUserInThisRoom = janusClient.isUserInAudioRoom(activeRoomId, userUUID);
+
+                        if (isUserInThisRoom) {
+                            log.info("Користувача (UUID: {}) знайдено в старій кімнаті {}. Видаляємо (kick)...", userUUID, activeRoomId);
+                            // Видаляємо користувача зі старої кімнати всередині Janus
+                            janusClient.kickUserFromAudioBridgeRoom(activeRoomId, userUUID);
+                        }
+                    }
+                }
+            }
+
+            // Повторну реєстрацію токена (add_token) видалено, бо він уже активний з моменту завантаження сторінки.
+
+            // 3. Формуємо успішну відповідь для фронтенду
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("roomid", roomID);
-            result.put("token", userUUID);       // Передаємо UUID як токен авторизації
-            result.put("display", userName);     // Відображуване ім'я в аудіокімнаті
+            result.put("token", userUUID);       // Стабільний UUID
+            result.put("display", userName);     // Відображуване ім'я
             result.put("userId", cd.getId());
 
             return result;
 
         } catch (Exception e) {
-            log.error("Помилка авторизації токена користувача в Janus для кімнати " + roomID, e);
+            log.error("Помилка синхронізації кімнат в Janus для користувача " + userUUID, e);
             return Map.of(
                     "success", false,
-                    "error", "Не вдалося авторизувати користувача на медіасервері: " + e.getMessage()
+                    "error", "Не вдалося виконати перемикання кімнат на медіасервері: " + e.getMessage()
             );
         }
     }
+
+
+
+
+//    public Object connectClientToAudioRoom(Long roomID) {
+//        // 1. Перевіряємо чи залогінений користувач
+//        Users user = clientService.GetCurrentUser();
+//        if (user == null) {
+//            log.warn("Користувач не може бути приєднаний до кімнати {} бо він не залогінився.", roomID);
+//            return Map.of("error", "Користувач не залогінений");
+//        }
+//
+//        Clientdetail cd = clientService.GetClientDetailByUser(user);
+//        String userName = cd.getCustname() + " " + cd.getCustsurname();
+//        String userUUID = cd.getUuid(); // Використовуємо UUID як унікальний токен для Janus
+//
+//        log.info("Процес підключення користувача {} (UUID: {}) до кімнати Janus ID: {}", userName, userUUID, roomID);
+//
+//        try {
+//            // 2. Авторизуємо токен користувача в Janus через Admin API
+//            // Це викличе команду "add_token" в Janus, щоб медіасервер приймав з'єднання з цим UUID
+//            janusClient.registerUserToken(userUUID);
+//
+//            // 3. Формуємо відповідь для фронтенду
+//            // Ці дані JS-скріпт використає для ініціалізації Janus.js або компіляції WebRTC
+//            Map<String, Object> result = new HashMap<>();
+//            result.put("success", true);
+//            result.put("roomid", roomID);
+//            result.put("token", userUUID);       // Передаємо UUID як токен авторизації
+//            result.put("display", userName);     // Відображуване ім'я в аудіокімнаті
+//            result.put("userId", cd.getId());
+//
+//            return result;
+//
+//        } catch (Exception e) {
+//            log.error("Помилка авторизації токена користувача в Janus для кімнати " + roomID, e);
+//            return Map.of(
+//                    "success", false,
+//                    "error", "Не вдалося авторизувати користувача на медіасервері: " + e.getMessage()
+//            );
+//        }
+//    }
 }

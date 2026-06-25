@@ -108,7 +108,7 @@ public class JanusLiveController {
     }
 
     /**
-     * Отримання динамічного токена для WebRTC підключення.
+     * Отримання зареєстрованого у Janus токена.
      */
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
@@ -125,7 +125,7 @@ public class JanusLiveController {
         String apiSecret = radioLiveService.getApiSecret();
         return ResponseEntity.ok(Map.of(
             "token", token,
-            "api_secret", apiSecret // todo прибрати передачу секрета клієнту
+            "api_secret", apiSecret // todo прибрати передачу секрету клієнту
         ));
     }
 
@@ -149,27 +149,45 @@ public class JanusLiveController {
      * Якщо клієнт не залогінений, то не підключаємо.
      */
     @PostMapping("/connectclienttoroom")
-// 1. Змінюємо тип повернення на ResponseEntity<?>, щоб повернути правильний HTTP-статус
     public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
         logger.info("Запит на приєднання користувача до аудіокімнати");
 
-        // Перевіряємо на null, щоб уникнути NullPointerException
         if (dataMap == null || !dataMap.containsKey("roomid")) {
-            return ResponseEntity.badRequest().body("Відсутній обов'язковий параметр roomid");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Відсутній обов'язковий параметр roomid"));
         }
 
-        // 2. Безпечно дістаємо та конвертуємо в Long
         Number roomIdNum = (Number) dataMap.get("roomid");
         if (roomIdNum == null) {
-            return ResponseEntity.badRequest().body("Параметр roomid не може бути порожнім");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Параметр roomid не може бути порожнім"));
         }
         Long roomID = roomIdNum.longValue();
 
-        System.out.println("Отримано ID кімнати через POST: " + roomID);
-
-        // 3. Передаємо в сервіс та повертаємо статус 200 OK
-        return ResponseEntity.ok(radioLiveService.connectClientToAudioRoom(roomID));
+        // Викликаємо сервіс і повертаємо результат
+        Object result = radioLiveService.connectClientToAudioRoom(roomID);
+        return ResponseEntity.ok(result);
     }
+//    @PostMapping("/connectclienttoroom")
+//// 1. Змінюємо тип повернення на ResponseEntity<?>, щоб повернути правильний HTTP-статус
+//    public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
+//        logger.info("Запит на приєднання користувача до аудіокімнати");
+//
+//        // Перевіряємо на null, щоб уникнути NullPointerException
+//        if (dataMap == null || !dataMap.containsKey("roomid")) {
+//            return ResponseEntity.badRequest().body("Відсутній обов'язковий параметр roomid");
+//        }
+//
+//        // 2. Безпечно дістаємо та конвертуємо в Long
+//        Number roomIdNum = (Number) dataMap.get("roomid");
+//        if (roomIdNum == null) {
+//            return ResponseEntity.badRequest().body("Параметр roomid не може бути порожнім");
+//        }
+//        Long roomID = roomIdNum.longValue();
+//
+//        System.out.println("Отримано ID кімнати через POST: " + roomID);
+//
+//        // 3. Передаємо в сервіс та повертаємо статус 200 OK
+//        return ResponseEntity.ok(radioLiveService.connectClientToAudioRoom(roomID));
+//    }
 
 
 

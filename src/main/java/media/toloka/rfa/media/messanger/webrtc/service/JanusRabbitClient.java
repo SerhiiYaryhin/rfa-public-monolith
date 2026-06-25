@@ -129,7 +129,12 @@ public class JanusRabbitClient {
                 "transaction", transactionId,
                 "plugins", List.of("janus.plugin.audiobridge")
         );
-        sendAndReceiveAdmin(request);
+        Map<String, Object> response = sendAndReceiveAdmin(request);
+        if ("success".equals(response.get("janus"))) {
+            log.info("Отримали якусь відповідь {}", response.get("janus"));
+        } else {
+            log.info("Помилка реєстрації токена користувача: {}", response);
+        }
     }
 
     /**
@@ -282,6 +287,62 @@ public class JanusRabbitClient {
             validatePluginResponse(response);
             return null;
         });
+    }
+
+    /**
+     * Отримує список ID усіх активних (створених) аудіокімнат у Janus.
+     * * @return List<Long> зі списком ідентифікаторів кімнат
+     */
+    public List<Long> getActiveRoomsIds() {
+        String transactionId = "list-rooms-" + generateShortUUID();
+
+        // Формуємо запит до плагіну audiobridge для отримання списку всіх кімнат
+        Map<String, Object> request = Map.of(
+                "janus", "message",
+                "plugin", "janus.plugin.audiobridge",
+                "transaction", transactionId,
+                "admin_secret", adminSecret,
+                "body", Map.of(
+                        "request", "list" // Команда 'list' повертає всі існуючі кімнати плагіна
+                )
+        );
+
+        List<Long> roomIds = new java.util.ArrayList<>();
+
+        try {
+            log.info("Запит до Janus на отримання списку активних аудіокімнат...");
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+
+            // Дістаємо блок відповіді від плагіна
+            Map<String, Object> responseBody = (Map<String, Object>) response.get("response");
+            if (responseBody == null) {
+                log.warn("В відповіді Janus відсутній блок 'response'");
+                return roomIds;
+            }
+
+            // Janus повертає масив об'єктів у полі "list"
+            List<Map<String, Object>> roomsList = (List<Map<String, Object>>) responseBody.get("list");
+            if (roomsList == null) {
+                log.info("У Janus зараз немає жодної створеної аудіокімнати.");
+                return roomIds;
+            }
+
+            // Ітеруємося по списку кімнат та збираємо їхні ID
+            for (Map<String, Object> roomData : roomsList) {
+                Object roomIdObj = roomData.get("room");
+                if (roomIdObj instanceof Number) {
+                    roomIds.add(((Number) roomIdObj).longValue());
+                }
+            }
+
+            log.info("Успішно отримано список активних кімнат з Janus. Знайдено кімнат: {}", roomIds.size());
+
+        } catch (Exception e) {
+            log.error("Помилка під час отримання списку активних кімнат з Janus: " + e.getMessage(), e);
+            // Повертаємо порожній список, щоб бізнес-логіка не падала через NullPointerException
+        }
+
+        return roomIds;
     }
 
     // --- СЕСІЙНА ЛОГІКА ---
@@ -460,6 +521,135 @@ public class JanusRabbitClient {
         }
     }
 
+    /**
+     * Примусово видаляє користувача з конкретної аудіокімнати Janus (kick).
+     * @param roomId ID кімнати, де зараз перебуває користувач
+     * @param userToken Стабільний UUID користувача, який є його токеном
+     */
+    public void kickUserFromAudioBridgeRoom(Long roomId, String userToken) {
+        if (roomId == null || userToken == null) {
+            log.warn("Неможливо виконати kick: roomId або userToken дорівнює null");
+            return;
+        }
+
+        log.info("Спроба видалити користувача з токеном {} з кімнати {}", userToken, roomId);
+
+        try {
+            // КРОК 1: Отримуємо список учасників цієї кімнати, щоб дізнатися внутрішній числовий ID користувача
+            String listTransaction = "list-p-" + generateShortUUID();
+            Map<String, Object> listRequest = Map.of(
+                    "janus", "message",
+                    "plugin", "janus.plugin.audiobridge",
+                    "transaction", listTransaction,
+                    "admin_secret", adminSecret,
+                    "body", Map.of(
+                            "request", "listparticipants",
+                            "room", roomId
+                    )
+            );
+
+            Map<String, Object> listResponse = sendAndReceiveAdmin(listRequest);
+            Map<String, Object> responseData = (Map<String, Object>) listResponse.get("response");
+
+            if (responseData == null || responseData.get("participants") == null) {
+                log.info("У кімнаті {} немає активних учасників або кімната порожня.", roomId);
+                return;
+            }
+
+            List<Map<String, Object>> participants = (List<Map<String, Object>>) responseData.get("participants");
+            Long janusParticipantId = null;
+
+            // Шукаємо учасника, чий токен відповідає нашому UUID
+            for (Map<String, Object> participant : participants) {
+                String pToken = (String) participant.get("token");
+                if (userToken.equals(pToken)) {
+                    // Janus повертає ID як Number (Integer або Long)
+                    janusParticipantId = ((Number) participant.get("id")).longValue();
+                    break;
+                }
+            }
+
+            // КРОК 2: Якщо користувача знайдено в кімнаті — виконуємо команду 'kick'
+            if (janusParticipantId != null) {
+                String kickTransaction = "kick-u-" + generateShortUUID();
+
+                Map<String, Object> kickRequest = Map.of(
+                        "janus", "message",
+                        "plugin", "janus.plugin.audiobridge",
+                        "transaction", kickTransaction,
+                        "admin_secret", adminSecret,
+                        "body", Map.of(
+                                "request", "kick",
+                                "room", roomId,
+                                "id", janusParticipantId // Внутрішній ID учасника в Janus
+                        )
+                );
+
+                log.info("Надсилаємо команду kick в Janus для учасника ID: {} у кімнаті {}", janusParticipantId, roomId);
+                Map<String, Object> kickResponse = sendAndReceiveAdmin(kickRequest);
+
+                // Перевірка успішності відповіді від самого плагіна
+                Map<String, Object> kickResult = (Map<String, Object>) kickResponse.get("response");
+                if (kickResult != null && "success".equals(kickResult.get("audiobridge"))) {
+                    log.info("Користувача з токеном {} (Janus ID: {}) успішно видалено з кімнати {}", userToken, janusParticipantId, roomId);
+                } else {
+                    log.warn("Janus прийняв команду, але не зміг виконати kick: {}", kickResponse);
+                }
+            } else {
+                log.info("Користувача з токеном {} не знайдено серед активних учасників кімнати {}", userToken, roomId);
+            }
+
+        } catch (Exception e) {
+            log.error("Помилка при виконанні kickUserFromAudioBridgeRoom для кімнати " + roomId + ": " + e.getMessage(), e);
+            throw new RuntimeException("Помилка взаємодії з Janus API під час видалення користувача", e);
+        }
+    }
+
+    public boolean isUserInAudioRoom(Long roomId, String userToken) {
+        String transactionId = "check-user-" + generateShortUUID();
+
+        // Запит списку учасників конкретної кімнати
+        Map<String, Object> request = Map.of(
+                "janus", "message",
+                "plugin", "janus.plugin.audiobridge",
+                "transaction", transactionId,
+                "admin_secret", adminSecret,
+                "body", Map.of(
+                        "request", "listparticipants",
+                        "room", roomId
+                )
+        );
+
+        try {
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+
+            // Парсимо відповідь від Janus (структура залежить від вашого мапінгу)
+            Map<String, Object> responseBody = (Map<String, Object>) response.get("response");
+            if (responseBody != null && responseBody.get("participants") != null) {
+                List<Map<String, Object>> participants = (List<Map<String, Object>>) responseBody.get("participants");
+
+                // Шукаємо, чи є учасник, у якого відображуване ім'я або токен збігається з UUID
+                for (Map<String, Object> p : participants) {
+                    // Зазвичай Janus ідентифікує учасників за id або за токеном сесії WebSockets
+                    // Якщо ви при підключенні передавали токен, Janus знає цей зв'язок
+                    String participantToken = (String) p.get("token");
+                    if (userToken.equals(participantToken)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Не вдалося отримати список учасників для кімнати " + roomId, e);
+        }
+        return false;
+    }
+
+//    /**
+//     * Допоміжний метод генерації унікального ID транзакції
+//     */
+//    private String generateShortUUID() {
+//        return java.util.UUID.randomUUID().toString().substring(0, 8);
+//    }
 
 //    public void createAudioBridgeRoom(Long roomId, String name) {
 //        log.info("ToDo. Якщо в базі стоїть статус \"онлайн\", а Janus про неї ще не знає — треба створити її в Janus на льоту!");

@@ -1,7 +1,16 @@
 let janusInstance = null;
 let audioBridge = null;
-// const janusApiSecret = "janusrocks"; // API Secret, якщо використовується статично
-const serverUrl = "wss://test.rfa.toloka.media/janus-ws";
+// Глобальний стан сесії користувача для Janus
+let currentSessionToken = null;
+let janusApiSecret = null;
+
+// URL вашого Spring Boot бекенду (підставте правильний префікс вашого API)
+const BACKEND_TOKEN_URL = "/api/v1/webrtc/stream/token";
+
+
+const serverUrl = "wss://test.rfa.toloka.media/janus-ws"; // todo 260625 Замінити на правильне отримання
+
+
 
 /**
  * Вивід логів на сторінку для відладки
@@ -17,6 +26,53 @@ function log(message, type = 'INFO') {
     consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
     consoleDiv.scrollTop = consoleDiv.scrollHeight;
     console.log(`[${type}] ${message}`); // Додатковий вивід у консоль браузера
+}
+
+/**
+ * Автоматично запитує у бекенда токен користувача та реєструє його сесію.
+ */
+async function initUserSession() {
+    log("Ініціалізація сесії користувача, запит токена...", "INFO");
+    try {
+        const response = await fetch(BACKEND_TOKEN_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+                // Якщо використовується Spring Security з JWT, додайте сюди Authorization заголовок
+            }
+        });
+
+        if (response.status === 401) {
+            log("Помилка: Користувач не авторизований на бекенді. Будь ласка, увійдіть в систему.", "ERROR");
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Помилка сервера: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Зберігаємо отримані дані в глобальні змінні
+        currentSessionToken = data.token;
+        janusApiSecret = data.api_secret; // Тимчасово, поки бекенд його повертає
+
+        // Виведемо токен на екран, щоб бачити, що він завантажився:
+        const tokenInput = document.getElementById("customToken");
+        if (tokenInput) {
+            tokenInput.value = currentSessionToken;
+        }
+
+        log(`Токен успішно отримано та активовано в Janus: ${currentSessionToken.substring(0, 8)}...`, "SUCCESS");
+
+        // Тут можна розблокувати кнопки інтерфейсу (наприклад, "Увійти в кімнату")
+        document.getElementById("joinRoomBtn").disabled = false;
+
+    } catch (error) {
+        log(`Не вдалося отримати токен від бекенду: ${error.message}`, "ERROR");
+        // Пробуємо повторити через 5 секунд у разі мережевого збою
+        setTimeout(initUserSession, 5000);
+    }
 }
 
 /**
@@ -269,7 +325,7 @@ async function initiateConnection() {
 
     // 1. Отримання токена (якщо потрібно)
     if (authType === 'token' || authType === 'both') {
-        log("Запит динамічного токена та api_secret в API...", 'DEBUG');
+        log("Запит токена та api_secret в API...", 'DEBUG');
         try {
             const response = await fetch('/api/v1/webrtc/stream/token');
             if (!response.ok) {
@@ -551,67 +607,52 @@ function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null)
     janusInstance.attach(attachConfig);
 }
 
-// function attachAudioBridgePlugin(roomId, token, apisecret, customDisplay = null) {
-//     let attachConfig = {
-//         plugin: "janus.plugin.audiobridge",
-//         success: function (pluginHandle) {
-//             audioBridge = pluginHandle;
-//             log("Плагін AudioBridge прикріплено.", 'SUCCESS');
-//
-//             let join = {
-//                 request: "join",
-//                 room: roomId,
-//                 display: "Web-Tester-" + Janus.randomString(4)
-//             };
-//             log("Надсилаємо запит на вхід у кімнату: " + roomId, 'INFO');
-//             audioBridge.send({message: join});
-//         },
-//         error: function (error) {
-//             log("Помилка прикріплення плагіна: " + error, 'ERROR');
-//             document.getElementById("connectBtn").disabled = false;
-//         },
-//         onmessage: function (msg, jsep) {
-//             log("Отримано подію Janus від плагіна: " + JSON.stringify(msg), 'DEBUG');
-//
-//             // Якщо Janus надсилає JSEP (WebRTC пропозицію)
-//             if (jsep) {
-//                 log("Обробка JSEP пропозиції від сервера...", 'INFO');
-//                 audioBridge.createAnswer({
-//                     jsep: jsep,
-//                     media: {audioSend: false, audioRecv: true, video: false}, // Тільки прийом звуку
-//                     success: function (jsepAnswer) {
-//                         log("SDP Answer сформовано. Завершуємо Handshake...", 'INFO');
-//                         let configure = {request: "configure", muted: false};
-//                         audioBridge.send({message: configure, jsep: jsepAnswer});
-//                     },
-//                     error: function (error) {
-//                         log("WebRTC Answer Error: " + JSON.stringify(error), 'ERROR');
-//                     }
-//                 });
-//             }
-//         },
-//         onremotestream: function (stream) {
-//             log("УСПІХ: Отримано аудіопотік реального часу!", 'SUCCESS');
-//             const player = document.getElementById("audioPlayer");
-//             Janus.attachMediaStream(player, stream);
-//             player.play();
-//         },
-//         oncleanup: function () {
-//             log("З'єднання плагіна очищено.", 'INFO');
-//         }
-//     };
-//
-//     // Додаємо авторизаційні параметри для прикріплення плагіна
-//     if (token) attachConfig.token = token;
-//     if (apisecret) attachConfig.apisecret = apisecret;
-//
-//     janusInstance.attach(attachConfig);
-// }
+function connectToAudioBridge(roomId, displayName) {
+    if (!currentSessionToken) {
+        log("Помилка: Сесія не ініціалізована. Токен відсутній.", "ERROR");
+        return;
+    }
 
+    let attachConfig = {
+        plugin: "janus.plugin.audiobridge",
+        opaqueId: "audiobridge-" + Janus.randomString(12),
+        success: function (pluginHandle) {
+            audioBridge = pluginHandle;
+            log("Плагін AudioBridge успішно прикріплено.", "SUCCESS");
+
+            // Крок реєстрації в кімнаті Janus
+            let register = {
+                request: "join",
+                room: parseInt(roomId),
+                display: displayName
+            };
+            audioBridge.send({ message: register });
+        },
+        error: function (error) {
+            log("Помилка прикріплення плагіна: " + error, "ERROR");
+        },
+        consentDialog: function (on) {
+            log("Consent dialog: " + on, "DEBUG");
+        },
+        // ... ваші інші колбеки (onmessage, onremotestream тощо)
+    };
+
+    // КРИТИЧНО ВАЖЛИВО: Передаємо наш індивідуальний UUID-токен користувача
+    attachConfig.token = currentSessionToken;
+
+    if (janusApiSecret) {
+        attachConfig.apisecret = janusApiSecret;
+    }
+
+    log(`Підключення до плагіна з токеном: ${currentSessionToken.substring(0, 8)}...`, "INFO");
+    janusInstance.attach(attachConfig);
+}
 
 // Запускати функції при завантаженні сторінки
 document.addEventListener("DOMContentLoaded", function () {
     toggleAuthFields(); // Встановлює початковий стан полів авторизації
+    // 1. Запускаємо автоматичне отримання токена для поточного юзера
+    initUserSession();
     loadRooms(); // Завантажує кімнати одразу
     setInterval(loadRooms, 5000); // Оновлює кімнати кожні 5 секунд
 });
