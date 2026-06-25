@@ -54,4 +54,23 @@ public class TestWebRtcController {
 
         return "/test/webrtc/webrtc-test";
     }
+
+    @GetMapping("/test/webrtc/qwebrtc")
+    public String getQWebrtc(
+            Model model ) {
+
+        Users user = clientService.GetCurrentUser();
+        if (user == null) { return "redirect:/login"; }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        logger.info("Зайшли на сторінку webrtc-test. UUID користувача: {}", cd.getUuid());
+        List<MessageRoom> liveRoom = messangerService.GetLiveChatRoomList(EChatRoomType.CHATROOM_TYPE_STATION);
+
+        // передаємо параметри на сторінку
+        model.addAttribute("clientdetail", clientService.GetClientDetailByUser(user));
+        model.addAttribute("roomlist", liveRoom );
+
+        return "/test/webrtc/qwebrtc";
+    }
+
+
 }
