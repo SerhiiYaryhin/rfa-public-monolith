@@ -65,7 +65,7 @@ function initJanusConnection() {
         log("🔌 Підключення до Janus WebSocket...", "INFO");
 
         Janus.init({
-            debug: ["error", "warn"], // Змініть на "all" для детального WebRTC логування
+            debug: ["error", "warn"],
             callback: () => {
                 janusInstance = new Janus({
                     server: JANUS_WS_URL,
@@ -123,33 +123,34 @@ function attachAudioBridgePlugin() {
                 log(`❌ Помилка прикріплення плагіна: ${error}`, "ERROR");
                 reject(error);
             },
-            // ✅ НОВІ КОЛБЕКИ для Janus.js 1.0+
-            onlocaltrack: (track, mid) => {
-                log(`🎤 Локальний трек додано: ${track.kind} (mid=${mid})`, "DEBUG");
-            },
+            // ✅ ВИПРАВЛЕНИЙ onremotetrack
             onremotetrack: (track, mid, on) => {
                 log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
+
                 if (on && track.kind === 'audio') {
-                    // Створюємо <audio> елемент для відтворення
                     let audio = document.getElementById("remoteAudio-" + mid);
                     if (!audio) {
                         audio = document.createElement("audio");
                         audio.id = "remoteAudio-" + mid;
                         audio.autoplay = true;
+                        audio.controls = true;
                         document.body.appendChild(audio);
+                        log(`🎵 Створено аудіо елемент для треку ${mid}`, "DEBUG");
                     }
-                    Janus.attachMediaStream(audio, track);
-                    audio.play().catch(e => log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN"));
+
+                    // ✅ ПРАВИЛЬНИЙ СПОСІБ: Створюємо MediaStream з треку
+                    const stream = new MediaStream([track]);
+                    audio.srcObject = stream;
+
+                    audio.play().catch(e => {
+                        log(`⚠️ Автопрогравання заблоковано: ${e.message}. Клікніть по сторінці.`, "WARN");
+                    });
+
+                    log(`✅ Аудіо трек ${mid} прикріплено до плеєра`, "SUCCESS");
                 }
             },
-            // ✅ СТАРИЙ КОЛБЕК для Janus.js < 1.0 (залишено для сумісності)
-            onremotestream: (stream) => {
-                log("🔊 [onremotestream] Отримано аудіопотік!", "SUCCESS");
-                const player = document.getElementById("audioPlayer");
-                if (player) {
-                    Janus.attachMediaStream(player, stream);
-                    player.play().catch(e => log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN"));
-                }
+            onlocaltrack: (track, mid) => {
+                log(`🎤 Локальний трек додано: ${track.kind} (mid=${mid})`, "DEBUG");
             },
             onmessage: handleJanusMessage,
             oncleanup: () => log("🧹 З'єднання плагіна очищено", "INFO"),
@@ -197,26 +198,20 @@ async function switchRoom(newRoomId) {
     }
 }
 
-/**
- * ВИПРАВЛЕНО:
- * - Прибрано токен з join (він передається автоматично з attach)
- * - Додано muted: false явно
- */
 function joinRoom(roomId, display) {
     log(`🚪 Заходимо в кімнату ${roomId} як "${display}"...`, "INFO");
     const joinMessage = {
         request: "join",
         room: roomId,
         display: display,
-        muted: false  // ✅ Явно вказуємо, що не muted
-        // ❌ НЕ передаємо токен тут - він вже в attach
+        muted: false
     };
     log(`📤 Відправка: ${JSON.stringify(joinMessage)}`, "DEBUG");
     audioBridge.send({ message: joinMessage });
 }
 
 // ============================================================
-// 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS (ВИПРАВЛЕНО)
+// 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS
 // ============================================================
 function handleJanusMessage(msg, jsep) {
     log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
@@ -233,28 +228,17 @@ function handleJanusMessage(msg, jsep) {
         log(`✅ Увійшли в кімнату ${currentRoomId}. Ваш ID: ${myId}, Display: "${myDisplay}"`, "SUCCESS");
         loadRooms();
 
-        // ✅ Створюємо Offer ТІЛЬКИ якщо немає jsep
         if (!jsep) {
             log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
             const offerStartTime = Date.now();
 
             audioBridge.createOffer({
-                media: {
-                    audioSend: true,
-                    audioRecv: true,
-                    video: false
-                },
+                media: { audioSend: true, audioRecv: true, video: false },
                 success: (localJsep) => {
                     const elapsed = Date.now() - offerStartTime;
                     log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
-
-                    // ✅ ВИПРАВЛЕНО: НЕ передаємо токен в configure!
                     audioBridge.send({
-                        message: {
-                            request: "configure",
-                            muted: false
-                            // ❌ НЕ передаємо токен тут - він не потрібен
-                        },
+                        message: { request: "configure", muted: false },
                         jsep: localJsep
                     });
                 },
@@ -267,7 +251,6 @@ function handleJanusMessage(msg, jsep) {
     if (event === "kicked") log(`⚠️ Вас видалено з кімнати`, "WARN");
     if (event === "destroyed") { currentRoomId = null; log(`💥 Кімнату знищено`, "WARN"); }
 
-    // ✅ Обробка JSEP
     if (jsep) {
         log(`📡 Отримано JSEP типу: ${jsep.type}`, "DEBUG");
 
@@ -276,7 +259,6 @@ function handleJanusMessage(msg, jsep) {
                 jsep: jsep,
                 success: () => {
                     log("✅ WebRTC Handshake завершено", "SUCCESS");
-                    // ✅ Перевіряємо стан PeerConnection
                     if (audioBridge.webrtcStuff && audioBridge.webrtcStuff.pc) {
                         const pc = audioBridge.webrtcStuff.pc;
                         log(`🔍 ICE Connection State: ${pc.iceConnectionState}`, "DEBUG");
