@@ -127,16 +127,25 @@ function attachAudioBridgePlugin() {
                 log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
 
                 if (on && track.kind === 'audio') {
-                    let audio = document.getElementById("remoteAudio-" + mid);
+                    // ✅ ВИКОРИСТОВУЄМО ІСНУЮЧИЙ СТАТИЧНИЙ ПЛЕЄР
+                    let audio = document.getElementById("audioPlayer");
+
                     if (!audio) {
-                        audio = document.createElement("audio");
-                        audio.id = "remoteAudio-" + mid;
-                        audio.autoplay = true;
-                        audio.controls = true;
-                        document.body.appendChild(audio);
-                        log(`🎵 Створено аудіо елемент для треку ${mid}`, "DEBUG");
+                        // Fallback: якщо статичний плеєр відсутній, створюємо динамічний
+                        audio = document.getElementById("remoteAudio-" + mid);
+                        if (!audio) {
+                            audio = document.createElement("audio");
+                            audio.id = "remoteAudio-" + mid;
+                            audio.autoplay = true;
+                            audio.controls = true;
+                            document.body.appendChild(audio);
+                            log(`🎵 Створено динамічний аудіо елемент для треку ${mid}`, "DEBUG");
+                        }
+                    } else {
+                        log(`🎵 Використовуємо статичний плеєр audioPlayer`, "DEBUG");
                     }
 
+                    // ✅ ПРАВИЛЬНИЙ СПОСІБ: Створюємо MediaStream з треку
                     const stream = new MediaStream([track]);
                     audio.srcObject = stream;
 
