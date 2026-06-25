@@ -19,7 +19,8 @@ let currentDisplay = null;
 let isReconnecting = false;
 
 // Конфігурація
-const BACKEND_API = "/api/v1/webrtc/stream";
+// const BACKEND_API = "/api/v1/webrtc/stream";
+const BACKEND_API = "/api/v1q/webrtc/stream"; // Новий endpoint
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws"; // TODO: отримувати з бекенду
 const DEFAULT_ROOM_ID = 1; // Кімната за замовчуванням при першому вході
 const ROOMS_REFRESH_INTERVAL = 5000; // Оновлення списку кімнат (мс)
