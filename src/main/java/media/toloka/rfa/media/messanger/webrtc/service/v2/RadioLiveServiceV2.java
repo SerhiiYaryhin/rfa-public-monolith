@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -278,6 +278,7 @@ public class RadioLiveServiceV2 {
 
             if (jRoomData != null) {
                 station.setStationstate(true);
+                // ❌ ВИДАЛЕНО: station.setStationId(String.valueOf(roomId));
                 List<Object> participants = (List<Object>) jRoomData.get("participants");
                 station.setParticipants(participants != null ? participants : new ArrayList<>());
 
@@ -297,9 +298,9 @@ public class RadioLiveServiceV2 {
                         portService.saveActiveStream(stationIdStr, roomId, currentRtpPort, 0);
                     }
 
-                    // ✅ ВИПРАВЛЕНО: createAudioBridgeRoom тепер передає RTP параметри
                     janusClient.createAudioBridgeRoom(roomId, station.getName(), currentRtpPort);
 
+                    // ❌ ВИДАЛЕНО: station.setStationId(String.valueOf(roomId));
                     station.setStationstate(true);
                     station.setParticipants(new ArrayList<>());
 
