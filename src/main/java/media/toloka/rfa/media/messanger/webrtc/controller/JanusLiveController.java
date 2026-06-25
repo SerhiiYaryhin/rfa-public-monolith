@@ -7,8 +7,10 @@ import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
 import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.messanger.webrtc.service.RadioLiveService;
+import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.service.StationService;
+import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,7 +125,7 @@ public class JanusLiveController {
         String apiSecret = radioLiveService.getApiSecret();
         return ResponseEntity.ok(Map.of(
             "token", token,
-            "api_secret", apiSecret
+            "api_secret", apiSecret // todo прибрати передачу секрета клієнту
         ));
     }
 
@@ -133,7 +135,11 @@ public class JanusLiveController {
     @GetMapping("/rooms")
     public ResponseEntity<?> getRooms() {
         logger.info("Запит на отримання списку кімнат та користувачів");
-//        return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
+        if (radioLiveService.checkUserTokenInJanus()) {
+            logger.info("Поточний користувач має токен в Janus");
+        } else {
+            logger.info("Поточний користувач НЕ має токену в Janus");
+        }
         return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
     }
 

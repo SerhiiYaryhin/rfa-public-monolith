@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Оптимізований RPC-клієнт для Janus.
@@ -136,13 +133,91 @@ public class JanusRabbitClient {
     }
 
     /**
+     * Отримання списку зареєстрованих токенів для користувачів
+     * Виконується через Admin API.
+     *
+     * повертає set токенів
+     */
+    public Set<String> getAllUsersTokenFromJanus() {
+        String transactionId = "user-token-list-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "list_tokens",
+                "transaction", transactionId,
+                "admin_secret", adminSecret
+        );
+
+        // 1. Відправляємо запит до Admin API Janus
+        Map<String, Object> response = sendAndReceiveAdmin(request);
+
+        Set<String> setTokens = new HashSet<>();
+
+        // 2. Безпечно дістаємо об'єкт "data"
+        Map<String, Object> tokensData = (Map<String, Object>) response.get("data");
+        if (tokensData == null) {
+            log.warn("Відповідь від Janus не містить блоку 'data'");
+            return setTokens;
+        }
+
+        // 3. Дістаємо "tokens" як СПИСОК (List), бо в JSON це масив [ ... ]
+        List<Map<String, Object>> tokensList = (List<Map<String, Object>>) tokensData.get("tokens");
+        if (tokensList == null) {
+            log.warn("Блок 'data' в Janus не містить масиву 'tokens'");
+            return setTokens;
+        }
+
+        // 4. Перебираємо елементи отриманого списку
+        for (Map<String, Object> tokenInfo : tokensList) {
+            String tokenStr = (String) tokenInfo.get("token");
+            if (tokenStr != null) {
+                setTokens.add(tokenStr);
+            }
+        }
+
+        log.info("Успішно отримано {} токенів з медіасервера Janus", setTokens.size());
+        return setTokens;
+    }
+
+    /**
+     * Перевіряємо, чи є uuid користувача у списку токенів janus
+     */
+    public Boolean checkUserTokenInJanus(String uuidUser) {
+        if (uuidUser == null || uuidUser.trim().isEmpty()) {
+            log.warn("Спроба перевірити порожній або null UUID користувача в Janus");
+            return false;
+        }
+
+        log.info("Перевіряємо наявність токена користувача (UUID: {}) в медіасервері Janus", uuidUser);
+
+        try {
+            // 1. Отримуємо унікальну множину всіх активних токенів з Janus
+            Set<String> activeTokens = getAllUsersTokenFromJanus();
+
+            // 2. Перевіряємо, чи міститься наш UUID серед них
+            boolean isRegistered = activeTokens.contains(uuidUser);
+
+            if (isRegistered) {
+                log.info("Токен (UUID: {}) успішно знайдено в Janus. Доступ дозволено.", uuidUser);
+            } else {
+                log.warn("Токена (UUID: {}) НЕМАЄ в Janus. Користувач не авторизований на медіасервері.", uuidUser);
+            }
+
+            return isRegistered;
+
+        } catch (Exception e) {
+            log.error("Помилка під час перевірки токена користувача " + uuidUser + " в Janus: " + e.getMessage(), e);
+            // У разі збою безпечніше повернути false, щоб не пустити неавторизованого користувача
+            return false;
+        }
+    }
+
+    /**
      * Отримання списку кімнат та їхніх учасників за один сеанс зв'язку з Janus.
      * Виконується через Client API.
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
-            // Запит на список кімнат
+            // Запит на список кімнат які в онлайні
             String transactionId = "rooms-list-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("message", transactionId);
             request.put("session_id", sessionId);

@@ -140,7 +140,10 @@ public class RadioLiveService {
      * Збагачує дані Janus інформацією про трансляцію радіостанції з локальної БД.
      */
     public List<Map<String, Object>> listRoomsAndParticipants() {
+        // Перевіряємо, чи зареєстрований токен користувача в Janus
+
         List<Map<String, Object>> janusRooms = janusClient.getJanusRoomsAndParticipants();
+
 
         // Збагачуємо інформацію про кімнати даними з нашої БД
         for (Map<String, Object> room : janusRooms) {
@@ -183,6 +186,25 @@ public class RadioLiveService {
     }
 
     /**
+     * перевіряємо чи зареєстрований токен користувача в Janus
+     */
+    @Transactional
+    public Boolean checkUserTokenInJanus () {
+        Users user = clientService.GetCurrentUser();
+        if (user != null) {
+            Clientdetail cd = clientService.GetClientDetailByUser(user);
+            Boolean checkUser = janusClient.checkUserTokenInJanus(cd.getUuid());
+            if (checkUser) {
+                log.info("Поточний користувач {} має токен в Janus",cd.getCustname()+" "+cd.getCustsurname());
+            } else {
+                log.info("Поточний користувач {} НЕ має токену в Janus",cd.getCustname()+" "+cd.getCustsurname());
+            }
+            return checkUser;
+        }
+        return false;
+    }
+
+    /**
      * Отримання повної інформації про активні кімнати Janus, їхніх учасників
      * та статус трансляції (чи підключено Icecast-потік до цієї кімнати).
      *
@@ -207,7 +229,7 @@ public class RadioLiveService {
             return activeStations; // fallback: повертаємо хоча б структуру з бази
         }
 
-        // Перетворюємо дані Janus у зручну мапу: Key = roomId, Value = дані кімнати (учасники тощо)
+        // Перетворюємо дані з бази станцій у зручну мапу: Key = roomId, Value = дані кімнати (учасники тощо)
         Map<Long, Map<String, Object>> janusRoomsMap = new HashMap<>();
         for (Map<String, Object> jRoom : janusRooms) {
             Number roomIdNum = (Number) jRoom.get("room");
