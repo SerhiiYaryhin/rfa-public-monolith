@@ -13,7 +13,7 @@ let isReconnecting = false;
 
 const BACKEND_API = "/api/v1q/webrtc/stream";
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws";
-const DEFAULT_ROOM_ID = 1;
+const DEFAULT_ROOM_ID = 802;
 const ROOMS_REFRESH_INTERVAL = 5000;
 
 // ============================================================
@@ -212,15 +212,17 @@ function joinRoom(roomId, display) {
 // ============================================================
 // 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS (З ДЕТАЛЬНИМ ЛОГУВАННЯМ)
 // ============================================================
+// Змініть DEFAULT_ROOM_ID на реальну кімнату з вашої БД
+
+// Виправлена обробка помилок в handleJanusMessage:
 function handleJanusMessage(msg, jsep) {
-    // ✅ ДЕТАЛЬНЕ ЛОГУВАННЯ ВСІХ ВІДПОВІДЕЙ
     log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 200)}...`, "DEBUG");
 
     const event = msg.audiobridge;
 
-    // Перевірка помилок
-    if (msg.error) {
-        log(`❌ Помилка від Janus: ${msg.error.code} - ${msg.error.reason}`, "ERROR");
+    // ✅ ВИПРАВЛЕНО: Правильна обробка помилок плагіна
+    if (msg.error_code || msg.error) {
+        log(`❌ Помилка від Janus: ${msg.error_code} - ${msg.error}`, "ERROR");
         return;
     }
 
@@ -241,7 +243,7 @@ function handleJanusMessage(msg, jsep) {
                         message: {
                             request: "configure",
                             muted: false,
-                            token: currentSessionToken // ✅ ТОКЕН
+                            token: currentSessionToken
                         },
                         jsep: localJsep
                     });
@@ -273,7 +275,7 @@ function handleJanusMessage(msg, jsep) {
                         message: {
                             request: "configure",
                             muted: false,
-                            token: currentSessionToken // ✅ ТОКЕН
+                            token: currentSessionToken
                         },
                         jsep: jsepAnswer
                     });

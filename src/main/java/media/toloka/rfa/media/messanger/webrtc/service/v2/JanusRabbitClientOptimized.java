@@ -34,32 +34,33 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-    // ОПТИМІЗОВАНІ МЕТОДИ (BATCH OPERATIONS)
+    // ADMIN API МЕТОДИ (ВИПРАВЛЕНО ФОРМАТ)
     // ============================================================
 
     /**
      * Отримує ВСІ кімнати з учасниками через Admin API.
-     * ВИПРАВЛЕНО: правильний парсинг plugindata.data замість response
+     * ВИПРАВЛЕНО: Правильний формат Admin API запитів
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getAllRoomsWithParticipants() {
         String transactionId = "all-rooms-" + generateShortUUID();
 
+        // ✅ ПРАВИЛЬНИЙ формат Admin API
         Map<String, Object> request = Map.of(
-                "janus", "message",
-                "plugin", "janus.plugin.audiobridge",
-                "transaction", transactionId,
+                "janus", "list_rooms",
                 "admin_secret", adminSecret,
-                "body", Map.of("request", "list")
+                "plugin", "janus.plugin.audiobridge",
+                "transaction", transactionId
         );
 
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            log.debug("📥 Janus response (list): {}", response);
+            log.debug("📥 Janus response (list_rooms): {}", response);
 
-            // ✅ ВИПРАВЛЕНО: дані в plugindata.data, а НЕ в response
-            Map<String, Object> data = extractPluginData(response);
+            // Admin API повертає дані в "data", а не в "plugindata"
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
             if (data == null) {
+                log.warn("Відповідь від Janus не містить блок 'data'. Повна відповідь: {}", response);
                 return List.of();
             }
 
@@ -93,26 +94,24 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Отримує учасників конкретної кімнати через Admin API.
-     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
+     * ВИПРАВЛЕНО: Правильний формат Admin API
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getRoomParticipants(Long roomId) {
         String transactionId = "participants-" + generateShortUUID();
 
+        // ✅ ПРАВИЛЬНИЙ формат Admin API
         Map<String, Object> request = Map.of(
-                "janus", "message",
+                "janus", "list_participants",
+                "admin_secret", adminSecret,
                 "plugin", "janus.plugin.audiobridge",
                 "transaction", transactionId,
-                "admin_secret", adminSecret,
-                "body", Map.of(
-                        "request", "listparticipants",
-                        "room", roomId
-                )
+                "room", roomId
         );
 
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            Map<String, Object> data = extractPluginData(response);
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
 
             if (data == null || data.get("participants") == null) {
                 return List.of();
@@ -187,11 +186,7 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Створює аудіокімнату через Client API.
-     * ВИПРАВЛЕНО:
-     * - Правильний парсинг відповіді (plugindata.data)
-     * - Обробка випадку, коли room не повернуто (повертаємо переданий roomId)
-     * - Обробка помилки "кімната вже існує"
+     * Створює аудіокімнату через Client API (потребує сесії).
      */
     @SuppressWarnings("unchecked")
     public Long createAudioRoom(Long roomId, String name, Integer rtpPort) {
@@ -223,7 +218,6 @@ public class JanusRabbitClientOptimized {
                 Map<String, Object> response = sendAndReceive(request);
                 log.debug("📥 Janus response (create room): {}", response);
 
-                // ✅ ВИПРАВЛЕНО: дані в plugindata.data
                 Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
                 if (plugindata == null) {
                     log.warn("plugindata відсутній, повертаємо переданий roomId");
@@ -236,20 +230,16 @@ public class JanusRabbitClientOptimized {
                     return roomId;
                 }
 
-                // ✅ ВИПРАВЛЕНО: безпечне отримання room
                 Object roomObj = data.get("room");
                 if (roomObj instanceof Number) {
                     return ((Number) roomObj).longValue();
                 } else {
-                    // Якщо Janus не повернув room (бо ми його явно вказали), повертаємо переданий
                     log.info("Janus не повернув room у відповіді, використовуємо переданий ID: {}", roomId);
                     return roomId;
                 }
 
             } catch (RuntimeException e) {
-                // ✅ Обробка помилки "кімната вже існує" (race condition)
-                if (e.getMessage() != null && e.getMessage().contains("457") ||
-                        e.getMessage() != null && e.getMessage().contains("already exists")) {
+                if (e.getMessage() != null && (e.getMessage().contains("457") || e.getMessage().contains("already exists"))) {
                     log.warn("Кімната {} вже існує в Janus (race condition), продовжуємо", roomId);
                     return roomId;
                 }
@@ -287,7 +277,7 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Видаляє користувача з кімнати через Admin API.
-     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
+     * ВИПРАВЛЕНО: Правильний формат Admin API
      */
     @SuppressWarnings("unchecked")
     public void kickUser(Long roomId, String userToken) {
@@ -308,16 +298,15 @@ public class JanusRabbitClientOptimized {
             }
 
             String transactionId = "kick-" + generateShortUUID();
+
+            // ✅ ПРАВИЛЬНИЙ формат Admin API для kick
             Map<String, Object> request = Map.of(
-                    "janus", "message",
+                    "janus", "kick",
+                    "admin_secret", adminSecret,
                     "plugin", "janus.plugin.audiobridge",
                     "transaction", transactionId,
-                    "admin_secret", adminSecret,
-                    "body", Map.of(
-                            "request", "kick",
-                            "room", roomId,
-                            "id", participantId
-                    )
+                    "room", roomId,
+                    "id", participantId
             );
 
             sendAndReceiveAdmin(request);
@@ -337,24 +326,20 @@ public class JanusRabbitClientOptimized {
                 .anyMatch(p -> userToken.equals(p.get("token")));
     }
 
-    // ============================================================
-    // ДОДАТКОВІ МЕТОДИ
-    // ============================================================
-
     /**
      * Отримує список ID усіх активних аудіокімнат у Janus.
-     * ВИПРАВЛЕНО: правильний парсинг plugindata.data
+     * ВИПРАВЛЕНО: Правильний формат Admin API
      */
     @SuppressWarnings("unchecked")
     public List<Long> getActiveRoomsIds() {
         String transactionId = "list-rooms-" + generateShortUUID();
 
+        // ✅ ПРАВИЛЬНИЙ формат Admin API
         Map<String, Object> request = Map.of(
-                "janus", "message",
-                "plugin", "janus.plugin.audiobridge",
-                "transaction", transactionId,
+                "janus", "list_rooms",
                 "admin_secret", adminSecret,
-                "body", Map.of("request", "list")
+                "plugin", "janus.plugin.audiobridge",
+                "transaction", transactionId
         );
 
         List<Long> roomIds = new ArrayList<>();
@@ -362,10 +347,9 @@ public class JanusRabbitClientOptimized {
         try {
             log.info("Запит до Janus на отримання списку активних аудіокімнат...");
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            log.debug("📥 Janus response (list ids): {}", response);
+            log.debug("📥 Janus response (list_rooms): {}", response);
 
-            // ✅ ВИПРАВЛЕНО: дані в plugindata.data
-            Map<String, Object> data = extractPluginData(response);
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
             if (data == null) {
                 return roomIds;
             }
@@ -416,31 +400,6 @@ public class JanusRabbitClientOptimized {
     // ============================================================
     // ДОПОМІЖНІ МЕТОДИ
     // ============================================================
-
-    /**
-     * ✅ НОВИЙ МЕТОД: Безпечне витягування plugindata.data з відповіді Admin API
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPluginData(Map<String, Object> response) {
-        if (response == null) {
-            log.warn("Відповідь від Janus порожня (null)");
-            return null;
-        }
-
-        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-        if (plugindata == null) {
-            log.warn("Відповідь від Janus не містить блок 'plugindata'. Повна відповідь: {}", response);
-            return null;
-        }
-
-        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-        if (data == null) {
-            log.warn("plugindata не містить блок 'data'. Повна відповідь: {}", response);
-            return null;
-        }
-
-        return data;
-    }
 
     private <T> T executeInSession(JanusAction<T> action) {
         Long sessionId = createSession();
