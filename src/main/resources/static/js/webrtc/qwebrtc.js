@@ -6,15 +6,13 @@ let currentDisplay = null;
 let isJanusReady = false;
 let pendingRoomId = null;
 let isReconnecting = false;
+let myJanusId = null; // ✅ Зберігаємо наш ID в Janus
 
 const BACKEND_API = "/api/v1q/webrtc/stream";
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws";
 const DEFAULT_ROOM_ID = 802;
 const ROOMS_REFRESH_INTERVAL = 5000;
 
-// ============================================================
-// ЛОГУВАННЯ
-// ============================================================
 function log(message, type = 'INFO') {
     const consoleDiv = document.getElementById("logConsole");
     if (!consoleDiv) { console.log(`[${type}] ${message}`); return; }
@@ -36,9 +34,6 @@ function updateConnectionStatus(connected, text = null) {
     if (statusText) statusText.textContent = text || (connected ? "Підключено до Janus" : "Відключено");
 }
 
-// ============================================================
-// 1. ОТРИМАННЯ ТОКЕНУ
-// ============================================================
 async function initUserSession() {
     log("🔑 Отримання токена користувача...", "INFO");
     try {
@@ -56,9 +51,6 @@ async function initUserSession() {
     }
 }
 
-// ============================================================
-// 2. ІНІЦІАЛІЗАЦІЯ JANUS
-// ============================================================
 function initJanusConnection() {
     return new Promise((resolve, reject) => {
         if (!currentSessionToken) return reject("Токен відсутній");
@@ -92,9 +84,6 @@ function initJanusConnection() {
     });
 }
 
-// ============================================================
-// 3. ПРИКРІПЛЕННЯ ПЛАГІНА
-// ============================================================
 function attachAudioBridgePlugin() {
     return new Promise((resolve, reject) => {
         log("🎙️ Прикріплення до AudioBridge...", "INFO");
@@ -157,9 +146,6 @@ function attachAudioBridgePlugin() {
     });
 }
 
-// ============================================================
-// 4. ПЕРЕХІД МІЖ КІМНАТАМИ
-// ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
     if (isNaN(newRoomId)) return;
@@ -185,11 +171,20 @@ async function switchRoom(newRoomId) {
 
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
+
+            // ✅ КРИТИЧНО: Очищаємо WebRTC перед виходом
+            if (audioBridge.webrtcStuff?.pc) {
+                log("🧹 Очищаємо PeerConnection...", "DEBUG");
+                audioBridge.hangUp();
+            }
+
             audioBridge.send({ message: { request: "leave" } });
             await new Promise(r => setTimeout(r, 300));
         }
+
         currentRoomId = newRoomId;
         currentDisplay = serverResponse.display;
+        myJanusId = null; // ✅ Скидаємо наш ID
         joinRoom(newRoomId, currentDisplay);
     } catch (error) {
         log(`❌ Помилка переходу: ${error.message}`, "ERROR");
@@ -202,15 +197,11 @@ function joinRoom(roomId, display) {
         request: "join",
         room: roomId,
         display: display
-        // ❌ НЕ передаємо muted тут
     };
     log(`📤 Відправка: ${JSON.stringify(joinMessage)}`, "DEBUG");
     audioBridge.send({ message: joinMessage });
 }
 
-// ============================================================
-// 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS (ВИПРАВЛЕНО)
-// ============================================================
 function handleJanusMessage(msg, jsep) {
     log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
     const event = msg.audiobridge;
@@ -220,32 +211,24 @@ function handleJanusMessage(msg, jsep) {
         return;
     }
 
-    if (event === "joined") {
-        const myId = msg.id;
+    // ✅ ВИПРАВЛЕНО: Обробляємо ТІЛЬКИ наш власний joined (з полем id)
+    if (event === "joined" && msg.id) {
+        myJanusId = msg.id;
         const myDisplay = msg.display || currentDisplay;
-        log(`✅ Увійшли в кімнату ${currentRoomId}. Ваш ID: ${myId}, Display: "${myDisplay}"`, "SUCCESS");
+        log(`✅ Увійшли в кімнату ${currentRoomId}. Ваш ID: ${myJanusId}, Display: "${myDisplay}"`, "SUCCESS");
         loadRooms();
 
-        // ✅ ВИПРАВЛЕНО: Створюємо Offer ТІЛЬКИ якщо немає jsep
-        // І НЕ відправляємо окремий configure після цього!
         if (!jsep) {
             log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
             const offerStartTime = Date.now();
 
             audioBridge.createOffer({
-                tracks: [{ type: 'audio', capture: true, recv: true }],
+                media: { audioSend: true, audioRecv: true, video: false },
                 success: (localJsep) => {
                     const elapsed = Date.now() - offerStartTime;
                     log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
-
-                    // ✅ ВАЖЛИВО: Відправляємо configure ТІЛЬКИ разом з jsep
-                    // НЕ відправляємо окремий configure без jsep!
                     audioBridge.send({
-                        message: {
-                            request: "configure",
-                            muted: false,
-                            room: currentRoomId
-                        },
+                        message: { request: "configure", muted: false },
                         jsep: localJsep
                     });
                 },
@@ -254,7 +237,16 @@ function handleJanusMessage(msg, jsep) {
         }
     }
 
-    if (event === "left") log(`👋 Вийшли з кімнати`, "INFO");
+    // ✅ НОВЕ: Повідомлення про вхід іншого користувача (без msg.id)
+    if (event === "joined" && !msg.id && msg.participants) {
+        log(`👤 Інший користувач увійшов в кімнату`, "INFO");
+        loadRooms();
+    }
+
+    if (event === "left") {
+        log(`👋 Хтось вийшов з кімнати`, "INFO");
+        loadRooms();
+    }
     if (event === "kicked") log(`⚠️ Вас видалено з кімнати`, "WARN");
     if (event === "destroyed") { currentRoomId = null; log(`💥 Кімнату знищено`, "WARN"); }
 
@@ -292,14 +284,10 @@ function handleJanusMessage(msg, jsep) {
         } else if (jsep.type === "offer") {
             audioBridge.createAnswer({
                 jsep: jsep,
-                tracks: [{ type: 'audio', capture: true, recv: true }],
+                media: { audioSend: true, audioRecv: true, video: false },
                 success: (jsepAnswer) => {
                     audioBridge.send({
-                        message: {
-                            request: "configure",
-                            muted: false,
-                            room: currentRoomId
-                        },
+                        message: { request: "configure", muted: false },
                         jsep: jsepAnswer
                     });
                 },
@@ -309,9 +297,6 @@ function handleJanusMessage(msg, jsep) {
     }
 }
 
-// ============================================================
-// 6. ЗАВАНТАЖЕННЯ КІМНАТ
-// ============================================================
 async function loadRooms() {
     if (!isJanusReady) return;
     try {
@@ -369,9 +354,6 @@ function renderRooms(rooms) {
 function enableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false); }
 function disableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true); }
 
-// ============================================================
-// 7. ІНІЦІАЛІЗАЦІЯ
-// ============================================================
 document.addEventListener("DOMContentLoaded", async () => {
     log("🚀 Сторінку завантажено. Ініціалізація...", "INFO");
     disableRoomButtons();
