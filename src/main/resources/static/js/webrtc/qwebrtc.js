@@ -23,11 +23,8 @@ function log(message, type = 'INFO') {
     }
     const time = new Date().toLocaleTimeString();
     const badgeClasses = {
-        'INFO': 'badge-info',
-        'SUCCESS': 'badge-success',
-        'ERROR': 'badge-error',
-        'WARN': 'badge-error',
-        'DEBUG': 'badge-debug'
+        'INFO': 'badge-info', 'SUCCESS': 'badge-success',
+        'ERROR': 'badge-error', 'WARN': 'badge-error', 'DEBUG': 'badge-debug'
     };
     const badgeClass = badgeClasses[type] || 'badge-info';
     consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
@@ -175,7 +172,7 @@ function attachAudioBridgePlugin() {
 }
 
 // ============================================================
-// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО!)
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО)
 // ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
@@ -206,24 +203,53 @@ async function switchRoom(newRoomId) {
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
 
-            // ✅ КРИТИЧНО: Очищаємо WebRTC PeerConnection ПЕРЕД виходом!
-            // Це скидає стан PC, щоб наступний join створив новий PC з нуля
-            try {
-                audioBridge.hangUp();
-                log("🧹 PeerConnection очищено через hangUp()", "DEBUG");
-            } catch (e) {
-                log(`⚠️ hangUp() помилка (не критично): ${e.message}`, "WARN");
-            }
+            // ✅ ВИПРАВЛЕНО: Ручне очищення WebRTC
+            cleanupWebRTC();
 
             audioBridge.send({message: {request: "leave"}});
             await new Promise(r => setTimeout(r, 300));
         }
-
         currentRoomId = newRoomId;
         currentDisplay = serverResponse.display;
         joinRoom(newRoomId, currentDisplay);
     } catch (error) {
         log(`❌ Помилка переходу: ${error.message}`, "ERROR");
+    }
+}
+
+/**
+ * ✅ НОВА ФУНКЦІЯ: Ручне очищення WebRTC PeerConnection
+ */
+function cleanupWebRTC() {
+    try {
+        if (audioBridge.webrtcStuff) {
+            if (audioBridge.webrtcStuff.pc) {
+                log("🧹 Закриваємо RTCPeerConnection...", "DEBUG");
+                audioBridge.webrtcStuff.pc.close();
+                audioBridge.webrtcStuff.pc = null;
+            }
+
+            if (audioBridge.webrtcStuff.myStream) {
+                log("🧹 Зупиняємо локальні треки...", "DEBUG");
+                audioBridge.webrtcStuff.myStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                audioBridge.webrtcStuff.myStream = null;
+            }
+
+            if (audioBridge.webrtcStuff.remoteStream) {
+                log("🧹 Видаляємо віддалені треки...", "DEBUG");
+                audioBridge.webrtcStuff.remoteStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                audioBridge.webrtcStuff.remoteStream = null;
+            }
+
+            audioBridge.webrtcStuff = null;
+            log("✅ WebRTC очищено вручну", "SUCCESS");
+        }
+    } catch (e) {
+        log(`⚠️ Помилка очищення WebRTC (не критично): ${e.message}`, "WARN");
     }
 }
 
@@ -251,7 +277,6 @@ function handleJanusMessage(msg, jsep) {
         return;
     }
 
-    // ✅ Обробляємо ТІЛЬКИ наш власний joined (з полем id)
     if (event === "joined" && msg.id) {
         const myId = msg.id;
         const myDisplay = msg.display || currentDisplay;
@@ -277,8 +302,7 @@ function handleJanusMessage(msg, jsep) {
         }
     }
 
-    // Повідомлення про вхід іншого користувача (без msg.id)
-    if (event === "joined" && !msg.id && msg.participants) {
+    if (event === "joined" && !msg.id) {
         log(`👤 Інший користувач увійшов в кімнату`, "INFO");
         loadRooms();
     }
@@ -312,12 +336,11 @@ function handleJanusMessage(msg, jsep) {
                                 log("✅ ICE з'єднання встановлено!", "SUCCESS");
                                 clearInterval(checkInterval);
                             } else if (pc.iceConnectionState === "failed") {
-                                log("❌ ICE FAILED! Потрібен TURN сервер", "ERROR");
+                                log("❌ ICE FAILED!", "ERROR");
                                 clearInterval(checkInterval);
                             }
                         }
                         if (checkCount >= 15) {
-                            log("⚠️ ICE не встановився за 30 секунд", "WARN");
                             clearInterval(checkInterval);
                         }
                     }, 2000);
@@ -397,13 +420,8 @@ function renderRooms(rooms) {
     }).join('');
 }
 
-function enableRoomButtons() {
-    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false);
-}
-
-function disableRoomButtons() {
-    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);
-}
+function enableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false); }
+function disableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true); }
 
 // ============================================================
 // 7. ІНІЦІАЛІЗАЦІЯ
