@@ -6,6 +6,8 @@ let currentDisplay = null;
 let isJanusReady = false;
 let pendingRoomId = null;
 let isReconnecting = false;
+let isSwitchingRoom = false;  // ✅ Запобігання повторним клікам
+let iceCheckInterval = null;  // ✅ Зберігаємо ID інтервалу ICE
 
 const BACKEND_API = "/api/v1q/webrtc/stream";
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws";
@@ -93,9 +95,9 @@ function initJanusConnection() {
 }
 
 // ============================================================
-// 3. ПРИКРІПЛЕННЯ ПЛАГІНА
+// 3. ПРИКРІПЛЕННЯ ПЛАГІНА (ВИПРАВЛЕНО - без targetRoomId)
 // ============================================================
-function attachAudioBridgePlugin(targetRoomId = null) {
+function attachAudioBridgePlugin() {
     return new Promise((resolve, reject) => {
         log("🎙️ Прикріплення до AudioBridge...", "INFO");
         janusInstance.attach({
@@ -110,16 +112,16 @@ function attachAudioBridgePlugin(targetRoomId = null) {
                 enableRoomButtons();
                 resolve();
 
-                // Якщо вказано цільову кімнату — заходимо в неї
-                if (targetRoomId !== null) {
-                    log(`🚀 Автоматичний вхід в кімнату ${targetRoomId}...`, "INFO");
-                    switchRoom(targetRoomId);
-                } else if (pendingRoomId !== null) {
+                // ✅ ВИПРАВЛЕНО: НЕ викликаємо switchRoom тут!
+                // Просто заходимо в дефолтну кімнату або відкладену
+                if (pendingRoomId !== null) {
                     const target = pendingRoomId;
                     pendingRoomId = null;
+                    currentRoomId = null; // ✅ Скидаємо, щоб не було циклу
                     log(`🚀 Виконую відкладений перехід в кімнату ${target}...`, "INFO");
                     switchRoom(target);
                 } else {
+                    currentRoomId = null;
                     switchRoom(DEFAULT_ROOM_ID);
                 }
             },
@@ -141,20 +143,15 @@ function attachAudioBridgePlugin(targetRoomId = null) {
                             audio.autoplay = true;
                             audio.controls = true;
                             document.body.appendChild(audio);
-                            log(`🎵 Створено динамічний аудіо елемент для треку ${mid}`, "DEBUG");
                         }
-                    } else {
-                        log(`🎵 Використовуємо статичний плеєр audioPlayer`, "DEBUG");
                     }
 
                     const stream = new MediaStream([track]);
                     audio.srcObject = stream;
 
                     audio.play().catch(e => {
-                        log(`⚠️ Автопрогравання заблоковано: ${e.message}. Клікніть по сторінці.`, "WARN");
+                        log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
                     });
-
-                    log(`✅ Аудіо трек ${mid} прикріплено до плеєра`, "SUCCESS");
                 }
             },
             onlocaltrack: (track, mid) => {
@@ -168,24 +165,29 @@ function attachAudioBridgePlugin(targetRoomId = null) {
 }
 
 // ============================================================
-// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО)
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО - без detach/attach)
 // ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
     if (isNaN(newRoomId)) return;
 
-    if (!isJanusReady) {
-        log(`⏳ Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
-        pendingRoomId = newRoomId;
+    // ✅ Запобігання повторним клікам під час переходу
+    if (isSwitchingRoom) {
+        log(`⏳ Вже виконується перехід, ігноруємо запит`, "WARN");
         return;
     }
-    if (!audioBridge) {
-        log("❌ AudioBridge відсутній", "ERROR");
-        return;
-    }
+    isSwitchingRoom = true;
 
-    log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
     try {
+        if (!isJanusReady || !audioBridge) {
+            log(`⏳ Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
+            pendingRoomId = newRoomId;
+            return;
+        }
+
+        log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
+
+        // 1. POST на бекенд
         const response = await fetch(`${BACKEND_API}/connectclienttoroom`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -196,28 +198,70 @@ async function switchRoom(newRoomId) {
         if (!serverResponse.success) throw new Error(serverResponse.error || "Помилка сервера");
         log(`✅ Бекенд підтвердив перехід. Display: "${serverResponse.display}"`, "SUCCESS");
 
+        // 2. Якщо вже в кімнаті - очищаємо WebRTC і робимо leave
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
 
-            // ✅ ВИПРАВЛЕНО: Від'єднуємо плагін повністю
-            log("🔌 Від'єднуємо плагін AudioBridge...", "DEBUG");
-            audioBridge.detach();
-            audioBridge = null;
-            isJanusReady = false;
+            // ✅ Очищаємо WebRTC (але НЕ обнуляємо audioBridge!)
+            cleanupWebRTCHandle();
 
-            await new Promise(r => setTimeout(r, 500));
-
-            // ✅ Прикріплюємо плагін заново
-            log("🎙️ Прикріплюємо плагін заново...", "DEBUG");
-            await attachAudioBridgePlugin(newRoomId);
-        } else {
-            // Перший вхід — просто заходимо в кімнату
-            currentRoomId = newRoomId;
-            currentDisplay = serverResponse.display;
-            joinRoom(newRoomId, currentDisplay);
+            audioBridge.send({message: {request: "leave"}});
+            await new Promise(r => setTimeout(r, 300));
         }
+
+        // 3. Оновлюємо state
+        currentRoomId = newRoomId;
+        currentDisplay = serverResponse.display;
+
+        // 4. Заходимо в нову кімнату (без detach/attach!)
+        joinRoom(newRoomId, currentDisplay);
+
     } catch (error) {
         log(`❌ Помилка переходу: ${error.message}`, "ERROR");
+    } finally {
+        isSwitchingRoom = false;
+    }
+}
+
+/**
+ * ✅ НОВА ФУНКЦІЯ: Очищення WebRTC handle БЕЗ обнулення audioBridge
+ */
+function cleanupWebRTCHandle() {
+    try {
+        // ✅ Зупиняємо інтервал перевірки ICE
+        if (iceCheckInterval) {
+            clearInterval(iceCheckInterval);
+            iceCheckInterval = null;
+            log("🛑 Інтервал перевірки ICE зупинено", "DEBUG");
+        }
+
+        if (audioBridge && audioBridge.webrtcStuff) {
+            // Закриваємо PeerConnection
+            if (audioBridge.webrtcStuff.pc) {
+                log("🧹 Закриваємо RTCPeerConnection...", "DEBUG");
+                try {
+                    audioBridge.webrtcStuff.pc.close();
+                } catch (e) {
+                    log(`⚠️ Помилка закриття PC: ${e.message}`, "WARN");
+                }
+                audioBridge.webrtcStuff.pc = null;
+            }
+
+            // Зупиняємо локальні треки (мікрофон)
+            if (audioBridge.webrtcStuff.myStream) {
+                log("🧹 Зупиняємо локальні треки...", "DEBUG");
+                audioBridge.webrtcStuff.myStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                audioBridge.webrtcStuff.myStream = null;
+            }
+
+            // Скидаємо webrtcStuff в початковий стан
+            audioBridge.webrtcStuff = {};
+            log("✅ WebRTC очищено", "DEBUG");
+        }
+    } catch (e) {
+        log(`⚠️ Помилка очищення WebRTC (не критично): ${e.message}`, "WARN");
     }
 }
 
@@ -234,7 +278,7 @@ function joinRoom(roomId, display) {
 }
 
 // ============================================================
-// 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS
+// 5. ОБРОБКА ПОВІДОМЛЕНЬ JANUS (ВИПРАВЛЕНО)
 // ============================================================
 function handleJanusMessage(msg, jsep) {
     log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
@@ -245,6 +289,7 @@ function handleJanusMessage(msg, jsep) {
         return;
     }
 
+    // Обробляємо ТІЛЬКИ наш власний joined (з полем id)
     if (event === "joined" && msg.id) {
         const myId = msg.id;
         const myDisplay = msg.display || currentDisplay;
@@ -270,6 +315,7 @@ function handleJanusMessage(msg, jsep) {
         }
     }
 
+    // Повідомлення про вхід іншого користувача
     if (event === "joined" && !msg.id) {
         log(`👤 Інший користувач увійшов в кімнату`, "INFO");
         loadRooms();
@@ -288,21 +334,40 @@ function handleJanusMessage(msg, jsep) {
                 success: () => {
                     log("✅ WebRTC Handshake завершено", "SUCCESS");
 
-                    let checkCount = 0;
-                    const checkInterval = setInterval(() => {
-                        if (audioBridge.webrtcStuff?.pc) {
-                            const pc = audioBridge.webrtcStuff.pc;
-                            log(`🔍 ICE: ${pc.iceConnectionState} (${++checkCount})`, "DEBUG");
+                    // ✅ Зупиняємо попередній інтервал якщо є
+                    if (iceCheckInterval) {
+                        clearInterval(iceCheckInterval);
+                    }
 
-                            if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-                                log("✅ ICE з'єднання встановлено!", "SUCCESS");
-                                clearInterval(checkInterval);
-                            } else if (pc.iceConnectionState === "failed") {
-                                log("❌ ICE FAILED!", "ERROR");
-                                clearInterval(checkInterval);
-                            }
+                    // ✅ Перевіряємо ICE state кожні 2 секунди
+                    let checkCount = 0;
+                    iceCheckInterval = setInterval(() => {
+                        // ✅ Безпечна перевірка - audioBridge може бути null
+                        if (!audioBridge || !audioBridge.webrtcStuff || !audioBridge.webrtcStuff.pc) {
+                            log("⚠️ PeerConnection відсутній, зупиняємо перевірку ICE", "WARN");
+                            clearInterval(iceCheckInterval);
+                            iceCheckInterval = null;
+                            return;
                         }
-                        if (checkCount >= 15) { clearInterval(checkInterval); }
+
+                        const pc = audioBridge.webrtcStuff.pc;
+                        log(`🔍 ICE: ${pc.iceConnectionState} (${++checkCount})`, "DEBUG");
+
+                        if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+                            log("✅ ICE з'єднання встановлено!", "SUCCESS");
+                            clearInterval(iceCheckInterval);
+                            iceCheckInterval = null;
+                        } else if (pc.iceConnectionState === "failed") {
+                            log("❌ ICE FAILED! Потрібен TURN сервер", "ERROR");
+                            clearInterval(iceCheckInterval);
+                            iceCheckInterval = null;
+                        }
+
+                        if (checkCount >= 15) {
+                            log("⚠️ ICE не встановився за 30 секунд", "WARN");
+                            clearInterval(iceCheckInterval);
+                            iceCheckInterval = null;
+                        }
                     }, 2000);
                 },
                 error: (err) => log(`❌ Answer Error: ${JSON.stringify(err)}`, "ERROR")
@@ -402,6 +467,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("beforeunload", () => {
+    if (iceCheckInterval) clearInterval(iceCheckInterval);
     if (janusInstance) janusInstance.destroy({cleanupHandles: true});
 });
 
