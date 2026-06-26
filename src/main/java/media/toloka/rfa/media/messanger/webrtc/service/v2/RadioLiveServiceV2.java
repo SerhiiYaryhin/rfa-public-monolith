@@ -128,27 +128,28 @@ public class RadioLiveServiceV2 {
         return portService.getStreamByStation(stationId).orElseGet(() -> {
             log.info("Запуск трансляції для станції: {}", stationId);
 
-            // TODO: Отримувати URL потоку з БД станції
             String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
-
-            // Шукаємо вільний порт
             Integer freePort = portService.findNextFreePort();
             log.info("Виділено порт для трансляції: {}", freePort);
 
-            // ✅ ВИПРАВЛЕНО: використовуємо Long для roomId (збігається з ID станції з БД)
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
 
-            // 1. Створюємо кімнату в Janus з підтримкою RTP на виділеному порту
-            // ✅ ВИПРАВЛЕНО: createAudioBridgeRoom тепер передає RTP параметри
+            // 1. Створюємо кімнату (БЕЗ rtp_stream параметрів)
             janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, freePort);
-            log.info("Кімнату {} створено з RTP на порту {}", janusRoomId, freePort);
+            log.info("Кімнату {} створено", janusRoomId);
 
-            // 2. Надсилаємо команду FFmpeg Агенту для запуску трансляції
-            // ✅ ВИПРАВЛЕНО: правильний URL для FFmpeg
+            // 2. ✅ НОВЕ: Створюємо RTP participant для прийому потоку
+            Long rtpParticipantId = janusClient.createRtpParticipant(
+                    janusRoomId,
+                    freePort,
+                    "Radio Stream"
+            );
+            log.info("RTP participant {} створено на порту {}", rtpParticipantId, freePort);
+
+            // 3. Надсилаємо команду FFmpeg з payload_type=100
             String rtpUrl = String.format("rtp://janus.rfa:%d?pkt_size=1200", freePort);
             sendFfmpegCommand("start", stationId, sourceStreamUrl, rtpUrl);
 
-            // 3. Зберігаємо стан у базу даних
             return portService.saveActiveStream(stationId, janusRoomId, freePort, 0);
         });
     }
