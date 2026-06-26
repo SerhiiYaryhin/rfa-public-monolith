@@ -199,4 +199,36 @@ public class JanusLiveControllerV2 {
                 "message", ok ? "Зв'язок з Janus встановлено" : "Помилка зв'язку"
         ));
     }
+
+    /**
+     * Створення RTP participant для прийому зовнішнього потоку.
+     * Використовується для ін'єкції аудіо з FFmpeg в кімнату.
+     */
+    @PostMapping("/create-rtp-participant")
+    public ResponseEntity<?> createRtpParticipant(
+            @RequestParam Long roomId,
+            @RequestParam(defaultValue = "Radio Stream") String display) {
+
+        logger.info("Запит на створення RTP participant: room={}, display={}", roomId, display);
+
+        try {
+            Map<String, Object> rtpInfo = radioLiveService.createRtpParticipant(roomId, display);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "created",
+                    "participant_id", rtpInfo.get("participantId"),
+                    "room_id", roomId,
+                    "rtp_ip", rtpInfo.get("rtpIp"),
+                    "rtp_port", rtpInfo.get("rtpPort"),
+                    "payload_type", rtpInfo.get("payloadType")
+            ));
+        } catch (Exception e) {
+            logger.error("Помилка створення RTP participant", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", e.getMessage()
+                    ));
+        }
+    }
 }

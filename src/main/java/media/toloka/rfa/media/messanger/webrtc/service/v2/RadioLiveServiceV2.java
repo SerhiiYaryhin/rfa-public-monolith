@@ -428,4 +428,17 @@ public class RadioLiveServiceV2 {
             throw new RuntimeException("Помилка відправки команди FFmpeg: " + e.getMessage());
         }
     }
+    /**
+     * Створення RTP participant для прийому зовнішнього потоку.
+     *
+     * @param roomId ID кімнати
+     * @param display Ім'я учасника
+     * @return Map з інформацією про RTP participant (participantId, rtpIp, rtpPort, payloadType)
+     */
+    public Map<String, Object> createRtpParticipant(Long roomId, String display) {
+        log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
+        return janusClient.createRtpParticipant(roomId, display);
+    }
+
+
 }
