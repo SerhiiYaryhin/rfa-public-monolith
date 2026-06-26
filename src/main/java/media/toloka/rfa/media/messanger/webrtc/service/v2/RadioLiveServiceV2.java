@@ -134,23 +134,24 @@ public class RadioLiveServiceV2 {
 
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
 
-            // 1. Створюємо кімнату (БЕЗ rtp_stream параметрів)
-            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, freePort);
-            log.info("Кімнату {} створено", janusRoomId);
+            // 1. Створюємо кімнату (третій параметр null, бо rtpPort не використовується)
+            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, null);
+            log.info("Кімнату {} створено з allow_rtp_participants=true", janusRoomId);
 
-            // 2. ✅ НОВЕ: Створюємо RTP participant для прийому потоку
-            Long rtpParticipantId = janusClient.createRtpParticipant(
-                    janusRoomId,
-                    freePort,
-                    "Radio Stream"
-            );
-            log.info("RTP participant {} створено на порту {}", rtpParticipantId, freePort);
+            // 2. Створюємо RTP participant і отримуємо порт від Janus
+            Map<String, Object> rtpInfo = janusClient.createRtpParticipant(janusRoomId, "Radio Stream");
+            Integer rtpPort = (Integer) rtpInfo.get("rtpPort");
+            String rtpIp = (String) rtpInfo.get("rtpIp");
+            Long participantId = (Long) rtpInfo.get("participantId");
 
-            // 3. Надсилаємо команду FFmpeg з payload_type=100
-            String rtpUrl = String.format("rtp://janus.rfa:%d?pkt_size=1200", freePort);
+            log.info("RTP participant {} створено. Janus слухає на {}:{}",
+                    participantId, rtpIp, rtpPort);
+
+            // 3. Надсилаємо команду FFmpeg на порт, який повернув Janus
+            String rtpUrl = String.format("rtp://%s:%d?pkt_size=1200", rtpIp, rtpPort);
             sendFfmpegCommand("start", stationId, sourceStreamUrl, rtpUrl);
 
-            return portService.saveActiveStream(stationId, janusRoomId, freePort, 0);
+            return portService.saveActiveStream(stationId, janusRoomId, rtpPort, 0);
         });
     }
 
