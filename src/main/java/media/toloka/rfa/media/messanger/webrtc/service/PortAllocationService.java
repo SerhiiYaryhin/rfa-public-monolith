@@ -2,7 +2,6 @@ package media.toloka.rfa.media.messanger.webrtc.service;
 
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.messanger.webrtc.repository.JanusStreamRepository;
-import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,16 +12,9 @@ import java.util.Optional;
 
 /**
  * Сервіс для динамічного виділення UDP-портів для RTP-трансляцій.
- * 
- * Забезпечує унікальність портів у діапазоні 10000-15000, перевіряючи 
- * стан активних трансляцій у базі даних. Це критично для запобігання 
- * конфліктам при одночасному запуску декількох ефірів.
  */
 @Service
 public class PortAllocationService {
-
-    // Початковий та кінцевий порти згідно з конфігурацією rtp_port_range у janus.jcfg
-    // todo винести порти в propertyes
 
     private static final int START_PORT = 49152;
     private static final int END_PORT = 49999;
@@ -34,58 +26,63 @@ public class PortAllocationService {
         this.streamRepository = repository;
     }
 
-    /**
-     * Пошук наступного вільного UDP порту.
-     * Проходить по всьому діапазону та шукає перший порт, який наразі не використовується.
-     */
     @Transactional(readOnly = true)
     public Integer findNextFreePort() {
         for (int port = START_PORT; port <= END_PORT; port++) {
-            // Перевірка в БД: SELECT EXISTS (SELECT 1 FROM janus_live_streams WHERE rtp_port = ?)
             if (!streamRepository.existsByRtpPort(port)) {
                 return port;
             }
         }
-        throw new RuntimeException("Усі UDP порти в діапазоні 10000-15000 зайняті. Неможливо запустити новий ефір.");
+        throw new RuntimeException("Усі UDP порти в діапазоні 49152-49999 зайняті.");
     }
 
     /**
-     * Збереження інформації про активний стрім у БД.
+     * ✅ НОВЕ: Перевантажений метод для зворотної сумісності з v1 кодом.
+     * Викликається з RadioLiveService.java (v1), де rtpForwardStreamId не використовується.
      */
     @Transactional
     public JanusLiveStream saveActiveStream(String stationId, Long janusRoomId, Integer rtpPort, Integer ffmpegPid) {
-        JanusLiveStream stream = new JanusLiveStream(stationId, janusRoomId, rtpPort, ffmpegPid);
-        return streamRepository.save(stream);
+        return saveActiveStream(stationId, janusRoomId, rtpPort, ffmpegPid, null);
     }
 
     /**
-     * Отримання стріму за ідентифікатором радіостанції.
+     * Збереження інформації про активний стрім у БД з rtpForwardStreamId.
      */
+    @Transactional
+    public JanusLiveStream saveActiveStream(String stationId, Long janusRoomId, Integer rtpPort, Integer ffmpegPid, Long rtpForwardStreamId) {
+        JanusLiveStream stream = new JanusLiveStream(stationId, janusRoomId, rtpPort, ffmpegPid);
+        stream.setRtpForwardStreamId(rtpForwardStreamId);
+        return streamRepository.save(stream);
+    }
+
+    @Transactional
+    public void updateRtpForwardStreamId(String stationId, Long rtpForwardStreamId) {
+        Optional<JanusLiveStream> streamOpt = getStreamByStation(stationId);
+        if (streamOpt.isPresent()) {
+            JanusLiveStream stream = streamOpt.get();
+            stream.setRtpForwardStreamId(rtpForwardStreamId);
+            streamRepository.save(stream);
+            log.info("Оновлено rtpForwardStreamId для станції {}: {}", stationId, rtpForwardStreamId);
+        } else {
+            log.warn("Стрім для станції {} не знайдено", stationId);
+        }
+    }
+
     @Transactional(readOnly = true)
     public Optional<JanusLiveStream> getStreamByStation(String stationId) {
         return streamRepository.findByStationId(stationId);
     }
 
-    /**
-     * Отримання з бази стріму за ID кімнати Janus.
-     * todo спробувати отримати кімнати з janus
-     */
     @Transactional(readOnly = true)
     public Optional<JanusLiveStream> getStreamByJanusRoomId(Long janusRoomId) {
         return streamRepository.findByJanusRoomId(janusRoomId);
     }
 
-    /**
-     * Видалення стріму з бази (звільнення порту).
-     */
     @Transactional
     public void deleteStream(String stationId) {
         streamRepository.deleteByStationId(stationId);
     }
 
-    /**
-     * Отримання списку всіх активних стрімів.
-     */
     @Transactional(readOnly = true)
     public List<JanusLiveStream> getAllActiveStreams() {
         return streamRepository.findAll();
@@ -94,7 +91,6 @@ public class PortAllocationService {
     @Transactional
     public void updateStreamPort(String stationId, Integer newPort) {
         Optional<JanusLiveStream> streamOpt = getStreamByStation(stationId);
-
         if (streamOpt.isPresent()) {
             JanusLiveStream stream = streamOpt.get();
             stream.setRtpPort(newPort);

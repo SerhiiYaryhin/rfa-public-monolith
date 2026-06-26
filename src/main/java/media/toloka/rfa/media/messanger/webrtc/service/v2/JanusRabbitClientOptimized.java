@@ -132,11 +132,20 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+// ============================================================
+// RTP FORWARD (НОВИЙ МЕХАНІЗМ)
+// ============================================================
+
     /**
-     * Створення RTP forward для прийому зовнішнього потоку в кімнату.
+     * ✅ НОВИЙ МЕТОД: Створення RTP forward для прийому зовнішнього потоку.
      *
      * Це ПРАВИЛЬНИЙ механізм згідно з документацією Janus AudioBridge.
      * Janus починає слухати RTP на вказаному порту і міксує його з іншими учасниками.
+     *
+     * Переваги:
+     * - Працює через convertSendAndReceive() (без проблем з ACK)
+     * - Порт обираємо ми (через PortAllocationService)
+     * - Можна керувати через stop_rtp_forward з stream_id
      *
      * @param roomId ID кімнати
      * @param rtpPort UDP порт, на якому Janus буде слухати RTP
@@ -159,7 +168,7 @@ public class JanusRabbitClientOptimized {
             Map<String, Object> body = new HashMap<>();
             body.put("request", "rtp_forward");
             body.put("room", roomId);
-            body.put("secret", apiSecret);
+            body.put("secret", apiSecret);  // ✅ Обов'язково secret кімнати!
             body.put("host", "0.0.0.0");
             body.put("port", rtpPort);
             body.put("ptype", 100);  // Payload Type для Opus
@@ -182,7 +191,7 @@ public class JanusRabbitClientOptimized {
 
             Long streamId = ((Number) data.get("stream_id")).longValue();
 
-            log.info("RTP forward створено: stream_id={}, room={}, port={}",
+            log.info("✅ RTP forward створено: stream_id={}, room={}, port={}",
                     streamId, roomId, rtpPort);
 
             return streamId;
@@ -190,7 +199,7 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Зупинка RTP forward.
+     * ✅ НОВИЙ МЕТОД: Зупинка RTP forward.
      *
      * @param roomId ID кімнати
      * @param streamId ID потоку (повернутий createRtpForward)
@@ -209,7 +218,7 @@ public class JanusRabbitClientOptimized {
             Map<String, Object> body = new HashMap<>();
             body.put("request", "stop_rtp_forward");
             body.put("room", roomId);
-            body.put("secret", apiSecret);
+            body.put("secret", apiSecret);  // ✅ Обов'язково secret кімнати!
             body.put("stream_id", streamId);
 
             request.put("body", body);
@@ -217,11 +226,10 @@ public class JanusRabbitClientOptimized {
             Map<String, Object> response = sendAndReceive(request);
             validatePluginResponse(response);
 
-            log.info("RTP forward зупинено: stream_id={}", streamId);
+            log.info("✅ RTP forward зупинено: stream_id={}", streamId);
             return null;
         });
     }
-
 
     // ============================================================
     // ОТРИМАННЯ СПИСКУ КІМНАТ
