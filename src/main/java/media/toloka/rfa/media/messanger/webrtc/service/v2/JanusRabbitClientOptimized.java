@@ -36,6 +36,7 @@ public class JanusRabbitClientOptimized {
     @Value("${janus.secret}")
     private String apiSecret;
 
+
     public String getApiSecret() {
         return apiSecret;
     }
@@ -650,34 +651,35 @@ public class JanusRabbitClientOptimized {
      * 4. Janus повертає реальну відповідь → JanusResponseHandler завершує future
      * 5. Повертаємо відповідь
      */
+
+
+
+
+    /**
+     * ✅ ВИПРАВЛЕНО: Асинхронний RPC з кореляцією за transaction ID.
+     */
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
         String transactionId = (String) request.get("transaction");
 
-        // Реєструємо очікування відповіді
         responseHandler.registerPendingResponse(transactionId);
 
         try {
-            // Відправляємо повідомлення (без очікування відповіді через RabbitTemplate)
             rabbitTemplate.convertAndSend(request);
-            log.debug("Відправлено запит до Janus: transaction={}", transactionId);
+            log.debug("Відправлено запит: transaction={}", transactionId);
 
-            // Чекаємо на відповідь (таймаут 10 секунд)
             Map<String, Object> response = responseHandler.waitForResponse(transactionId, 10000);
 
-            log.debug("Отримано відповідь від Janus: transaction={}, type={}",
+            log.debug("Отримано відповідь: transaction={}, type={}",
                     transactionId, response.get("janus"));
 
             return response;
 
         } catch (Exception e) {
             responseHandler.removePendingResponse(transactionId);
-            throw new RuntimeException("Помилка отримання відповіді від Janus: " + e.getMessage(), e);
+            throw new RuntimeException("Помилка отримання відповіді: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * ✅ ВИПРАВЛЕНО: Асинхронний RPC для Admin API.
-     */
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
         String transactionId = (String) request.get("transaction");
 
@@ -685,18 +687,18 @@ public class JanusRabbitClientOptimized {
 
         try {
             adminRabbitTemplate.convertAndSend(request);
-            log.debug("Відправлено admin запит до Janus: transaction={}", transactionId);
+            log.debug("Відправлено admin запит: transaction={}", transactionId);
 
             Map<String, Object> response = responseHandler.waitForResponse(transactionId, 10000);
 
-            log.debug("Отримано admin відповідь від Janus: transaction={}, type={}",
+            log.debug("Отримано admin відповідь: transaction={}, type={}",
                     transactionId, response.get("janus"));
 
             return response;
 
         } catch (Exception e) {
             responseHandler.removePendingResponse(transactionId);
-            throw new RuntimeException("Помилка отримання admin відповіді від Janus: " + e.getMessage(), e);
+            throw new RuntimeException("Помилка отримання admin відповіді: " + e.getMessage(), e);
         }
     }
 

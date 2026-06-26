@@ -21,14 +21,17 @@ public class JanusResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger(JanusResponseHandler.class);
 
-    // Map для зберігання очікуваних відповідей: transactionId -> CompletableFuture
     private final Map<String, CompletableFuture<Map<String, Object>>> pendingResponses = new ConcurrentHashMap<>();
 
     /**
-     * Слухає чергу from-janus та корелює відповіді за transaction ID.
-     * Ігнорує ACK повідомлення (janus="ack").
+     * ✅ ВИПРАВЛЕНО: Додано containerFactory = "janusListenerContainerFactory"
+     * Це гарантує, що MessageConverter конвертує JSON byte[] в Map<String, Object>.
      */
-    @RabbitListener(queues = "from-janus", concurrency = "1-3")
+    @RabbitListener(
+            queues = "from-janus",
+            containerFactory = "janusListenerContainerFactory",
+            concurrency = "1-3"
+    )
     public void handleJanusResponse(Map<String, Object> response) {
         String transactionId = (String) response.get("transaction");
         String janusType = (String) response.get("janus");
@@ -41,7 +44,6 @@ public class JanusResponseHandler {
             return;
         }
 
-        // Знаходимо очікуючий CompletableFuture
         CompletableFuture<Map<String, Object>> future = pendingResponses.get(transactionId);
         if (future != null) {
             future.complete(response);
@@ -52,17 +54,17 @@ public class JanusResponseHandler {
         }
     }
 
-    /**
-     * Слухає чергу from-janus-admin для Admin API відповідей.
-     */
-    @RabbitListener(queues = "from-janus-admin", concurrency = "1-3")
+    @RabbitListener(
+            queues = "from-janus-admin",
+            containerFactory = "janusListenerContainerFactory",
+            concurrency = "1-3"
+    )
     public void handleJanusAdminResponse(Map<String, Object> response) {
         String transactionId = (String) response.get("transaction");
         String janusType = (String) response.get("janus");
 
         log.debug("Отримано admin відповідь від Janus: type={}, transaction={}", janusType, transactionId);
 
-        // Ігноруємо ACK
         if ("ack".equals(janusType)) {
             log.debug("Ігноруємо admin ACK для transaction={}", transactionId);
             return;
@@ -73,24 +75,16 @@ public class JanusResponseHandler {
             future.complete(response);
             pendingResponses.remove(transactionId);
             log.debug("Admin відповідь доставлена для transaction={}", transactionId);
-        } else {
-            log.warn("Отримано admin відповідь для невідомого transaction={}", transactionId);
         }
     }
 
-    /**
-     * Реєструє очікування відповіді для конкретного transaction ID.
-     */
     public CompletableFuture<Map<String, Object>> registerPendingResponse(String transactionId) {
         CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
         pendingResponses.put(transactionId, future);
-        log.debug("Зареєстровано очікування відповіді для transaction={}", transactionId);
+        log.debug("Зареєстровано очікування для transaction={}", transactionId);
         return future;
     }
 
-    /**
-     * Чекає на відповідь з таймаутом.
-     */
     public Map<String, Object> waitForResponse(String transactionId, long timeoutMs) throws Exception {
         CompletableFuture<Map<String, Object>> future = pendingResponses.get(transactionId);
         if (future == null) {
@@ -105,9 +99,6 @@ public class JanusResponseHandler {
         }
     }
 
-    /**
-     * Видаляє зареєстровану очікувану відповідь.
-     */
     public void removePendingResponse(String transactionId) {
         pendingResponses.remove(transactionId);
     }
