@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
  *
- * Повернено до робочої конфігурації v1 з SimpleMessageListenerContainer.
- * Ця конфігурація перевірено працює з Janus.
+ * Повернуто до робочої конфігурації v1 з SimpleMessageListenerContainer.
+ * Ця конфігурація перевірено працює з Janus через convertSendAndReceive().
  */
 @Configuration
 public class JanusRabbitConfig {
