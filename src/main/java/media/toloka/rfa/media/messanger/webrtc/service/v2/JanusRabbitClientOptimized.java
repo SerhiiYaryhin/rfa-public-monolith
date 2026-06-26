@@ -35,96 +35,12 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-    // СТВОРЕННЯ КІМНАТ (ВИПРАВЛЕНО)
+    // СТВОРЕННЯ КІМНАТ
     // ============================================================
-    /**
-     * Створення RTP participant для прийому зовнішнього потоку.
-     * Згідно з документацією: join з rtp об'єктом (без ip/port = тільки відправка)
-     *
-     * @param roomId ID кімнати
-     * @param display Ім'я учасника (наприклад, "Radio Stream")
-     * @return Map з інформацією про RTP participant (id, port, payload_type)
-     */
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> createRtpParticipant(Long roomId, String display) {
-        if (roomId == null) {
-            throw new IllegalArgumentException("roomId не може бути null");
-        }
-
-        log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
-
-        return executeInSession((sessionId, handleId) -> {
-            String transactionId = "rtp-participant-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-
-            // ✅ ПРАВИЛЬНИЙ СПОСІБ згідно з документацією:
-            // join з rtp об'єктом, де НЕ вказуємо ip та port
-            // Це означає, що учасник тільки ВІДПРАВЛЯЄ медіа (ін'єкція аудіо)
-            Map<String, Object> body = new HashMap<>();
-            body.put("request", "join");
-            body.put("room", roomId);
-            body.put("display", display != null ? display : "Radio Stream");
-            body.put("muted", false);  // RTP participant говорить (транслює)
-
-            // RTP об'єкт БЕЗ ip та port = тільки відправка медіа
-            Map<String, Object> rtp = new HashMap<>();
-            rtp.put("payload_type", 100);  // Стандартний PT для Opus в Janus
-            body.put("rtp", rtp);
-
-            request.put("body", body);
-
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
-
-            // Отримуємо інформацію про RTP participant з відповіді
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            if (plugindata == null) {
-                throw new RuntimeException("plugindata відсутній у відповіді");
-            }
-
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            if (data == null) {
-                throw new RuntimeException("data відсутній у plugindata");
-            }
-
-            // Janus повертає rtp об'єкт з ip, port, payload_type
-            Map<String, Object> rtpInfo = (Map<String, Object>) data.get("rtp");
-            if (rtpInfo == null) {
-                throw new RuntimeException("rtp інформація відсутня у відповіді");
-            }
-
-            Long participantId = ((Number) data.get("id")).longValue();
-            String rtpIp = (String) rtpInfo.get("ip");
-            Integer rtpPort = ((Number) rtpInfo.get("port")).intValue();
-            Integer payloadType = ((Number) rtpInfo.get("payload_type")).intValue();
-
-            log.info("RTP participant створено: ID={}, IP={}, Port={}, PT={}",
-                    participantId, rtpIp, rtpPort, payloadType);
-
-            // Повертаємо Map з інформацією
-            Map<String, Object> result = new HashMap<>();
-            result.put("participantId", participantId);
-            result.put("rtpIp", rtpIp);
-            result.put("rtpPort", rtpPort);
-            result.put("payloadType", payloadType);
-
-            return result;
-        });
-    }
-
 
     /**
      * Створення аудіокімнати з підтримкою RTP participants.
-     * Згідно з документацією Janus: allow_rtp_participants = true
-     */
-    /**
-     * Створення аудіокімнати з явним ID.
-     *
-     * @param roomId ID кімнати
-     * @param name Назва кімнати
-     * @param rtpPort RTP порт (не використовується для створення кімнати, тільки для логування)
+     * allow_rtp_participants = true дозволяє приймати зовнішні RTP потоки.
      */
     public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
         if (roomId == null) {
@@ -154,11 +70,8 @@ public class JanusRabbitClientOptimized {
                 body.put("is_private", false);
                 body.put("audio_level_average", 25);
 
-                // ✅ Дозволяємо RTP participants для прийому зовнішніх потоків
+                // ✅ ДОЗВОЛЯЄМО RTP participants для прийому зовнішніх потоків
                 body.put("allow_rtp_participants", true);
-
-                // ❌ rtpPort НЕ передається в Janus (порт виділяє Janus при створенні RTP participant)
-                // rtpPort використовується тільки для логування
 
                 request.put("body", body);
 
@@ -172,75 +85,6 @@ public class JanusRabbitClientOptimized {
             log.error("Не вдалося створити кімнату " + roomId + " в Janus: " + e.getMessage(), e);
             throw new RuntimeException("Помилка створення кімнати в Janus", e);
         }
-    }
-
-    /**
-     * ✅ НОВИЙ МЕТОД: Створення RTP participant для прийому зовнішнього потоку.
-     *
-     * Це ПРАВИЛЬНИЙ спосіб приймати зовнішній RTP потік (наприклад, від FFmpeg)
-     * і міксувати його з іншими учасниками кімнати.
-     *
-     * @param roomId ID кімнати
-     * @param rtpPort UDP порт для прийому RTP
-     * @param display Ім'я учасника (наприклад, "Radio Stream")
-     * @return ID створеного RTP participant
-     */
-    @SuppressWarnings("unchecked")
-    public Long createRtpParticipant(Long roomId, Integer rtpPort, String display) {
-        if (roomId == null || rtpPort == null) {
-            throw new IllegalArgumentException("roomId та rtpPort не можуть бути null");
-        }
-
-        log.info("Створення RTP participant в кімнаті {} на порту {}", roomId, rtpPort);
-
-        return executeInSession((sessionId, handleId) -> {
-            String transactionId = "rtp-participant-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-
-            // ✅ ПРАВИЛЬНИЙ СПОСІБ: join з rtp параметрами
-            Map<String, Object> body = new HashMap<>();
-            body.put("request", "join");
-            body.put("room", roomId);
-            body.put("display", display != null ? display : "Radio Stream");
-            body.put("muted", false);  // RTP participant говорить (транслює)
-
-            // ✅ RTP параметри для прийому зовнішнього потоку
-            Map<String, Object> rtp = new HashMap<>();
-            rtp.put("port", rtpPort);
-            rtp.put("codec", "opus");
-            rtp.put("samplerate", 48000);
-            rtp.put("payload_type", 100);  // Стандартний PT для Opus
-            rtp.put("channels", 2);  // Стерео
-
-            body.put("rtp", rtp);
-
-            request.put("body", body);
-
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
-
-            // Отримуємо ID participant'а
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            if (plugindata == null) {
-                log.warn("plugindata відсутній, повертаємо 0");
-                return 0L;
-            }
-
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            if (data == null || data.get("id") == null) {
-                log.warn("id відсутній, повертаємо 0");
-                return 0L;
-            }
-
-            Long participantId = ((Number) data.get("id")).longValue();
-
-            log.info("RTP participant ID: {} створено в кімнаті {} на порту {}",
-                    participantId, roomId, rtpPort);
-
-            return participantId;
-        });
     }
 
     /**
@@ -277,6 +121,121 @@ public class JanusRabbitClientOptimized {
         } catch (Exception e) {
             log.error("Не вдалося видалити кімнату " + janusRoomId + " з Janus: " + e.getMessage(), e);
         }
+    }
+
+    // ============================================================
+    // RTP PARTICIPANT (НОВЕ!)
+    // ============================================================
+
+    /**
+     * Створення RTP participant для прийому зовнішнього потоку.
+     * Згідно з документацією Janus: join з rtp об'єктом (без ip/port = тільки відправка)
+     * Janus автоматично виділяє порт і повертає його у відповіді.
+     *
+     * @param roomId ID кімнати
+     * @param display Ім'я учасника (наприклад, "Radio Stream")
+     * @return Map з інформацією про RTP participant (participantId, rtpIp, rtpPort, payloadType)
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> createRtpParticipant(Long roomId, String display) {
+        if (roomId == null) {
+            throw new IllegalArgumentException("roomId не може бути null");
+        }
+
+        log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
+
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "rtp-participant-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            // ✅ ПРАВИЛЬНИЙ СПОСІБ згідно з документацією:
+            // join з rtp об'єктом, де НЕ вказуємо ip та port
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "join");
+            body.put("room", roomId);
+            body.put("display", display != null ? display : "Radio Stream");
+            body.put("muted", false);
+
+            // RTP об'єкт БЕЗ ip та port = тільки відправка медіа
+            Map<String, Object> rtp = new HashMap<>();
+            rtp.put("payload_type", 100);
+            body.put("rtp", rtp);
+
+            request.put("body", body);
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            // Отримуємо інформацію про RTP participant з відповіді
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            if (plugindata == null) {
+                throw new RuntimeException("plugindata відсутній у відповіді");
+            }
+
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            if (data == null) {
+                throw new RuntimeException("data відсутній у plugindata");
+            }
+
+            // Janus повертає rtp об'єкт з ip, port, payload_type
+            Map<String, Object> rtpInfo = (Map<String, Object>) data.get("rtp");
+            if (rtpInfo == null) {
+                throw new RuntimeException("rtp інформація відсутня у відповіді");
+            }
+
+            Long participantId = ((Number) data.get("id")).longValue();
+            String rtpIp = (String) rtpInfo.get("ip");
+            Integer rtpPort = ((Number) rtpInfo.get("port")).intValue();
+            Integer payloadType = ((Number) rtpInfo.get("payload_type")).intValue();
+
+            log.info("RTP participant створено: ID={}, IP={}, Port={}, PT={}",
+                    participantId, rtpIp, rtpPort, payloadType);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("participantId", participantId);
+            result.put("rtpIp", rtpIp);
+            result.put("rtpPort", rtpPort);
+            result.put("payloadType", payloadType);
+
+            return result;
+        });
+    }
+
+    /**
+     * ✅ НОВИЙ МЕТОД: Отримує список учасників конкретної кімнати.
+     * Використовується для перевірки наявності RTP participant при старті сервера.
+     */
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> getRoomParticipants(Long roomId) {
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "participants-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+            request.put("body", Map.of(
+                    "request", "listparticipants",
+                    "room", roomId
+            ));
+
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+
+                Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+                if (plugindata == null) return List.of();
+
+                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+                if (data == null || data.get("participants") == null) return List.of();
+
+                return (List<Map<String, Object>>) data.get("participants");
+
+            } catch (Exception e) {
+                log.error("Помилка отримання учасників кімнати " + roomId, e);
+                return List.of();
+            }
+        });
     }
 
     // ============================================================

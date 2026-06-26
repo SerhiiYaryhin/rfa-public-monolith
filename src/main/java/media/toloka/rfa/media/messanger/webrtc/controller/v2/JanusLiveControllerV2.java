@@ -10,14 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * REST-контролер для керування живими WebRTC трансляціями (v2).
- *
- * Ключові відмінності від v1:
- * - Новий endpoint: /api/v1q/webrtc/stream
- * - Використовує RadioLiveServiceV2
- * - Безпечніше: api_secret НЕ передається клієнту
- */
 @RestController
 @RequestMapping("/api/v1q/webrtc/stream")
 public class JanusLiveControllerV2 {
@@ -34,9 +26,6 @@ public class JanusLiveControllerV2 {
     // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ
     // ============================================================
 
-    /**
-     * Запуск трансляції радіостанції.
-     */
     @PostMapping("/start")
     public ResponseEntity<?> start(@RequestParam String stationId) {
         logger.info("Запит на запуск стріму: stationId={}", stationId);
@@ -50,7 +39,6 @@ public class JanusLiveControllerV2 {
                     "rtp_port", stream.getRtpPort(),
                     "station_id", stationId
             ));
-
         } catch (Exception e) {
             logger.error("Помилка запуску стріму", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -61,9 +49,6 @@ public class JanusLiveControllerV2 {
         }
     }
 
-    /**
-     * Зупинка трансляції.
-     */
     @PostMapping("/stop")
     public ResponseEntity<?> stop(@RequestParam String stationId) {
         logger.info("Запит на зупинку стріму: stationId={}", stationId);
@@ -75,7 +60,6 @@ public class JanusLiveControllerV2 {
                     "status", "stopped",
                     "station_id", stationId
             ));
-
         } catch (Exception e) {
             logger.error("Помилка зупинки стріму", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -90,11 +74,6 @@ public class JanusLiveControllerV2 {
     // ТОКЕНИ ТА АВТОРИЗАЦІЯ
     // ============================================================
 
-    /**
-     * Отримання токена користувача.
-     *
-     * ⚠️ БЕЗПЕКА: api_secret НЕ передається клієнту!
-     */
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
         logger.debug("Запит токена користувача");
@@ -109,26 +88,19 @@ public class JanusLiveControllerV2 {
                     ));
         }
 
-        // ✅ БЕЗПЕЧНО: тільки токен, без api_secret
-        return ResponseEntity.ok(Map.of(
-                "token", token
-        ));
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     // ============================================================
     // СПИСОК КІМНАТ
     // ============================================================
 
-    /**
-     * Отримання списку активних кімнат з учасниками.
-     */
     @GetMapping("/rooms")
     public ResponseEntity<?> getRooms() {
         logger.debug("Запит списку кімнат");
 
         try {
             return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
-
         } catch (Exception e) {
             logger.error("Помилка отримання списку кімнат", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -143,9 +115,6 @@ public class JanusLiveControllerV2 {
     // ПІДКЛЮЧЕННЯ ДО КІМНАТИ
     // ============================================================
 
-    /**
-     * Підключення користувача до аудіокімнати.
-     */
     @PostMapping("/connectclienttoroom")
     public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
         logger.info("Запит на підключення до кімнати");
@@ -172,7 +141,6 @@ public class JanusLiveControllerV2 {
         try {
             Object result = radioLiveService.connectClientToAudioRoom(roomID);
             return ResponseEntity.ok(result);
-
         } catch (Exception e) {
             logger.error("Помилка підключення до кімнати {}", roomID, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -187,9 +155,6 @@ public class JanusLiveControllerV2 {
     // ДІАГНОСТИКА
     // ============================================================
 
-    /**
-     * Перевірка зв'язку з Janus Admin API.
-     */
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {
         boolean ok = radioLiveService.pingJanus();
@@ -202,7 +167,7 @@ public class JanusLiveControllerV2 {
 
     /**
      * Створення RTP participant для прийому зовнішнього потоку.
-     * Використовується для ін'єкції аудіо з FFmpeg в кімнату.
+     * ✅ ВИПРАВЛЕНО: Прибрано пробіли в ключах Map
      */
     @PostMapping("/create-rtp-participant")
     public ResponseEntity<?> createRtpParticipant(

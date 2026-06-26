@@ -2,6 +2,9 @@ package media.toloka.rfa.media.messanger.webrtc.service;
 
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.messanger.webrtc.repository.JanusStreamRepository;
+import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +27,11 @@ public class PortAllocationService {
     private static final int START_PORT = 49152;
     private static final int END_PORT = 49999;
 
-    private final JanusStreamRepository repository;
+    private final JanusStreamRepository streamRepository;
+    private static final Logger log = LoggerFactory.getLogger(PortAllocationService.class);
 
     public PortAllocationService(JanusStreamRepository repository) {
-        this.repository = repository;
+        this.streamRepository = repository;
     }
 
     /**
@@ -38,7 +42,7 @@ public class PortAllocationService {
     public Integer findNextFreePort() {
         for (int port = START_PORT; port <= END_PORT; port++) {
             // Перевірка в БД: SELECT EXISTS (SELECT 1 FROM janus_live_streams WHERE rtp_port = ?)
-            if (!repository.existsByRtpPort(port)) {
+            if (!streamRepository.existsByRtpPort(port)) {
                 return port;
             }
         }
@@ -51,7 +55,7 @@ public class PortAllocationService {
     @Transactional
     public JanusLiveStream saveActiveStream(String stationId, Long janusRoomId, Integer rtpPort, Integer ffmpegPid) {
         JanusLiveStream stream = new JanusLiveStream(stationId, janusRoomId, rtpPort, ffmpegPid);
-        return repository.save(stream);
+        return streamRepository.save(stream);
     }
 
     /**
@@ -59,7 +63,7 @@ public class PortAllocationService {
      */
     @Transactional(readOnly = true)
     public Optional<JanusLiveStream> getStreamByStation(String stationId) {
-        return repository.findByStationId(stationId);
+        return streamRepository.findByStationId(stationId);
     }
 
     /**
@@ -68,7 +72,7 @@ public class PortAllocationService {
      */
     @Transactional(readOnly = true)
     public Optional<JanusLiveStream> getStreamByJanusRoomId(Long janusRoomId) {
-        return repository.findByJanusRoomId(janusRoomId);
+        return streamRepository.findByJanusRoomId(janusRoomId);
     }
 
     /**
@@ -76,7 +80,7 @@ public class PortAllocationService {
      */
     @Transactional
     public void deleteStream(String stationId) {
-        repository.deleteByStationId(stationId);
+        streamRepository.deleteByStationId(stationId);
     }
 
     /**
@@ -84,6 +88,20 @@ public class PortAllocationService {
      */
     @Transactional(readOnly = true)
     public List<JanusLiveStream> getAllActiveStreams() {
-        return repository.findAll();
+        return streamRepository.findAll();
+    }
+
+    @Transactional
+    public void updateStreamPort(String stationId, Integer newPort) {
+        Optional<JanusLiveStream> streamOpt = getStreamByStation(stationId);
+
+        if (streamOpt.isPresent()) {
+            JanusLiveStream stream = streamOpt.get();
+            stream.setRtpPort(newPort);
+            streamRepository.save(stream);
+            log.info("Оновлено порт для станції {}: {}", stationId, newPort);
+        } else {
+            log.warn("Стрім для станції {} не знайдено", stationId);
+        }
     }
 }

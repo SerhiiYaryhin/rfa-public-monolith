@@ -15,20 +15,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.annotation.PostConstruct;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Високорівневий сервіс для керування прямими ефірами через WebRTC (v2).
- *
- * Ключові відмінності від v1:
- * - Використовує JanusRabbitClientOptimized
- * - Автоматичний запуск трансляцій при старті сервера (@PostConstruct)
- * - createAudioBridgeRoom() передає RTP параметри для прийому зовнішнього потоку
- * - startBroadcast() використовує Long для roomId (збігається з ID станції з БД)
- */
 @Service
 public class RadioLiveServiceV2 {
 
@@ -60,13 +51,13 @@ public class RadioLiveServiceV2 {
     }
 
     // ============================================================
-    // ІНІЦІАЛІЗАЦІЯ ПРИ СТАРТІ СЕРВЕРА
+    // ІНІЦІАЛІЗАЦІЯ ПРИ СТАРТІ СЕРВЕРА (ВИПРАВЛЕНО!)
     // ============================================================
 
     /**
      * Автоматичний запуск трансляцій при старті сервера.
-     * Для кожної активної станції перевіряє чи запущено трансляцію,
-     * якщо ні — запускає її.
+     * ВИПРАВЛЕНО: Тепер перевіряє наявність RTP participant в Janus
+     * і створює його, якщо відсутній.
      */
     @PostConstruct
     @Transactional
@@ -74,7 +65,6 @@ public class RadioLiveServiceV2 {
         log.info("🚀 Ініціалізація трансляцій при старті сервера...");
 
         try {
-            // 1. Отримуємо всі станції з онлайн-статусом
             List<StationDto> onlineStations = stationService.getActiveStations();
 
             if (onlineStations.isEmpty()) {
@@ -84,13 +74,55 @@ public class RadioLiveServiceV2 {
 
             log.info("Знайдено {} активних станцій", onlineStations.size());
 
-            // 2. Для кожної станції перевіряємо чи запущено трансляцію
             for (StationDto station : onlineStations) {
                 String stationId = String.valueOf(station.getId());
+                Long janusRoomId = station.getId();
 
                 Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationId);
 
-                if (existingStream.isEmpty()) {
+                if (existingStream.isPresent()) {
+                    // ✅ Запис є в БД, але перевіряємо чи є RTP participant в Janus
+                    log.info("Станція {} має запис в БД на порту {}. Перевіряємо RTP participant...",
+                            station.getName(), existingStream.get().getRtpPort());
+
+                    try {
+                        boolean hasRtpParticipant = checkRtpParticipantExists(janusRoomId);
+
+                        if (!hasRtpParticipant) {
+                            log.info("RTP participant відсутній в кімнаті {}. Створюємо...", janusRoomId);
+
+                            // Перевіряємо чи існує кімната в Janus
+                            List<Long> activeRooms = janusClient.getActiveRoomsIds();
+                            if (!activeRooms.contains(janusRoomId)) {
+                                log.info("Кімната {} відсутня в Janus. Створюємо...", janusRoomId);
+                                janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + station.getName(), null);
+                            }
+
+                            // Створюємо RTP participant
+                            Map<String, Object> rtpInfo = janusClient.createRtpParticipant(janusRoomId, "Radio " + station.getName());
+                            Integer newRtpPort = (Integer) rtpInfo.get("rtpPort");
+                            Long participantId = (Long) rtpInfo.get("participantId");
+
+                            log.info("✅ RTP participant {} створено для кімнати {} на порту {}",
+                                    participantId, janusRoomId, newRtpPort);
+
+                            // Оновлюємо запис в БД з новим портом
+                            portService.updateStreamPort(stationId, newRtpPort);
+
+                            // Запускаємо FFmpeg на новий порт
+                            String rtpIp = (String) rtpInfo.get("rtpIp");
+                            String rtpUrl = String.format("rtp://%s:%d?pkt_size=1200", rtpIp, newRtpPort);
+                            sendFfmpegCommand("start", stationId, "http://icecast.rfa:8000/ukraine", rtpUrl);
+
+                        } else {
+                            log.info("✅ RTP participant вже існує в кімнаті {}", janusRoomId);
+                        }
+                    } catch (Exception e) {
+                        log.error("❌ Помилка перевірки/створення RTP participant для {}: {}",
+                                station.getName(), e.getMessage(), e);
+                    }
+                } else {
+                    // Немає запису в БД — запускаємо повний flow
                     log.info("Станція {} не має активної трансляції. Запускаємо...", station.getName());
 
                     try {
@@ -100,9 +132,6 @@ public class RadioLiveServiceV2 {
                         log.error("❌ Помилка запуску трансляції для станції {}: {}",
                                 station.getName(), e.getMessage(), e);
                     }
-                } else {
-                    log.info("Станція {} вже має активну трансляцію на порту {}",
-                            station.getName(), existingStream.get().getRtpPort());
                 }
             }
 
@@ -113,28 +142,43 @@ public class RadioLiveServiceV2 {
         }
     }
 
+    /**
+     * Перевіряє чи є RTP participant в кімнаті.
+     * Шукає учасника з display, що містить "Radio" або "Stream".
+     */
+    private boolean checkRtpParticipantExists(Long roomId) {
+        try {
+            List<Map<String, Object>> participants = janusClient.getRoomParticipants(roomId);
+
+            return participants.stream()
+                    .anyMatch(p -> {
+                        String display = (String) p.get("display");
+                        return display != null && (
+                                display.contains("Radio") ||
+                                        display.contains("Stream") ||
+                                        display.contains("Ефір")
+                        );
+                    });
+        } catch (Exception e) {
+            log.warn("Не вдалося перевірити учасників кімнати {}: {}", roomId, e.getMessage());
+            return false;
+        }
+    }
+
     // ============================================================
     // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ
     // ============================================================
 
-    /**
-     * Запуск трансляції радіостанції в WebRTC ефір.
-     *
-     * @param stationId ID станції (наприклад, "352" або "802")
-     * @return Дані про створений стрім
-     */
     @Transactional
     public JanusLiveStream startBroadcast(String stationId) {
         return portService.getStreamByStation(stationId).orElseGet(() -> {
             log.info("Запуск трансляції для станції: {}", stationId);
 
             String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
-            Integer freePort = portService.findNextFreePort();
-            log.info("Виділено порт для трансляції: {}", freePort);
 
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
 
-            // 1. Створюємо кімнату (третій параметр null, бо rtpPort не використовується)
+            // 1. Створюємо кімнату з allow_rtp_participants=true
             janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, null);
             log.info("Кімнату {} створено з allow_rtp_participants=true", janusRoomId);
 
@@ -155,9 +199,6 @@ public class RadioLiveServiceV2 {
         });
     }
 
-    /**
-     * Зупинка трансляції.
-     */
     @Transactional
     public void stopBroadcast(String stationId) {
         portService.getStreamByStation(stationId).ifPresent(stream -> {
@@ -171,9 +212,6 @@ public class RadioLiveServiceV2 {
     // УПРАВЛІННЯ ТОКЕНАМИ
     // ============================================================
 
-    /**
-     * Отримує токен користувача (UUID) та реєструє його в Janus.
-     */
     public String generateAndRegisterToken() {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) {
@@ -188,9 +226,6 @@ public class RadioLiveServiceV2 {
         return token;
     }
 
-    /**
-     * Перевіряє, чи токен користувача зареєстрований в Janus.
-     */
     @Transactional(readOnly = true)
     public Boolean checkUserTokenInJanus() {
         Users user = clientService.GetCurrentUser();
@@ -212,20 +247,15 @@ public class RadioLiveServiceV2 {
     // ОТРИМАННЯ СПИСКУ КІМНАТ
     // ============================================================
 
-    /**
-     * Отримує список активних кімнат з учасниками та статусом трансляції.
-     */
     @Transactional
     public List<StationDto> getActiveRoomsInfo() {
         log.debug("Отримання списку активних кімнат");
 
-        // 1. Джерело правди — БД
         List<StationDto> activeStations = stationService.getActiveStations();
         Set<Long> validRoomIds = activeStations.stream()
                 .map(StationDto::getId)
                 .collect(Collectors.toSet());
 
-        // 2. Отримуємо кімнати з Janus
         List<Map<String, Object>> janusRooms;
         try {
             janusRooms = janusClient.getJanusRoomsAndParticipants();
@@ -235,7 +265,6 @@ public class RadioLiveServiceV2 {
             return activeStations;
         }
 
-        // 3. Перетворюємо в Map для швидкого пошуку
         Map<Long, Map<String, Object>> janusRoomsMap = new HashMap<>();
         for (Map<String, Object> jRoom : janusRooms) {
             Number roomIdNum = (Number) jRoom.get("room");
@@ -244,7 +273,7 @@ public class RadioLiveServiceV2 {
             }
         }
 
-        // 4. Синхронізація: видаляємо зайві кімнати з Janus
+        // Синхронізація: видаляємо зайві кімнати з Janus
         for (Long janusRoomId : janusRoomsMap.keySet()) {
             if (!validRoomIds.contains(janusRoomId)) {
                 log.warn("Зайва кімната в Janus: {}. Видаляємо...", janusRoomId);
@@ -271,7 +300,7 @@ public class RadioLiveServiceV2 {
             }
         }
 
-        // 5. Збагачуємо дані станцій інформацією з Janus
+        // Збагачуємо дані станцій інформацією з Janus
         for (StationDto station : activeStations) {
             Long roomId = station.getId();
             String stationIdStr = String.valueOf(roomId);
@@ -280,7 +309,6 @@ public class RadioLiveServiceV2 {
 
             if (jRoomData != null) {
                 station.setStationstate(true);
-                // ❌ ВИДАЛЕНО: station.setStationId(String.valueOf(roomId));
                 List<Object> participants = (List<Object>) jRoomData.get("participants");
                 station.setParticipants(participants != null ? participants : new ArrayList<>());
 
@@ -302,7 +330,6 @@ public class RadioLiveServiceV2 {
 
                     janusClient.createAudioBridgeRoom(roomId, station.getName(), currentRtpPort);
 
-                    // ❌ ВИДАЛЕНО: station.setStationId(String.valueOf(roomId));
                     station.setStationstate(true);
                     station.setParticipants(new ArrayList<>());
 
@@ -320,9 +347,6 @@ public class RadioLiveServiceV2 {
     // ПІДКЛЮЧЕННЯ КОРИСТУВАЧА ДО КІМНАТИ
     // ============================================================
 
-    /**
-     * Підключає користувача до аудіокімнати.
-     */
     public Map<String, Object> connectClientToAudioRoom(Long roomID) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
@@ -338,11 +362,9 @@ public class RadioLiveServiceV2 {
                 userName, userUUID, roomID);
 
         try {
-            // 1. Отримуємо список всіх активних кімнат
             List<Long> activeJanusRooms = janusClient.getActiveRoomsIds();
 
             if (activeJanusRooms != null) {
-                // 2. Перевіряємо інші кімнати та видаляємо користувача
                 for (Long activeRoomId : activeJanusRooms) {
                     if (!activeRoomId.equals(roomID)) {
                         boolean isUserInRoom = janusClient.isUserInAudioRoom(activeRoomId, userUUID);
@@ -355,7 +377,6 @@ public class RadioLiveServiceV2 {
                 }
             }
 
-            // 3. Формуємо відповідь
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("roomid", roomID);
@@ -378,18 +399,20 @@ public class RadioLiveServiceV2 {
     // ДОПОМІЖНІ МЕТОДИ
     // ============================================================
 
-    /**
-     * Перевірка зв'язку з Janus.
-     */
     public boolean pingJanus() {
         return janusClient.pingJanus();
     }
 
-    /**
-     * Отримує API secret (НЕ передавати клієнту!).
-     */
     public String getApiSecret() {
         return janusClient.getApiSecret();
+    }
+
+    /**
+     * Створення RTP participant для прийому зовнішнього потоку.
+     */
+    public Map<String, Object> createRtpParticipant(Long roomId, String display) {
+        log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
+        return janusClient.createRtpParticipant(roomId, display);
     }
 
     /**
@@ -405,7 +428,6 @@ public class RadioLiveServiceV2 {
                 message.put("streamUrl", streamUrl);
                 message.put("rtpUrl", rtpUrl);
 
-                // ✅ ДОДАНО: додаткові параметри для FFmpeg
                 message.put("ffmpegOptions", Map.of(
                         "acodec", "libopus",
                         "b:a", "128k",
@@ -428,17 +450,4 @@ public class RadioLiveServiceV2 {
             throw new RuntimeException("Помилка відправки команди FFmpeg: " + e.getMessage());
         }
     }
-    /**
-     * Створення RTP participant для прийому зовнішнього потоку.
-     *
-     * @param roomId ID кімнати
-     * @param display Ім'я учасника
-     * @return Map з інформацією про RTP participant (participantId, rtpIp, rtpPort, payloadType)
-     */
-    public Map<String, Object> createRtpParticipant(Long roomId, String display) {
-        log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
-        return janusClient.createRtpParticipant(roomId, display);
-    }
-
-
 }
