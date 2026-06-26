@@ -63,6 +63,8 @@ let pendingRoomId = null;
 /** @type {boolean} Запобігає повторним спробам перепідключення одночасно */
 let isReconnecting = false;
 
+let isSwitchingRoom = false; // ✅ Запобігання повторним викликам
+
 // ============================================================================
 // СЕКЦІЯ 2: КОНФІГУРАЦІЯ
 // ============================================================================
@@ -278,104 +280,78 @@ function initJanusConnection() {
  *
  * @returns {Promise<void>} Resolve коли плагін готовий до роботи
  */
-function attachAudioBridgePlugin() {
+// ============================================================
+// 3. ПРИКРІПЛЕННЯ ПЛАГІНА (ВИПРАВЛЕНО)
+// ============================================================
+function attachAudioBridgePlugin(autoJoinRoomId = null) {
     return new Promise((resolve, reject) => {
         log("🎙️ Прикріплення до AudioBridge...", "INFO");
-
         janusInstance.attach({
-            plugin: "janus.plugin.audiobridge",  // Плагін для аудіокімнат
-            token: currentSessionToken,          // Токен авторизації
-            opaqueId: "audiobridge-" + Janus.randomString(12),  // Унікальний ID
-
-            // ✅ Успішне прикріплення
+            plugin: "janus.plugin.audiobridge",
+            token: currentSessionToken,
+            opaqueId: "audiobridge-" + Janus.randomString(12),
             success: (pluginHandle) => {
-                audioBridge = pluginHandle;      // Зберігаємо handle глобально
-                isJanusReady = true;             // Готові до роботи
+                audioBridge = pluginHandle;
+                isJanusReady = true;
                 updateConnectionStatus(true, "Готово до роботи");
                 log("✅ AudioBridge прикріплено та готовий", "SUCCESS");
                 enableRoomButtons();
                 resolve();
 
-                // Автоматичний вхід в кімнату
-                if (pendingRoomId !== null) {
-                    // Якщо був відкладений перехід — виконуємо його
+                // ✅ ТІЛЬКИ якщо вказано autoJoinRoomId І ми НЕ в процесі переходу
+                if (autoJoinRoomId !== null && !isSwitchingRoom) {
+                    log(`🚀 Автоматичний вхід в кімнату ${autoJoinRoomId}...`, "INFO");
+                    currentRoomId = null; // Скидаємо щоб switchRoom працював
+                    switchRoom(autoJoinRoomId);
+                } else if (pendingRoomId !== null && !isSwitchingRoom) {
                     const target = pendingRoomId;
                     pendingRoomId = null;
+                    currentRoomId = null;
                     log(`🚀 Виконую відкладений перехід в кімнату ${target}...`, "INFO");
                     switchRoom(target);
-                } else {
-                    // Інакше — в кімнату за замовчуванням
+                } else if (!isSwitchingRoom) {
+                    currentRoomId = null;
                     switchRoom(DEFAULT_ROOM_ID);
                 }
             },
-
-            // ❌ Помилка прикріплення
             error: (error) => {
                 log(`❌ Помилка прикріплення плагіна: ${error}`, "ERROR");
                 reject(error);
             },
-
-            /**
-             * Колбек для отримання ВІДДАЛЕНИХ аудіотреків (НОВИЙ API Janus.js 1.0+).
-             *
-             * Викликається коли:
-             * - Хтось новий увійшов в кімнату і почав говорити
-             * - Вже існуючий учасник почав говорити (unmute)
-             *
-             * @param {MediaStreamTrack} track - Аудіотрек
-             * @param {string} mid - ID медіа-потоку
-             * @param {boolean} on - true = додано, false = видалено
-             */
             onremotetrack: (track, mid, on) => {
                 log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
 
-                // Обробляємо тільки аудіотреки при додаванні
                 if (on && track.kind === 'audio') {
-                    // Шукаємо або створюємо <audio> елемент
-                    let audio = document.getElementById("remoteAudio-" + mid);
+                    let audio = document.getElementById("audioPlayer");
                     if (!audio) {
-                        audio = document.createElement("audio");
-                        audio.id = "remoteAudio-" + mid;
-                        audio.autoplay = true;
-                        audio.controls = true;
-                        document.body.appendChild(audio);
-                        log(`🎵 Створено аудіо елемент для треку ${mid}`, "DEBUG");
+                        audio = document.getElementById("remoteAudio-" + mid);
+                        if (!audio) {
+                            audio = document.createElement("audio");
+                            audio.id = "remoteAudio-" + mid;
+                            audio.autoplay = true;
+                            audio.controls = true;
+                            document.body.appendChild(audio);
+                        }
                     }
 
-                    // ⚠️ КРИТИЧНО: Правильний спосіб прикріпити трек
-                    // НЕ можна використовувати Janus.attachMediaStream() з треком!
-                    // Потрібно створити MediaStream з треку і присвоїти srcObject
                     const stream = new MediaStream([track]);
                     audio.srcObject = stream;
 
-                    // Спроба автовідтворення (може бути заблоковано браузером)
                     audio.play().catch(e => {
-                        log(`⚠️ Автопрогравання заблоковано: ${e.message}. Клікніть по сторінці.`, "WARN");
+                        log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
                     });
-
-                    log(`✅ Аудіо трек ${mid} прикріплено до плеєра`, "SUCCESS");
                 }
             },
-
-            /**
-             * Колбек для ЛОКАЛЬНОГО треку (мікрофон користувача).
-             * Викликається коли браузер надав доступ до мікрофона.
-             */
             onlocaltrack: (track, mid) => {
                 log(`🎤 Локальний трек додано: ${track.kind} (mid=${mid})`, "DEBUG");
             },
-
-            // Обробка всіх повідомлень від плагіна
             onmessage: handleJanusMessage,
-
-            // З'єднання очищено (наприклад, при hangUp)
             oncleanup: () => log("🧹 З'єднання плагіна очищено", "INFO"),
-
-            // Плагін від'єднано сервером
             ondetached: () => log("⚠️ Плагін від'єднано сервером", "WARN")
         });
     });
 }
+
 
 // ============================================================================
 // СЕКЦІЯ 7: ПЕРЕХІД МІЖ КІМНАТАМИ
@@ -394,62 +370,71 @@ function attachAudioBridgePlugin() {
  *
  * @param {number|string} newRoomId - ID нової кімнати
  */
+// ============================================================
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО - detach + attach)
+// ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
     if (isNaN(newRoomId)) return;
 
-    // Якщо Janus ще не готовий — ставимо кімнату в чергу
-    if (!isJanusReady) {
-        log(`⏳ Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
-        pendingRoomId = newRoomId;
+    // ✅ Запобігання повторним викликам
+    if (isSwitchingRoom) {
+        log(`⏳ Вже виконується перехід, ігноруємо`, "WARN");
         return;
     }
-
-    if (!audioBridge) {
-        log("❌ AudioBridge відсутній", "ERROR");
-        return;
-    }
-
-    log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
+    isSwitchingRoom = true;
 
     try {
-        // КРОК 1: POST на бекенд
-        // Бекенд перевіряє чи є користувач в інших кімнатах і робить kick
+        if (!isJanusReady || !audioBridge) {
+            log(`⏳ Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
+            pendingRoomId = newRoomId;
+            return;
+        }
+
+        log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
+
+        // POST на бекенд
         const response = await fetch(`${BACKEND_API}/connectclienttoroom`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({roomid: newRoomId})
         });
-
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
         const serverResponse = await response.json();
         if (!serverResponse.success) throw new Error(serverResponse.error || "Помилка сервера");
-
         log(`✅ Бекенд підтвердив перехід. Display: "${serverResponse.display}"`, "SUCCESS");
 
-        // КРОК 2: Вихід зі старої кімнати (якщо ми вже десь були)
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
 
-            // Відправляємо команду leave в Janus
-            audioBridge.send({message: {request: "leave"}});
+            // ✅ КРИТИЧНО: Повне від'єднання плагіна для очищення WebRTC
+            log("🔌 Від'єднуємо плагін AudioBridge...", "DEBUG");
+            audioBridge.detach();
+            audioBridge = null;
+            isJanusReady = false;
 
-            // Невелика затримка щоб Janus встиг обробити leave
-            await new Promise(r => setTimeout(r, 300));
+            // Невелика затримка для завершення detach
+            await new Promise(r => setTimeout(r, 500));
+
+            // ✅ Повторне прикріплення плагіна БЕЗ автоматичного переходу
+            log("🎙️ Прикріплюємо плагін заново...", "DEBUG");
+            await attachAudioBridgePlugin(null); // null = не робити автоматичний join
         }
 
-        // КРОК 3: Оновлюємо стан
+        // Оновлюємо стан
         currentRoomId = newRoomId;
         currentDisplay = serverResponse.display;
 
-        // КРОК 4: Вхід в нову кімнату
+        // Вхід в нову кімнату
         joinRoom(newRoomId, currentDisplay);
 
     } catch (error) {
         log(`❌ Помилка переходу: ${error.message}`, "ERROR");
+    } finally {
+        isSwitchingRoom = false;
     }
 }
+
 
 /**
  * Відправляє команду join в AudioBridge для входу в кімнату.
