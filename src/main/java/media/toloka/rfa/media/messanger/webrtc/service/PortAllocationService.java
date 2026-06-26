@@ -16,8 +16,10 @@ import java.util.Optional;
 @Service
 public class PortAllocationService {
 
-    private static final int START_PORT = 49152;
-    private static final int END_PORT = 49999;
+    private static final int START_PORT = 49000;
+//    private static final int START_PORT = 49152;
+    private static final int END_PORT = 49150;
+//    private static final int END_PORT = 49999;
 
     private final JanusStreamRepository streamRepository;
     private static final Logger log = LoggerFactory.getLogger(PortAllocationService.class);
