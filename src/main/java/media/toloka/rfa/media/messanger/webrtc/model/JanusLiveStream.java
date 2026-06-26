@@ -1,6 +1,9 @@
 package media.toloka.rfa.media.messanger.webrtc.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "janus_live_streams")
@@ -22,9 +25,14 @@ public class JanusLiveStream {
     @Column(name = "ffmpeg_pid")
     private Integer ffmpegPid;
 
-    // ✅ НОВЕ ПОЛЕ: ID RTP forward для керування потоком
+    // ✅ ID RTP forward для керування потоком
     @Column(name = "rtp_forward_stream_id")
     private Long rtpForwardStreamId;
+
+    // ✅ НОВЕ ПОЛЕ: Дата створення запису
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     public JanusLiveStream() {}
 
@@ -53,4 +61,7 @@ public class JanusLiveStream {
 
     public Long getRtpForwardStreamId() { return rtpForwardStreamId; }
     public void setRtpForwardStreamId(Long rtpForwardStreamId) { this.rtpForwardStreamId = rtpForwardStreamId; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
