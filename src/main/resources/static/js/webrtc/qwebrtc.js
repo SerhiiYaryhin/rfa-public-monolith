@@ -1,19 +1,3 @@
-/**
- * ============================================================================
- * qwebrtc.js - Фронтенд-клієнт для WebRTC аудіокімнат на базі Janus (v2)
- * ============================================================================
- *
- * ДОДАНО:
- * - Кнопки керування трансляціями (▶️ Запустити / ⏹️ Зупинити)
- * - Функції startStreamToRoom() та stopStreamFromRoom()
- * - Автоматичне оновлення UI після запуску/зупинки стріму
- *
- * ============================================================================
- */
-
-// ============================================================================
-// СЕКЦІЯ 1: ГЛОБАЛЬНІ ЗМІННІ СТАНУ
-// ============================================================================
 let janusInstance = null;
 let audioBridge = null;
 let currentSessionToken = null;
@@ -24,30 +8,21 @@ let pendingRoomId = null;
 let isReconnecting = false;
 let isSwitchingRoom = false;
 
-// ============================================================================
-// СЕКЦІЯ 2: КОНФІГУРАЦІЯ
-// ============================================================================
 const BACKEND_API = "/api/v1q/webrtc/stream";
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws";
 const DEFAULT_ROOM_ID = 802;
 const ROOMS_REFRESH_INTERVAL = 5000;
 
-// ============================================================================
-// СЕКЦІЯ 3: ЛОГУВАННЯ
-// ============================================================================
+// ============================================================
+// ЛОГУВАННЯ
+// ============================================================
 function log(message, type = 'INFO') {
     const consoleDiv = document.getElementById("logConsole");
-    if (!consoleDiv) {
-        console.log(`[${type}] ${message}`);
-        return;
-    }
+    if (!consoleDiv) { console.log(`[${type}] ${message}`); return; }
     const time = new Date().toLocaleTimeString();
     const badgeClasses = {
-        'INFO': 'badge-info',
-        'SUCCESS': 'badge-success',
-        'ERROR': 'badge-error',
-        'WARN': 'badge-error',
-        'DEBUG': 'badge-debug'
+        'INFO': 'badge-info', 'SUCCESS': 'badge-success',
+        'ERROR': 'badge-error', 'WARN': 'badge-error', 'DEBUG': 'badge-debug'
     };
     const badgeClass = badgeClasses[type] || 'badge-info';
     consoleDiv.innerHTML += `<div><span class="badge ${badgeClass}">${time}</span> ${message}</div>`;
@@ -58,19 +33,13 @@ function log(message, type = 'INFO') {
 function updateConnectionStatus(connected, text = null) {
     const indicator = document.getElementById("statusIndicator");
     const statusText = document.getElementById("statusText");
-    if (indicator) {
-        indicator.className = connected
-            ? "status-indicator status-connected"
-            : "status-indicator status-disconnected";
-    }
-    if (statusText) {
-        statusText.textContent = text || (connected ? "Підключено до Janus" : "Відключено");
-    }
+    if (indicator) indicator.className = connected ? "status-indicator status-connected" : "status-indicator status-disconnected";
+    if (statusText) statusText.textContent = text || (connected ? "Підключено до Janus" : "Відключено");
 }
 
-// ============================================================================
-// СЕКЦІЯ 4: ОТРИМАННЯ ТОКЕНА КОРИСТУВАЧА
-// ============================================================================
+// ============================================================
+// 1. ОТРИМАННЯ ТОКЕНА
+// ============================================================
 async function initUserSession() {
     log("🔑 Отримання токена користувача...", "INFO");
     try {
@@ -88,9 +57,9 @@ async function initUserSession() {
     }
 }
 
-// ============================================================================
-// СЕКЦІЯ 5: ІНІЦІАЛІЗАЦІЯ З'ЄДНАННЯ З JANUS
-// ============================================================================
+// ============================================================
+// 2. ІНІЦІАЛІЗАЦІЯ JANUS
+// ============================================================
 function initJanusConnection() {
     return new Promise((resolve, reject) => {
         if (!currentSessionToken) return reject("Токен відсутній");
@@ -110,13 +79,8 @@ function initJanusConnection() {
                         log(`❌ Помилка WebSocket: ${error}`, "ERROR");
                         if (!isReconnecting) {
                             isReconnecting = true;
-                            setTimeout(() => {
-                                isReconnecting = false;
-                                initJanusConnection().then(resolve).catch(reject);
-                            }, 5000);
-                        } else {
-                            reject(error);
-                        }
+                            setTimeout(() => { isReconnecting = false; initJanusConnection().then(resolve).catch(reject); }, 5000);
+                        } else { reject(error); }
                     },
                     destroyed: () => {
                         log("🔌 Сесію Janus знищено", "INFO");
@@ -129,9 +93,9 @@ function initJanusConnection() {
     });
 }
 
-// ============================================================================
-// СЕКЦІЯ 6: ПРИКРІПЛЕННЯ ДО ПЛАГІНА AUDIOBRIDGE
-// ============================================================================
+// ============================================================
+// 3. ПРИКРІПЛЕННЯ ПЛАГІНА
+// ============================================================
 function attachAudioBridgePlugin() {
     return new Promise((resolve, reject) => {
         log("🎙️ Прикріплення до AudioBridge...", "INFO");
@@ -194,9 +158,9 @@ function attachAudioBridgePlugin() {
     });
 }
 
-// ============================================================================
-// СЕКЦІЯ 7: ПЕРЕХІД МІЖ КІМНАТАМИ
-// ============================================================================
+// ============================================================
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ
+// ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
     if (isNaN(newRoomId)) return;
@@ -259,15 +223,13 @@ function joinRoom(roomId, display) {
     audioBridge.send({message: joinMessage});
 }
 
-// ============================================================================
-// СЕКЦІЯ 8: УПРАВЛІННЯ ТРАНЛЯЦІЯМИ (НОВЕ!)
-// ============================================================================
+// ============================================================
+// 5. УПРАВЛІННЯ ТРАНЛЯЦІЯМИ (НОВЕ!)
+// ============================================================
 
 /**
  * Запускає трансляцію радіостанції в кімнату.
  * POST /api/v1q/webrtc/stream/start?stationId=XXX
- *
- * @param {string|number} stationId - ID станції (наприклад, 802 або "352")
  */
 async function startStreamToRoom(stationId) {
     if (!stationId) {
@@ -302,8 +264,6 @@ async function startStreamToRoom(stationId) {
 /**
  * Зупиняє трансляцію радіостанції.
  * POST /api/v1q/webrtc/stream/stop?stationId=XXX
- *
- * @param {string|number} stationId - ID станції
  */
 async function stopStreamFromRoom(stationId) {
     if (!stationId) {
@@ -336,9 +296,9 @@ async function stopStreamFromRoom(stationId) {
     }
 }
 
-// ============================================================================
-// СЕКЦІЯ 9: ОБРОБКА ПОВІДОМЛЕНЬ ВІД JANUS
-// ============================================================================
+// ============================================================
+// 6. ОБРОБКА ПОВІДОМЛЕНЬ ВІД JANUS
+// ============================================================
 function handleJanusMessage(msg, jsep) {
     log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
     const event = msg.audiobridge;
@@ -426,9 +386,9 @@ function handleJanusMessage(msg, jsep) {
     }
 }
 
-// ============================================================================
-// СЕКЦІЯ 10: ЗАВАНТАЖЕННЯ ТА ВІДОБРАЖЕННЯ КІМНАТ (ОНОВЛЕНО!)
-// ============================================================================
+// ============================================================
+// 7. ЗАВАНТАЖЕННЯ ТА ВІДОБРАЖЕННЯ КІМНАТ (ОНОВЛЕНО!)
+// ============================================================
 async function loadRooms() {
     if (!isJanusReady) return;
     try {
@@ -443,10 +403,13 @@ async function loadRooms() {
 /**
  * ✅ ОНОВЛЕНО: Додано кнопки керування стрімом
  *
- * Логіка відображення кнопок:
- * - Якщо станція LIVE (stationstate=true) → показуємо "⏹️ Зупинити" (червона)
- * - Якщо станція не LIVE → показуємо "▶️ Запустити" (зелена)
- * - Кнопка "🚪 Увійти" завжди доступна для переходу в кімнату
+ * Логіка:
+ * - Кнопка "🚪 Увійти" — завжди показується для переходу в кімнату
+ * - Кнопка "▶️ Запустити" (зелена) — запускає трансляцію
+ * - Кнопка "⏹️ Зупинити" (червона) — зупиняє трансляцію
+ *
+ * Показуємо ОБИДВІ кнопки (Запустити + Зупинити) для кожної кімнати,
+ * щоб користувач міг сам керувати станом.
  */
 function renderRooms(rooms) {
     const container = document.getElementById("roomsList");
@@ -471,26 +434,20 @@ function renderRooms(rooms) {
         const btnDisabled = isCurrent ? 'disabled' : '';
         const btnAction = isCurrent ? '' : `onclick="switchRoom(${room.id})"`;
 
-        // ✅ НОВЕ: Кнопки керування стрімом
-        // ID станції = ID кімнати (room.id)
+        // ✅ НОВЕ: Кнопки керування стрімом (показуємо ОБИДВІ)
         const stationId = room.id;
-        let streamButtons = '';
-
-        if (isStreaming) {
-            // Стрім активний — показуємо кнопку "Зупинити"
-            streamButtons = `
-                <button class="btn-action-room btn-stop-stream" 
-                        onclick="stopStreamFromRoom(${stationId})">
-                    ⏹️ Зупинити
-                </button>`;
-        } else {
-            // Стрім не активний — показуємо кнопку "Запустити"
-            streamButtons = `
-                <button class="btn-action-room btn-start-stream" 
-                        onclick="startStreamToRoom(${stationId})">
-                    ▶️ Запустити
-                </button>`;
-        }
+        const streamButtons = `
+            <button class="btn-action-room btn-start-stream" 
+                    onclick="startStreamToRoom(${stationId})"
+                    title="Запустити трансляцію">
+                ▶️ Запустити
+            </button>
+            <button class="btn-action-room btn-stop-stream" 
+                    onclick="stopStreamFromRoom(${stationId})"
+                    title="Зупинити трансляцію">
+                ⏹️ Зупинити
+            </button>
+        `;
 
         // Список учасників
         let participantsHtml = '<div class="no-users">Немає користувачів</div>';
@@ -533,17 +490,12 @@ function renderRooms(rooms) {
     }).join('');
 }
 
-function enableRoomButtons() {
-    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false);
-}
+function enableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false); }
+function disableRoomButtons() { document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true); }
 
-function disableRoomButtons() {
-    document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);
-}
-
-// ============================================================================
-// СЕКЦІЯ 11: ІНІЦІАЛІЗАЦІЯ ПРИ ЗАВАНТАЖЕННІ СТОРІНКИ
-// ============================================================================
+// ============================================================
+// 8. ІНІЦІАЛІЗАЦІЯ
+// ============================================================
 document.addEventListener("DOMContentLoaded", async () => {
     log("🚀 Сторінку завантажено. Ініціалізація...", "INFO");
     disableRoomButtons();
@@ -560,15 +512,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("beforeunload", () => {
-    if (janusInstance) {
-        janusInstance.destroy({cleanupHandles: true});
-    }
+    if (janusInstance) janusInstance.destroy({cleanupHandles: true});
 });
 
-// ============================================================================
-// СЕКЦІЯ 12: ЕКСПОРТ ФУНКЦІЙ ДЛЯ HTML (onclick handlers)
-// ============================================================================
+// ✅ Експорт функцій для onclick
 window.switchRoom = switchRoom;
 window.loadRooms = loadRooms;
-window.startStreamToRoom = startStreamToRoom;  // ✅ НОВЕ
-window.stopStreamFromRoom = stopStreamFromRoom; // ✅ НОВЕ
+window.startStreamToRoom = startStreamToRoom;
+window.stopStreamFromRoom = stopStreamFromRoom;
