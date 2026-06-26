@@ -54,6 +54,14 @@ public class JanusRabbitClientOptimized {
      * Згідно з документацією Janus: allow_rtp_participants = true дозволяє
      * приймати зовнішні RTP потоки через RTP participants.
      */
+    /**
+     * Створення аудіокімнати з підтримкою зовнішнього RTP потоку.
+     * Використовує rtp_stream параметри для прийому вхідного потоку від FFmpeg.
+     *
+     * @param roomId ID кімнати
+     * @param name Назва кімнати
+     * @param rtpPort UDP порт для прийому RTP від FFmpeg
+     */
     public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
         if (roomId == null) {
             log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
@@ -82,15 +90,22 @@ public class JanusRabbitClientOptimized {
                 body.put("is_private", false);
                 body.put("audio_level_average", 25);
 
-                // ✅ ДОЗВОЛЯЄМО RTP participants для прийому зовнішніх потоків
-                body.put("allow_rtp_participants", true);
+                // ✅ ВИПРАВЛЕНО: Використовуємо rtp_stream параметри для прийому зовнішнього потоку
+                // Це працює в Janus AudioBridge для вхідних RTP потоків від FFmpeg
+                if (rtpPort != null && rtpPort > 0) {
+                    body.put("rtp_stream", true);
+                    body.put("rtp_stream_port", rtpPort);
+                    body.put("rtp_stream_codec", "opus");
+                    body.put("rtp_stream_sample_rate", 48000);
+                    body.put("rtp_stream_channels", 2);
+                }
 
                 request.put("body", body);
 
                 Map<String, Object> response = sendAndReceive(request);
                 validatePluginResponse(response);
 
-                log.info("Аудіокімнату ID: {} ('{}') успішно створено з allow_rtp_participants=true", roomId, name);
+                log.info("Аудіокімнату ID: {} ('{}') успішно створено з RTP портом {}", roomId, name, rtpPort);
                 return null;
             });
         } catch (Exception e) {

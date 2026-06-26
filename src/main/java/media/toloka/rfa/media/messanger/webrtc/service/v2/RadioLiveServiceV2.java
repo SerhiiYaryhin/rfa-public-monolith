@@ -178,27 +178,20 @@ public class RadioLiveServiceV2 {
             log.info("Запуск трансляції для станції: {}", stationId);
 
             String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
+            Integer freePort = portService.findNextFreePort();
+            log.info("Виділено порт для трансляції: {}", freePort);
 
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
 
-            // 1. Створюємо кімнату з allow_rtp_participants=true
-            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, null);
-            log.info("Кімнату {} створено з allow_rtp_participants=true", janusRoomId);
+            // 1. Створюємо кімнату з rtp_stream параметрами для прийому зовнішнього потоку
+            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, freePort);
+            log.info("Кімнату {} створено з RTP портом {}", janusRoomId, freePort);
 
-            // 2. Створюємо RTP participant і отримуємо порт від Janus
-            Map<String, Object> rtpInfo = janusClient.createRtpParticipant(janusRoomId, "Radio Stream");
-            Integer rtpPort = (Integer) rtpInfo.get("rtpPort");
-            String rtpIp = (String) rtpInfo.get("rtpIp");
-            Long participantId = (Long) rtpInfo.get("participantId");
-
-            log.info("RTP participant {} створено. Janus слухає на {}:{}",
-                    participantId, rtpIp, rtpPort);
-
-            // 3. Надсилаємо команду FFmpeg на порт, який повернув Janus
-            String rtpUrl = String.format("rtp://%s:%d?pkt_size=1200", rtpIp, rtpPort);
+            // 2. Надсилаємо команду FFmpeg на виділений порт
+            String rtpUrl = String.format("rtp://janus.rfa:%d?pkt_size=1200", freePort);
             sendFfmpegCommand("start", stationId, sourceStreamUrl, rtpUrl);
 
-            return portService.saveActiveStream(stationId, janusRoomId, rtpPort, 0);
+            return portService.saveActiveStream(stationId, janusRoomId, freePort, 0);
         });
     }
 
