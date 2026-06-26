@@ -6,8 +6,8 @@ let currentDisplay = null;
 let isJanusReady = false;
 let pendingRoomId = null;
 let isReconnecting = false;
-let isSwitchingRoom = false;  // ✅ Запобігання повторним клікам
-let iceCheckInterval = null;  // ✅ Зберігаємо ID інтервалу ICE
+let isSwitchingRoom = false;
+let iceCheckInterval = null;
 
 const BACKEND_API = "/api/v1q/webrtc/stream";
 const JANUS_WS_URL = "wss://test.rfa.toloka.media/janus-ws";
@@ -95,7 +95,7 @@ function initJanusConnection() {
 }
 
 // ============================================================
-// 3. ПРИКРІПЛЕННЯ ПЛАГІНА (ВИПРАВЛЕНО - без targetRoomId)
+// 3. ПРИКРІПЛЕННЯ ПЛАГІНА
 // ============================================================
 function attachAudioBridgePlugin() {
     return new Promise((resolve, reject) => {
@@ -112,12 +112,10 @@ function attachAudioBridgePlugin() {
                 enableRoomButtons();
                 resolve();
 
-                // ✅ ВИПРАВЛЕНО: НЕ викликаємо switchRoom тут!
-                // Просто заходимо в дефолтну кімнату або відкладену
                 if (pendingRoomId !== null) {
                     const target = pendingRoomId;
                     pendingRoomId = null;
-                    currentRoomId = null; // ✅ Скидаємо, щоб не було циклу
+                    currentRoomId = null;
                     log(`🚀 Виконую відкладений перехід в кімнату ${target}...`, "INFO");
                     switchRoom(target);
                 } else {
@@ -165,13 +163,12 @@ function attachAudioBridgePlugin() {
 }
 
 // ============================================================
-// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО - без detach/attach)
+// 4. ПЕРЕХІД МІЖ КІМНАТАМИ (ВИПРАВЛЕНО)
 // ============================================================
 async function switchRoom(newRoomId) {
     newRoomId = parseInt(newRoomId);
     if (isNaN(newRoomId)) return;
 
-    // ✅ Запобігання повторним клікам під час переходу
     if (isSwitchingRoom) {
         log(`⏳ Вже виконується перехід, ігноруємо запит`, "WARN");
         return;
@@ -187,7 +184,6 @@ async function switchRoom(newRoomId) {
 
         log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
 
-        // 1. POST на бекенд
         const response = await fetch(`${BACKEND_API}/connectclienttoroom`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -198,22 +194,18 @@ async function switchRoom(newRoomId) {
         if (!serverResponse.success) throw new Error(serverResponse.error || "Помилка сервера");
         log(`✅ Бекенд підтвердив перехід. Display: "${serverResponse.display}"`, "SUCCESS");
 
-        // 2. Якщо вже в кімнаті - очищаємо WebRTC і робимо leave
         if (currentRoomId !== null) {
             log(`👋 Вихід з кімнати ${currentRoomId}...`, "DEBUG");
 
-            // ✅ Очищаємо WebRTC (але НЕ обнуляємо audioBridge!)
+            // ✅ ВИПРАВЛЕНО: Повне очищення WebRTC
             cleanupWebRTCHandle();
 
             audioBridge.send({message: {request: "leave"}});
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise(r => setTimeout(r, 500)); // ✅ Збільшено затримку
         }
 
-        // 3. Оновлюємо state
         currentRoomId = newRoomId;
         currentDisplay = serverResponse.display;
-
-        // 4. Заходимо в нову кімнату (без detach/attach!)
         joinRoom(newRoomId, currentDisplay);
 
     } catch (error) {
@@ -224,19 +216,16 @@ async function switchRoom(newRoomId) {
 }
 
 /**
- * ✅ НОВА ФУНКЦІЯ: Очищення WebRTC handle БЕЗ обнулення audioBridge
+ * ✅ ВИПРАВЛЕНО: Повне очищення WebRTC стану
  */
 function cleanupWebRTCHandle() {
     try {
-        // ✅ Зупиняємо інтервал перевірки ICE
         if (iceCheckInterval) {
             clearInterval(iceCheckInterval);
             iceCheckInterval = null;
-            log("🛑 Інтервал перевірки ICE зупинено", "DEBUG");
         }
 
         if (audioBridge && audioBridge.webrtcStuff) {
-            // Закриваємо PeerConnection
             if (audioBridge.webrtcStuff.pc) {
                 log("🧹 Закриваємо RTCPeerConnection...", "DEBUG");
                 try {
@@ -247,7 +236,6 @@ function cleanupWebRTCHandle() {
                 audioBridge.webrtcStuff.pc = null;
             }
 
-            // Зупиняємо локальні треки (мікрофон)
             if (audioBridge.webrtcStuff.myStream) {
                 log("🧹 Зупиняємо локальні треки...", "DEBUG");
                 audioBridge.webrtcStuff.myStream.getTracks().forEach(track => {
@@ -256,7 +244,7 @@ function cleanupWebRTCHandle() {
                 audioBridge.webrtcStuff.myStream = null;
             }
 
-            // Скидаємо webrtcStuff в початковий стан
+            // ✅ КРИТИЧНО: Повністю скидаємо webrtcStuff
             audioBridge.webrtcStuff = {};
             log("✅ WebRTC очищено", "DEBUG");
         }
@@ -289,7 +277,6 @@ function handleJanusMessage(msg, jsep) {
         return;
     }
 
-    // Обробляємо ТІЛЬКИ наш власний joined (з полем id)
     if (event === "joined" && msg.id) {
         const myId = msg.id;
         const myDisplay = msg.display || currentDisplay;
@@ -297,25 +284,36 @@ function handleJanusMessage(msg, jsep) {
         loadRooms();
 
         if (!jsep) {
-            log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
-            const offerStartTime = Date.now();
+            // ✅ ПЕРЕВІРКА: Чи доступний мікрофон
+            navigator.mediaDevices.getUserMedia({audio: true})
+                .then(() => {
+                    log("🎤 Мікрофон доступний, створюємо Offer...", "DEBUG");
+                    const offerStartTime = Date.now();
 
-            audioBridge.createOffer({
-                media: {audioSend: true, audioRecv: true, video: false},
-                success: (localJsep) => {
-                    const elapsed = Date.now() - offerStartTime;
-                    log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
-                    audioBridge.send({
-                        message: {request: "configure", muted: false},
-                        jsep: localJsep
+                    audioBridge.createOffer({
+                        media: {audioSend: true, audioRecv: true, video: false},
+                        success: (localJsep) => {
+                            const elapsed = Date.now() - offerStartTime;
+                            log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
+                            audioBridge.send({
+                                message: {request: "configure", muted: false},
+                                jsep: localJsep
+                            });
+                        },
+                        error: (err) => {
+                            log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR");
+                            // ✅ Очищаємо стан після помилки
+                            cleanupWebRTCHandle();
+                        }
                     });
-                },
-                error: (err) => log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR")
-            });
+                })
+                .catch(err => {
+                    log(`❌ Мікрофон недоступний: ${err.message}`, "ERROR");
+                    log(`💡 Перевірте: 1) Чи підключений мікрофон 2) Чи надано дозвіл браузеру 3) Чи зайнятий мікрофон іншою програмою`, "WARN");
+                });
         }
     }
 
-    // Повідомлення про вхід іншого користувача
     if (event === "joined" && !msg.id) {
         log(`👤 Інший користувач увійшов в кімнату`, "INFO");
         loadRooms();
@@ -334,15 +332,12 @@ function handleJanusMessage(msg, jsep) {
                 success: () => {
                     log("✅ WebRTC Handshake завершено", "SUCCESS");
 
-                    // ✅ Зупиняємо попередній інтервал якщо є
                     if (iceCheckInterval) {
                         clearInterval(iceCheckInterval);
                     }
 
-                    // ✅ Перевіряємо ICE state кожні 2 секунди
                     let checkCount = 0;
                     iceCheckInterval = setInterval(() => {
-                        // ✅ Безпечна перевірка - audioBridge може бути null
                         if (!audioBridge || !audioBridge.webrtcStuff || !audioBridge.webrtcStuff.pc) {
                             log("⚠️ PeerConnection відсутній, зупиняємо перевірку ICE", "WARN");
                             clearInterval(iceCheckInterval);
@@ -382,7 +377,10 @@ function handleJanusMessage(msg, jsep) {
                         jsep: jsepAnswer
                     });
                 },
-                error: (err) => log(`❌ CreateAnswer Error: ${JSON.stringify(err)}`, "ERROR")
+                error: (err) => {
+                    log(`❌ CreateAnswer Error: ${JSON.stringify(err)}`, "ERROR");
+                    cleanupWebRTCHandle();
+                }
             });
         }
     }
