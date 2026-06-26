@@ -18,6 +18,8 @@ import java.util.*;
  * - createAudioBridgeRoom() налаштовує allow_rtp_participants=true
  * - createRtpParticipant() створює RTP participant для прийому зовнішніх потоків
  * - Правильний парсинг відповідей (plugindata.data для Client API)
+ * - Асинхронний RPC через JanusResponseHandler з кореляцією за transaction ID
+ *   (вирішує проблему "No correlation header in reply" від Janus)
  */
 @Service
 public class JanusRabbitClientOptimized {
@@ -26,6 +28,7 @@ public class JanusRabbitClientOptimized {
 
     private final RabbitTemplate rabbitTemplate;
     private final RabbitTemplate adminRabbitTemplate;
+    private final JanusResponseHandler responseHandler;
 
     @Value("${janus.admin_secret}")
     private String adminSecret;
@@ -39,9 +42,11 @@ public class JanusRabbitClientOptimized {
 
     public JanusRabbitClientOptimized(
             @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
-            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate) {
+            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate,
+            JanusResponseHandler responseHandler) {
         this.rabbitTemplate = rabbitTemplate;
         this.adminRabbitTemplate = adminRabbitTemplate;
+        this.responseHandler = responseHandler;
     }
 
     // ============================================================
@@ -146,7 +151,7 @@ public class JanusRabbitClientOptimized {
      * Створення RTP participant для прийому зовнішнього потоку.
      *
      * Згідно з документацією Janus AudioBridge:
-     * - join з rtp об'єктом (без ip/port = тільки відправка медіа)
+     * - join з rtp об'єктом (БЕЗ ip/port = тільки відправка медіа)
      * - Janus автоматично виділяє UDP порт і повертає його у відповіді
      * - FFmpeg має відправляти RTP на цей порт
      *
@@ -232,7 +237,7 @@ public class JanusRabbitClientOptimized {
     // ============================================================
 
     /**
-     * ✅ НОВИЙ МЕТОД: Отримує список учасників конкретної кімнати.
+     * Отримує список учасників конкретної кімнати.
      * Використовується для перевірки наявності RTP participant при старті сервера.
      *
      * @param roomId ID кімнати
@@ -632,16 +637,67 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+    /**
+     * ✅ ВИПРАВЛЕНО: Асинхронний RPC з кореляцією за transaction ID.
+     *
+     * Проблема: Janus повертає ACK повідомлення БЕЗ correlation_id в AMQP headers.
+     * Рішення: Корелюємо запити та відповіді за полем "transaction" в JSON.
+     *
+     * Flow:
+     * 1. Реєструємо очікування відповіді в JanusResponseHandler
+     * 2. Відправляємо запит через RabbitTemplate
+     * 3. Janus повертає ACK → ігноруємо
+     * 4. Janus повертає реальну відповідь → JanusResponseHandler завершує future
+     * 5. Повертаємо відповідь
+     */
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        Object res = rabbitTemplate.convertSendAndReceive(request);
-        if (res == null) throw new RuntimeException("Таймаут Janus API");
-        return (Map<String, Object>) res;
+        String transactionId = (String) request.get("transaction");
+
+        // Реєструємо очікування відповіді
+        responseHandler.registerPendingResponse(transactionId);
+
+        try {
+            // Відправляємо повідомлення (без очікування відповіді через RabbitTemplate)
+            rabbitTemplate.convertAndSend(request);
+            log.debug("Відправлено запит до Janus: transaction={}", transactionId);
+
+            // Чекаємо на відповідь (таймаут 10 секунд)
+            Map<String, Object> response = responseHandler.waitForResponse(transactionId, 10000);
+
+            log.debug("Отримано відповідь від Janus: transaction={}, type={}",
+                    transactionId, response.get("janus"));
+
+            return response;
+
+        } catch (Exception e) {
+            responseHandler.removePendingResponse(transactionId);
+            throw new RuntimeException("Помилка отримання відповіді від Janus: " + e.getMessage(), e);
+        }
     }
 
+    /**
+     * ✅ ВИПРАВЛЕНО: Асинхронний RPC для Admin API.
+     */
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
-        Object res = adminRabbitTemplate.convertSendAndReceive(request);
-        if (res == null) throw new RuntimeException("Таймаут Janus Admin API");
-        return (Map<String, Object>) res;
+        String transactionId = (String) request.get("transaction");
+
+        responseHandler.registerPendingResponse(transactionId);
+
+        try {
+            adminRabbitTemplate.convertAndSend(request);
+            log.debug("Відправлено admin запит до Janus: transaction={}", transactionId);
+
+            Map<String, Object> response = responseHandler.waitForResponse(transactionId, 10000);
+
+            log.debug("Отримано admin відповідь від Janus: transaction={}, type={}",
+                    transactionId, response.get("janus"));
+
+            return response;
+
+        } catch (Exception e) {
+            responseHandler.removePendingResponse(transactionId);
+            throw new RuntimeException("Помилка отримання admin відповіді від Janus: " + e.getMessage(), e);
+        }
     }
 
     private String generateShortUUID() {
