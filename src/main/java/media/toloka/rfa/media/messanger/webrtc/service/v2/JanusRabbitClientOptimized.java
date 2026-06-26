@@ -9,6 +9,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Оптимізований RPC-клієнт для Janus (v2).
+ *
+ * Ключові особливості:
+ * - Використовує Client API через executeInSession для роботи з плагінами
+ * - Admin API тільки для глобальних команд (list_tokens, add_token, ping)
+ * - createAudioBridgeRoom() налаштовує allow_rtp_participants=true
+ * - createRtpParticipant() створює RTP participant для прийому зовнішніх потоків
+ * - Правильний парсинг відповідей (plugindata.data для Client API)
+ */
 @Service
 public class JanusRabbitClientOptimized {
 
@@ -40,7 +50,12 @@ public class JanusRabbitClientOptimized {
 
     /**
      * Створення аудіокімнати з підтримкою RTP participants.
-     * allow_rtp_participants = true дозволяє приймати зовнішні RTP потоки.
+     * Згідно з документацією Janus: allow_rtp_participants = true дозволяє
+     * приймати зовнішні RTP потоки через RTP participants.
+     *
+     * @param roomId ID кімнати (має збігатися з ID станції з БД)
+     * @param name Назва кімнати
+     * @param rtpPort RTP порт (не використовується для створення кімнати, тільки для логування)
      */
     public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
         if (roomId == null) {
@@ -124,17 +139,24 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-    // RTP PARTICIPANT (НОВЕ!)
+    // RTP PARTICIPANT
     // ============================================================
 
     /**
      * Створення RTP participant для прийому зовнішнього потоку.
-     * Згідно з документацією Janus: join з rtp об'єктом (без ip/port = тільки відправка)
-     * Janus автоматично виділяє порт і повертає його у відповіді.
+     *
+     * Згідно з документацією Janus AudioBridge:
+     * - join з rtp об'єктом (без ip/port = тільки відправка медіа)
+     * - Janus автоматично виділяє UDP порт і повертає його у відповіді
+     * - FFmpeg має відправляти RTP на цей порт
      *
      * @param roomId ID кімнати
      * @param display Ім'я учасника (наприклад, "Radio Stream")
-     * @return Map з інформацією про RTP participant (participantId, rtpIp, rtpPort, payloadType)
+     * @return Map з інформацією про RTP participant:
+     *         - participantId: ID учасника в Janus
+     *         - rtpIp: IP адреса для відправки RTP
+     *         - rtpPort: UDP порт для відправки RTP
+     *         - payloadType: payload type (100 для Opus)
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> createRtpParticipant(Long roomId, String display) {
@@ -152,15 +174,16 @@ public class JanusRabbitClientOptimized {
 
             // ✅ ПРАВИЛЬНИЙ СПОСІБ згідно з документацією:
             // join з rtp об'єктом, де НЕ вказуємо ip та port
+            // Це означає, що учасник тільки ВІДПРАВЛЯЄ медіа (ін'єкція аудіо)
             Map<String, Object> body = new HashMap<>();
             body.put("request", "join");
             body.put("room", roomId);
             body.put("display", display != null ? display : "Radio Stream");
-            body.put("muted", false);
+            body.put("muted", false);  // RTP participant говорить (транслює)
 
             // RTP об'єкт БЕЗ ip та port = тільки відправка медіа
             Map<String, Object> rtp = new HashMap<>();
-            rtp.put("payload_type", 100);
+            rtp.put("payload_type", 100);  // Стандартний PT для Opus в Janus
             body.put("rtp", rtp);
 
             request.put("body", body);
@@ -193,6 +216,7 @@ public class JanusRabbitClientOptimized {
             log.info("RTP participant створено: ID={}, IP={}, Port={}, PT={}",
                     participantId, rtpIp, rtpPort, payloadType);
 
+            // Повертаємо Map з інформацією
             Map<String, Object> result = new HashMap<>();
             result.put("participantId", participantId);
             result.put("rtpIp", rtpIp);
@@ -203,9 +227,16 @@ public class JanusRabbitClientOptimized {
         });
     }
 
+    // ============================================================
+    // ОТРИМАННЯ СПИСКУ УЧАСНИКІВ
+    // ============================================================
+
     /**
      * ✅ НОВИЙ МЕТОД: Отримує список учасників конкретної кімнати.
      * Використовується для перевірки наявності RTP participant при старті сервера.
+     *
+     * @param roomId ID кімнати
+     * @return Список учасників кімнати
      */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getRoomParticipants(Long roomId) {
@@ -242,6 +273,9 @@ public class JanusRabbitClientOptimized {
     // ОТРИМАННЯ СПИСКУ КІМНАТ
     // ============================================================
 
+    /**
+     * Отримує список всіх кімнат з учасниками за один сеанс зв'язку з Janus.
+     */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
@@ -294,6 +328,9 @@ public class JanusRabbitClientOptimized {
         });
     }
 
+    /**
+     * Отримує список ID усіх активних аудіокімнат у Janus.
+     */
     @SuppressWarnings("unchecked")
     public List<Long> getActiveRoomsIds() {
         return executeInSession((sessionId, handleId) -> {
@@ -337,6 +374,9 @@ public class JanusRabbitClientOptimized {
     // РОБОТА З КОРИСТУВАЧАМИ
     // ============================================================
 
+    /**
+     * Перевіряє, чи є користувач в кімнаті.
+     */
     @SuppressWarnings("unchecked")
     public boolean isUserInAudioRoom(Long roomId, String userToken) {
         return executeInSession((sessionId, handleId) -> {
@@ -374,6 +414,9 @@ public class JanusRabbitClientOptimized {
         });
     }
 
+    /**
+     * Примусово видаляє користувача з кімнати (kick).
+     */
     @SuppressWarnings("unchecked")
     public void kickUserFromAudioBridgeRoom(Long roomId, String userToken) {
         if (roomId == null || userToken == null) return;
@@ -438,6 +481,9 @@ public class JanusRabbitClientOptimized {
     // ADMIN API
     // ============================================================
 
+    /**
+     * Перевірка зв'язку з Janus Admin API.
+     */
     public boolean pingJanus() {
         String transactionId = "ping-" + generateShortUUID();
         Map<String, Object> request = Map.of(
@@ -454,6 +500,9 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+    /**
+     * Реєстрація токена користувача в Janus.
+     */
     public void registerUserToken(String userToken) {
         String transactionId = "token-reg-" + generateShortUUID();
         Map<String, Object> request = Map.of(
@@ -470,6 +519,9 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+    /**
+     * Отримання списку всіх зареєстрованих токенів.
+     */
     @SuppressWarnings("unchecked")
     public Set<String> getAllUsersTokenFromJanus() {
         String transactionId = "user-token-list-" + generateShortUUID();
@@ -496,6 +548,9 @@ public class JanusRabbitClientOptimized {
         return setTokens;
     }
 
+    /**
+     * Перевірка наявності токена користувача в Janus.
+     */
     public Boolean checkUserTokenInJanus(String uuidUser) {
         if (uuidUser == null || uuidUser.trim().isEmpty()) return false;
 

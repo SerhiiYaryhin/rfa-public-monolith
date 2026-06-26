@@ -1,7 +1,8 @@
 package media.toloka.rfa.media.messanger.webrtc.controller.v2;
 
 import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
-import media.toloka.rfa.media.messanger.webrtc.service.v2.RadioLiveServiceV2;
+import media.toloka.rfa.media.messanger.webrtc.service.v2.AudioRoomServiceV2;
+import media.toloka.rfa.media.messanger.webrtc.service.v2.BroadcastServiceV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -10,20 +11,30 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * REST-контролер для керування живими WebRTC трансляціями (v2).
+ * Делегує роботу до двох сервісів:
+ * - BroadcastServiceV2 - управління трансляціями
+ * - AudioRoomServiceV2 - управління кімнатами та користувачами
+ */
 @RestController
 @RequestMapping("/api/v1q/webrtc/stream")
 public class JanusLiveControllerV2 {
 
     private static final Logger logger = LoggerFactory.getLogger(JanusLiveControllerV2.class);
 
-    private final RadioLiveServiceV2 radioLiveService;
+    private final BroadcastServiceV2 broadcastService;
+    private final AudioRoomServiceV2 audioRoomService;
 
-    public JanusLiveControllerV2(RadioLiveServiceV2 radioLiveService) {
-        this.radioLiveService = radioLiveService;
+    public JanusLiveControllerV2(
+            BroadcastServiceV2 broadcastService,
+            AudioRoomServiceV2 audioRoomService) {
+        this.broadcastService = broadcastService;
+        this.audioRoomService = audioRoomService;
     }
 
     // ============================================================
-    // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ
+    // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ (делегуємо до BroadcastServiceV2)
     // ============================================================
 
     @PostMapping("/start")
@@ -31,7 +42,7 @@ public class JanusLiveControllerV2 {
         logger.info("Запит на запуск стріму: stationId={}", stationId);
 
         try {
-            JanusLiveStream stream = radioLiveService.startBroadcast(stationId);
+            JanusLiveStream stream = broadcastService.startBroadcast(stationId);
 
             return ResponseEntity.ok(Map.of(
                     "status", "started",
@@ -54,7 +65,7 @@ public class JanusLiveControllerV2 {
         logger.info("Запит на зупинку стріму: stationId={}", stationId);
 
         try {
-            radioLiveService.stopBroadcast(stationId);
+            broadcastService.stopBroadcast(stationId);
 
             return ResponseEntity.ok(Map.of(
                     "status", "stopped",
@@ -71,14 +82,14 @@ public class JanusLiveControllerV2 {
     }
 
     // ============================================================
-    // ТОКЕНИ ТА АВТОРИЗАЦІЯ
+    // ТОКЕНИ ТА АВТОРИЗАЦІЯ (делегуємо до AudioRoomServiceV2)
     // ============================================================
 
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
         logger.debug("Запит токена користувача");
 
-        String token = radioLiveService.generateAndRegisterToken();
+        String token = audioRoomService.generateAndRegisterToken();
 
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -92,7 +103,7 @@ public class JanusLiveControllerV2 {
     }
 
     // ============================================================
-    // СПИСОК КІМНАТ
+    // СПИСОК КІМНАТ (делегуємо до AudioRoomServiceV2)
     // ============================================================
 
     @GetMapping("/rooms")
@@ -100,7 +111,7 @@ public class JanusLiveControllerV2 {
         logger.debug("Запит списку кімнат");
 
         try {
-            return ResponseEntity.ok(radioLiveService.getActiveRoomsInfo());
+            return ResponseEntity.ok(audioRoomService.getActiveRoomsInfo());
         } catch (Exception e) {
             logger.error("Помилка отримання списку кімнат", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -112,7 +123,7 @@ public class JanusLiveControllerV2 {
     }
 
     // ============================================================
-    // ПІДКЛЮЧЕННЯ ДО КІМНАТИ
+    // ПІДКЛЮЧЕННЯ ДО КІМНАТИ (делегуємо до AudioRoomServiceV2)
     // ============================================================
 
     @PostMapping("/connectclienttoroom")
@@ -139,7 +150,7 @@ public class JanusLiveControllerV2 {
         Long roomID = roomIdNum.longValue();
 
         try {
-            Object result = radioLiveService.connectClientToAudioRoom(roomID);
+            Object result = audioRoomService.connectClientToAudioRoom(roomID);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("Помилка підключення до кімнати {}", roomID, e);
@@ -157,43 +168,11 @@ public class JanusLiveControllerV2 {
 
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {
-        boolean ok = radioLiveService.pingJanus();
+        boolean ok = audioRoomService.pingJanus();
 
         return ResponseEntity.ok(Map.of(
                 "janus_admin_api", ok ? "up" : "down",
                 "message", ok ? "Зв'язок з Janus встановлено" : "Помилка зв'язку"
         ));
-    }
-
-    /**
-     * Створення RTP participant для прийому зовнішнього потоку.
-     * ✅ ВИПРАВЛЕНО: Прибрано пробіли в ключах Map
-     */
-    @PostMapping("/create-rtp-participant")
-    public ResponseEntity<?> createRtpParticipant(
-            @RequestParam Long roomId,
-            @RequestParam(defaultValue = "Radio Stream") String display) {
-
-        logger.info("Запит на створення RTP participant: room={}, display={}", roomId, display);
-
-        try {
-            Map<String, Object> rtpInfo = radioLiveService.createRtpParticipant(roomId, display);
-
-            return ResponseEntity.ok(Map.of(
-                    "status", "created",
-                    "participant_id", rtpInfo.get("participantId"),
-                    "room_id", roomId,
-                    "rtp_ip", rtpInfo.get("rtpIp"),
-                    "rtp_port", rtpInfo.get("rtpPort"),
-                    "payload_type", rtpInfo.get("payloadType")
-            ));
-        } catch (Exception e) {
-            logger.error("Помилка створення RTP participant", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "status", "error",
-                            "message", e.getMessage()
-                    ));
-        }
     }
 }

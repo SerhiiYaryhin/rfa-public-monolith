@@ -23,17 +23,21 @@ def start_ffmpeg(station_id, stream_url, rtp_url):
         return
 
     # Команда FFmpeg для містка між Icecast та WebRTC
-    cmd = [
-        'ffmpeg',
-        '-re',                         # Читати вхідний потік зі швидкістю реального часу
-        '-i', stream_url,              # Вхідний URL (джерело радіо)
-        '-acodec', 'libopus',          # Обов'язковий кодек для WebRTC
-        '-ar', '48000',                # Частота дискретизації (AudioBridge стандарт)
-        '-ac', '2',                    # Стерео звук
-        '-payload_type', '111',         # (Ваше виправлення) Явно маркуємо RTP пакети як 111
-        '-f', 'rtp',                   # Формат виводу — RTP
-        rtp_url                        # Ціль (наприклад, rtp://janus.rfa:10010)
-    ]
+cmd = [
+    'ffmpeg',
+    '-re',
+    '-i', stream_url,
+    '-acodec', 'libopus',
+    '-b:a', '128k',
+    '-ar', '48000',
+    '-ac', '2',
+    '-application', 'audio',
+    '-vbr', 'on',
+    '-compression_level', '10',
+    '-payload_type', '100',  # ✅ ВИПРАВЛЕНО: 111 → 100 (стандарт Janus)
+    '-f', 'rtp',
+    rtp_url
+]
 
     print(f"[{station_id}] Запуск FFmpeg: {' '.join(cmd)}")
 
