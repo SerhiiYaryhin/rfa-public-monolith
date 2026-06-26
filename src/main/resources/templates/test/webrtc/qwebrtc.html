@@ -4,431 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFA WebRTC - Прямий Ефір</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .audio-player-section {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .audio-player-section h2 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        #audioPlayer {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .rooms-section {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .rooms-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .rooms-header h2 {
-            color: #333;
-            font-size: 20px;
-        }
-
-        .btn-refresh {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-
-        .btn-refresh:hover {
-            background: #5568d3;
-        }
-
-        #roomsList {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-
-        .room-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-            transition: all 0.3s;
-        }
-
-        .room-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-
-        .room-card-live {
-            border-color: #e74c3c;
-            background: linear-gradient(to bottom, #fff5f5, white);
-        }
-
-        .room-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .room-title-container {
-            flex: 1;
-        }
-
-        .room-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .room-id, .station-tag, .rtp-port-tag {
-            font-size: 11px;
-            color: #666;
-            margin-right: 8px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .badge-live-pulse {
-            background: #e74c3c;
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .room-body {
-            margin-bottom: 15px;
-        }
-
-        .participants-title {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .user-list {
-            list-style: none;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .user-item {
-            display: flex;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .user-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-avatar {
-            font-size: 18px;
-            margin-right: 8px;
-        }
-
-        .user-name {
-            flex: 1;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .user-id {
-            font-size: 11px;
-            color: #999;
-            margin-left: 5px;
-        }
-
-        .state-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 8px;
-            margin-left: 8px;
-        }
-
-        .state-badge.talking {
-            background: #27ae60;
-            color: white;
-        }
-
-        .state-badge.muted {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .state-badge.active {
-            background: #3498db;
-            color: white;
-        }
-
-        .no-users {
-            color: #999;
-            font-size: 12px;
-            font-style: italic;
-            padding: 10px 0;
-        }
-
-        .room-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .btn-action-room {
-            flex: 1;
-            min-width: 100px;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-action-room:hover {
-            background: #5568d3;
-            transform: translateY(-1px);
-        }
-
-        .btn-stop-stream {
-            background: #e74c3c;
-        }
-
-        .btn-stop-stream:hover {
-            background: #c0392b;
-        }
-
-        .btn-join-room {
-            background: #27ae60;
-        }
-
-        .btn-join-room:hover {
-            background: #229954;
-        }
-
-        .no-rooms {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-        }
-
-        .no-rooms-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .no-rooms-text {
-            font-size: 16px;
-        }
-
-        .console-section {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .console-header {
-            color: #00ff00;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-family: 'Courier New', monospace;
-        }
-
-        #logConsole {
-            background: #0d0d0d;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 6px;
-            height: 300px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        #logConsole div {
-            margin-bottom: 4px;
-        }
-
-        .badge-info {
-            background: #3498db;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-
-        .badge-success {
-            background: #27ae60;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-
-        .badge-error {
-            background: #e74c3c;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-
-        .badge-debug {
-            background: #95a5a6;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-
-        .error-box {
-            background: #fee;
-            border: 2px solid #e74c3c;
-            color: #c0392b;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 10px 0;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-connected {
-            background: #27ae60;
-            box-shadow: 0 0 8px #27ae60;
-        }
-
-        .status-disconnected {
-            background: #e74c3c;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        /* Поточна кімната користувача */
-        .room-card-current {
-            border-color: #667eea;
-            background: linear-gradient(to bottom, #f0f4ff, white);
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Заблоковані кнопки */
-        .btn-action-room:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        /* Кнопка запуску стріму (зелена) */
-        .btn-start-stream {
-            background: #27ae60 !important;
-        }
-        .btn-start-stream:hover:not(:disabled) {
-            background: #229954 !important;
-        }
-
-        /* Кнопка зупинки стріму (червона) */
-        .btn-stop-stream {
-            background: #e74c3c !important;
-        }
-        .btn-stop-stream:hover:not(:disabled) {
-            background: #c0392b !important;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/webrtc/qwebrtc.css">
 </head>
 <body>
 <div class="container">
     <!-- Заголовок -->
     <div class="header">
         <h1>📡 RFA WebRTC - Прямий Ефір</h1>
-        <p>Автоматичне підключення з токенною авторизацією</p>
-        <div class="connection-status">
-            <span id="statusIndicator" class="status-indicator status-disconnected"></span>
+        <div class="status-container">
+            <div id="statusIndicator" class="status-indicator"></div>
             <span id="statusText">Відключено</span>
         </div>
     </div>
@@ -443,7 +27,7 @@
     <div class="rooms-section">
         <div class="rooms-header">
             <h2>🎙️ Активні кімнати</h2>
-            <button class="btn-refresh" onclick="loadRooms()">🔄 Оновити</button>
+            <button class="btn-refresh" onclick="UIRenderer.loadRooms()">🔄 Оновити</button>
         </div>
         <div id="roomsList">
             <div class="no-rooms">
@@ -453,18 +37,24 @@
         </div>
     </div>
 
-    <!-- Консоль -->
-    <div class="console-section">
-        <div class="console-header">-- СИСТЕМНИЙ ЖУРНАЛ --</div>
+    <!-- Системний журнал -->
+    <div class="log-section">
+        <h2>-- СИСТЕМНИЙ ЖУРНАЛ --</h2>
         <div id="logConsole"></div>
     </div>
 </div>
 
-<!-- Janus.js бібліотека -->
+<!-- Залежності -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.2/adapter.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
+<script src="https://janus.conf.meetecho.com/janus.js"></script>
 
-<!-- Ваш оновлений JavaScript -->
-<script src="/js/webrtc/qwebrtc.js"></script>
+<!-- Наші модулі (порядок важливий!) -->
+<script src="/js/webrtc/v2/config.js"></script>
+<script src="/js/webrtc/v2/logger.js"></script>
+<script src="/js/webrtc/v2/janus-connection.js"></script>
+<script src="/js/webrtc/v2/room-manager.js"></script>
+<script src="/js/webrtc/v2/stream-manager.js"></script>
+<script src="/js/webrtc/v2/ui-renderer.js"></script>
+<script src="/js/webrtc/v2/main.js"></script>
 </body>
 </html>
