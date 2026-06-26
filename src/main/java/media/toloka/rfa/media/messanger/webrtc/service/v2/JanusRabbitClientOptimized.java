@@ -49,20 +49,16 @@ public class JanusRabbitClientOptimized {
     // ============================================================
 
     /**
-     * Створення аудіокімнати з підтримкою зовнішнього RTP потоку.
-     * Використовує rtp_stream параметри для прийому вхідного потоку від FFmpeg.
-     *
-     * @param roomId ID кімнати
-     * @param name Назва кімнати
-     * @param rtpPort UDP порт для прийому RTP від FFmpeg
+     * Створення звичайної аудіокімнати БЕЗ підтримки RTP.
+     * RTP forward створюється окремим запитом через createRtpForward().
      */
-    public void createAudioBridgeRoom(Long roomId, String name, Integer rtpPort) {
+    public void createAudioBridgeRoom(Long roomId, String name) {
         if (roomId == null) {
             log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
             return;
         }
 
-        log.info("Створення аудіокімнати в Janus. ID: {}, Назва: {}, RTP порт: {}", roomId, name, rtpPort);
+        log.info("Створення аудіокімнати в Janus. ID: {}, Назва: {}", roomId, name);
 
         try {
             executeInSession((sessionId, handleId) -> {
@@ -84,21 +80,14 @@ public class JanusRabbitClientOptimized {
                 body.put("is_private", false);
                 body.put("audio_level_average", 25);
 
-                // ✅ ВИПРАВЛЕНО: Використовуємо rtp_stream параметри для прийому зовнішнього потоку
-                if (rtpPort != null && rtpPort > 0) {
-                    body.put("rtp_stream", true);
-                    body.put("rtp_stream_port", rtpPort);
-                    body.put("rtp_stream_codec", "opus");
-                    body.put("rtp_stream_sample_rate", 48000);
-                    body.put("rtp_stream_channels", 2);
-                }
+                // ❌ НЕ потрібно: allow_rtp_participants, rtp_stream
 
                 request.put("body", body);
 
                 Map<String, Object> response = sendAndReceive(request);
                 validatePluginResponse(response);
 
-                log.info("Аудіокімнату ID: {} ('{}') успішно створено з RTP портом {}", roomId, name, rtpPort);
+                log.info("Аудіокімнату ID: {} ('{}') успішно створено", roomId, name);
                 return null;
             });
         } catch (Exception e) {
@@ -142,6 +131,97 @@ public class JanusRabbitClientOptimized {
             log.error("Не вдалося видалити кімнату " + janusRoomId + " з Janus: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Створення RTP forward для прийому зовнішнього потоку в кімнату.
+     *
+     * Це ПРАВИЛЬНИЙ механізм згідно з документацією Janus AudioBridge.
+     * Janus починає слухати RTP на вказаному порту і міксує його з іншими учасниками.
+     *
+     * @param roomId ID кімнати
+     * @param rtpPort UDP порт, на якому Janus буде слухати RTP
+     * @return stream_id для подальшого управління (зупинка forward)
+     */
+    @SuppressWarnings("unchecked")
+    public Long createRtpForward(Long roomId, Integer rtpPort) {
+        if (roomId == null || rtpPort == null) {
+            throw new IllegalArgumentException("roomId та rtpPort не можуть бути null");
+        }
+
+        log.info("Створення RTP forward в кімнаті {} на порту {}", roomId, rtpPort);
+
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "rtp-forward-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "rtp_forward");
+            body.put("room", roomId);
+            body.put("secret", apiSecret);
+            body.put("host", "0.0.0.0");
+            body.put("port", rtpPort);
+            body.put("ptype", 100);  // Payload Type для Opus
+            body.put("ssrc", roomId * 1000);  // Унікальний SSRC для кожної кімнати
+
+            request.put("body", body);
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            if (plugindata == null) {
+                throw new RuntimeException("plugindata відсутній у відповіді");
+            }
+
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            if (data == null) {
+                throw new RuntimeException("data відсутній у plugindata");
+            }
+
+            Long streamId = ((Number) data.get("stream_id")).longValue();
+
+            log.info("RTP forward створено: stream_id={}, room={}, port={}",
+                    streamId, roomId, rtpPort);
+
+            return streamId;
+        });
+    }
+
+    /**
+     * Зупинка RTP forward.
+     *
+     * @param roomId ID кімнати
+     * @param streamId ID потоку (повернутий createRtpForward)
+     */
+    public void stopRtpForward(Long roomId, Long streamId) {
+        if (roomId == null || streamId == null) return;
+
+        log.info("Зупинка RTP forward: stream_id={} в кімнаті {}", streamId, roomId);
+
+        executeInSession((sessionId, handleId) -> {
+            String transactionId = "stop-rtp-forward-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "stop_rtp_forward");
+            body.put("room", roomId);
+            body.put("secret", apiSecret);
+            body.put("stream_id", streamId);
+
+            request.put("body", body);
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            log.info("RTP forward зупинено: stream_id={}", streamId);
+            return null;
+        });
+    }
+
 
     // ============================================================
     // ОТРИМАННЯ СПИСКУ КІМНАТ

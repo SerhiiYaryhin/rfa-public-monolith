@@ -127,15 +127,20 @@ public class RadioLiveServiceV2 {
 
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
 
-            // 1. Створюємо кімнату з rtp_stream параметрами для прийому зовнішнього потоку
-            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId, freePort);
-            log.info("Кімнату {} створено з RTP портом {}", janusRoomId, freePort);
+            // 1. Створюємо звичайну кімнату (без rtp_stream, без allow_rtp_participants)
+            janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId);
+            log.info("Кімнату {} створено", janusRoomId);
 
-            // 2. Надсилаємо команду FFmpeg на виділений порт
+            // 2. Створюємо RTP forward на виділений порт
+            Long streamId = janusClient.createRtpForward(janusRoomId, freePort);
+            log.info("RTP forward створено: stream_id={}, port={}", streamId, freePort);
+
+            // 3. Надсилаємо команду FFmpeg на цей порт
             String rtpUrl = String.format("rtp://janus.rfa:%d?pkt_size=1200", freePort);
             sendFfmpegCommand("start", stationId, sourceStreamUrl, rtpUrl);
 
-            return portService.saveActiveStream(stationId, janusRoomId, freePort, 0);
+            // 4. Зберігаємо стан у БД (streamId для подальшої зупинки)
+            return portService.saveActiveStream(stationId, janusRoomId, freePort, streamId);
         });
     }
 
@@ -144,7 +149,20 @@ public class RadioLiveServiceV2 {
     public void stopBroadcast(String stationId) {
         portService.getStreamByStation(stationId).ifPresent(stream -> {
             log.info("Зупинка трансляції: {}", stationId);
+
+            // Зупиняємо FFmpeg
             sendFfmpegCommand("stop", stationId, null, null);
+
+            // Зупиняємо RTP forward
+            if (stream.getFfmpegPid() != null && stream.getFfmpegPid() > 0) {
+                try {
+                    janusClient.stopRtpForward(stream.getJanusRoomId(), stream.getFfmpegPid());
+                } catch (Exception e) {
+                    log.warn("Помилка зупинки RTP forward: {}", e.getMessage());
+                }
+            }
+
+            // Видаляємо з БД
             portService.deleteStream(stationId);
         });
     }
