@@ -2,10 +2,10 @@ package media.toloka.rfa.media.messanger.webrtc.config;
 
 import com.google.gson.Gson;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,13 +13,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Конфігурація RabbitMQ для взаємодії з Janus.
+ * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
  *
- * ВИПРАВЛЕНО:
- * - Видалено SimpleMessageListenerContainer з rabbitTemplate як listener
- * - Видалено setReplyAddress() з RabbitTemplate
- * - Додано SimpleRabbitListenerContainerFactory з janusMessageConverter для @RabbitListener
- * - Тепер використовуємо асинхронний підхід: convertAndSend() + @RabbitListener
+ * Повернено до робочої конфігурації v1 з SimpleMessageListenerContainer.
+ * Ця конфігурація перевірено працює з Janus.
  */
 @Configuration
 public class JanusRabbitConfig {
@@ -60,6 +57,9 @@ public class JanusRabbitConfig {
         this.gson = gson;
     }
 
+    /**
+     * Виділене підключення до RabbitMQ для Janus.
+     */
     @Bean(name = "janusConnectionFactory")
     public ConnectionFactory janusConnectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(rabbitHost, rabbitPort);
@@ -69,52 +69,68 @@ public class JanusRabbitConfig {
         return connectionFactory;
     }
 
+    /**
+     * Конвертер для автоматичного перетворення Java-об'єктів у JSON.
+     */
     @Bean(name = "janusMessageConverter")
     public MessageConverter janusMessageConverter() {
         return new GsonAmqpMessageConverter(gson);
     }
 
     /**
-     * ✅ ВИПРАВЛЕНО: RabbitTemplate БЕЗ replyAddress та БЕЗ listener container.
-     * Використовується тільки для convertAndSend() (без очікування відповіді).
+     * Шаблон для Client API.
      */
     @Bean(name = "janusRabbitTemplate")
     public RabbitTemplate janusRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanus);
-        // ❌ ВИДАЛЕНО: rabbitTemplate.setReplyAddress(queueJanusFrom);
+        rabbitTemplate.setReplyAddress(queueJanusFrom);
+        rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
     }
 
+    /**
+     * Шаблон для Admin API.
+     */
     @Bean(name = "janusAdminRabbitTemplate")
     public RabbitTemplate janusAdminRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
-        // ❌ ВИДАЛЕНО: rabbitTemplate.setReplyAddress(queueJanusAdminFrom);
+        rabbitTemplate.setReplyAddress(queueJanusAdminFrom);
+        rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
     }
 
-    // ❌ ВИДАЛЕНО: janusReplyListenerContainer та janusAdminReplyListenerContainer
-    // Тепер використовуємо @RabbitListener в JanusResponseHandler
+    /**
+     * Контейнер для прослуховування черги відповідей Client API.
+     */
+    @Bean
+    public SimpleMessageListenerContainer janusReplyListenerContainer(
+            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusFrom));
+        container.setMessageListener(rabbitTemplate);
+        return container;
+    }
 
     /**
-     * ✅ НОВЕ: Factory для @RabbitListener з правильним MessageConverter.
-     * Це гарантує, що JSON byte[] буде конвертовано в Map<String, Object>.
+     * Контейнер для прослуховування черги відповідей Admin API.
      */
-    @Bean(name = "janusListenerContainerFactory")
-    public SimpleRabbitListenerContainerFactory janusListenerContainerFactory(
-            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setMessageConverter(janusMessageConverter());  // ← Ключовий момент!
-        factory.setConcurrentConsumers(1);
-        factory.setMaxConcurrentConsumers(3);
-        return factory;
+    @Bean
+    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
+            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusAdminFrom));
+        container.setMessageListener(rabbitTemplate);
+        return container;
     }
 
     // --- ОГОЛОШЕННЯ ЧЕРГ ---
+
     @Bean
     public Queue myQueueJanus() {
         return new Queue(queueJanus, true, false, false);
@@ -123,20 +139,5 @@ public class JanusRabbitConfig {
     @Bean
     public Queue myQueueJanusAdmin() {
         return new Queue(queueJanusAdmin, true, false, false);
-    }
-
-    /**
-     * ✅ ВИПРАВЛЕНО: durable=false для сумісності з існуючою чергою в RabbitMQ.
-     * Якщо черга вже існує з durable=true, видаліть її через RabbitMQ CLI:
-     * rabbitmqctl delete_queue from-janus -p /rfa-dev
-     */
-    @Bean
-    public Queue fromJanusQueue() {
-        return new Queue("from-janus", false, false, false);
-    }
-
-    @Bean
-    public Queue fromJanusAdminQueue() {
-        return new Queue("from-janus-admin", false, false, false);
     }
 }

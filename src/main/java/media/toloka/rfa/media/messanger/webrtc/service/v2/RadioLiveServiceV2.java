@@ -13,13 +13,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.annotation.PostConstruct;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Високорівневий сервіс для керування прямими ефірами через WebRTC (v2).
+ *
+ * Ключові відмінності від v1:
+ * - Використовує JanusRabbitClientOptimized
+ * - Автоматичний запуск трансляцій при старті сервера (@EventListener)
+ * - createAudioBridgeRoom() налаштовує allow_rtp_participants=true
+ * - startBroadcast() створює RTP participant і отримує порт від Janus
+ */
 @Service
 public class RadioLiveServiceV2 {
 
@@ -51,15 +61,15 @@ public class RadioLiveServiceV2 {
     }
 
     // ============================================================
-    // ІНІЦІАЛІЗАЦІЯ ПРИ СТАРТІ СЕРВЕРА (ВИПРАВЛЕНО!)
+    // ІНІЦІАЛІЗАЦІЯ ПРИ СТАРТІ СЕРВЕРА
     // ============================================================
 
     /**
      * Автоматичний запуск трансляцій при старті сервера.
-     * ВИПРАВЛЕНО: Тепер перевіряє наявність RTP participant в Janus
-     * і створює його, якщо відсутній.
+     * Використовуємо @EventListener(ApplicationReadyEvent.class) замість @PostConstruct,
+     * щоб гарантувати, що Spring AMQP повністю ініціалізований.
      */
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void initializeBroadcasts() {
         log.info("🚀 Ініціалізація трансляцій при старті сервера...");
@@ -81,7 +91,6 @@ public class RadioLiveServiceV2 {
                 Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationId);
 
                 if (existingStream.isPresent()) {
-                    // ✅ Запис є в БД, але перевіряємо чи є RTP participant в Janus
                     log.info("Станція {} має запис в БД на порту {}. Перевіряємо RTP participant...",
                             station.getName(), existingStream.get().getRtpPort());
 
@@ -91,14 +100,12 @@ public class RadioLiveServiceV2 {
                         if (!hasRtpParticipant) {
                             log.info("RTP participant відсутній в кімнаті {}. Створюємо...", janusRoomId);
 
-                            // Перевіряємо чи існує кімната в Janus
                             List<Long> activeRooms = janusClient.getActiveRoomsIds();
                             if (!activeRooms.contains(janusRoomId)) {
                                 log.info("Кімната {} відсутня в Janus. Створюємо...", janusRoomId);
                                 janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + station.getName(), null);
                             }
 
-                            // Створюємо RTP participant
                             Map<String, Object> rtpInfo = janusClient.createRtpParticipant(janusRoomId, "Radio " + station.getName());
                             Integer newRtpPort = (Integer) rtpInfo.get("rtpPort");
                             Long participantId = (Long) rtpInfo.get("participantId");
@@ -106,10 +113,8 @@ public class RadioLiveServiceV2 {
                             log.info("✅ RTP participant {} створено для кімнати {} на порту {}",
                                     participantId, janusRoomId, newRtpPort);
 
-                            // Оновлюємо запис в БД з новим портом
                             portService.updateStreamPort(stationId, newRtpPort);
 
-                            // Запускаємо FFmpeg на новий порт
                             String rtpIp = (String) rtpInfo.get("rtpIp");
                             String rtpUrl = String.format("rtp://%s:%d?pkt_size=1200", rtpIp, newRtpPort);
                             sendFfmpegCommand("start", stationId, "http://icecast.rfa:8000/ukraine", rtpUrl);
@@ -122,7 +127,6 @@ public class RadioLiveServiceV2 {
                                 station.getName(), e.getMessage(), e);
                     }
                 } else {
-                    // Немає запису в БД — запускаємо повний flow
                     log.info("Станція {} не має активної трансляції. Запускаємо...", station.getName());
 
                     try {
@@ -144,7 +148,6 @@ public class RadioLiveServiceV2 {
 
     /**
      * Перевіряє чи є RTP participant в кімнаті.
-     * Шукає учасника з display, що містить "Radio" або "Stream".
      */
     private boolean checkRtpParticipantExists(Long roomId) {
         try {
@@ -273,7 +276,6 @@ public class RadioLiveServiceV2 {
             }
         }
 
-        // Синхронізація: видаляємо зайві кімнати з Janus
         for (Long janusRoomId : janusRoomsMap.keySet()) {
             if (!validRoomIds.contains(janusRoomId)) {
                 log.warn("Зайва кімната в Janus: {}. Видаляємо...", janusRoomId);
@@ -300,7 +302,6 @@ public class RadioLiveServiceV2 {
             }
         }
 
-        // Збагачуємо дані станцій інформацією з Janus
         for (StationDto station : activeStations) {
             Long roomId = station.getId();
             String stationIdStr = String.valueOf(roomId);
@@ -407,17 +408,11 @@ public class RadioLiveServiceV2 {
         return janusClient.getApiSecret();
     }
 
-    /**
-     * Створення RTP participant для прийому зовнішнього потоку.
-     */
     public Map<String, Object> createRtpParticipant(Long roomId, String display) {
         log.info("Створення RTP participant в кімнаті {} з display '{}'", roomId, display);
         return janusClient.createRtpParticipant(roomId, display);
     }
 
-    /**
-     * Відправляє команду FFmpeg агенту через RabbitMQ.
-     */
     private void sendFfmpegCommand(String command, String stationId, String streamUrl, String rtpUrl) {
         try {
             Map<String, Object> message = new HashMap<>();
