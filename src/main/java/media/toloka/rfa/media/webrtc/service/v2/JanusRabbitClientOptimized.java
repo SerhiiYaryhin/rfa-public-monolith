@@ -138,6 +138,116 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
+// RTP PARTICIPANTS (НОВИЙ МЕХАНІЗМ з PR #2464)
+// ============================================================
+
+    /**
+     ✅ НОВЕ: Створення RTP учасника в аудіокімнаті.
+     Це ПРАВИЛЬНИЙ механізм для прийому зовнішнього RTP потоку.
+     Janus повертає IP та порт, на який потрібно відправляти RTP.
+
+     @param roomId ID кімнати
+     @param participantId Унікальний ID учасника (наприклад, stationId)
+     @param display Ім'я учасника (для відображення)
+     @return Map з ip та port для відправки RTP
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> createRtpParticipant(Long roomId, String participantId, String display) {
+        if (roomId == null || participantId == null) {
+            throw new IllegalArgumentException("roomId та participantId не можуть бути null");
+        }
+
+        log.info("Створення RTP учасника {} в кімнаті {}", participantId, roomId);
+
+        return executeInSession((sessionId, handleId) -> {
+            String transactionId = "rtp-participant-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "join");
+            body.put("room", roomId);
+            body.put("id", Long.parseLong(participantId.replaceAll("[^0-9]", "")));
+            body.put("display", display);
+            body.put("muted", false);
+            body.put("secret", apiSecret);
+
+            // ✅ КЛЮЧОВИЙ ПАРАМЕТР: RTP конфігурація
+            // Якщо ip/port не вказані, Janus сам виділить порт для прийому
+            body.put("rtp", Map.of(
+                    "payload_type", 100,  // Opus
+                    "audiolevel_ext", false
+            ));
+
+            request.put("body", body);
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+            if (plugindata == null) {
+                throw new RuntimeException("plugindata відсутній у відповіді");
+            }
+
+            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+            if (data == null) {
+                throw new RuntimeException("data відсутній у plugindata");
+            }
+
+            // ✅ Janus повертає RTP конфігурацію
+            Map<String, Object> rtpConfig = (Map<String, Object>) data.get("rtp");
+            if (rtpConfig == null) {
+                throw new RuntimeException("RTP конфігурація відсутня у відповіді");
+            }
+
+            String rtpIp = (String) rtpConfig.get("ip");
+            Integer rtpPort = ((Number) rtpConfig.get("port")).intValue();
+
+            log.info("✅ RTP учасника створено: participantId={}, ip={}, port={}",
+                    participantId, rtpIp, rtpPort);
+
+            return Map.of(
+                    "participantId", participantId,
+                    "ip", rtpIp,
+                    "port", rtpPort
+            );
+        });
+    }
+
+    /**
+     ✅ НОВЕ: Видалення RTP учасника з кімнати.
+     @param roomId ID кімнати
+     @param participantId ID учасника
+     */
+    public void removeRtpParticipant(Long roomId, String participantId) {
+        if (roomId == null || participantId == null) return;
+
+        log.info("Видалення RTP учасника {} з кімнати {}", participantId, roomId);
+
+        executeInSession((sessionId, handleId) -> {
+            String transactionId = "remove-rtp-participant-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "kick");
+            body.put("room", roomId);
+            body.put("id", Long.parseLong(participantId.replaceAll("[^0-9]", "")));
+            body.put("secret", apiSecret);
+
+            request.put("body", body);
+
+            Map<String, Object> response = sendAndReceive(request);
+            validatePluginResponse(response);
+
+            log.info("✅ RTP учасника {} видалено з кімнати {}", participantId, roomId);
+            return null;
+        });
+    }
+
+    // ============================================================
     // RTP FORWARD (НОВИЙ МЕХАНІЗМ)
     // ============================================================
 
