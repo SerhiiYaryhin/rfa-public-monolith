@@ -279,7 +279,7 @@ public class JanusRabbitClientOptimized {
             body.put("request", "rtp_forward");
             body.put("room", roomId);
             body.put("secret", apiSecret);
-            body.put("host", "0.0.0.0");
+            //body.put("host", "0.0.0.0");
             body.put("port", rtpPort);
             body.put("ptype", 100);
             body.put("ssrc", roomId * 1000);
