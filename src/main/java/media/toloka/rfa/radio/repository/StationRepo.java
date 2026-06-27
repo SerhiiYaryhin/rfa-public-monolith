@@ -47,7 +47,7 @@ public interface StationRepo extends JpaRepository<Station, Long> {
 //            "AND m.roomOnlineStatus = true")
 //    List<StationDto> findActiveStationsDto();
 
-    @Query("SELECT new media.toloka.rfa.media.messanger.webrtc.model.dto.StationDto(" +
+    @Query("SELECT new media.toloka.rfa.media.webrtc.model.dto.StationDto(" +
             "  s.id, s.name, s.description, s.uuid, s.roomuuid, s.stationstate, s.serverState, " +
             "  m.roomname, m.roomOnlineStatus, m.startonline) " +
             "FROM Station s " +
