@@ -299,7 +299,8 @@ public class JanusRabbitClientOptimized {
                 throw new RuntimeException("data відсутній у plugindata");
             }
 
-            Long streamId = ((Number) data.get("stream_id")).longValue();
+            Long streamId = null;
+            if (data.get("stream_id") != null )  streamId = ((Number) data.get("stream_id")).longValue();
 
             log.info("RTP forward створено: stream_id={}, room={}, port={}",
                     streamId, roomId, rtpPort);
