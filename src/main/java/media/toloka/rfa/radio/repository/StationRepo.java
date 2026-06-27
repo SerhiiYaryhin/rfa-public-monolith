@@ -1,7 +1,7 @@
 package media.toloka.rfa.radio.repository;
 
 
-import media.toloka.rfa.media.messanger.webrtc.model.dto.StationDto;
+import media.toloka.rfa.media.webrtc.model.dto.StationDto;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Contract;
 import media.toloka.rfa.radio.model.Station;

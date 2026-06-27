@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.controller;
+package media.toloka.rfa.media.webrtc.controller;
 
 import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;

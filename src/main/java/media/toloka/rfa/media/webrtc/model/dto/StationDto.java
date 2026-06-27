@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.model.dto;
+package media.toloka.rfa.media.webrtc.model.dto;
 
 import com.google.gson.annotations.Expose;
 import lombok.Data;

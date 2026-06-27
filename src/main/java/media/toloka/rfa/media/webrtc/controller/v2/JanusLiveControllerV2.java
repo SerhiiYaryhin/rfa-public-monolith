@@ -1,7 +1,7 @@
-package media.toloka.rfa.media.messanger.webrtc.controller.v2;
+package media.toloka.rfa.media.webrtc.controller.v2;
 
-import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
-import media.toloka.rfa.media.messanger.webrtc.service.v2.RadioLiveServiceV2;
+import media.toloka.rfa.media.webrtc.model.JanusLiveStream;
+import media.toloka.rfa.media.webrtc.service.v2.RadioLiveServiceV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

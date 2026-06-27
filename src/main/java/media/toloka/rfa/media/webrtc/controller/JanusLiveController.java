@@ -1,16 +1,11 @@
-package media.toloka.rfa.media.messanger.webrtc.controller;
+package media.toloka.rfa.media.webrtc.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import media.toloka.rfa.media.messanger.model.MessageRoom;
-import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
-import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
 import media.toloka.rfa.media.messanger.service.MessangerService;
-import media.toloka.rfa.media.messanger.webrtc.model.JanusLiveStream;
-import media.toloka.rfa.media.messanger.webrtc.service.RadioLiveService;
-import media.toloka.rfa.radio.model.Clientdetail;
+import media.toloka.rfa.media.webrtc.model.JanusLiveStream;
+import media.toloka.rfa.media.webrtc.service.RadioLiveService;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.service.StationService;
-import media.toloka.rfa.security.model.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * REST-контролер для керування живими WebRTC трансляціями.

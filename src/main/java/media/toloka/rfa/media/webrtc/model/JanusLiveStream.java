@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.model;
+package media.toloka.rfa.media.webrtc.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
