@@ -29,6 +29,13 @@ public class JanusLiveStream {
     @Column(name = "rtp_forward_stream_id")
     private Long rtpForwardStreamId;
 
+    // ✅ Поля для збереження персистентної сесії та хендла Janus для Plain RTP
+    @Column(name = "janus_session_id")
+    private Long janusSessionId;
+
+    @Column(name = "janus_handle_id")
+    private Long janusHandleId;
+
     // ✅ НОВЕ ПОЛЕ: Дата створення запису
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -61,6 +68,12 @@ public class JanusLiveStream {
 
     public Long getRtpForwardStreamId() { return rtpForwardStreamId; }
     public void setRtpForwardStreamId(Long rtpForwardStreamId) { this.rtpForwardStreamId = rtpForwardStreamId; }
+
+    public Long getJanusSessionId() { return janusSessionId; }
+    public void setJanusSessionId(Long janusSessionId) { this.janusSessionId = janusSessionId; }
+
+    public Long getJanusHandleId() { return janusHandleId; }
+    public void setJanusHandleId(Long janusHandleId) { this.janusHandleId = janusHandleId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

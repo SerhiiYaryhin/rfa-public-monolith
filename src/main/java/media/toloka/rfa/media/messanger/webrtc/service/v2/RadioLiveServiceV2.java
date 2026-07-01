@@ -109,14 +109,15 @@ public class RadioLiveServiceV2 {
     // ============================================================
 
     /**
-     * ✅ ОНОВЛЕНО: Запуск трансляції через механізм rtp_forward.
+     * ✅ ОНОВЛЕНО: Запуск трансляції через механізм Plain RTP Participant.
      *
      * Flow:
-     * 1. Виділяємо UDP порт через PortAllocationService
-     * 2. Створюємо звичайну аудіокімнату в Janus
-     * 3. Створюємо RTP forward на виділений порт (Janus починає слухати)
-     * 4. Відправляємо команду FFmpeg на цей порт
-     * 5. Зберігаємо stream_id для подальшої зупинки
+     * 1. Виділяємо UDP порт для FFmpeg через PortAllocationService
+     * 2. Створюємо звичайну кімнату в Janus (з allow_rtp_participants=true)
+     * 3. Створюємо персистентну сесію та хендл на бекенді
+     * 4. Приєднуємо Plain RTP учасника та дізнаємося порт на стороні Janus
+     * 5. Відправляємо команду FFmpeg на цей порт з вказівкою localport
+     * 6. Зберігаємо сесію, хендл та порти в БД
      */
     @Transactional
     public JanusLiveStream startBroadcast(String stationId) {
@@ -130,7 +131,7 @@ public class RadioLiveServiceV2 {
             Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
             log.info("🏠 Janus Room ID: {} (з stationId='{}')", janusRoomId, stationId);
 
-            // Крок 1: Створюємо звичайну кімнату (без rtp_stream, без allow_rtp_participants)
+            // Крок 1: Створюємо звичайну кімнату
             log.info("📤 [КРОК 1] Створення аудіокімнати в Janus...");
             try {
                 janusClient.createAudioBridgeRoom(janusRoomId, "Ефір: " + stationId);
@@ -140,19 +141,35 @@ public class RadioLiveServiceV2 {
                 throw e;
             }
 
-            // Крок 2: Створюємо RTP forward на виділений порт
-            log.info("📤 [КРОК 2] Створення RTP forward на порт {}...", freePort);
-            Long streamId;
+            // Крок 2: Створюємо персистентну сесію та приєднуємо Plain RTP
+            log.info("📤 [КРОК 2] Створення персистентної сесії та приєднання Plain RTP...");
+            Long sessionId = null;
+            Long handleId = null;
+            Integer janusRtpPort = null;
             try {
-                streamId = janusClient.createRtpForward(janusRoomId, freePort);
-                log.info("✅ [КРОК 2] RTP forward створено: stream_id={}, port={}", streamId, freePort);
+                sessionId = janusClient.createSession();
+                handleId = janusClient.attachPlugin(sessionId, "janus.plugin.audiobridge");
+
+                Map<String, Object> joinResponse = janusClient.joinAsRtpParticipant(
+                        sessionId, handleId, janusRoomId, "Радіо Ефір", "127.0.0.1", freePort
+                );
+
+                Map<String, Object> plugindata = (Map<String, Object>) joinResponse.get("plugindata");
+                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+                Map<String, Object> rtp = (Map<String, Object>) data.get("rtp");
+                janusRtpPort = ((Number) rtp.get("port")).intValue();
+
+                log.info("✅ [КРОК 2] RTP приєднано: session={}, handle={}, port={}", sessionId, handleId, janusRtpPort);
             } catch (Exception e) {
-                log.error("❌ [КРОК 2] Помилка створення RTP forward: {}", e.getMessage(), e);
-                throw e;
+                log.error("❌ [КРОК 2] Помилка приєднання Plain RTP: {}", e.getMessage(), e);
+                if (sessionId != null) {
+                    try { janusClient.destroySession(sessionId); } catch (Exception ex) {}
+                }
+                throw new RuntimeException("Помилка приєднання Plain RTP: " + e.getMessage(), e);
             }
 
-            // Крок 3: Формуємо RTP URL для FFmpeg
-            String rtpUrl = String.format("rtp://janus.rfa:%d?pkt_size=1200", freePort);
+            // Крок 3: Формуємо RTP URL для FFmpeg з localport
+            String rtpUrl = String.format("rtp://janus.rfa:%d?localport=%d&pkt_size=1200", janusRtpPort, freePort);
             log.info("🔗 RTP URL для FFmpeg: {}", rtpUrl);
 
             // Крок 4: Відправка команди FFmpeg агенту
@@ -162,6 +179,9 @@ public class RadioLiveServiceV2 {
                 log.info("✅ [КРОК 3] Команду FFmpeg відправлено в RabbitMQ");
             } catch (Exception e) {
                 log.error("❌ [КРОК 3] Помилка відправки команди FFmpeg: {}", e.getMessage(), e);
+                if (sessionId != null) {
+                    try { janusClient.destroySession(sessionId); } catch (Exception ex) {}
+                }
                 throw e;
             }
 
@@ -169,25 +189,27 @@ public class RadioLiveServiceV2 {
             log.info("💾 [КРОК 4] Збереження стану в БД...");
             try {
                 JanusLiveStream savedStream = portService.saveActiveStream(
-                        stationId, janusRoomId, freePort, 0, streamId);
-                log.info("✅ [КРОК 4] Збережено: id={}, stationId={}, janusRoomId={}, rtpPort={}, streamId={}",
-                        savedStream.getId(), savedStream.getStationId(),
-                        savedStream.getJanusRoomId(), savedStream.getRtpPort(),
-                        savedStream.getRtpForwardStreamId());
+                        stationId, janusRoomId, freePort, 0, null);
+                savedStream.setJanusSessionId(sessionId);
+                savedStream.setJanusHandleId(handleId);
+                portService.saveStream(savedStream);
 
-                log.info("🎉 === Трансляцію успішно запущено === stationId={}, rtpPort={}, streamId={}",
-                        stationId, freePort, streamId);
+                log.info("🎉 === Трансляцію успішно запущено === stationId={}, rtpPort={}, janusRtpPort={}",
+                        stationId, freePort, janusRtpPort);
 
                 return savedStream;
             } catch (Exception e) {
                 log.error("❌ [КРОК 4] Помилка збереження в БД: {}", e.getMessage(), e);
+                if (sessionId != null) {
+                    try { janusClient.destroySession(sessionId); } catch (Exception ex) {}
+                }
                 throw e;
             }
         });
     }
 
     /**
-     * ✅ ОНОВЛЕНО: Зупинка трансляції через stop_rtp_forward.
+     * ✅ ОНОВЛЕНО: Зупинка трансляції через закриття сесії.
      */
     @Transactional
     public void stopBroadcast(String stationId) {
@@ -197,13 +219,13 @@ public class RadioLiveServiceV2 {
             // 1. Зупиняємо FFmpeg
             sendFfmpegCommand("stop", stationId, null, null);
 
-            // 2. Зупиняємо RTP forward (використовуємо rtpForwardStreamId)
-            if (stream.getRtpForwardStreamId() != null && stream.getRtpForwardStreamId() > 0) {
+            // 2. Закриваємо сесію Janus для від'єднання RTP учасника
+            if (stream.getJanusSessionId() != null) {
                 try {
-                    janusClient.stopRtpForward(stream.getJanusRoomId(), stream.getRtpForwardStreamId());
-                    log.info("✅ RTP forward зупинено: stream_id={}", stream.getRtpForwardStreamId());
+                    janusClient.destroySession(stream.getJanusSessionId());
+                    log.info("✅ Сесію Janus {} знищено для Plain RTP", stream.getJanusSessionId());
                 } catch (Exception e) {
-                    log.warn("⚠️ Помилка зупинки RTP forward: {}", e.getMessage());
+                    log.warn("⚠️ Помилка знищення сесії Janus: {}", e.getMessage());
                 }
             }
 
@@ -323,13 +345,44 @@ public class RadioLiveServiceV2 {
                     // Створюємо звичайну кімнату
                     janusClient.createAudioBridgeRoom(roomId, station.getName());
 
-                    // Створюємо RTP forward якщо є запис в БД
+                    // Відновлюємо Plain RTP приєднання якщо є запис в БД
                     Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationIdStr);
                     if (existingStream.isPresent()) {
-                        Integer rtpPort = existingStream.get().getRtpPort();
-                        Long streamId = janusClient.createRtpForward(roomId, rtpPort);
-                        portService.updateRtpForwardStreamId(stationIdStr, streamId);
-                        log.info("RTP forward відновлено для кімнати {}: stream_id={}", roomId, streamId);
+                        JanusLiveStream stream = existingStream.get();
+                        log.info("Відновлюємо Plain RTP для станції {}", stationIdStr);
+
+                        try {
+                            // Створюємо нову сесію/хендл
+                            Long sessionId = janusClient.createSession();
+                            Long handleId = janusClient.attachPlugin(sessionId, "janus.plugin.audiobridge");
+
+                            // Join as RTP participant
+                            Map<String, Object> joinResponse = janusClient.joinAsRtpParticipant(
+                                    sessionId, handleId, roomId, "Радіо Ефір", "127.0.0.1", stream.getRtpPort()
+                            );
+
+                            Map<String, Object> plugindata = (Map<String, Object>) joinResponse.get("plugindata");
+                            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+                            Map<String, Object> rtp = (Map<String, Object>) data.get("rtp");
+                            Integer janusRtpPort = ((Number) rtp.get("port")).intValue();
+
+                            // Оновлюємо сесії в БД
+                            stream.setJanusSessionId(sessionId);
+                            stream.setJanusHandleId(handleId);
+                            portService.saveStream(stream);
+
+                            // Перезапускаємо FFmpeg з новим портом
+                            sendFfmpegCommand("stop", stationIdStr, null, null);
+
+                            String rtpUrl = String.format("rtp://janus.rfa:%d?localport=%d&pkt_size=1200", janusRtpPort, stream.getRtpPort());
+                            String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
+                            sendFfmpegCommand("start", stationIdStr, sourceStreamUrl, rtpUrl);
+
+                            log.info("Plain RTP успішно відновлено для кімнати {}: session={}, handle={}, port={}",
+                                    roomId, sessionId, handleId, janusRtpPort);
+                        } catch (Exception ex) {
+                            log.error("Помилка відновлення Plain RTP для кімнати {}: {}", roomId, ex.getMessage(), ex);
+                        }
                     }
 
                     station.setStationstate(true);
@@ -398,6 +451,26 @@ public class RadioLiveServiceV2 {
     }
 
     // ============================================================
+    // МОДЕРАЦІЯ ТА RTP FORWARD
+    // ============================================================
+
+    public void muteParticipant(Long roomId, Long participantId, boolean mute) {
+        janusClient.muteParticipant(roomId, participantId, mute);
+    }
+
+    public void kickParticipant(Long roomId, Long participantId) {
+        janusClient.kickParticipant(roomId, participantId);
+    }
+
+    public Long startRtpForward(Long roomId, String host, Integer port) {
+        return janusClient.createRtpForward(roomId, host, port);
+    }
+
+    public void stopRtpForward(Long roomId, Long streamId) {
+        janusClient.stopRtpForward(roomId, streamId);
+    }
+
+    // ============================================================
     // ДОПОМІЖНІ МЕТОДИ
     // ============================================================
 
@@ -439,6 +512,24 @@ public class RadioLiveServiceV2 {
         } catch (Exception e) {
             log.error("❌ Помилка відправки команди FFmpeg: {}", e.getMessage(), e);
             throw new RuntimeException("Помилка відправки команди FFmpeg: " + e.getMessage());
+        }
+    }
+
+    // ============================================================
+    // КЕЕPALIVE ДЛЯ ПЕРСИСТЕНТНИХ СЕСІЙ
+    // ============================================================
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 20000)
+    public void keepPersistentSessionsAlive() {
+        try {
+            List<JanusLiveStream> activeStreams = portService.getAllActiveStreams();
+            for (JanusLiveStream stream : activeStreams) {
+                if (stream.getJanusSessionId() != null) {
+                    log.debug("Heartbeat: Надсилаємо keepalive для сесії {}", stream.getJanusSessionId());
+                    janusClient.keepAlive(stream.getJanusSessionId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Помилка під час надсилання keepalive для сесій Janus: {}", e.getMessage());
         }
     }
 }

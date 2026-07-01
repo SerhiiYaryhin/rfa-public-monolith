@@ -25,9 +25,11 @@ public class JanusLiveControllerV2 {
     private static final Logger logger = LoggerFactory.getLogger(JanusLiveControllerV2.class);
 
     private final RadioLiveServiceV2 radioLiveService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
-    public JanusLiveControllerV2(RadioLiveServiceV2 radioLiveService) {
+    public JanusLiveControllerV2(RadioLiveServiceV2 radioLiveService, org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.radioLiveService = radioLiveService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // ============================================================
@@ -175,6 +177,93 @@ public class JanusLiveControllerV2 {
                             "success", false,
                             "error", "Помилка підключення: " + e.getMessage()
                     ));
+        }
+    }
+
+    // ============================================================
+    // МОДЕРАЦІЯ ТА КЕРУВАННЯ УЧАСНИКАМИ
+    // ============================================================
+
+    /**
+     * Переміщення користувача між кімнатами Janus через WebSocket сигналізацію.
+     */
+    @PostMapping("/moderate/move")
+    public ResponseEntity<?> moveUser(@RequestParam String userUuid, @RequestParam Long targetRoomId) {
+        logger.info("Модератор переміщує користувача {} в кімнату {}", userUuid, targetRoomId);
+        try {
+            messagingTemplate.convertAndSend("/topic/webrtc.control." + userUuid, Map.of(
+                    "action", "switch_room",
+                    "targetRoomId", targetRoomId
+            ));
+            return ResponseEntity.ok(Map.of("success", true, "message", "Команду переміщення надіслано"));
+        } catch (Exception e) {
+            logger.error("Помилка надсилання команди переміщення", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Керування мікрофоном учасника (mute/unmute) в Janus.
+     */
+    @PostMapping("/moderate/mute")
+    public ResponseEntity<?> muteUser(@RequestParam Long roomId, @RequestParam Long participantId, @RequestParam boolean muted) {
+        logger.info("Модератор змінює стан мікрофона для учасника {} в кімнаті {}: muted={}", participantId, roomId, muted);
+        try {
+            radioLiveService.muteParticipant(roomId, participantId, muted);
+            return ResponseEntity.ok(Map.of("success", true, "message", muted ? "Мікрофон вимкнено" : "Мікрофон увімкнено"));
+        } catch (Exception e) {
+            logger.error("Помилка зміни стану мікрофона", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Вигнання учасника з кімнати.
+     */
+    @PostMapping("/moderate/kick")
+    public ResponseEntity<?> kickUser(@RequestParam Long roomId, @RequestParam Long participantId) {
+        logger.info("Модератор виганяє учасника {} з кімнати {}", participantId, roomId);
+        try {
+            radioLiveService.kickParticipant(roomId, participantId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Учасника вигнано з кімнати"));
+        } catch (Exception e) {
+            logger.error("Помилка вигнання учасника", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Запуск трансляції аудіопотоку з кімнати назовні (rtp_forward).
+     */
+    @PostMapping("/moderate/forward/start")
+    public ResponseEntity<?> startForward(@RequestParam Long roomId, @RequestParam String host, @RequestParam Integer port) {
+        logger.info("Модератор запускає RTP forward з кімнати {} на {}:{}", roomId, host, port);
+        try {
+            Long streamId = radioLiveService.startRtpForward(roomId, host, port);
+            return ResponseEntity.ok(Map.of("success", true, "streamId", streamId));
+        } catch (Exception e) {
+            logger.error("Помилка запуску RTP forward", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Зупинка трансляції аудіопотоку з кімнати назовні.
+     */
+    @PostMapping("/moderate/forward/stop")
+    public ResponseEntity<?> stopForward(@RequestParam Long roomId, @RequestParam Long streamId) {
+        logger.info("Модератор зупиняє RTP forward з кімнати {} з streamId {}", roomId, streamId);
+        try {
+            radioLiveService.stopRtpForward(roomId, streamId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "RTP forward зупинено"));
+        } catch (Exception e) {
+            logger.error("Помилка зупинки RTP forward", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
         }
     }
 

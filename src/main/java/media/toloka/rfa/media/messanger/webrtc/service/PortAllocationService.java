@@ -58,6 +58,11 @@ public class PortAllocationService {
     }
 
     @Transactional
+    public JanusLiveStream saveStream(JanusLiveStream stream) {
+        return streamRepository.save(stream);
+    }
+
+    @Transactional
     public void updateRtpForwardStreamId(String stationId, Long rtpForwardStreamId) {
         Optional<JanusLiveStream> streamOpt = getStreamByStation(stationId);
         if (streamOpt.isPresent()) {
