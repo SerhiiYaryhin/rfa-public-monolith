@@ -444,11 +444,22 @@ public class JanusRabbitClientOptimized {
             body.put("room", roomId);
             body.put("id", participantId);
             body.put("muted", mute);
-            body.put("secret", apiSecret);
+            body.put("secret", apiSecret); // спроба з секретом за замовчуванням
 
             request.put("body", body);
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+                log.info("✅ Успішно змінено мікрофон з секретом");
+            } catch (Exception e) {
+                log.warn("⚠️ Помилка зміни мікрофона з секретом, пробуємо без нього. Причина: {}", e.getMessage());
+                body.remove("secret");
+                String retryTransactionId = (mute ? "mute-retry-" : "unmute-retry-") + generateShortUUID();
+                request.put("transaction", retryTransactionId);
+                Map<String, Object> responseRetry = sendAndReceive(request);
+                validatePluginResponse(responseRetry);
+                log.info("✅ Успішно змінено мікрофон без секрету");
+            }
             return null;
         });
     }
@@ -468,11 +479,22 @@ public class JanusRabbitClientOptimized {
             body.put("request", "kick");
             body.put("room", roomId);
             body.put("id", participantId);
-            body.put("secret", apiSecret);
+            body.put("secret", apiSecret); // спроба з секретом за замовчуванням
 
             request.put("body", body);
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+                log.info("✅ Успішно вигнано учасника з секретом");
+            } catch (Exception e) {
+                log.warn("⚠️ Помилка вигнання з секретом, пробуємо без нього. Причина: {}", e.getMessage());
+                body.remove("secret");
+                String retryTransactionId = "kick-retry-" + generateShortUUID();
+                request.put("transaction", retryTransactionId);
+                Map<String, Object> responseRetry = sendAndReceive(request);
+                validatePluginResponse(responseRetry);
+                log.info("✅ Успішно вигнано учасника без секрету");
+            }
             return null;
         });
     }
@@ -659,6 +681,12 @@ public class JanusRabbitClientOptimized {
     private void validatePluginResponse(Map<String, Object> response) {
         if (!"success".equals(response.get("janus"))) {
             throw new RuntimeException("Janus API error: " + response);
+        }
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) return;
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data != null && (data.containsKey("error") || data.containsKey("error_code"))) {
+            throw new RuntimeException("Plugin error: " + (data.get("error") != null ? data.get("error") : data.get("error_code")));
         }
     }
 
