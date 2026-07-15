@@ -370,3 +370,157 @@ body {
     margin-right: 8px;
     font-size: 10px;
 }
+
+/* ============================================================
+   ПАНЕЛЬ МОДЕРАЦІЇ УЧАСНИКІВ
+   ============================================================ */
+.user-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ecf0f1;
+    gap: 6px;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.user-mod-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-left: 28px;
+}
+
+.btn-user-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    background: #f7fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-user-action:hover {
+    background: #edf2f7;
+    border-color: #a0aec0;
+    transform: translateY(-1px);
+}
+
+.btn-unmute:hover {
+    background: #e6fffa;
+    border-color: #319795;
+}
+
+.btn-mute:hover {
+    background: #fff5f5;
+    border-color: #e53e3e;
+}
+
+.btn-kick:hover {
+    background: #fff5f5;
+    border-color: #e53e3e;
+    color: #e53e3e;
+}
+
+.user-move-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.select-room-move {
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e0;
+    background: white;
+    outline: none;
+}
+
+/* ============================================================
+   RTP FORWARD (ТРАНСЛЯЦІЯ НАЗОВНІ)
+   ============================================================ */
+.rtp-forward-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px dashed #ecf0f1;
+}
+
+.rtp-forward-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+}
+
+.forward-inputs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.input-forward {
+    flex: 1;
+    min-width: 85px;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-forward:focus {
+    border-color: #3182ce;
+}
+
+.btn-start-forward {
+    background: #8e44ad !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    min-width: auto !important;
+    flex: none !important;
+}
+
+.btn-start-forward:hover:not(:disabled) {
+    background: #732d91 !important;
+}
+
+.active-forward-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #e6fffa;
+    border: 1px solid #b2f5ea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #008080;
+}
+
+.btn-stop-forward {
+    background: #e53e3e !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+    min-width: auto !important;
+    flex: none !important;
+}
+
+.btn-stop-forward:hover:not(:disabled) {
+    background: #c53030 !important;
+}
