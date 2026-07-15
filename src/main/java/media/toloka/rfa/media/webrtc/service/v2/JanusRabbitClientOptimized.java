@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.webrtc.service.v2;
+package media.toloka.rfa.media.messanger.webrtc.service.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -258,16 +258,17 @@ public class JanusRabbitClientOptimized {
      * Janus починає слухати RTP на вказаному порту і міксує його з іншими учасниками.
      *
      * @param roomId ID кімнати
-     * @param rtpPort UDP порт, на якому Janus буде слухати RTP
+     * @param host IP/хост отримувача RTP
+     * @param rtpPort UDP порт, на якому отримувач чекає RTP
      * @return stream_id для подальшого управління (зупинка forward)
      */
     @SuppressWarnings("unchecked")
-    public Long createRtpForward(Long roomId, Integer rtpPort) {
-        if (roomId == null || rtpPort == null) {
-            throw new IllegalArgumentException("roomId та rtpPort не можуть бути null");
+    public Long createRtpForward(Long roomId, String host, Integer rtpPort) {
+        if (roomId == null || rtpPort == null || host == null) {
+            throw new IllegalArgumentException("roomId, host та rtpPort не можуть бути null");
         }
 
-        log.info("Створення RTP forward в кімнаті {} на порту {}", roomId, rtpPort);
+        log.info("Створення RTP forward в кімнаті {} на {}:{}", roomId, host, rtpPort);
 
         return executeInSession((sessionId, handleId) -> {
             String transactionId = "rtp-forward-" + generateShortUUID();
@@ -279,7 +280,7 @@ public class JanusRabbitClientOptimized {
             body.put("request", "rtp_forward");
             body.put("room", roomId);
             body.put("secret", apiSecret);
-            //body.put("host", "0.0.0.0");
+            body.put("host", host);
             body.put("port", rtpPort);
             body.put("ptype", 100);
             body.put("ssrc", roomId * 1000);
@@ -299,8 +300,7 @@ public class JanusRabbitClientOptimized {
                 throw new RuntimeException("data відсутній у plugindata");
             }
 
-            Long streamId = null;
-            if (data.get("stream_id") != null )  streamId = ((Number) data.get("stream_id")).longValue();
+            Long streamId = ((Number) data.get("stream_id")).longValue();
 
             log.info("RTP forward створено: stream_id={}, room={}, port={}",
                     streamId, roomId, rtpPort);
@@ -538,6 +538,77 @@ public class JanusRabbitClientOptimized {
         }
     }
 
+    /**
+     * Керування мікрофоном учасника (mute/unmute) модератором.
+     */
+    public void muteParticipant(Long roomId, Long participantId, boolean mute) {
+        log.info("Модерація: {} учасника {} в кімнаті {}", (mute ? "мутування" : "розмутування"), participantId, roomId);
+        executeInSession((sessionId, handleId) -> {
+            String transactionId = (mute ? "mute-" : "unmute-") + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "configure");
+            body.put("room", roomId);
+            body.put("id", participantId);
+            body.put("muted", mute);
+            body.put("secret", apiSecret); // спроба з секретом за замовчуванням
+
+            request.put("body", body);
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+                log.info("✅ Успішно змінено мікрофон з секретом");
+            } catch (Exception e) {
+                log.warn("⚠️ Помилка зміни мікрофона з секретом, пробуємо без нього. Причина: {}", e.getMessage());
+                body.remove("secret");
+                String retryTransactionId = (mute ? "mute-retry-" : "unmute-retry-") + generateShortUUID();
+                request.put("transaction", retryTransactionId);
+                Map<String, Object> responseRetry = sendAndReceive(request);
+                validatePluginResponse(responseRetry);
+                log.info("✅ Успішно змінено мікрофон без секрету");
+            }
+            return null;
+        });
+    }
+
+    /**
+     * Вигнання учасника з кімнати за його внутрішнім ID в Janus.
+     */
+    public void kickParticipant(Long roomId, Long participantId) {
+        log.info("Модерація: вигнання учасника {} з кімнати {}", participantId, roomId);
+        executeInSession((sessionId, handleId) -> {
+            String transactionId = "kick-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("message", transactionId);
+            request.put("session_id", sessionId);
+            request.put("handle_id", handleId);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("request", "kick");
+            body.put("room", roomId);
+            body.put("id", participantId);
+            body.put("secret", apiSecret); // спроба з секретом за замовчуванням
+
+            request.put("body", body);
+            try {
+                Map<String, Object> response = sendAndReceive(request);
+                validatePluginResponse(response);
+                log.info("✅ Успішно вигнано учасника з секретом");
+            } catch (Exception e) {
+                log.warn("⚠️ Помилка вигнання з секретом, пробуємо без нього. Причина: {}", e.getMessage());
+                body.remove("secret");
+                String retryTransactionId = "kick-retry-" + generateShortUUID();
+                request.put("transaction", retryTransactionId);
+                Map<String, Object> responseRetry = sendAndReceive(request);
+                validatePluginResponse(responseRetry);
+                log.info("✅ Успішно вигнано учасника без секрету");
+            }
+            return null;
+        });
+    }
+
     // ============================================================
     // ADMIN API
     // ============================================================
@@ -627,7 +698,7 @@ public class JanusRabbitClientOptimized {
     }
 
     @SuppressWarnings("unchecked")
-    private Long createSession() {
+    public Long createSession() {
         String transactionId = "session-create-" + generateShortUUID();
         Map<String, Object> request = createBaseRequest("create", transactionId);
         Map<String, Object> response = sendAndReceive(request);
@@ -640,7 +711,7 @@ public class JanusRabbitClientOptimized {
         return ((Number) data.get("id")).longValue();
     }
 
-    private void destroySession(Long sessionId) {
+    public void destroySession(Long sessionId) {
         try {
             String transactionId = "destroy-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("destroy", transactionId);
@@ -652,7 +723,7 @@ public class JanusRabbitClientOptimized {
     }
 
     @SuppressWarnings("unchecked")
-    private Long attachPlugin(Long sessionId, String plugin) {
+    public Long attachPlugin(Long sessionId, String plugin) {
         String transactionId = "attach-" + generateShortUUID();
         Map<String, Object> request = createBaseRequest("attach", transactionId);
         request.put("session_id", sessionId);
@@ -667,6 +738,48 @@ public class JanusRabbitClientOptimized {
         return ((Number) data.get("id")).longValue();
     }
 
+    /**
+     * Приєднання Plain RTP учасника до кімнати.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> joinAsRtpParticipant(Long sessionId, Long handleId, Long roomId, String display, String ffmpegIp, Integer ffmpegPort) {
+        String transactionId = "rtp-join-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("message", transactionId);
+        request.put("session_id", sessionId);
+        request.put("handle_id", handleId);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("request", "join");
+        body.put("room", roomId);
+        body.put("display", display);
+
+        Map<String, Object> rtp = new HashMap<>();
+        rtp.put("ip", ffmpegIp);
+        rtp.put("port", ffmpegPort);
+        rtp.put("payload_type", 100);
+        body.put("rtp", rtp);
+
+        request.put("body", body);
+
+        Map<String, Object> response = sendAndReceive(request);
+        validatePluginResponse(response);
+        return response;
+    }
+
+    /**
+     * Надіслати keepalive для підтримки сесії відкритою.
+     */
+    public void keepAlive(Long sessionId) {
+        try {
+            String transactionId = "keepalive-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("keepalive", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Keepalive failed for session {}: {}", sessionId, e.getMessage());
+        }
+    }
+
     private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
         Map<String, Object> request = new HashMap<>();
         request.put("janus", janusType);
@@ -678,6 +791,12 @@ public class JanusRabbitClientOptimized {
     private void validatePluginResponse(Map<String, Object> response) {
         if (!"success".equals(response.get("janus"))) {
             throw new RuntimeException("Janus API error: " + response);
+        }
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) return;
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data != null && (data.containsKey("error") || data.containsKey("error_code"))) {
+            throw new RuntimeException("Plugin error: " + (data.get("error") != null ? data.get("error") : data.get("error_code")));
         }
     }
 

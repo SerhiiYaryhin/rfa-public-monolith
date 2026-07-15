@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tokenReady = await JanusConnection.initUserSession();
     if (!tokenReady) return;
 
+    // Підключення WebSocket сигналізації
+    WebSocketSignaling.connect(JanusConnection.currentSessionToken);
+
     try {
         await JanusConnection.initJanusConnection();
         Logger.log("🟢 Система готова до роботи!", "SUCCESS");
@@ -31,3 +34,5 @@ window.addEventListener("beforeunload", () => {
 // Експорт для onclick handlers
 window.RoomManager = RoomManager;
 window.StreamManager = StreamManager;
+window.Moderator = Moderator;
+window.WebSocketSignaling = WebSocketSignaling;
