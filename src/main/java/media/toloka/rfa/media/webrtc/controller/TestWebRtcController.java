@@ -55,7 +55,7 @@ public class TestWebRtcController {
         return "/test/webrtc/webrtc-test";
     }
 
-    @GetMapping("/test/webrtc/qwebrtc")
+    @GetMapping("/test/webrtc/webrtc")
     public String getQWebrtc(
             Model model ) {
 
