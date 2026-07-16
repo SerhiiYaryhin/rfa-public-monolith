@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.service.v2;
+package media.toloka.rfa.media.webrtc.service.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
