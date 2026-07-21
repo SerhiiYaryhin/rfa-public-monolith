@@ -84,7 +84,7 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanus);
-        rabbitTemplate.setReplyAddress(queueJanusFrom);
+//        rabbitTemplate.setReplyAddress(queueJanusFrom);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
@@ -97,7 +97,7 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusAdminRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
-        rabbitTemplate.setReplyAddress(queueJanusAdminFrom);
+//        rabbitTemplate.setReplyAddress(queueJanusAdminFrom);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
@@ -106,38 +106,42 @@ public class JanusRabbitConfig {
     /**
      * Контейнер для прослуховування черги відповідей Client API.
      */
-    @Bean
-    public SimpleMessageListenerContainer janusReplyListenerContainer(
-            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueues(new Queue(queueJanusFrom));
-        container.setMessageListener(rabbitTemplate);
-        return container;
-    }
+//    @Bean
+//    public SimpleMessageListenerContainer janusReplyListenerContainer(
+//            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+//            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
+//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+//        container.setQueues(new Queue(queueJanusFrom));
+//        container.setMessageListener(rabbitTemplate);
+//        return container;
+//    }
 
     /**
      * Контейнер для прослуховування черги відповідей Admin API.
      */
-    @Bean
-    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
-            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueues(new Queue(queueJanusAdminFrom));
-        container.setMessageListener(rabbitTemplate);
-        return container;
-    }
+//    @Bean
+//    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
+//            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+//            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
+//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+//        container.setQueues(new Queue(queueJanusAdminFrom));
+//        container.setMessageListener(rabbitTemplate);
+//        return container;
+//    }
 
     // --- ОГОЛОШЕННЯ ЧЕРГ ---
 
     @Bean
     public Queue myQueueJanus() {
-        return new Queue(queueJanus, true, false, false);
+        return new Queue(
+                queueJanus, true, false, false
+        );
     }
 
     @Bean
     public Queue myQueueJanusAdmin() {
-        return new Queue(queueJanusAdmin, true, false, false);
+        return new Queue(
+                queueJanusAdmin, true, false, false
+        );
     }
 }
