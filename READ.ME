@@ -1,5 +1,8 @@
 Тепер джерельний код можна постити на Github - https://github.com/tolokatv/rfa
 
+Запуск з командного рядка:
+clear; git pull; QRFA=/rfa-dev TELEGRAMBOTNAME=TestTolokaMediaBot TELEGRAMBOTKEY=7319689514:AAEwGibd0JOdvqOvZnG0STL_hAGffEqQdCA SPRING_PROFILES_ACTIVE=current,Front,chat SPRING_AMQP_DESERIALIZATION_TRUST_ALL=true ./gradlew bootRun --args='--server.port=3081 --spring.datasource.url=jdbc:postgresql://pg.rfa:5432/rfadev --logging.exception-conversion-word=%wEx{5}'
+
 Пре/пост обробка запиту. Ще не розібрався до кінця.
 Мета : сформувати параметри для обробки в шаблоні. Наприклад - кількість повідомлень у користувача.
 https://stackoverflow.com/questions/10286497/how-to-pre-process-the-request-body-in-spring-before-passing-it-to-the-a-control
