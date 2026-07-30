@@ -13,9 +13,14 @@ public class RabbitSerializationConfig {
         SimpleMessageConverter converter = new SimpleMessageConverter();
         // Явно зашиваємо дозволені пакети на рівні коду біна
         converter.setAllowedListPatterns(List.of(
-                "java.lang.*",
+                "media.toloka.rfa.media.messanger.model.*",
+                "media.toloka.rfa.*",
                 "java.util.*",
-                "media.toloka.rfa.media.messanger.model.*"
+                "java.lang.*"
+
+//                "java.lang.*",
+//                "java.util.*",
+//                "media.toloka.rfa.media.messanger.model.*"
         ));
         return converter;
     }
