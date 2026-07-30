@@ -192,9 +192,11 @@
         if (AlignmentTune) tunesList.push('alignTune');
         if (typeof TextVariantTune !== 'undefined') tunesList.push('textVariant');
 
+        //             paragraph: { class: EditorJSParagraph, tunes: tunesList, config: { preserveBlank: true } },
+
         const editorTools = {
             header: { class: Header, tunes: tunesList, config: { levels: [2, 3, 4], defaultLevel: 2 } },
-            paragraph: { class: Paragraph, tunes: tunesList, config: { preserveBlank: true } },
+            paragraph: { tunes: tunesList, config: { preserveBlank: true } },
             list: { class: NestedList, inlineToolbar: true },
             image: {
                 class: ImageTool,

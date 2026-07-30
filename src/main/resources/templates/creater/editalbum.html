@@ -15,9 +15,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/text-variant-tune@latest"></script>
 
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 
@@ -251,7 +257,7 @@
                 holder: 'editorjs',
                 tools: {
                     header: { class: Header, config: { levels: [2, 3], defaultLevel: 2 } },
-                    paragraph: { class: Paragraph, config: { preserveBlank: true } },
+                    paragraph: { config: { preserveBlank: true } },
                     list: { class: List, inlineToolbar: true },
                     quote: { class: Quote, inlineToolbar: true },
                     delimiter: Delimiter
