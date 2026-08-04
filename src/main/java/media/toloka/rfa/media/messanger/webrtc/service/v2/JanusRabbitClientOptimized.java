@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 🐇 Оптимізований низькорівневий RPC-клієнт для взаємодії з Janus Gateway через RabbitMQ (версія v2).
@@ -733,5 +734,50 @@ public class JanusRabbitClientOptimized {
 
         Map<String, Object> data = (Map<String, Object>) response.get("data");
         return ((Number) data.get("id")).longValue();
+    }
+
+    /**
+     * Створення нової сесії в Janus Gateway.
+     */
+    @SuppressWarnings("unchecked")
+    public Long createSession() {
+        String transactionId = "session-create-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("create", transactionId);
+        Map<String, Object> response = sendAndReceive(request);
+
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Помилка створення сесії: " + response);
+        }
+
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        return ((Number) data.get("id")).longValue();
+    }
+
+    /**
+     * Знищення сесії в Janus Gateway.
+     */
+    public void destroySession(Long sessionId) {
+        try {
+            String transactionId = "destroy-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("destroy", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Destroy session failed: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Надіслати keepalive для підтримки сесії відкритою.
+     */
+    public void keepAlive(Long sessionId) {
+        try {
+            String transactionId = "keepalive-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("keepalive", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Keepalive failed for session {}: {}", sessionId, e.getMessage());
+        }
     }
 }
