@@ -392,11 +392,22 @@ function getroomlist() {
     }
 }
 
+// function date2string(idate) {
+//     let d = new Date(idate);
+//     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// }
 function date2string(idate) {
     let d = new Date(idate);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
 
+    let day = String(d.getDate()).padStart(2, '0');
+    let month = String(d.getMonth() + 1).padStart(2, '0'); // Місяці починаються з 0
+    let year = d.getFullYear();
+
+    let hours = String(d.getHours()).padStart(2, '0');
+    let minutes = String(d.getMinutes()).padStart(2, '0');
+
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
 function onMediaPublic(payload) {
     try {
         var msg = JSON.parse(payload.body);
