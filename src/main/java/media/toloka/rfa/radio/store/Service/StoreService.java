@@ -133,4 +133,8 @@ public class StoreService extends StoreFileImplementation {
         PageRequest pageable = PageRequest.of(page, size);
         return storeRepositore.findByStorefiletype(pageable, fileType);
     }
+
+    public List<Store> GetStoreFilesByCdAndType(Clientdetail cd, EStoreFileType type) {
+        return storeRepositore.findByClientdetailAndStorefiletype(cd, type);
+    }
 }

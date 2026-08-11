@@ -247,6 +247,48 @@ public class StoreCleanupService {
 
         logger.info("Запис про трек {} успішно видалено з БД через JPA", trackUuid);
     }
+
+    /**
+     * Безпечне видалення альбому разом із його обкладинкою та розірванням зв'язків з треками.
+     */
+    @Transactional
+    public void safeDeleteAlbum(Album album) {
+        Album managedAlbum = albumRepository.findById(album.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Альбом не знайдено з ID: " + album.getId()));
+
+        // Розірвання зв'язків з треками (встановлення album = null)
+        if (managedAlbum.getTrack() != null) {
+            for (Track track : managedAlbum.getTrack()) {
+                track.setAlbum(null);
+                trackRepository.save(track);
+            }
+            managedAlbum.getTrack().clear();
+        }
+
+        String coverUuid = managedAlbum.getStoreuuidalbumcover();
+
+        // Видаляємо зв'язок з обкладинкою перед видаленням альбому
+        managedAlbum.setStoreuuidalbumcover(null);
+        albumRepository.delete(managedAlbum);
+        albumRepository.flush();
+
+        // Очищення файлу обкладинки зі сховища, якщо вона більше не використовується
+        if (coverUuid != null) {
+            Store coverStore = storeService.GetStoreByUUID(coverUuid);
+            if (coverStore != null) {
+                Map<String, List<?>> deps = dependencyService.findDependencies(coverStore);
+                if (deps.isEmpty()) {
+                    storeService.DeleteInStore(coverStore);
+                    logger.info("Обкладинку альбому {} ({}) видалено (більше не використовується)", coverStore.getFilename(), coverStore.getUuid());
+                } else {
+                    logger.info("Обкладинку альбому {} ({}) залишено, бо є інші залежності: {}",
+                            coverStore.getFilename(), coverStore.getUuid(), deps.keySet());
+                }
+            }
+        }
+
+        logger.info("Альбом {} успішно видалено з БД", album.getId());
+    }
 //    public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
 //        Store store = track.getStoreitem();
 //        String trackUuid = track.getUuid();

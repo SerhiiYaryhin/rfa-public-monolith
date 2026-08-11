@@ -2,7 +2,6 @@ package media.toloka.rfa.radio.creater.service;
 
 
 import media.toloka.rfa.radio.client.service.ClientService;
-import media.toloka.rfa.radio.creater.repository.AlbumCoverRepository;
 import media.toloka.rfa.radio.creater.repository.AlbumRepository;
 import media.toloka.rfa.radio.creater.repository.TrackRepository;
 import media.toloka.rfa.radio.document.ClientDocumentEditController;
@@ -37,9 +36,6 @@ public class CreaterService {
 
     @Autowired
     private AlbumRepository albumRepository;
-
-    @Autowired
-    private AlbumCoverRepository albumCoverRepository;
 
     @Autowired
     private TrackRepository trackRepository;
@@ -79,9 +75,8 @@ public class CreaterService {
         return albumList;
     }
 
-    public List<Albumсover> GetAlbumCoverByCd (Clientdetail cd) {
-        List<Albumсover> albumсoverList = albumCoverRepository.findByClientdetail(cd);
-        return albumсoverList;
+    public List<Store> GetAlbumCoverByCd(Clientdetail cd) {
+        return storeService.GetStoreFilesByCdAndType(cd, media.toloka.rfa.radio.store.model.EStoreFileType.STORE_ALBUMCOVER);
     }
 
     public List<Store> storeListTrackByClientDetail(Clientdetail cd ) {
@@ -176,13 +171,7 @@ public class CreaterService {
         albumRepository.save(album);
     }
 
-    public void SaveAlbumCoverUploadInfo(String storeUUID, Clientdetail cd ) {
-        Albumсover albumсover = new Albumсover();
-        albumсover.setClientdetail(cd);
-        albumсover.setStoreuuid(storeUUID);
-        albumсover.setStoreitem(storeService.GetStoreByUUID(storeUUID)); //
-        albumCoverRepository.save(albumсover);
-    }
+
 
     public List<Track> GetLastUploadTracks() {
 
@@ -225,10 +214,7 @@ public class CreaterService {
     }
 
 
-    // todo переробити на роботу зі сховищем
-    public Albumсover GetAlbumCoverById(Long alcoid) {
-        return albumCoverRepository.getReferenceById(alcoid);
-    }
+
 
     public void PublicTrackToChat(Track track, Clientdetail cd) {
         ChatMessage cm = new ChatMessage();

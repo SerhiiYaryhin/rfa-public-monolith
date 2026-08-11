@@ -12,7 +12,6 @@ import media.toloka.rfa.podcast.service.PodcastService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.Album;
-import media.toloka.rfa.radio.model.Albumсover;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.onlinelist.Model.ListOnlineFront;
@@ -272,18 +271,15 @@ public class RPCRESTController {
 //            @PathVariable("albumid") Long albumid,
 //            @PathVariable("cdid") Long cdid
     ) {
-        // для сайту - запит та асінхронна обробка. https://www.cat-in-web.ru/fetch-async-await/
-        Long alcoid = Long.parseLong(pathVarsMap.get("alcoid"));
         Long albumid = Long.parseLong(pathVarsMap.get("albumid"));
-        Long cdid = Long.parseLong(pathVarsMap.get("cdid"));
+        String coverUuidOrId = pathVarsMap.get("alcoid");
 
-        Clientdetail cd = clientService.GetClientDetailById(cdid);
         Album album = createrService.GetAlbumById(albumid);
-        // todo переробити роботу зі сховищем на uuid
-        Albumсover albumсover = createrService.GetAlbumCoverById(alcoid);
-        album.setAlbumcover(albumсover);
-//        albumсover.setStoreuuid();
-        createrService.SaveAlbum(album);
+        if (album != null) {
+            // Зберігаємо UUID обкладинки безпосередньо в полі альбому
+            album.setStoreuuidalbumcover(coverUuidOrId);
+            createrService.SaveAlbum(album);
+        }
 
 
 //        Map<String,String> result;
