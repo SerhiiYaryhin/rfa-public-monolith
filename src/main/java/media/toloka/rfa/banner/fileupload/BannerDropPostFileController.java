@@ -1,5 +1,7 @@
 package media.toloka.rfa.banner.fileupload;
 
+// todo 260812 Переніс завантаження на універсальну процедуру. Перевірити та видалити метод
+
 import lombok.extern.slf4j.Slf4j;
 import media.toloka.rfa.banner.model.Banner;
 import media.toloka.rfa.banner.model.enumerate.EBannerType;

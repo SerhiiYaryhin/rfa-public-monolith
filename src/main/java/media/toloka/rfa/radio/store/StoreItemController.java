@@ -18,9 +18,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @Profile("Front")
 @RestController
 @RequestMapping("/api/store")
+@Tag(name = "Універсальна процедура завантаження файлів", description = "Завантаження файлів з параметром типу файлу.")
 public class StoreItemController {
 
     private final Logger logger = LoggerFactory.getLogger(StoreItemController.class);
@@ -33,8 +44,8 @@ public class StoreItemController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> universalUpload(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "type", defaultValue = "STORE_FILE") String type) {
+            @Parameter(description = "файл або файли, які передаємо") @RequestParam("file") MultipartFile file,
+            @Parameter(description = "Тип файла у сховищі") @RequestParam(value = "type", defaultValue = "STORE_FILE") String type) {
 
         // 1. Отримання поточного клієнта
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());

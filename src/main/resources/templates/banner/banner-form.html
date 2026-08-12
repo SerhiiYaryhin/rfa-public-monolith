@@ -3,76 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <title>Форма банера</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css" rel="stylesheet">
+    <style>
+        #media-preview img, #media-preview video {
+            max-width: 300px;
+            max-height: 250px;
+        }
+        #media-preview audio {
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
 </head>
 <body class="bg-light">
+
+<!-- Контейнер для Bootstrap Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
 <header>
-    <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 <div style="padding-top: 60px"/>
-<!--<div class="container-fluid py-5">-->
+
 <div class="container-fluid">
     <div class="mt-4"></div>
     <div class="card shadow rounded-4 mt-4">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0 "
+            <h4 class="mb-0"
                 th:text="${#strings.isEmpty(banner.uuid) ? 'Створення банера' : 'Редагування банера'}"></h4>
         </div>
         <div class="card-body">
 
-            <!-- Завантаження медіа файлів -->
-            <div th:if="${banner.id} != null" class="row">
+            <!-- Діагностичний блок (за потреби розкоментуй) -->
+            <!--
+            <div class="alert alert-warning">
+                <strong>Діагностика:</strong><br>
+                banner.uuid: <code th:text="${banner.uuid}">-</code><br>
+                banner.uuidmedia: <code th:text="${banner.uuidmedia}">-</code><br>
+                banner.store: <code th:text="${banner.store}">-</code><br>
+                banner.store.uuid: <code th:text="${banner.store != null ? banner.store.uuid : 'null'}">-</code><br>
+                banner.bannertype: <code th:text="${banner.bannertype}">-</code>
+            </div>
+            -->
+
+            <!-- ============================================ -->
+            <!-- БЛОК ЗАВАНТАЖЕННЯ МЕДІА (тільки для існуючого банера) -->
+            <!-- ============================================ -->
+            <div th:if="${banner.id != null}" class="row">
                 <div class="row">
-                    <div class="col sm-6">
+                    <!-- Ліва колонка: Dropzone + кнопка вибору зі сховища -->
+                    <div class="col-sm-6">
                         <div id="dropzone">
-                            <form th:action="'/banners/mediaupload/'+${banner.uuid}" class="dropzone needsclick"
+                            <form th:action="@{/api/store/upload}"
+                                  class="dropzone needsclick"
                                   id="demo-upload"
                                   method="post">
                                 <input type="hidden"
                                        th:name="${_csrf.parameterName}"
                                        th:value="${_csrf.token}"/>
                                 <div class="dz-message needsclick">
-                                    <button type="button" class="dz-button">Перенесіть медіафайл сюди або натисніть для
-                                        вибору медіафайлу.<br>Якщо не завантажувати медіафайл, то банер буде текстовим.
+                                    <button type="button" class="dz-button">
+                                        Перенесіть медіафайл сюди або натисніть для вибору медіафайлу.<br>
+                                        Якщо не завантажувати медіафайл, то банер буде текстовим.
                                     </button>
                                     <br/>
                                 </div>
                             </form>
                         </div>
-                    </div>
-                    <div class="col sm-6">
-                        <div th:if="${banner.store} != null">
-                            <div th:switch="${banner.bannertype.name}">
-                                <img th:case="'IMAGE'" th:src="@{/store/content/{uuid}(uuid=${banner.store.uuid})}"
-                                     alt="Зображення"
-                                     class="img-fluid rounded"
-                                     style="max-width: 300px; max-height: 250px;">
-                                <audio th:case="'AUDIO'" controls class="w-100">
-                                    <source th:src="@{/store/audio/{uuid}(uuid=${banner.store.uuid})}" th:type="${banner.store.contentMimeType}">
-                                    Ваш браузер не підтримує аудіо-елемент.
-                                </audio>
-                                <span th:case="'VIDEO'">Відео файл</span>
-                                <span th:case="*">Невідомий формат</span>
-                            </div>
+
+                        <!-- Кнопка вибору зі сховища — під Dropzone -->
+                        <div class="mt-3">
+                            <a th:href="@{/banners/select-media(bannerUuid=${banner.uuid})}">
+                                <button type="button" class="btn btn-outline-success btn-sm">
+                                    📁 Обрати медіа зі сховища
+                                </button>
+                            </a>
                         </div>
                     </div>
-                </div>
-                <div class="row mt-4">
-                    <div class="col sm-3">
-                        <a th:href="@{/banners/select-media(bannerUuid=${banner.uuid})}"
-                           th:if="${banner.uuid != null}">
-                            <button type="button" class="btn btn-success">
-                                Додати медіа для банеру
-                            </button>
-                        </a>
-                    </div>
-                    <div class="col sm-3">
-                        <div th:if="${banner.store} != null">
-                            <a th:href="@{'/banners/clearmedia/' + ${banner.uuid}}">
-                                <button type="button" class="btn btn-success select-delete-media-btn">
-                                    <!-- <a th:href="@{/banners/${banner.uuid}/clearmedia(bannerUuid=${banner.uuid})}">-->
-                                    Видалити медіа з банера і зробити його текстовим
+
+                    <!-- Права колонка: Прев'ю + кнопка видалення -->
+                    <div class="col-sm-6">
+                        <h6 class="mb-2">Попередній перегляд:</h6>
+
+                        <!-- Контейнер прев'ю -->
+                        <div id="media-preview">
+                            <!-- Серверний рендеринг, якщо банер вже має медіа -->
+                            <div th:if="${banner.uuidmedia != null and !#strings.isEmpty(banner.uuidmedia)}">
+                                <div th:switch="${banner.bannertype.name}">
+                                    <img th:case="'IMAGE'"
+                                         th:src="@{/store/content/{uuid}(uuid=${banner.uuidmedia})}"
+                                         alt="Зображення"
+                                         class="img-fluid rounded">
+                                    <audio th:case="'AUDIO'" controls>
+                                        <source th:src="@{/store/content/{uuid}(uuid=${banner.uuidmedia})}">
+                                        Ваш браузер не підтримує аудіо-елемент.
+                                    </audio>
+                                    <video th:case="'VIDEO'" controls>
+                                        <source th:src="@{/store/content/{uuid}(uuid=${banner.uuidmedia})}">
+                                        Ваш браузер не підтримує відео-елемент.
+                                    </video>
+                                    <span th:case="*">Невідомий формат</span>
+                                </div>
+                            </div>
+                            <!-- Якщо медіа немає -->
+                            <div th:if="${banner.uuidmedia == null or #strings.isEmpty(banner.uuidmedia)}"
+                                 class="text-muted fst-italic" id="no-media-placeholder">
+                                Медіафайл не приєднано. Банер буде текстовим.
+                            </div>
+                        </div>
+
+                        <!-- Кнопка "Видалити медіа" — ПІД прев'ю, видима тільки коли медіа є -->
+                        <div id="clear-media-container" class="mt-3"
+                             th:style="${banner.uuidmedia != null and !#strings.isEmpty(banner.uuidmedia)} ? '' : 'display:none;'">
+                            <a th:href="@{'/banners/clearmedia/' + ${banner.uuid}}"
+                               onclick="return confirm('Видалити медіа з банера і зробити його текстовим?');">
+                                <button type="button" class="btn btn-danger btn-sm">
+                                    🗑️ Видалити медіа і зробити банер текстовим
                                 </button>
                             </a>
                         </div>
@@ -81,6 +129,9 @@
             </div>
         </div>
 
+        <!-- ============================================ -->
+        <!-- ФОРМА ЗБЕРЕЖЕННЯ БАНЕРА -->
+        <!-- ============================================ -->
         <form th:action="@{/banners/save}" th:object="${banner}" method="post" class="needs-validation" novalidate>
 
             <!-- Приховані поля -->
@@ -129,13 +180,7 @@
                 </div>
             </div>
 
-            <!-- Пріоритет -->
-            <!--                <div class="mb-3">-->
-            <!--                    <label for="priority" class="form-label">Пріоритет</label>-->
-            <!--                    <input type="number" th:field="*{priority}" id="priority" class="form-control" min="0">-->
-            <!--                </div>-->
-
-            <!-- Тип банера (Enum) -->
+            <!-- Тип банера (прихований, заповнюється JS) -->
             <div hidden class="mb-3">
                 <label for="bannertype" class="form-label">Тип банера</label>
                 <select th:field="*{bannertype}" id="bannertype" class="form-select">
@@ -143,39 +188,34 @@
                             th:value="${type}" th:text="${type}"></option>
                 </select>
             </div>
-            <!-- Стиль банера (Enum) -->
+
+            <!-- Стиль банера -->
             <div class="mb-3">
                 <label for="bannerstyle" class="form-label">Стиль банера</label>
                 <select th:field="*{bannerstyle}" id="bannerstyle" class="form-select">
                     <option th:each="style : ${T(media.toloka.rfa.banner.model.enumerate.EBannerStyle).values()}"
                             th:value="${style}"
-                            th:text="${style != null ? style.label +' '+style.h+'x'+style.v: '-'}"></option>
+                            th:text="${style != null ? style.label + ' ' + style.h + 'x' + style.v : '-'}"></option>
                 </select>
             </div>
+
             <!-- Схвалення -->
             <div class="form-check mb-3">
                 <input type="checkbox" th:field="*{approve}" id="approve" class="form-check-input">
                 <label for="approve" class="form-check-label">Схвалено для публікації</label>
             </div>
 
-            <!-- Клієнт (зв’язок ManyToOne) -->
-            <!--                <div class="mb-3">-->
-            <!--                    <label for="clientdetail" class="form-label">Клієнт</label>-->
-            <!--                    <select th:field="*{clientdetail}" id="clientdetail" class="form-select">-->
-            <!--                        <option th:each="c : ${clients}" th:value="${c}" th:text="${c.name}"></option>-->
-            <!--                    </select>-->
-            <!--                </div>-->
-
             <!-- Кнопки -->
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Зберегти</button>
                 <a href="/banners" class="btn btn-secondary">Повернутися</a>
-<!--                <a href="/banners" class="btn btn-outline-secondary">Повернутися</a>-->
             </div>
 
         </form>
     </div>
+
     <hr>
+
     <!-- Приклади вигляду банера -->
     <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
          style="width:100%; max-width:600px;">
@@ -187,19 +227,16 @@
             </a>
         </div>
     </div>
+
     <hr>
+
     <div class="banner card shadow-sm rounded-4 text-center p-3 mb-3"
          th:style="'max-width:300px; min-height:250px;'">
         <div class="card-body d-flex flex-column justify-content-center">
-            <!-- Заголовок банера -->
             <h5 class="card-title fw-bold mb-2" th:text="${banner.title}">Назва банера</h5>
-
-            <!-- Текст/опис -->
             <p class="card-text small mb-3" th:text="${banner.description}">
                 Короткий текст банера, що підлаштовується під контейнер.
             </p>
-
-            <!-- Кнопка переходу -->
             <a th:href="${banner.link}" target="_blank" rel="noopener"
                class="btn btn-primary btn-sm w-100 mt-auto">
                 Дізнатись більше
@@ -207,39 +244,156 @@
         </div>
     </div>
 </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Bootstrap валідація
-    (() => {
-      'use strict'
-      const forms = document.querySelectorAll('.needs-validation')
-      Array.from(forms).forEach(form => {
-        form.addEventListener('submit', event => {
-          if (!form.checkValidity()) {
-            event.preventDefault()
-            event.stopPropagation()
-          }
-          form.classList.add('was-validated')
-        }, false)
-      })
-    })()
-</script>
-<script th:src="@{/js/dropzone.min.js}"></script>
-<script th:src="@{/js/toastr.min.js}"></script>
-<!--<script>-->
-<!--    Dropzone.autoDiscover = false;-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-<!--    $("#demo-upload").dropzone({-->
-<!--        // maxFiles: 1,-->
-<!--        init: function() {-->
-<!--            this.hiddenFileInput.removeAttribute('multiple');-->
-<!--        }-->
-<!--        success : function(file, response) {-->
-<!--            toastr.success('Файл ' + file.name + ' успішно завантажено');-->
-<!--        }-->
-<!--    });-->
-<!--</script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>-->
+
+<script>
+    // =============================================
+    // Bootstrap валідація форми
+    // =============================================
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // =============================================
+    // Bootstrap Toast замість toastr (без jQuery)
+    // =============================================
+    function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+
+        let bgClass = 'bg-success';
+        if (type === 'error') bgClass = 'bg-danger';
+        else if (type === 'warning') bgClass = 'bg-warning';
+
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast"></button>
+                </div>
+            </div>`;
+
+        container.insertAdjacentHTML('beforeend', toastHtml);
+
+        const toastEl = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    // =============================================
+    // Динамічне формування HTML-елемента прев'ю
+    // =============================================
+    function renderMediaPreview(url, bannerType, mimeType) {
+        const preview = document.getElementById('media-preview');
+        if (!preview) return;
+
+        let html = '';
+
+        switch (bannerType) {
+            case 'IMAGE':
+                html = '<img src="' + url + '" alt="Зображення банера" class="img-fluid rounded">';
+                break;
+            case 'AUDIO':
+                html = '<audio controls>' +
+                    '<source src="' + url + '" type="' + (mimeType || 'audio/mpeg') + '">' +
+                    'Ваш браузер не підтримує аудіо-елемент.' +
+                    '</audio>';
+                break;
+            case 'VIDEO':
+                html = '<video controls>' +
+                    '<source src="' + url + '" type="' + (mimeType || 'video/mp4') + '">' +
+                    'Ваш браузер не підтримує відео-елемент.' +
+                    '</video>';
+                break;
+            default:
+                html = '<span class="text-muted">Невідомий формат файлу</span>';
+        }
+
+        preview.innerHTML = html;
+
+        // Показуємо кнопку "Видалити медіа" після завантаження
+        const clearBtn = document.getElementById('clear-media-container');
+        if (clearBtn) clearBtn.style.display = 'block';
+    }
+
+    // =============================================
+    // Dropzone: завантаження медіа для банера
+    // =============================================
+    Dropzone.autoDiscover = false;
+
+    const bannerDropzone = new Dropzone("#demo-upload", {
+        maxFiles: 1,
+        acceptedFiles: "image/*,audio/*,video/*",
+        paramName: "file",
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+        },
+
+        // Визначаємо тип файлу перед відправкою на сервер
+        sending: function (file, xhr, formData) {
+            let storeType = "STORE_BANNERIMAGE";
+            let bannerType = "IMAGE";
+
+            if (file.type.startsWith('audio/')) {
+                storeType = "STORE_BANNERAUDIO";
+                bannerType = "AUDIO";
+            } else if (file.type.startsWith('video/')) {
+                storeType = "STORE_BANNERVIDEO";
+                bannerType = "VIDEO";
+            }
+
+            formData.append("type", storeType);
+            file._bannerType = bannerType;
+        },
+
+        init: function () {
+            this.on("success", function (file, response) {
+                if (response.success && response.uuid) {
+                    showToast('Файл «' + file.name + '» успішно завантажено', 'success');
+
+                    // Заповнюємо приховані поля форми банера
+                    document.getElementById('uuidmedia').value = response.uuid;
+                    document.getElementById('bannertype').value = file._bannerType;
+
+                    // Динамічно рендеримо прев'ю відповідно до типу файлу
+                    renderMediaPreview(response.url, file._bannerType, file.type);
+
+                } else {
+                    showToast('Помилка завантаження: ' + (response.error || 'невідома'), 'error');
+                }
+            });
+
+            this.on("error", function (file, msg) {
+                showToast('Помилка завантаження файлу: ' + msg, 'error');
+            });
+
+            this.on("maxfilesexceeded", function (file) {
+                showToast('Можна завантажити лише один файл. Спочатку видаліть попередній.', 'warning');
+                this.removeFile(file);
+            });
+        }
+    });
+</script>
+
 </body>
 </html>
