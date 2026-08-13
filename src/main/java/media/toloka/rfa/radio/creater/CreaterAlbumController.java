@@ -3,7 +3,6 @@ package media.toloka.rfa.radio.creater;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.model.Album;
-import media.toloka.rfa.radio.model.Albumсover;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.radio.model.Track;
 import media.toloka.rfa.radio.store.model.Store;
@@ -32,6 +31,9 @@ public class CreaterAlbumController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private media.toloka.rfa.radio.store.Service.StoreCleanupService cleanupService;
 
     @PostMapping("/creater/setalbumcover/{storealcouuid}/{albumid}/{cdid}")
     public String GetAlbumSetCover(
@@ -187,20 +189,30 @@ public class CreaterAlbumController {
             currentcover = null;
         }
 
-        List<Albumсover> albumсover = createrService.GetAlbumCoverByCd(cd);
-        for (Albumсover albumсover1 : albumсover) {
-            if (albumсover1.getStoreitem() != null) {
-                logger.warn("Імʼя Файлу: ", albumсover1.getStoreitem().getFilename());
-            } else {
-                logger.warn("Ще не призначили картинку");
-            }
+        List<Store> coverlist = createrService.GetAlbumCoverByCd(cd);
+        for (Store cover : coverlist) {
+            logger.warn("Імʼя Файлу: {}", cover.getFilename());
         }
 
-        model.addAttribute("coverlist", albumсover );
+        model.addAttribute("coverlist", coverlist );
         model.addAttribute("cover", currentcover );
         model.addAttribute("album", album );
         model.addAttribute("cd", cd );
         return "/creater/setalbumcover";
     }
 
+    @GetMapping(value = "/creater/deletealbum/{idAlbum}")
+    public String deleteAlbum(@PathVariable Long idAlbum, Model model) {
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
+        Album album = createrService.GetAlbumById(idAlbum);
+        if (album != null && album.getClientdetail().getUuid().equals(cd.getUuid())) {
+            cleanupService.safeDeleteAlbum(album);
+            logger.info("Успішно видалено альбом ID={} користувачем={}", idAlbum, cd.getUuid());
+        }
+        return "redirect:/creater/albums";
+    }
 }

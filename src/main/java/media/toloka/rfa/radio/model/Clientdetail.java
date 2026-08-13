@@ -101,10 +101,7 @@ public class Clientdetail {
     @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<Post> postList = new ArrayList<>();
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "clientdetail", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-    private List<Albumсover> albumсoverList = new ArrayList<>();
+
 
 //    @ToString.Exclude
 //    @OneToMany(mappedBy = "clientdetail", fetch=FetchType.EAGER, cascade = CascadeType.MERGE)

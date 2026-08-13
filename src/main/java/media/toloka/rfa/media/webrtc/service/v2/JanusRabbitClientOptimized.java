@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.webrtc.service.v2;
+package media.toloka.rfa.media.messanger.webrtc.service.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,36 +8,47 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Оптимізований RPC-клієнт для Janus (v2).
+ * 🐇 Оптимізований низькорівневий RPC-клієнт для взаємодії з Janus Gateway через RabbitMQ (версія v2).
  *
- * Ключові особливості:
- * - Використовує Client API через executeInSession для роботи з плагінами
- * - Admin API тільки для глобальних команд (list_tokens, add_token, ping)
- * - createAudioBridgeRoom() налаштовує allow_rtp_participants=true
- * - createRtpForward() створює RTP forward для прийому зовнішніх потоків
- * - Правильний парсинг відповідей (plugindata.data для Client API)
- * - Синхронний RPC через convertSendAndReceive (як у v1, перевірено працює)
+ * Особливості архітектури:
+ * - Використовує клієнтське API плагінів через запуск короткострокових/персистентних сесій (`executeInSession`).
+ * - Керування та сигналізація виконуються синхронно за допомогою RabbitMQ черг запитів-відповідей (`convertSendAndReceive`).
+ * - Налаштовує аудіокімнати для підтримки Plain RTP потоків (`allow_rtp_participants`).
+ * - Дозволяє транслювати кімнати назовні за допомогою `rtp_forward`.
+ * - Реалізує автоматичний повтор операцій модерації без передачі пароля для статичних кімнат.
  */
 @Service
 public class JanusRabbitClientOptimized {
 
     private static final Logger log = LoggerFactory.getLogger(JanusRabbitClientOptimized.class);
 
+    // RabbitTemplate для стандартних клієнтських операцій (черга 'janus-commands')
     private final RabbitTemplate rabbitTemplate;
+    
+    // RabbitTemplate для адміністративних операцій (черга 'janus-admin-commands')
     private final RabbitTemplate adminRabbitTemplate;
 
+    // Секретний ключ адміністратора Janus
     @Value("${janus.admin_secret}")
     private String adminSecret;
 
+    // Загальний секретний ключ Janus для сесій користувачів
     @Value("${janus.secret}")
     private String apiSecret;
 
+    /**
+     * Повертає загальний секретний ключ Janus.
+     */
     public String getApiSecret() {
         return apiSecret;
     }
 
+    /**
+     * Конструктор з впровадженням спеціалізованих шаблонів черг AMQP.
+     */
     public JanusRabbitClientOptimized(
             @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
             @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate) {
@@ -50,11 +61,8 @@ public class JanusRabbitClientOptimized {
     // ============================================================
 
     /**
-     * Створення звичайної аудіокімнати з allow_rtp_participants=true.
-     * RTP forward створюється окремим запитом через createRtpForward().
-     *
-     * @param roomId ID кімнати
-     * @param name Назва кімнати
+     * 🎙️ Створення нової голосової кімнати в Janus AudioBridge.
+     * Параметр allow_rtp_participants встановлюється в true для прийому Plain RTP потоку від FFmpeg.
      */
     public void createAudioBridgeRoom(Long roomId, String name) {
         if (roomId == null) {
@@ -75,16 +83,16 @@ public class JanusRabbitClientOptimized {
                 body.put("request", "create");
                 body.put("room", roomId);
                 body.put("description", name);
-                body.put("secret", apiSecret);
+                body.put("secret", apiSecret); // Встановлюємо пароль кімнати рівним apiSecret
                 body.put("permanent", false);
 
-                // Аудіо налаштування
+                // Налаштування аудіо
                 body.put("sampling_rate", 48000);
                 body.put("audio_codec", "opus");
                 body.put("is_private", false);
                 body.put("audio_level_average", 25);
 
-                // ✅ ДОЗВОЛЯЄМО RTP participants для прийому зовнішніх потоків
+                // Дозволяємо RTP-підключення (для нашого FFmpeg агента)
                 body.put("allow_rtp_participants", true);
 
                 request.put("body", body);
@@ -102,7 +110,7 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Видалення аудіокімнати з Janus.
+     * 💥 Видалення аудіокімнати з Janus.
      */
     public void destroyAudioBridgeRoom(Long janusRoomId) {
         if (janusRoomId == null) {
@@ -122,8 +130,8 @@ public class JanusRabbitClientOptimized {
                 Map<String, Object> body = new HashMap<>();
                 body.put("request", "destroy");
                 body.put("room", janusRoomId);
-                body.put("secret", apiSecret);
-                body.put("permanent", false);
+                body.put("secret", apiSecret); // Передаємо пароль кімнати для підтвердження прав
+
                 request.put("body", body);
 
                 Map<String, Object> response = sendAndReceive(request);
@@ -138,129 +146,65 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-// RTP PARTICIPANTS (НОВИЙ МЕХАНІЗМ з PR #2464)
-// ============================================================
+    // PLAIN RTP PARTICIPANT
+    // ============================================================
 
     /**
-     ✅ НОВЕ: Створення RTP учасника в аудіокімнаті.
-     Це ПРАВИЛЬНИЙ механізм для прийому зовнішнього RTP потоку.
-     Janus повертає IP та порт, на який потрібно відправляти RTP.
-
-     @param roomId ID кімнати
-     @param participantId Унікальний ID учасника (наприклад, stationId)
-     @param display Ім'я учасника (для відображення)
-     @return Map з ip та port для відправки RTP
+     * 🔌 Приєднання Plain RTP джерела (FFmpeg) як учасника голосової кімнати.
+     *
+     * @param sessionId Активна сесія Janus
+     * @param handleId Хендл прикріпленого плагіна AudioBridge
+     * @param roomId ID кімнати
+     * @param display Ім'я учасника в списку (напр. "Радіо Ефір")
+     * @param ip IP-адреса, на яку Janus чекає RTP (зазвичай 127.0.0.1)
+     * @param rtpPort Порт, з якого FFmpeg відправлятиме RTP пакети
+     * @return Відповідь Janus API, яка містить порт, який Janus виділив для прийому RTP
      */
     @SuppressWarnings("unchecked")
-    public Map<String, Object> createRtpParticipant(Long roomId, String participantId, String display) {
-        if (roomId == null || participantId == null) {
-            throw new IllegalArgumentException("roomId та participantId не можуть бути null");
-        }
+    public Map<String, Object> joinAsRtpParticipant(
+            Long sessionId, Long handleId, Long roomId, String display, String ip, Integer rtpPort) {
+        
+        log.info("Приєднання Plain RTP до кімнати {} на порт джерела {}", roomId, rtpPort);
 
-        log.info("Створення RTP учасника {} в кімнаті {}", participantId, roomId);
+        String transactionId = "rtp-join-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("message", transactionId);
+        request.put("session_id", sessionId);
+        request.put("handle_id", handleId);
 
-        return executeInSession((sessionId, handleId) -> {
-            String transactionId = "rtp-participant-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
+        Map<String, Object> body = new HashMap<>();
+        body.put("request", "join");
+        body.put("room", roomId);
+        body.put("display", display);
+        body.put("secret", apiSecret);
 
-            Map<String, Object> body = new HashMap<>();
-            body.put("request", "join");
-            body.put("room", roomId);
-            body.put("id", Long.parseLong(participantId.replaceAll("[^0-9]", "")));
-            body.put("display", display);
-            body.put("muted", false);
-            body.put("secret", apiSecret);
+        // RTP конфігурація Plain RTP учасника
+        Map<String, Object> rtpData = new HashMap<>();
+        rtpData.put("ip", ip);
+        rtpData.put("port", rtpPort);
+        rtpData.put("codec", "opus");
+        rtpData.put("pt", 100);       // Стандартний Payload Type для Opus в Janus
+        rtpData.put("rtp_port", 0);   // 0 означає автовиділення порту на стороні Janus
+        
+        body.put("rtp", rtpData);
+        request.put("body", body);
 
-            // ✅ КЛЮЧОВИЙ ПАРАМЕТР: RTP конфігурація
-            // Якщо ip/port не вказані, Janus сам виділить порт для прийому
-            body.put("rtp", Map.of(
-                    "payload_type", 100,  // Opus
-                    "audiolevel_ext", false
-            ));
+        Map<String, Object> response = sendAndReceive(request);
+        validatePluginResponse(response);
 
-            request.put("body", body);
-
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
-
-            Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            if (plugindata == null) {
-                throw new RuntimeException("plugindata відсутній у відповіді");
-            }
-
-            Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            if (data == null) {
-                throw new RuntimeException("data відсутній у plugindata");
-            }
-
-            // ✅ Janus повертає RTP конфігурацію
-            Map<String, Object> rtpConfig = (Map<String, Object>) data.get("rtp");
-            if (rtpConfig == null) {
-                throw new RuntimeException("RTP конфігурація відсутня у відповіді");
-            }
-
-            String rtpIp = (String) rtpConfig.get("ip");
-            Integer rtpPort = ((Number) rtpConfig.get("port")).intValue();
-
-            log.info("✅ RTP учасника створено: participantId={}, ip={}, port={}",
-                    participantId, rtpIp, rtpPort);
-
-            return Map.of(
-                    "participantId", participantId,
-                    "ip", rtpIp,
-                    "port", rtpPort
-            );
-        });
-    }
-
-    /**
-     ✅ НОВЕ: Видалення RTP учасника з кімнати.
-     @param roomId ID кімнати
-     @param participantId ID учасника
-     */
-    public void removeRtpParticipant(Long roomId, String participantId) {
-        if (roomId == null || participantId == null) return;
-
-        log.info("Видалення RTP учасника {} з кімнати {}", participantId, roomId);
-
-        executeInSession((sessionId, handleId) -> {
-            String transactionId = "remove-rtp-participant-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("request", "kick");
-            body.put("room", roomId);
-            body.put("id", Long.parseLong(participantId.replaceAll("[^0-9]", "")));
-            body.put("secret", apiSecret);
-
-            request.put("body", body);
-
-            Map<String, Object> response = sendAndReceive(request);
-            validatePluginResponse(response);
-
-            log.info("✅ RTP учасника {} видалено з кімнати {}", participantId, roomId);
-            return null;
-        });
+        return response;
     }
 
     // ============================================================
-    // RTP FORWARD (НОВИЙ МЕХАНІЗМ)
+    // RTP FORWARD (ТРАНСЛЯЦІЯ НАЗОВНІ)
     // ============================================================
 
     /**
-     * Створення RTP forward для прийому зовнішнього потоку.
-     *
-     * Це ПРАВИЛЬНИЙ механізм згідно з документацією Janus AudioBridge.
-     * Janus починає слухати RTP на вказаному порту і міксує його з іншими учасниками.
+     * 📡 Запуск ретрансляції (RTP Forward) аудіоміксу кімнати на вказану IP-адресу та UDP-порт.
      *
      * @param roomId ID кімнати
-     * @param host IP/хост отримувача RTP
-     * @param rtpPort UDP порт, на якому отримувач чекає RTP
-     * @return stream_id для подальшого управління (зупинка forward)
+     * @param host IP отримувача
+     * @param rtpPort Порт отримувача
+     * @return stream_id для подальшої зупинки
      */
     @SuppressWarnings("unchecked")
     public Long createRtpForward(Long roomId, String host, Integer rtpPort) {
@@ -283,7 +227,7 @@ public class JanusRabbitClientOptimized {
             body.put("host", host);
             body.put("port", rtpPort);
             body.put("ptype", 100);
-            body.put("ssrc", roomId * 1000);
+            body.put("ssrc", roomId * 1000); // Генеруємо унікальний SSRC для трансляції
 
             request.put("body", body);
 
@@ -291,37 +235,24 @@ public class JanusRabbitClientOptimized {
             validatePluginResponse(response);
 
             Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-            if (plugindata == null) {
-                throw new RuntimeException("plugindata відсутній у відповіді");
-            }
-
             Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-            if (data == null) {
-                throw new RuntimeException("data відсутній у plugindata");
-            }
-
-            Long streamId = ((Number) data.get("stream_id")).longValue();
-
-            log.info("RTP forward створено: stream_id={}, room={}, port={}",
-                    streamId, roomId, rtpPort);
-
-            return streamId;
+            
+            return ((Number) data.get("stream_id")).longValue();
         });
     }
 
     /**
-     * Зупинка RTP forward.
-     *
-     * @param roomId ID кімнати
-     * @param streamId ID потоку (повернутий createRtpForward)
+     * ⏹️ Зупинка ретрансляції (RTP Forward).
      */
     public void stopRtpForward(Long roomId, Long streamId) {
-        if (roomId == null || streamId == null) return;
+        if (roomId == null || streamId == null) {
+            throw new IllegalArgumentException("roomId та streamId не можуть бути null");
+        }
 
-        log.info("Зупинка RTP forward: stream_id={} в кімнаті {}", streamId, roomId);
+        log.info("Зупинка RTP forward в кімнаті {} з stream_id={}", roomId, streamId);
 
         executeInSession((sessionId, handleId) -> {
-            String transactionId = "stop-rtp-forward-" + generateShortUUID();
+            String transactionId = "rtp-stop-" + generateShortUUID();
             Map<String, Object> request = createBaseRequest("message", transactionId);
             request.put("session_id", sessionId);
             request.put("handle_id", handleId);
@@ -329,23 +260,26 @@ public class JanusRabbitClientOptimized {
             Map<String, Object> body = new HashMap<>();
             body.put("request", "stop_rtp_forward");
             body.put("room", roomId);
-            body.put("secret", apiSecret);
             body.put("stream_id", streamId);
+            body.put("secret", apiSecret);
 
             request.put("body", body);
 
             Map<String, Object> response = sendAndReceive(request);
             validatePluginResponse(response);
 
-            log.info("RTP forward зупинено: stream_id={}", streamId);
+            log.info("RTP forward успішно зупинено");
             return null;
         });
     }
 
     // ============================================================
-    // ОТРИМАННЯ СПИСКУ КІМНАТ
+    // ОТРИМАННЯ ДАНИХ КІМНАТ ТА УЧАСНИКІВ
     // ============================================================
 
+    /**
+     * 🔍 Отримання списку всіх кімнат та їхніх поточних учасників.
+     */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
@@ -367,6 +301,7 @@ public class JanusRabbitClientOptimized {
             List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("list");
             if (rooms == null) return List.<Map<String, Object>>of();
 
+            // Для кожної знайденої кімнати дозавантажуємо список учасників
             for (Map<String, Object> room : rooms) {
                 try {
                     Number roomIdNum = (Number) room.get("room");
@@ -394,53 +329,46 @@ public class JanusRabbitClientOptimized {
                     room.put("participants", List.of());
                 }
             }
+
             return rooms;
         });
     }
 
+    /**
+     * 🔍 Отримання списку числових ідентифікаторів усіх кімнат у Janus.
+     */
     @SuppressWarnings("unchecked")
     public List<Long> getActiveRoomsIds() {
-        return executeInSession((sessionId, handleId) -> {
-            String transactionId = "list-rooms-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("message", transactionId);
-            request.put("session_id", sessionId);
-            request.put("handle_id", handleId);
-            request.put("body", Map.of("request", "list"));
+        try {
+            return executeInSession((sessionId, handleId) -> {
+                String transactionId = "rooms-ids-" + generateShortUUID();
+                Map<String, Object> request = createBaseRequest("message", transactionId);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+                request.put("body", Map.of("request", "list"));
 
-            List<Long> roomIds = new ArrayList<>();
-
-            try {
                 Map<String, Object> response = sendAndReceive(request);
                 validatePluginResponse(response);
 
                 Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-                if (plugindata == null) return roomIds;
-
                 Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-                if (data == null) return roomIds;
+                List<Map<String, Object>> list = (List<Map<String, Object>>) data.get("list");
 
-                List<Map<String, Object>> roomsList = (List<Map<String, Object>>) data.get("list");
-                if (roomsList == null) return roomIds;
+                if (list == null) return List.of();
 
-                for (Map<String, Object> roomData : roomsList) {
-                    Object roomIdObj = roomData.get("room");
-                    if (roomIdObj instanceof Number) {
-                        roomIds.add(((Number) roomIdObj).longValue());
-                    }
-                }
-
-            } catch (Exception e) {
-                log.error("Помилка отримання списку кімнат: {}", e.getMessage(), e);
-            }
-
-            return roomIds;
-        });
+                return list.stream()
+                        .map(m -> ((Number) m.get("room")).longValue())
+                        .collect(Collectors.toList());
+            });
+        } catch (Exception e) {
+            log.error("Помилка отримання ID кімнат Janus: {}", e.getMessage());
+            return List.of();
+        }
     }
 
-    // ============================================================
-    // РОБОТА З КОРИСТУВАЧАМИ
-    // ============================================================
-
+    /**
+     * 👥 Перевіряє, чи присутній користувач із заданим токеном (UUID) у кімнаті.
+     */
     @SuppressWarnings("unchecked")
     public boolean isUserInAudioRoom(Long roomId, String userToken) {
         return executeInSession((sessionId, handleId) -> {
@@ -478,10 +406,15 @@ public class JanusRabbitClientOptimized {
         });
     }
 
+    // ============================================================
+    // МОДЕРАЦІЯ
+    // ============================================================
+
+    /**
+     * 🔇 Виселення (kick) користувача за його токеном (UUID).
+     */
     @SuppressWarnings("unchecked")
     public void kickUserFromAudioBridgeRoom(Long roomId, String userToken) {
-        if (roomId == null || userToken == null) return;
-
         log.info("Спроба видалити користувача з токеном {} з кімнати {}", userToken, roomId);
 
         try {
@@ -539,7 +472,12 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Керування мікрофоном учасника (mute/unmute) модератором.
+     * 🔇 Керування мікрофоном учасника (mute/unmute) модератором.
+     *
+     * 🌀 Auto-Retry:
+     * Спочатку робить запит із таємним паролем кімнати (для динамічних кімнат).
+     * Якщо Janus відмовляє (наприклад, для статичної кімнати 802, яка не має пароля),
+     * бекенд ловить виключення, видаляє параметр "secret" та надсилає команду повторно.
      */
     public void muteParticipant(Long roomId, Long participantId, boolean mute) {
         log.info("Модерація: {} учасника {} в кімнаті {}", (mute ? "мутування" : "розмутування"), participantId, roomId);
@@ -575,7 +513,10 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Вигнання учасника з кімнати за його внутрішнім ID в Janus.
+     * ❌ Вигнання учасника з кімнати за його внутрішнім ID в Janus.
+     *
+     * 🌀 Auto-Retry:
+     * Аналогічно мутуванню, при невдачі з секретом надсилає запит повторно без параметра "secret".
      */
     public void kickParticipant(Long roomId, Long participantId) {
         log.info("Модерація: вигнання учасника {} з кімнати {}", participantId, roomId);
@@ -613,6 +554,9 @@ public class JanusRabbitClientOptimized {
     // ADMIN API
     // ============================================================
 
+    /**
+     * 🔎 Діагностичний запит ping до Janus Gateway Admin API.
+     */
     public boolean pingJanus() {
         String transactionId = "ping-" + generateShortUUID();
         Map<String, Object> request = Map.of(
@@ -623,70 +567,146 @@ public class JanusRabbitClientOptimized {
 
         try {
             Map<String, Object> response = sendAndReceiveAdmin(request);
-            return "pong".equals(response.get("janus")) || "success".equals(response.get("janus"));
+            return "pong".equals(response.get("janus"));
         } catch (Exception e) {
+            log.error("Помилка ping до Janus Gateway: {}", e.getMessage());
             return false;
         }
     }
 
-    public void registerUserToken(String userToken) {
-        String transactionId = "token-reg-" + generateShortUUID();
+    /**
+     * 🔑 Реєстрація токена авторизації користувача в списку дозволених токенів Janus.
+     */
+    public void registerUserToken(String token) {
+        log.info("Реєстрація токена користувача в Janus: {}", token);
+        String transactionId = "token-add-" + generateShortUUID();
+        
         Map<String, Object> request = Map.of(
                 "janus", "add_token",
-                "token", userToken,
+                "token", token,
                 "admin_secret", adminSecret,
-                "transaction", transactionId,
-                "plugins", List.of("janus.plugin.audiobridge")
+                "transaction", transactionId
         );
-
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        if ("success".equals(response.get("janus"))) {
-            log.info("Токен {} зареєстровано", userToken);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public Set<String> getAllUsersTokenFromJanus() {
-        String transactionId = "user-token-list-" + generateShortUUID();
-        Map<String, Object> request = Map.of(
-                "janus", "list_tokens",
-                "transaction", transactionId,
-                "admin_secret", adminSecret
-        );
-
-        Map<String, Object> response = sendAndReceiveAdmin(request);
-        Set<String> setTokens = new HashSet<>();
-
-        Map<String, Object> tokensData = (Map<String, Object>) response.get("data");
-        if (tokensData == null) return setTokens;
-
-        List<Map<String, Object>> tokensList = (List<Map<String, Object>>) tokensData.get("tokens");
-        if (tokensList == null) return setTokens;
-
-        for (Map<String, Object> tokenInfo : tokensList) {
-            String tokenStr = (String) tokenInfo.get("token");
-            if (tokenStr != null) setTokens.add(tokenStr);
-        }
-
-        return setTokens;
-    }
-
-    public Boolean checkUserTokenInJanus(String uuidUser) {
-        if (uuidUser == null || uuidUser.trim().isEmpty()) return false;
 
         try {
-            Set<String> activeTokens = getAllUsersTokenFromJanus();
-            return activeTokens.contains(uuidUser);
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+            if (!"success".equals(response.get("janus"))) {
+                throw new RuntimeException("Помилка реєстрації токена: " + response);
+            }
+            log.info("Токен користувача {} успішно зареєстровано в Janus", token);
         } catch (Exception e) {
-            log.error("Помилка перевірки токена: " + e.getMessage(), e);
-            return false;
+            log.error("Помилка реєстрації токена користувача: " + e.getMessage(), e);
+            throw new RuntimeException("Помилка реєстрації токена в Janus", e);
         }
     }
 
+    /**
+     * 🔑 Перевірка, чи зареєстрований токен користувача в Janus.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean checkUserTokenInJanus(String token) {
+        String transactionId = "tokens-list-" + generateShortUUID();
+        Map<String, Object> request = Map.of(
+                "janus", "list_tokens",
+                "admin_secret", adminSecret,
+                "transaction", transactionId
+        );
+
+        try {
+            Map<String, Object> response = sendAndReceiveAdmin(request);
+            if (!"success".equals(response.get("janus"))) {
+                return false;
+            }
+
+            Map<String, Object> tokensData = (Map<String, Object>) response.get("data");
+            List<Map<String, Object>> tokensList = (List<Map<String, Object>>) tokensData.get("tokens");
+
+            if (tokensList == null) return false;
+
+            for (Map<String, Object> t : tokensList) {
+                if (token.equals(t.get("token"))) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Помилка перевірки списку токенів Janus: " + e.getMessage(), e);
+        }
+        return false;
+    }
+
     // ============================================================
-    // ДОПОМІЖНІ МЕТОДИ
+    // ВНУТРІШНІ ДОПОМІЖНІ МЕТОДИ
     // ============================================================
 
+    /**
+     * Створення базового повідомлення для Client API Janus.
+     */
+    private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("janus", janusType);
+        request.put("transaction", transactionId);
+        request.put("apisecret", apiSecret);
+        return request;
+    }
+
+    /**
+     * Перевірка статусу відповіді Janus.
+     * Закидає RuntimeException якщо Janus повернув помилку на транспортному рівні
+     * або плагін AudioBridge повернув помилку конфігурації.
+     */
+    @SuppressWarnings("unchecked")
+    private void validatePluginResponse(Map<String, Object> response) {
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Janus API error: " + response);
+        }
+        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+        if (plugindata == null) return;
+        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+        if (data != null && (data.containsKey("error") || data.containsKey("error_code"))) {
+            throw new RuntimeException("Plugin error: " + (data.get("error") != null ? data.get("error") : data.get("error_code")));
+        }
+    }
+
+    /**
+     * Синхронна відправка запиту у чергу RabbitMQ 'janus-commands'.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
+        Object res = rabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus API");
+        return (Map<String, Object>) res;
+    }
+
+    /**
+     * Синхронна відправка адміністративного запиту у чергу RabbitMQ 'janus-admin-commands'.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
+        Object res = adminRabbitTemplate.convertSendAndReceive(request);
+        if (res == null) throw new RuntimeException("Таймаут Janus Admin API");
+        return (Map<String, Object>) res;
+    }
+
+    /**
+     * Генерація випадкового унікального ідентифікатора транзакції.
+     */
+    private String generateShortUUID() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    /**
+     * Допоміжний функціональний інтерфейс для дій у сесії.
+     */
+    @FunctionalInterface
+    private interface JanusAction<T> {
+        T apply(Long sessionId, Long handleId);
+    }
+
+    /**
+     * ⚙️ Допоміжний метод виконання дій у контексті тимчасової сесії та хендлу плагіна Janus.
+     * Автоматично створює сесію та хендл плагіна, виконує задану функцію `action`,
+     * а у блоці `finally` гарантує видалення сесії та звільнення ресурсів Janus.
+     */
     private <T> T executeInSession(JanusAction<T> action) {
         Long sessionId = createSession();
         try {
@@ -697,31 +717,9 @@ public class JanusRabbitClientOptimized {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public Long createSession() {
-        String transactionId = "session-create-" + generateShortUUID();
-        Map<String, Object> request = createBaseRequest("create", transactionId);
-        Map<String, Object> response = sendAndReceive(request);
-
-        if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Помилка створення сесії: " + response);
-        }
-
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        return ((Number) data.get("id")).longValue();
-    }
-
-    public void destroySession(Long sessionId) {
-        try {
-            String transactionId = "destroy-" + generateShortUUID();
-            Map<String, Object> request = createBaseRequest("destroy", transactionId);
-            request.put("session_id", sessionId);
-            sendAndReceive(request);
-        } catch (Exception e) {
-            log.warn("Destroy session failed: {}", e.getMessage());
-        }
-    }
-
+    /**
+     * Створення хендлу (handle) підключення плагіна Janus.
+     */
     @SuppressWarnings("unchecked")
     public Long attachPlugin(Long sessionId, String plugin) {
         String transactionId = "attach-" + generateShortUUID();
@@ -739,31 +737,34 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * Приєднання Plain RTP учасника до кімнати.
+     * Створення нової сесії в Janus Gateway.
      */
     @SuppressWarnings("unchecked")
-    public Map<String, Object> joinAsRtpParticipant(Long sessionId, Long handleId, Long roomId, String display, String ffmpegIp, Integer ffmpegPort) {
-        String transactionId = "rtp-join-" + generateShortUUID();
-        Map<String, Object> request = createBaseRequest("message", transactionId);
-        request.put("session_id", sessionId);
-        request.put("handle_id", handleId);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("request", "join");
-        body.put("room", roomId);
-        body.put("display", display);
-
-        Map<String, Object> rtp = new HashMap<>();
-        rtp.put("ip", ffmpegIp);
-        rtp.put("port", ffmpegPort);
-        rtp.put("payload_type", 100);
-        body.put("rtp", rtp);
-
-        request.put("body", body);
-
+    public Long createSession() {
+        String transactionId = "session-create-" + generateShortUUID();
+        Map<String, Object> request = createBaseRequest("create", transactionId);
         Map<String, Object> response = sendAndReceive(request);
-        validatePluginResponse(response);
-        return response;
+
+        if (!"success".equals(response.get("janus"))) {
+            throw new RuntimeException("Помилка створення сесії: " + response);
+        }
+
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        return ((Number) data.get("id")).longValue();
+    }
+
+    /**
+     * Знищення сесії в Janus Gateway.
+     */
+    public void destroySession(Long sessionId) {
+        try {
+            String transactionId = "destroy-" + generateShortUUID();
+            Map<String, Object> request = createBaseRequest("destroy", transactionId);
+            request.put("session_id", sessionId);
+            sendAndReceive(request);
+        } catch (Exception e) {
+            log.warn("Destroy session failed: {}", e.getMessage());
+        }
     }
 
     /**
@@ -778,46 +779,5 @@ public class JanusRabbitClientOptimized {
         } catch (Exception e) {
             log.warn("Keepalive failed for session {}: {}", sessionId, e.getMessage());
         }
-    }
-
-    private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
-        Map<String, Object> request = new HashMap<>();
-        request.put("janus", janusType);
-        request.put("transaction", transactionId);
-        request.put("apisecret", apiSecret);
-        return request;
-    }
-
-    private void validatePluginResponse(Map<String, Object> response) {
-        if (!"success".equals(response.get("janus"))) {
-            throw new RuntimeException("Janus API error: " + response);
-        }
-        Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
-        if (plugindata == null) return;
-        Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
-        if (data != null && (data.containsKey("error") || data.containsKey("error_code"))) {
-            throw new RuntimeException("Plugin error: " + (data.get("error") != null ? data.get("error") : data.get("error_code")));
-        }
-    }
-
-    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        Object res = rabbitTemplate.convertSendAndReceive(request);
-        if (res == null) throw new RuntimeException("Таймаут Janus API");
-        return (Map<String, Object>) res;
-    }
-
-    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
-        Object res = adminRabbitTemplate.convertSendAndReceive(request);
-        if (res == null) throw new RuntimeException("Таймаут Janus Admin API");
-        return (Map<String, Object>) res;
-    }
-
-    private String generateShortUUID() {
-        return UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    @FunctionalInterface
-    private interface JanusAction<T> {
-        T apply(Long sessionId, Long handleId);
     }
 }

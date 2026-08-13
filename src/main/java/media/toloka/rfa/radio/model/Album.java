@@ -38,12 +38,7 @@ public class Album {
     @DateTimeFormat(pattern = "dd-MM-yy")
     private Date datealbumrelise = new Date();
 
-//    @Expose
-//    private AlbumCover albumcover;
-    @Expose
-    @OneToOne(cascade = {CascadeType.ALL})
-    @JoinColumn(name = "albumcover_id")
-    private Albumсover albumcover;
+
 
     @Expose
     private String storeuuidalbumcover;
@@ -64,7 +59,7 @@ public class Album {
     private Clientdetail clientdetail;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "album", fetch=FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "album", fetch=FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Track> track;
 
 

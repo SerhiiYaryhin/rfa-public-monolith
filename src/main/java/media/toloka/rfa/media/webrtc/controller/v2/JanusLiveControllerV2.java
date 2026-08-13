@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * REST-контролер для керування живими WebRTC трансляціями (v2).
+ * 📡 REST-контролер для керування живими WebRTC трансляціями та модерацією (версія v2).
  *
- * Ключові відмінності від v1:
- * - Новий endpoint: /api/v1q/webrtc/stream
- * - Використовує RadioLiveServiceV2
- * - Безпечніше: api_secret НЕ передається клієнту
+ * Ключові особливості версії V2:
+ * - Базовий шлях: `/api/v1q/webrtc/stream`
+ * - Використовує оптимізований сервіс `RadioLiveServiceV2`.
+ * - Підвищена безпека: `api_secret` та `admin_secret` завантажуються лише на бекенді,
+ *   браузерний клієнт отримує тільки тимчасові токени (UUID користувача) без доступу до паролів.
  */
 @RestController
 @RequestMapping("/api/v1q/webrtc/stream")
@@ -24,20 +25,30 @@ public class JanusLiveControllerV2 {
 
     private static final Logger logger = LoggerFactory.getLogger(JanusLiveControllerV2.class);
 
+    // Головний сервіс бізнес-логіки WebRTC трансляцій
     private final RadioLiveServiceV2 radioLiveService;
+    
+    // Шаблон для відправки повідомлень у STOMP черги (WebSocket сигналізація)
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * Конструктор контролера з впровадженням залежностей.
+     */
     public JanusLiveControllerV2(RadioLiveServiceV2 radioLiveService, org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.radioLiveService = radioLiveService;
         this.messagingTemplate = messagingTemplate;
     }
 
     // ============================================================
-    // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ
+    // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ (РАДІО)
     // ============================================================
 
     /**
-     * Запуск трансляції радіостанції.
+     * 🎬 Запуск трансляції радіостанції в AudioBridge кімнату.
+     * Створює кімнату в Janus, Plain RTP підключення та запускає FFmpeg.
+     *
+     * @param stationId ID радіостанції (наприклад, "station_802")
+     * @return Дані про створений потік (ID кімнати, UDP порт та статус)
      */
     @PostMapping("/start")
     public ResponseEntity<?> start(@RequestParam String stationId) {
@@ -63,7 +74,10 @@ public class JanusLiveControllerV2 {
     }
 
     /**
-     * Зупинка трансляції.
+     * ⏹️ Зупинка трансляції радіостанції.
+     * Зупиняє FFmpeg агент та знищує персистентну сесію Plain RTP у Janus.
+     *
+     * @param stationId ID радіостанції (наприклад, "station_802")
      */
     @PostMapping("/stop")
     public ResponseEntity<?> stop(@RequestParam String stationId) {
@@ -91,8 +105,11 @@ public class JanusLiveControllerV2 {
     // ============================================================
 
     /**
-     * Отримання токена користувача.
-     * ⚠️ БЕЗПЕКА: api_secret НЕ передається клієнту!
+     * 🔑 Отримання та реєстрація токена користувача для підключення до Janus.
+     *
+     * ⚠️ БЕЗПЕКА: Медіасервер Janus вимагає перевірки токенів (Token-based Authentication).
+     * Даний метод генерує токен (UUID авторизованого користувача) та реєструє його
+     * у Janus через Admin API. Клієнту повертається ТІЛЬКИ токен, без системного api_secret.
      */
     @GetMapping("/token")
     public ResponseEntity<?> getToken() {
@@ -108,7 +125,7 @@ public class JanusLiveControllerV2 {
                     ));
         }
 
-        // ✅ БЕЗПЕЧНО: тільки токен, без api_secret
+        // Повертаємо токен користувача
         return ResponseEntity.ok(Map.of(
                 "token", token
         ));
@@ -119,7 +136,8 @@ public class JanusLiveControllerV2 {
     // ============================================================
 
     /**
-     * Отримання списку активних кімнат з учасниками.
+     * 🔍 Отримання списку активних кімнат та їхніх учасників.
+     * Інформація синхронізується з медіасервером у реальному часі.
      */
     @GetMapping("/rooms")
     public ResponseEntity<?> getRooms() {
@@ -142,7 +160,11 @@ public class JanusLiveControllerV2 {
     // ============================================================
 
     /**
-     * Підключення користувача до аудіокімнати.
+     * 🚪 Підготовка підключення користувача до конкретної аудіокімнати.
+     * Бекенд перевіряє, чи не сидить користувач у інших кімнатах,
+     * та примусово виганяє його звідти (евакуація) перед новим входом.
+     *
+     * @param dataMap Мапа JSON параметрів, що містить "roomid"
      */
     @PostMapping("/connectclienttoroom")
     public ResponseEntity<?> connectClientToRoom(@RequestBody Map<String, Object> dataMap) {
@@ -185,12 +207,16 @@ public class JanusLiveControllerV2 {
     // ============================================================
 
     /**
-     * Переміщення користувача між кімнатами Janus через WebSocket сигналізацію.
+     * 🔄 Переміщення користувача між кімнатами Janus через WebSocket сигналізацію.
+     *
+     * @param userUuid Унікальний токен (UUID) користувача, якого переміщуємо
+     * @param targetRoomId ID цільової кімнати (наприклад, 900 для "зеленої кімнати")
      */
     @PostMapping("/moderate/move")
     public ResponseEntity<?> moveUser(@RequestParam String userUuid, @RequestParam Long targetRoomId) {
         logger.info("Модератор переміщує користувача {} в кімнату {}", userUuid, targetRoomId);
         try {
+            // Відправляємо WebSocket сигнал у персональний канал користувача
             messagingTemplate.convertAndSend("/topic/webrtc.control." + userUuid, Map.of(
                     "action", "switch_room",
                     "targetRoomId", targetRoomId
@@ -204,7 +230,11 @@ public class JanusLiveControllerV2 {
     }
 
     /**
-     * Керування мікрофоном учасника (mute/unmute) в Janus.
+     * 🔇 Керування мікрофоном учасника (mute/unmute) в Janus.
+     *
+     * @param roomId ID кімнати
+     * @param participantId Числовий ідентифікатор учасника в Janus
+     * @param muted true — вимкнути мікрофон, false — увімкнути
      */
     @PostMapping("/moderate/mute")
     public ResponseEntity<?> muteUser(@RequestParam Long roomId, @RequestParam Long participantId, @RequestParam boolean muted) {
@@ -220,7 +250,10 @@ public class JanusLiveControllerV2 {
     }
 
     /**
-     * Вигнання учасника з кімнати.
+     * ❌ Вигнання (kick) учасника з кімнати Janus AudioBridge.
+     *
+     * @param roomId ID кімнати
+     * @param participantId Числовий ідентифікатор учасника в Janus
      */
     @PostMapping("/moderate/kick")
     public ResponseEntity<?> kickUser(@RequestParam Long roomId, @RequestParam Long participantId) {
@@ -236,7 +269,12 @@ public class JanusLiveControllerV2 {
     }
 
     /**
-     * Запуск трансляції аудіопотоку з кімнати назовні (rtp_forward).
+     * 📡 Запуск ретрансляції (RTP Forward) аудіопотоку з кімнати Janus на вказані реквізити.
+     *
+     * @param roomId ID кімнати, потік якої транслюємо назовні
+     * @param host IP-адреса отримувача RTP потоку
+     * @param port UDP-порт отримувача потоку
+     * @return Stream ID унікального потоку ретрансляції (потрібний для зупинки)
      */
     @PostMapping("/moderate/forward/start")
     public ResponseEntity<?> startForward(@RequestParam Long roomId, @RequestParam String host, @RequestParam Integer port) {
@@ -252,7 +290,10 @@ public class JanusLiveControllerV2 {
     }
 
     /**
-     * Зупинка трансляції аудіопотоку з кімнати назовні.
+     * ⏹️ Зупинка ретрансляції (RTP Forward) аудіопотоку.
+     *
+     * @param roomId ID кімнати
+     * @param streamId ID потоку ретрансляції
      */
     @PostMapping("/moderate/forward/stop")
     public ResponseEntity<?> stopForward(@RequestParam Long roomId, @RequestParam Long streamId) {
@@ -272,7 +313,7 @@ public class JanusLiveControllerV2 {
     // ============================================================
 
     /**
-     * Перевірка зв'язку з Janus Admin API.
+     * 🔍 Перевірка зв'язку з Janus Admin API (Health Check).
      */
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {

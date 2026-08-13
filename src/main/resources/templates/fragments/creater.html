@@ -145,7 +145,7 @@
                                 <li><a class="dropdown-item py-2" th:href="@{'/creater/editalbum/' + ${album.id}}"><i class="fas fa-edit me-2 text-primary"></i>Редагувати дані</a></li>
                                 <li><a class="dropdown-item py-2" th:href="@{'/creater/setalbumcover/' + ${album.id}}"><i class="fas fa-image me-2 text-secondary"></i>Змінити обкладинку</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-trash-alt me-2"></i>Видалити</a></li>
+                                <li><a class="dropdown-item py-2 text-danger" th:href="@{'/creater/deletealbum/' + ${album.id}}" onclick="return confirm('Ви впевнені, що хочете видалити цей альбом? Ваші треки НЕ будуть видалені.');"><i class="fas fa-trash-alt me-2"></i>Видалити</a></li>
                             </ul>
                         </div>
                     </div>

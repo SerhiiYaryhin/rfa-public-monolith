@@ -1,22 +1,39 @@
 /**
- * Рендеринг UI
+ * 🎨 Модуль UIRenderer (версія v2).
+ * 
+ * Відповідає за відображення інтерфейсу користувача та оновлення DOM-дерева:
+ * - Завантаження списку активних кімнат та учасників з нашого REST API.
+ * - Генерація HTML-коду карток кімнат, кнопок дій, елементів модерації та RTP Forward.
+ * - Керування доступністю кнопок переходу в інтерфейсі.
  */
 const UIRenderer = {
+    /**
+     * Асинхронно завантажує дані про кімнати з бекенду та ініціює їх рендеринг.
+     */
     async loadRooms() {
+        // Оновлюємо дані лише якщо підключення до Janus успішно ініційовано
         if (!JanusConnection.isJanusReady) return;
         try {
             const response = await fetch(`${CONFIG.BACKEND_API}/rooms`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            // Рендеримо отримані кімнати
             this.renderRooms(await response.json());
         } catch (error) {
             Logger.log(`❌ Помилка завантаження кімнат: ${error.message}`, "ERROR");
         }
     },
 
+    /**
+     * Динамічно рендерить HTML-код для всіх кімнат у DOM-контейнер.
+     * 
+     * @param {Array} rooms Масив об'єктів кімнат, отриманий з сервера
+     */
     renderRooms(rooms) {
         const container = document.getElementById("roomsList");
         if (!container) return;
 
+        // Порожній стан, якщо кімнат немає
         if (!rooms || rooms.length === 0) {
             container.innerHTML = `
                 <div class="no-rooms">
@@ -26,16 +43,23 @@ const UIRenderer = {
             return;
         }
 
+        // Генеруємо HTML для кожної кімнати
         container.innerHTML = rooms.map(room => {
+            // Перевіряємо, чи є дана кімната поточною для клієнта
             const isCurrent = RoomManager.currentRoomId === room.id;
+            
+            // Перевіряємо, чи транслюється зараз радіо в цю кімнату
             const isStreaming = room.stationstate === true;
 
+            // Налаштовуємо кнопки входу/переходу
             const btnClass = isCurrent ? 'btn-action-room' : 'btn-action-room btn-join-room';
             const btnText = isCurrent ? '✓ Ви тут' : '🚪 Увійти';
             const btnDisabled = isCurrent ? 'disabled' : '';
             const btnAction = isCurrent ? '' : `onclick="RoomManager.switchRoom(${room.id})"`;
 
             const stationId = room.id;
+            
+            // Кнопки управління трансляцією радіо в кімнату (FFmpegPlain RTP)
             const streamButtons = `
                 <button class="btn-action-room btn-start-stream" 
                         onclick="StreamManager.startStreamToRoom(${stationId})"
@@ -49,21 +73,24 @@ const UIRenderer = {
                 </button>
             `;
 
+            // Формуємо список учасників кімнати
             let participantsHtml = '<div class="no-users">Немає користувачів</div>';
             if (room.participants && room.participants.length > 0) {
                 participantsHtml = '<ul class="user-list">' + room.participants.map(p => {
+                    // Кольорове кодування бейджів статусу учасника (говорить/мовчить/muted)
                     let state = p.talking ? 'talking' : (p.muted ? 'muted' : 'active');
                     let stateText = p.talking ? '📢 говорить' : (p.muted ? '🔇 вимкнено' : '🎙️ активний');
                     
-                    // Кнопки модерації учасника
+                    // Кнопки модерації мікрофона учасника (mute/unmute)
                     const isMuted = p.muted === true;
                     const muteBtn = isMuted
                         ? `<button class="btn-user-action btn-unmute" onclick="Moderator.muteUser(${room.id}, ${p.id}, false)" title="Увімкнути мікрофон">🔊</button>`
                         : `<button class="btn-user-action btn-mute" onclick="Moderator.muteUser(${room.id}, ${p.id}, true)" title="Вимкнути мікрофон">🔇</button>`;
                     
+                    // Кнопка модерації kick (вигнання)
                     const kickBtn = `<button class="btn-user-action btn-kick" onclick="Moderator.kickUser(${room.id}, ${p.id})" title="Вигнати учасника">❌</button>`;
                     
-                    // Переміщення між кімнатами
+                    // Селектор вибору кімнати для переміщення учасника модератором (переміщення працює через UUID/token)
                     let moveHtml = '';
                     if (p.token) {
                         const otherRooms = rooms.filter(r => r.id !== room.id);
@@ -80,6 +107,7 @@ const UIRenderer = {
                         }
                     }
 
+                    // Шаблон учасника
                     return `
                         <li class="user-item">
                             <div class="user-info-row">
@@ -96,11 +124,12 @@ const UIRenderer = {
                 }).join('') + '</ul>';
             }
 
+            // Червоний LIVE імпульсний індикатор, якщо в кімнату йде трансляція ефіру
             const liveBadge = isStreaming
                 ? '<span class="badge badge-live-pulse">🔴 LIVE</span>'
                 : '';
 
-            // RTP Forward секція
+            // Рендеринг панелі ретрансляції RTP Forward
             const activeForwardId = Moderator.activeForwards[room.id];
             const rtpForwardSection = `
                 <div class="rtp-forward-section">
@@ -120,6 +149,7 @@ const UIRenderer = {
                 </div>
             `;
 
+            // Збираємо повну картку кімнати
             return `
             <div class="room-card ${isStreaming ? 'room-card-live' : ''} ${isCurrent ? 'room-card-current' : ''}">
                 <div class="room-header">
@@ -142,10 +172,16 @@ const UIRenderer = {
         }).join('');
     },
 
+    /**
+     * Дозволяє клікати по кнопках кімнат.
+     */
     enableRoomButtons() {
         document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false);
     },
 
+    /**
+     * Тимчасово блокує всі кнопки дій під час виконання транзакцій переходу.
+     */
     disableRoomButtons() {
         document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);
     }
