@@ -14,96 +14,169 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
 
-    <!-- Editor.js Core and Tools (для відображення в режимі readOnly) -->
+    <!-- Editor.js Core and Tools (readOnly) -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
 
     <style>
+        :root {
+            --brand: #007db5;
+            --brand-dark: #005f8a;
+            --brand-light: #e0f2fe;
+            --page-bg: #f4f7f6;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fff;
+            background-color: var(--page-bg);
             color: #1e293b;
         }
 
-        /* Стилі для контенту Editor.js */
+        /* ===== HERO-блок (плеєр + заголовок) ===== */
+        .track-hero {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .hero-player-col {
+            background: linear-gradient(135deg, var(--brand) 0%, #00a8d6 100%);
+            color: #fff;
+        }
+        .hero-player-col audio-player { display: block; width: 100%; }
+        .hero-player-col .no-file-alert {
+            background: rgba(255,255,255,0.15);
+            border: 1px dashed rgba(255,255,255,0.5);
+            color: #fff;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .track-title {
+            font-weight: 800;
+            font-size: 2.25rem;
+            line-height: 1.2;
+            color: #0f172a;
+            margin-bottom: 0.75rem;
+        }
+        .track-author {
+            font-size: 1.1rem;
+            color: #475569;
+        }
+        .track-style {
+            display: inline-block;
+            background: var(--brand-light);
+            color: var(--brand);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+
+        /* ===== Контент Editor.js (опис) ===== */
         #track-editor {
             font-family: 'Lora', serif;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             line-height: 1.8;
             color: #334155;
-            padding: 2rem 0;
         }
         #track-editor .ce-block__content,
-        #track-editor .ce-toolbar__content {
-            max-width: 800px;
-        }
+        #track-editor .ce-toolbar__content { max-width: 100%; }
         #track-editor .ce-header {
             font-family: 'Inter', sans-serif;
             font-weight: 700;
-            color: #007db5;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+            color: var(--brand);
+            margin-top: 1.75rem;
+            margin-bottom: 0.75rem;
         }
-        #track-editor .cdx-block {
-            padding: 0.6rem 0;
-        }
+        #track-editor .cdx-block { padding: 0.5rem 0; }
         #track-editor .cdx-quote {
-            border-left: 5px solid #007db5;
+            border-left: 5px solid var(--brand);
             padding: 1rem 0 1rem 1.5rem;
             font-style: italic;
             background: #f0f9ff;
             border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0;
+            margin: 1.25rem 0;
         }
-        #track-editor .cdx-quote__text {
-            font-size: 1.25rem;
-            line-height: 1.6;
-        }
-        #track-editor .cdx-list {
-            padding-left: 1.5rem;
-        }
-        #track-editor .cdx-list__item {
-            margin-bottom: 0.5rem;
-        }
-        #track-editor .ce-delimiter {
-            margin: 2.5rem 0;
-        }
+        #track-editor .cdx-list { padding-left: 1.5rem; }
+        #track-editor .cdx-list__item { margin-bottom: 0.4rem; }
+        #track-editor .ce-delimiter { margin: 2rem 0; }
+        #track-editor iframe { max-width: 100%; border-radius: 12px; }
 
-        /* Заголовок треку */
-        .track-title {
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            font-size: 2.5rem;
-            line-height: 1.2;
+        .content-card {
+            border: none;
+            border-radius: 20px;
+        }
+        .side-title {
+            font-weight: 700;
             color: #0f172a;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .track-author {
-            font-size: 1.2rem;
-            color: #475569;
-            margin-bottom: 0.5rem;
-        }
-        .track-style {
-            display: inline-block;
-            background: #e0f2fe;
-            color: #007db5;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
+            border-bottom: 2px solid var(--brand-light);
+            padding-bottom: 0.6rem;
+            margin-bottom: 1rem;
         }
 
-        /* Кастомний плеєр */
-        audio-player {
-            display: block;
+        /* ===== Права колонка: завантаження ===== */
+        .download-card {
+            background: linear-gradient(135deg, var(--brand) 0%, #00a8d6 100%);
+            border-radius: 20px;
+            color: #fff;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 125, 181, 0.25);
+            margin-bottom: 1.5rem;
+        }
+        .download-card .btn-download {
+            background: #fff;
+            color: var(--brand);
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 20px;
             width: 100%;
-            margin-bottom: 1rem;
+            transition: 0.3s;
+        }
+        .download-card .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .download-card .file-meta {
+            font-size: 0.8rem;
+            opacity: 0.85;
+            word-break: break-all;
+        }
+        @media (min-width: 992px) {
+            .download-card { position: sticky; top: 85px; z-index: 10; }
+        }
+
+        /* ===== Коментарі ===== */
+        .comments-card {
+            border: none;
+            border-radius: 20px;
+        }
+
+        /* Вкладеність коментарів (3 рівні) */
+        .comment-item { margin-bottom: 1rem; }
+        .comment-replies {
+            margin-left: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--brand-light);
+        }
+        .comment-level-1 .comment-avatar { width: 42px; height: 42px; }
+        .comment-level-2 .comment-avatar { width: 34px; height: 34px; }
+        .comment-level-3 .comment-avatar { width: 28px; height: 28px; }
+        .comment-level-3 .comment-replies { display: none; } /* візуальний запобіжник: глибше 3-го рівня не розгортаємо */
+
+        /* ===== Адаптивність ===== */
+        @media (max-width: 991.98px) {
+            .track-title { font-size: 1.9rem; }
+            .hero-player-col { border-radius: 20px 20px 0 0; }
+        }
+        @media (max-width: 575.98px) {
+            .track-title { font-size: 1.6rem; }
+            #track-editor { font-size: 1.05rem; }
+            .download-card { position: static; }
         }
     </style>
 </head>
@@ -115,29 +188,33 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
-<div style="padding-top: 1px">
-    <div class="container-fluid">
-        <!-- Повідомлення -->
-        <div class="row text-center" style="padding-top: 60px">
-            <div class="col align-center">
-                <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
-            </div>
+<div class="container-xxl" style="padding-top: 80px;">
+
+    <!-- Повідомлення -->
+    <div class="row text-center">
+        <div class="col">
+            <div th:insert="~{/fragments/messagebox :: mymessagebox}"></div>
         </div>
+    </div>
 
-        <!-- Основний блок -->
-        <div class="row" style="padding-top: 0px">
-            <div class="col-lg-6 col-sm-12">
-                <audio-player th:if="${curtrack.storeitem != null}"
-                              id="TrackPlayer"
-                              th:data-src="'/store/audio/'+ ${curtrack.storeitem.uuid}">
-                </audio-player>
-                <div th:if="${curtrack.storeitem == null}" class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Файл треку не знайдено.
+    <!-- ===== HERO: плеєр + назва ===== -->
+    <div class="card track-hero shadow-sm mb-4">
+        <div class="row g-0">
+            <div class="col-lg-5 p-4 hero-player-col d-flex align-items-center">
+                <div class="w-100">
+                    <audio-player th:if="${curtrack.storeitem != null}"
+                                  id="TrackPlayer"
+                                  th:data-src="'/store/audio/' + ${curtrack.storeitem.uuid}">
+                    </audio-player>
+                    <div th:if="${curtrack.storeitem == null}" class="no-file-alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Файл треку не знайдено.
+                    </div>
                 </div>
-
+            </div>
+            <div class="col-lg-7 p-4 bg-white d-flex flex-column justify-content-center">
                 <h1 class="track-title" th:text="${curtrack.name}">Назва треку</h1>
                 <div class="track-author">
-                    <i class="fas fa-user-circle me-2 text-primary"></i>
+                    <i class="fas fa-user-circle me-2" style="color: var(--brand);"></i>
                     <span th:text="${curtrack.autor}">Автор</span>
                 </div>
                 <div th:if="${curtrack.style != null and #strings.length(curtrack.style) > 0}">
@@ -147,50 +224,56 @@
                     </span>
                 </div>
             </div>
-
-            <div class="col-lg-6 col-sm-12">
-                <!-- Медіа Хаб (закоментовано) -->
-                <!-- <div th:insert="~{/fragments/mediahub :: usermediahub}"></div> -->
-            </div>
         </div>
+    </div>
 
-        <hr class="my-4">
+    <!-- ===== Дві колонки: опис зліва, завантаження+коментарі справа ===== -->
+    <div class="row g-4 mb-5">
 
-        <!-- Блок опису треку (тепер через Editor.js readOnly) -->
-        <div class="row">
-            <div class="col-lg-12 col-sm-12">
-                <div id="track-editor"></div>
-                <div id="track-editor-fallback" class="text-muted" style="display:none;">
-                    Опис недоступний.
+        <!-- ЛІВА колонка: опис треку -->
+        <div class="col-lg-7 col-xl-8">
+            <div class="card content-card shadow-sm h-100">
+                <div class="card-body p-4 p-md-5">
+                    <h5 class="side-title"><i class="fas fa-align-left me-2" style="color: var(--brand);"></i>Опис треку</h5>
+                    <div id="track-editor"></div>
+                    <div id="track-editor-fallback" class="text-muted" style="display:none;">
+                        Опис недоступний.
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Кнопка завантаження -->
-        <div class="row text-center" style="padding-top: 20px" th:if="${curtrack.storeitem != null}">
-            <div class="col">
-                <hr>
-                <a class="mx-auto"
-                   th:href="'/store/content/'+${curtrack.storeitem.uuid}"
-                   th:download="${curtrack.storeitem.filename}">
-                    <span class="badge rounded-pill bg-primary" style="font-size: 1rem; padding: 10px 20px;">
-                        <i class="fas fa-download me-2"></i>Завантажити трек
-                    </span>
-                </a>
-            </div>
-        </div>
+        <!-- ПРАВА колонка: завантаження + коментарі -->
+        <div class="col-lg-5 col-xl-4">
 
-        <!-- Коментарі -->
-        <div class="row" style="padding-top: 40px">
-            <h3 class="mb-4"><i class="fas fa-comments me-2 text-primary"></i>Коментарі</h3>
-            <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
-                        commentsPage=${commentsPage},
-                        currentPage=${currentPage},
-                        totalPages=${totalPages},
-                        currentUserId=${currentUserId},
-                        contentAuthorId=${contentAuthorId},
-                        contentEntityType=${contentEntityType},
-                        contentEntityId=${contentEntityId})}">
+            <!-- Картка завантаження -->
+            <div class="download-card" th:if="${curtrack.storeitem != null}">
+                <h6 class="fw-bold mb-3"><i class="fas fa-compact-disc me-2"></i>Сподобався трек?</h6>
+                <a class="btn btn-download"
+                   th:href="'/store/content/' + ${curtrack.storeitem.uuid}"
+                   th:download="${curtrack.storeitem.filename}">
+                    <i class="fas fa-download me-2"></i>Завантажити трек
+                </a>
+                <div class="file-meta mt-2">
+                    <i class="fas fa-file-audio me-1"></i>
+                    <span th:text="${curtrack.storeitem.filename}">filename.mp3</span>
+                </div>
+            </div>
+
+            <!-- Коментарі -->
+            <div class="card comments-card shadow-sm">
+                <div class="card-body p-3 p-md-4">
+                    <h5 class="side-title"><i class="fas fa-comments me-2" style="color: var(--brand);"></i>Коментарі</h5>
+                    <div th:replace="~{/fragments/comments_section_rest :: commentsSection (
+                                commentsPage=${commentsPage},
+                                currentPage=${currentPage},
+                                totalPages=${totalPages},
+                                currentUserId=${currentUserId},
+                                contentAuthorId=${contentAuthorId},
+                                contentEntityType=${contentEntityType},
+                                contentEntityId=${contentEntityId})}">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -208,17 +291,44 @@
 <script th:inline="javascript">
     const rawData = document.getElementById('trackDescriptionData').value;
 
-    /**
-     * Конвертує старий HTML-опис у формат Editor.js blocks
-     */
+    /** Витягує YouTube Video ID з різних форматів URL */
+    function extractYouTubeId(url) {
+        if (!url) return null;
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?#]+)/,
+            /^([a-zA-Z0-9_-]{11})$/
+        ];
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match && match[1]) return match[1];
+        }
+        return null;
+    }
+
+    /** Створює блок embed для YouTube */
+    function createYouTubeEmbed(videoId, caption = '') {
+        return {
+            type: 'embed',
+            data: {
+                service: 'youtube',
+                source: 'https://www.youtube.com/watch?v=' + videoId,
+                embed: 'https://www.youtube.com/embed/' + videoId,
+                width: 580,
+                height: 320,
+                caption: caption
+            }
+        };
+    }
+
+    /** Конвертує старий HTML-опис у формат Editor.js blocks */
     function htmlToEditorBlocks(html) {
         const blocks = [];
         const tempDiv = document.createElement('div');
-        // Базова санітизація
         const cleaned = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-            .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
             .replace(/on\w+="[^"]*"/gi, '');
         tempDiv.innerHTML = cleaned;
+
+        const extractText = (node) => node.innerHTML || node.textContent || '';
 
         Array.from(tempDiv.childNodes).forEach(node => {
             if (node.nodeType === Node.TEXT_NODE) {
@@ -229,126 +339,104 @@
             if (node.nodeType !== Node.ELEMENT_NODE) return;
 
             const tag = node.tagName.toLowerCase();
-            const content = node.innerHTML || node.textContent || '';
+
+            // 🎬 IFRAME (YouTube)
+            if (tag === 'iframe') {
+                const videoId = extractYouTubeId(node.getAttribute('src') || '');
+                if (videoId) blocks.push(createYouTubeEmbed(videoId));
+                return;
+            }
 
             switch (tag) {
-                case 'h1':
-                    blocks.push({ type: 'header', data: { text: content, level: 1 } });
-                    break;
-                case 'h2':
-                    blocks.push({ type: 'header', data: { text: content, level: 2 } });
-                    break;
-                case 'h3':
-                    blocks.push({ type: 'header', data: { text: content, level: 3 } });
-                    break;
+                case 'h1': blocks.push({ type: 'header', data: { text: extractText(node), level: 1 } }); break;
+                case 'h2': blocks.push({ type: 'header', data: { text: extractText(node), level: 2 } }); break;
+                case 'h3': blocks.push({ type: 'header', data: { text: extractText(node), level: 3 } }); break;
                 case 'h4': case 'h5': case 'h6':
-                    blocks.push({ type: 'header', data: { text: content, level: 4 } });
+                    blocks.push({ type: 'header', data: { text: extractText(node), level: 4 } }); break;
+                case 'a': {
+                    const videoId = extractYouTubeId(node.getAttribute('href') || '');
+                    if (videoId) blocks.push(createYouTubeEmbed(videoId, extractText(node)));
+                    else blocks.push({ type: 'paragraph', data: { text: node.outerHTML } });
                     break;
-                case 'p': case 'div': case 'span':
-                    if (content.trim()) blocks.push({ type: 'paragraph', data: { text: content } });
-                    break;
-                case 'ul':
-                    blocks.push({
-                        type: 'list',
-                        data: {
-                            style: 'unordered',
-                            items: Array.from(node.querySelectorAll('li')).map(li => li.innerHTML)
+                }
+                case 'p': case 'div': case 'span': {
+                    const text = extractText(node);
+                    if (text && text.trim()) {
+                        const ytLink = node.querySelector('a[href*="youtube.com"], a[href*="youtu.be"]');
+                        if (ytLink) {
+                            const videoId = extractYouTubeId(ytLink.getAttribute('href'));
+                            if (videoId) {
+                                const remaining = text.replace(ytLink.outerHTML, '').trim();
+                                if (remaining) blocks.push({ type: 'paragraph', data: { text: remaining } });
+                                blocks.push(createYouTubeEmbed(videoId, ytLink.textContent.trim()));
+                                return;
+                            }
                         }
-                    });
+                        blocks.push({ type: 'paragraph', data: { text } });
+                    }
+                    break;
+                }
+                case 'ul':
+                    blocks.push({ type: 'list', data: { style: 'unordered', items: Array.from(node.querySelectorAll('li')).map(li => li.innerHTML) } });
                     break;
                 case 'ol':
-                    blocks.push({
-                        type: 'list',
-                        data: {
-                            style: 'ordered',
-                            items: Array.from(node.querySelectorAll('li')).map(li => li.innerHTML)
-                        }
-                    });
+                    blocks.push({ type: 'list', data: { style: 'ordered', items: Array.from(node.querySelectorAll('li')).map(li => li.innerHTML) } });
                     break;
                 case 'blockquote':
-                    blocks.push({
-                        type: 'quote',
-                        data: { text: content, caption: '', alignment: 'left' }
-                    });
+                    blocks.push({ type: 'quote', data: { text: extractText(node), caption: '', alignment: 'left' } });
                     break;
                 case 'hr':
                     blocks.push({ type: 'delimiter', data: {} });
                     break;
                 default:
-                    if (content.trim()) blocks.push({ type: 'paragraph', data: { text: content } });
+                    const defText = extractText(node);
+                    if (defText && defText.trim()) blocks.push({ type: 'paragraph', data: { text: defText } });
             }
         });
 
         return { blocks: blocks.length > 0 ? blocks : [] };
     }
 
-    /**
-     * Визначає формат рядка (JSON або HTML) і повертає структуру для Editor.js
-     */
+    /** Визначає формат (JSON або HTML) */
     function parseDescription(raw) {
-        if (!raw || raw.trim() === '') {
-            return { blocks: [] };
-        }
+        if (!raw || raw.trim() === '') return { blocks: [] };
         const trimmed = raw.trim();
-        // Якщо схоже на JSON
         if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
             try {
                 const parsed = JSON.parse(trimmed);
                 if (parsed.blocks) return parsed;
-            } catch (e) {
-                // Невалідний JSON — fallback нижче
-            }
+            } catch (e) { /* fallback нижче */ }
         }
-        // Інакше конвертуємо HTML у блоки
         return htmlToEditorBlocks(trimmed);
     }
 
-    /**
-     * Ініціалізація Editor.js у режимі лише читання
-     */
+    // Ініціалізація Editor.js (readOnly)
     try {
         const parsedData = parseDescription(rawData);
 
         if (parsedData.blocks && parsedData.blocks.length > 0) {
-            const editor = new EditorJS({
+            new EditorJS({
                 holder: 'track-editor',
                 readOnly: true,
                 tools: {
-                    header: {
-                        class: Header,
-                        config: { levels: [2, 3, 4], defaultLevel: 2 }
-                    },
-                    paragraph: {
-                        class: Paragraph,
-                        inlineToolbar: false
-                    },
-//                    list: {
-//                        class: List,
-//                        inlineToolbar: false
-//                    },
-                    quote: {
-                        class: Quote,
-                        inlineToolbar: false
-                    },
-                    delimiter: {
-                        class: Delimiter
-                    }
+                    header: { class: Header, config: { levels: [2, 3, 4], defaultLevel: 2 } },
+                    paragraph: { class: Paragraph, inlineToolbar: false },
+                    //list: { class: List, inlineToolbar: false },
+                    quote: { class: Quote, inlineToolbar: false },
+                    delimiter: { class: Delimiter },
+                    embed: { class: Embed, inlineToolbar: false }
                 },
                 data: parsedData,
                 logLevel: 'ERROR'
             });
         } else {
-            // Порожній опис
             document.getElementById('track-editor').innerHTML =
                 '<p class="text-muted fst-italic">Опис для цього треку поки не додано.</p>';
         }
     } catch (e) {
         console.error('Помилка ініціалізації Editor.js:', e);
-        // Fallback: якщо JS не спрацював, виводимо сирий текст
         document.getElementById('track-editor').style.display = 'none';
         document.getElementById('track-editor-fallback').style.display = 'block';
-        document.getElementById('track-editor-fallback').innerHTML =
-            '<p class="text-muted">Не вдалося завантажити опис треку.</p>';
     }
 </script>
 </body>
