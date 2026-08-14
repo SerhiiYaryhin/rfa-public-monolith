@@ -1,65 +1,48 @@
 /*!
-* Start Rfa -
-*
-*
-*/
-//
-// Scripts
-// https://rfa.toloka.media
+ * Вибір обкладинки альбому
+ * https://rfa.toloka.media
+ */
 
-var toloka = {};
+var setnewcover = {};
 
-    function setcover ( curpic, alcoid, albumid, cdid ) {
-        setnewcover.alcoid = alcoid;
-        setnewcover.clickpic = curpic;
-        setborder();
-        var frm = document.getElementById('setalbumcover') || null;
-        if(frm) {
-           frm.action = '/creater/setalbumcover/'+alcoid+'/'+albumid+'/'+cdid;
-        }
+/**
+ * Викликається при кліку на обкладинку в галереї.
+ * Формує action форми: /creater/setalbumcover/{storeUuid}/{albumUuid}/{cdId}
+ * (відповідає сигнатурі CreaterAlbumController.GetAlbumSetCover)
+ */
+function selectCover(item) {
+    // Знімаємо попереднє виділення
+    document.querySelectorAll('.cover-item.selected').forEach(function (el) {
+        el.classList.remove('selected');
+    });
+    // Виділяємо обрану
+    item.classList.add('selected');
+
+    var storeUuid = item.getAttribute('data-store');
+    var albumUuid = item.getAttribute('data-album');
+    var cdId = item.getAttribute('data-cd');
+
+    setnewcover.alcoid = storeUuid;
+    setnewcover.albumuuid = albumUuid;
+    setnewcover.cdid = cdId;
+
+    var frm = document.getElementById('setalbumcover');
+    if (frm) {
+        frm.action = '/creater/setalbumcover/' + storeUuid + '/' + albumUuid + '/' + cdId;
+    }
+
+    // Активуємо кнопку застосування
+    var btn = document.getElementById('applyCoverBtn');
+    if (btn) {
+        btn.disabled = false;
+    }
 }
 
-    function showborder() {
-        if (setnewcover.activeborder) {
-            setnewcover.activepic.style.border = "10px solid red";
-            setnewcover.activepic.style.padding = "10px 10px 10px 10px";
-        } else {
-            setnewcover.activepic.style.border = "0px solid red";
-            setnewcover.activepic.style.padding = "0px 0px 0px 0px";
-        }
-    }
-
-    function setborder () {
-        if (typeof setnewcover.activepic != "undefined") {
-            if (setnewcover.clickpic != setnewcover.activepic) {
-                setnewcover.activeborder = false;
-                showborder();
-                setnewcover.activeborder = true;
-                setnewcover.activepic = setnewcover.clickpic;
-                showborder();
-            }
-        } else {
-            setnewcover.activepic = setnewcover.clickpic;
-            setnewcover.activeborder = true;
-            showborder();
-        }
-    }
-
-    function coverset() {
-        getStatus(setnewcover.alcoid, setnewcover.albumid, setnewcover.cdid);
-    }
-
-async function getStatus(alcoid, albumid, cdid) {
-    let siteurl = "https://rfa.toloka.media/api/1.0/setalbumcover/"+alcoid+'/'+albumid+"/"+cdid
-    const response = await fetch(siteurl);
-    const data = await response.json();
-    stationstate = data["status"];
-
+// Сумісність зі старою назвою функції (якщо десь викликається)
+function setcover(curpic, storeUuid, albumUuid, cdId) {
+    selectCover(curpic);
 }
 
-
-window.addEventListener('DOMContentLoaded', event => {
-
-console.log("стартували");
-
+window.addEventListener('DOMContentLoaded', function () {
+    console.log('setalbumcover: сторінку завантажено');
 });

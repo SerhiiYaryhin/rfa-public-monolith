@@ -44,7 +44,11 @@ public class CreaterAlbumController {
             @PathVariable("cdid") Long cdid,
             Model model
     ) {
-        Clientdetail cd = clientService.GetClientDetailById(cdid);
+        Users user = clientService.GetCurrentUser();
+        if (user == null) {
+            return "redirect:/";
+        }
+        Clientdetail cd = clientService.GetClientDetailByUser(user);
         if (cd == null) return "redirect:/";
 
         Album album = createrService.GetAlbumByUuid(albumuuid);

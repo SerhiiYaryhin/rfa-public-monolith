@@ -118,10 +118,10 @@
                     <!-- Швидкі дії при наведенні -->
                     <div class="card-img-overlay d-flex align-items-center justify-content-center opacity-0 hover-overlay transition-all bg-dark bg-opacity-25">
                         <div class="btn-group shadow">
-                            <a class="btn btn-white btn-sm px-3" th:href="@{'/creater/editalbum/' + ${album.id}}" title="Редагувати">
+                            <a class="btn btn-white btn-sm px-3" th:href="@{'/creater/editalbum/' + ${album.uuid}}" title="Редагувати">
                                 <i class="fas fa-edit text-primary"></i>
                             </a>
-                            <a class="btn btn-white btn-sm px-3" th:href="@{'/creater/setalbumcover/' + ${album.id}}" title="Обкладинка">
+                            <a class="btn btn-white btn-sm px-3" th:href="@{'/creater/setalbumcover/' + ${album.uuid}}" title="Обкладинка">
                                 <i class="fas fa-image text-secondary"></i>
                             </a>
                         </div>
