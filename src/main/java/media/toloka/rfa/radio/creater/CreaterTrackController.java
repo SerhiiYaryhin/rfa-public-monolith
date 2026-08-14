@@ -1,6 +1,5 @@
 package media.toloka.rfa.radio.creater;
 
-
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.creater.service.CreaterService;
 import media.toloka.rfa.radio.dropfile.service.FilesService;
@@ -25,28 +24,23 @@ import java.util.List;
 @Profile("Front")
 @Controller
 public class CreaterTrackController {
-
     final Logger logger = LoggerFactory.getLogger(CreaterTrackController.class);
 
     @Autowired
     private ClientService clientService;
-
     @Autowired
     private FilesService filesService;
-
     @Autowired
     private CreaterService createrService;
-
     @Autowired
     private StoreService storeService;
-
     @Autowired
     private StoreCleanupService cleanupService;
 
     @GetMapping(value = "/creater/tracks")
     public String getCreaterTracks(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -54,16 +48,13 @@ public class CreaterTrackController {
         Integer curpage = page;
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         List<Album> albums = createrService.GetAllAlbumsByCreater(cd);
-
-        Page<Track> pageStore = createrService.GetTrackPageByClientDetail(curpage,10, cd);
+        Page<Track> pageStore = createrService.GetTrackPageByClientDetail(curpage, 10, cd);
         List<Track> treckList = pageStore.getContent();
-
-        model.addAttribute("totalPages", pageStore.getTotalPages() );
-        model.addAttribute("currentPage",curpage);
-        model.addAttribute("linkPage","/creater/tracks");
-
-        model.addAttribute("albums", albums );
-        model.addAttribute("viewList", treckList );
+        model.addAttribute("totalPages", pageStore.getTotalPages());
+        model.addAttribute("currentPage", curpage);
+        model.addAttribute("linkPage", "/creater/tracks");
+        model.addAttribute("albums", albums);
+        model.addAttribute("viewList", treckList);
         return "/creater/tracks";
     }
 
@@ -75,48 +66,48 @@ public class CreaterTrackController {
     @GetMapping(value = "/creater/edittrack/{uuidTrack}")
     public String getCreaterEditTracks(
             @PathVariable String uuidTrack,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
-
         Track track = createrService.GetTrackByUuid(uuidTrack);
-        logger.info("========= track.getUUID = {} track.getApruve = {} ",track.getUuid(),track.getApruve());
 
-        Store store = storeService.GetStoreByUUID(track.getStoreitem().getUuid());
+        // Перевірка прав доступу
+        if (track == null || !track.getClientdetail().getUuid().equals(cd.getUuid())) {
+            logger.warn("Спроба доступу до чужого треку UUID={} користувачем={}", uuidTrack, cd.getUuid());
+            return "redirect:/creater/tracks";
+        }
 
+        logger.info("========= track.getUUID = {} track.getApruve = {} ", track.getUuid(), track.getApruve());
+        Store store = track.getStoreitem() != null ? storeService.GetStoreByUUID(track.getStoreitem().getUuid()) : null;
         List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
-
-        model.addAttribute("albumList", albumList );
-        model.addAttribute("track", track );
-        model.addAttribute("store", store );
-
+        model.addAttribute("albumList", albumList);
+        model.addAttribute("track", track);
+        model.addAttribute("store", store);
         return "/creater/edittrack";
     }
 
     @PostMapping(value = "/creater/edittrack")
     public String saveCreaterEditTracks(
             @ModelAttribute("track") Track ftrack,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
         }
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Track track = null;
-        
         String inputUuid = ftrack.getUuid();
+
         if (inputUuid != null && !inputUuid.isEmpty()) {
             // 1. Спочатку шукаємо за UUID самого треку
             track = createrService.GetTrackByUuid(inputUuid);
-            
             // 2. Якщо не знайдено, можливо це UUID зі сховища (для нових треків)
             if (track == null) {
                 track = createrService.GetTrackByStoreuuid(inputUuid);
             }
-            
             // 3. Якщо все ще не знайдено, перевіряємо чи є такий файл у сховищі
             if (track == null) {
                 Store store = storeService.GetStoreByUUID(inputUuid);
@@ -129,44 +120,46 @@ public class CreaterTrackController {
                 }
             }
         }
-        
+
         if (track == null) {
             logger.info("Не змогли ідентифікувати трек або файл за UUID: {}", inputUuid);
             return "redirect:/creater/home";
         }
-        
+
         // Перевірка прав власності на трек
         if (!track.getClientdetail().getUuid().equals(cd.getUuid())) {
             logger.warn("User {} tried to modify track {} belonging to another user", user.getEmail(), track.getUuid());
             return "redirect:/creater/home";
         }
-        
+
         // Валідація обов'язкових полів на бекенді
         if (ftrack.getAutor() == null || ftrack.getAutor().trim().isEmpty() ||
-            ftrack.getName() == null || ftrack.getName().trim().isEmpty() ||
-            ftrack.getDescription() == null || ftrack.getDescription().trim().isEmpty()) {
-            
+                ftrack.getName() == null || ftrack.getName().trim().isEmpty()) {
             logger.warn("User {} tried to save track without mandatory fields", user.getEmail());
-            // Оскільки ми використовуємо redirect, для передачі помилки зазвичай потрібен RedirectAttributes
-            // Але в даному контексті ми можемо просто повернути користувача назад
             return "redirect:/creator/trackupload";
         }
 
         // Оновлюємо поля
         if (ftrack.getName() != null) track.setName(ftrack.getName());
         if (ftrack.getAutor() != null) track.setAutor(ftrack.getAutor());
-        if (ftrack.getDescription() != null) track.setDescription(ftrack.getDescription());
+
+        // ВАЖЛИВО: description тепер містить JSON Editor.js blocks
+        // Якщо хочете додаткову санітизацію, розкоментуйте код нижче та додайте Jsoup у CreaterService
+        if (ftrack.getDescription() != null) {
+            // Опціонально: track.setDescription(createrService.sanitizeEditorJsJson(ftrack.getDescription()));
+            track.setDescription(ftrack.getDescription());
+        }
+
         if (ftrack.getStyle() != null) track.setStyle(ftrack.getStyle());
-        
         track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
-        
+
         if (track.getTochat() != ftrack.getTochat()) {
             track.setTochat(ftrack.getTochat());
             if (track.getTochat()) {
-                createrService.PublicTrackToChat(track, cd );
+                createrService.PublicTrackToChat(track, cd);
             }
         }
-        
+
         if (ftrack.getAlbum() != null && ftrack.getAlbum().getId() != null && ftrack.getAlbum().getId() != 0) {
             track.setAlbum(ftrack.getAlbum());
         } else {
@@ -174,7 +167,6 @@ public class CreaterTrackController {
         }
 
         createrService.SaveTrack(track);
-
         return "redirect:/creater/tracks?page=0";
     }
 
@@ -182,10 +174,8 @@ public class CreaterTrackController {
     public String togglePublishTrack(@PathVariable String uuidTrack) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
-        
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Track track = createrService.GetTrackByUuid(uuidTrack);
-        
         if (track != null && track.getClientdetail().getUuid().equals(cd.getUuid())) {
             if (track.getApruve()) {
                 track.setPublishstatus(!track.getPublishstatus());
@@ -201,10 +191,8 @@ public class CreaterTrackController {
     public String deleteTrack(@PathVariable String uuidTrack) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
-        
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         Track track = createrService.GetTrackByUuid(uuidTrack);
-        
         if (track != null && track.getClientdetail().getUuid().equals(cd.getUuid())) {
             cleanupService.safeDeleteTrack(track);
         }
@@ -214,7 +202,7 @@ public class CreaterTrackController {
     @PostMapping(value = "/creater/publishtrack")
     public String postCreaterPublishTracks(
             @ModelAttribute Track ftrack,
-            Model model ) {
+            Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) {
             return "redirect:/";
@@ -224,26 +212,21 @@ public class CreaterTrackController {
         if (track == null) {
             return "redirect:/creater/home";
         }
-        
         track.setName(ftrack.getName());
         track.setDescription(ftrack.getDescription());
         track.setNotnormalvocabulary(ftrack.getNotnormalvocabulary());
         track.setStyle(ftrack.getStyle());
         track.setAutor(ftrack.getAutor());
-        
         track.setApruve(!track.getApruve());
-        
         if (track.getTochat() != ftrack.getTochat()) {
             track.setTochat(ftrack.getTochat());
-            createrService.PublicTrackToChat(track, cd );
+            createrService.PublicTrackToChat(track, cd);
         }
-        
         if (ftrack.getAlbum() != null) {
             track.setAlbum(ftrack.getAlbum());
         } else {
             track.setAlbum(null);
         }
-
         createrService.SaveTrack(track);
         return "redirect:/creater/tracks/0";
     }

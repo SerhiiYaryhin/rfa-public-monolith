@@ -23,195 +23,166 @@ import java.util.List;
 @Profile("Front")
 @Controller
 public class CreaterAlbumController {
-
     final Logger logger = LoggerFactory.getLogger(CreaterAlbumController.class);
 
     @Autowired
     private CreaterService createrService;
-
     @Autowired
     private ClientService clientService;
-
     @Autowired
     private media.toloka.rfa.radio.store.Service.StoreCleanupService cleanupService;
 
-    @PostMapping("/creater/setalbumcover/{storealcouuid}/{albumid}/{cdid}")
+    private Clientdetail getCurrentClientdetail() {
+        Users user = clientService.GetCurrentUser();
+        return (user != null) ? clientService.GetClientDetailByUser(user) : null;
+    }
+
+    @PostMapping("/creater/setalbumcover/{storealcouuid}/{albumuuid}/{cdid}")
     public String GetAlbumSetCover(
-//            @PathVariable Map<String, String> pathVarsMap
-            // storealcouuid StoreAlbumCoverUUID
             @PathVariable("storealcouuid") String storealcouuid,
-            @PathVariable("albumid") Long albumid,
+            @PathVariable("albumuuid") String albumuuid,
             @PathVariable("cdid") Long cdid,
             Model model
     ) {
-        // для сайту - запит та асінхронна обробка. https://www.cat-in-web.ru/fetch-async-await/
-
         Clientdetail cd = clientService.GetClientDetailById(cdid);
-        Album album = createrService.GetAlbumById(albumid);
-        Store store = createrService.GetStoreAlbumCoverByUUID(storealcouuid);
-//        Albumсover albumсover = createrService.GetAlbumCoverById(alcoid);
-        album.setStoreuuidalbumcover(store.getUuid());
+        if (cd == null) return "redirect:/";
 
-        createrService.SaveAlbum(album);
-
-        List<Track> tracks = album.getTrack();
-
-
-        String albumсover = album.getStoreuuidalbumcover();
-//        Store store;
-        String cover;
-        if (albumсover != null) {
-            store = createrService.GetStoreAlbumCoverByUUID(storealcouuid);
-            cover = store.getFilename();
-        } else {
-            cover = null;
+        Album album = createrService.GetAlbumByUuid(albumuuid);
+        if (album == null || !album.getClientdetail().getUuid().equals(cd.getUuid())) {
+            return "redirect:/creater/albums";
         }
 
-        model.addAttribute("coverlist", createrService.GetAlbumCoverByCd(cd) );
-        model.addAttribute("cover", cover );
-        model.addAttribute("album", album );
-        model.addAttribute("trackList", tracks );
-        return "/creater/editalbum";
+        Store store = createrService.GetStoreAlbumCoverByUUID(storealcouuid);
+        if (store != null) {
+            album.setStoreuuidalbumcover(store.getUuid());
+            createrService.SaveAlbum(album);
+        }
 
-//        Map<String,String> result;
-//        return result;
+        List<Track> tracks = album.getTrack();
+        String cover = album.getStoreuuidalbumcover();
+
+        model.addAttribute("coverlist", createrService.GetAlbumCoverByCd(cd));
+        model.addAttribute("cover", cover);
+        model.addAttribute("album", album);
+        model.addAttribute("trackList", tracks);
+        return "/creater/editalbum";
     }
 
     @GetMapping(value = "/creater/albums")
-    public String getCreaterAlbums(
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
+    public String getCreaterAlbums(Model model) {
+        Clientdetail cd = getCurrentClientdetail();
+        if (cd == null) return "redirect:/";
+
         List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
-        model.addAttribute("albumList", albumList );
+        model.addAttribute("albumList", albumList);
         return "/creater/albums";
     }
 
-    @GetMapping(value = "/creater/editalbum/{idAlbum}")
-    public String getCreaterAlbums(
-            @PathVariable Long idAlbum,
+    @GetMapping(value = "/creater/editalbum/{uuidAlbum}")
+    public String getCreaterAlbumEdit(
+            @PathVariable String uuidAlbum,
             @ModelAttribute Album falbum,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
+            Model model) {
+        Clientdetail cd = getCurrentClientdetail();
+        if (cd == null) return "redirect:/";
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
         Album album;
-        if (idAlbum == 0L) {
+        if ("new".equals(uuidAlbum)) {
             album = new Album();
             album.setClientdetail(cd);
             album.setName("Новий");
             album.setAutor("-----------");
             createrService.SaveAlbum(album);
+            // Редірект на реальний URL з UUID, щоб уникнути дублювання при оновленні сторінки (F5)
+            return "redirect:/creater/editalbum/" + album.getUuid();
         } else {
-            album = createrService.GetAlbumById(idAlbum);
+            album = createrService.GetAlbumByUuid(uuidAlbum);
+            if (album == null || !album.getClientdetail().getUuid().equals(cd.getUuid())) {
+                return "redirect:/creater/albums";
+            }
         }
-        List<Track> tracks = album.getTrack();
 
+        List<Track> tracks = album.getTrack();
         Store store;
         String cover;
         if (album.getStoreuuidalbumcover() != null) {
             store = createrService.GetStoreAlbumCoverByUUID(album.getStoreuuidalbumcover());
-            cover = store.getUuid();
+            cover = (store != null) ? store.getUuid() : null;
         } else {
             cover = null;
         }
 
-        model.addAttribute("coverlist", createrService.GetAlbumCoverByCd(cd) );
-        model.addAttribute("cover", cover );
-        model.addAttribute("album", album );
-        model.addAttribute("trackList", tracks );
+        model.addAttribute("coverlist", createrService.GetAlbumCoverByCd(cd));
+        model.addAttribute("cover", cover);
+        model.addAttribute("album", album);
+        model.addAttribute("trackList", tracks);
         return "/creater/editalbum";
     }
 
     @PostMapping(value = "/creater/editalbum")
-    public String getCreaterEditTracks(
-//            @PathVariable Long idAlbum,
+    public String saveCreaterEditAlbum(
             @ModelAttribute Album falbum,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
+            Model model) {
+        Clientdetail cd = getCurrentClientdetail();
+        if (cd == null) return "redirect:/";
+
+        // ВИПРАВЛЕННЯ: Шукаємо альбом саме за UUID, який прийшов з прихованого поля форми
+        Album album = createrService.GetAlbumByUuid(falbum.getUuid());
+
+        if (album == null || !album.getClientdetail().getUuid().equals(cd.getUuid())) {
+            logger.warn("Спроба зберегти чужий або неіснуючий альбом з UUID={}", falbum.getUuid());
+            return "redirect:/creater/albums";
         }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Album album = createrService.GetAlbumById(falbum.getId());
-        if (album == null) {
-            logger.info("З якогось дива не знайшли альбом {}", falbum.getId());
-            return "/creater/home";
-        }
+
         album.setName(falbum.getName());
+        // Тут коректно збережеться JSON з Editor.js
         album.setDescription(falbum.getDescription());
         album.setAlbumrelisedate(falbum.getAlbumrelisedate());
         album.setStyle(falbum.getStyle());
         album.setAutor(falbum.getAutor());
         album.setDatealbumrelise(falbum.getDatealbumrelise());
-        if (album.getClientdetail() == null) { album.setClientdetail(cd); }
 
         createrService.SaveAlbum(album);
-
-        List<Album> albumList = createrService.GetAllAlbumsByCreater(cd);
-        model.addAttribute("albumList", albumList );
-        return "/creater/albums";
+        return "redirect:/creater/albums";
     }
 
-    @GetMapping(value = "/creater/setalbumcover/{idAlbum}")
+    @GetMapping(value = "/creater/setalbumcover/{uuidAlbum}")
     public String getCreaterAlbumsSetCover(
-            @PathVariable Long idAlbum,
+            @PathVariable String uuidAlbum,
             @ModelAttribute Album falbum,
-            Model model ) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
+            Model model) {
+        Clientdetail cd = getCurrentClientdetail();
+        if (cd == null) return "redirect:/";
+
+        Album album = createrService.GetAlbumByUuid(uuidAlbum);
+        if (album == null || !album.getClientdetail().getUuid().equals(cd.getUuid())) {
+            return "redirect:/creater/albums";
         }
 
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Album album;
-        if (idAlbum == 0L) {
-            album = new Album();
-            album.setClientdetail(cd);
-            createrService.SaveAlbum(album);
-        } else {
-            album = createrService.GetAlbumById(idAlbum);
-        }
-
-        //Albumсover albumсover = album.getAlbumcover();
         Store store = createrService.GetStoreAlbumCoverByUUID(album.getStoreuuidalbumcover());
-        String currentcover;
-        if (store != null) {
-
-            currentcover = store.getFilename();
-        } else {
-            currentcover = null;
-        }
+        String currentcover = (store != null) ? store.getFilename() : null;
 
         List<Store> coverlist = createrService.GetAlbumCoverByCd(cd);
         for (Store cover : coverlist) {
             logger.warn("Імʼя Файлу: {}", cover.getFilename());
         }
 
-        model.addAttribute("coverlist", coverlist );
-        model.addAttribute("cover", currentcover );
-        model.addAttribute("album", album );
-        model.addAttribute("cd", cd );
+        model.addAttribute("coverlist", coverlist);
+        model.addAttribute("cover", currentcover);
+        model.addAttribute("album", album);
+        model.addAttribute("cd", cd);
         return "/creater/setalbumcover";
     }
 
-    @GetMapping(value = "/creater/deletealbum/{idAlbum}")
-    public String deleteAlbum(@PathVariable Long idAlbum, Model model) {
-        Users user = clientService.GetCurrentUser();
-        if (user == null) {
-            return "redirect:/";
-        }
-        Clientdetail cd = clientService.GetClientDetailByUser(user);
-        Album album = createrService.GetAlbumById(idAlbum);
+    @GetMapping(value = "/creater/deletealbum/{uuidAlbum}")
+    public String deleteAlbum(@PathVariable String uuidAlbum, Model model) {
+        Clientdetail cd = getCurrentClientdetail();
+        if (cd == null) return "redirect:/";
+
+        Album album = createrService.GetAlbumByUuid(uuidAlbum);
         if (album != null && album.getClientdetail().getUuid().equals(cd.getUuid())) {
             cleanupService.safeDeleteAlbum(album);
-            logger.info("Успішно видалено альбом ID={} користувачем={}", idAlbum, cd.getUuid());
+            logger.info("Успішно видалено альбом UUID={} користувачем={}", uuidAlbum, cd.getUuid());
         }
         return "redirect:/creater/albums";
     }

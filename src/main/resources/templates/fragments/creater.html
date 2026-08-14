@@ -95,7 +95,7 @@
 <div th:fragment="listalbum">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0 fw-bold"><i class="fas fa-compact-disc me-2 text-primary"></i>Ваша колекція</h4>
-        <a class="btn btn-primary rounded-pill px-4 shadow-sm" href="/creater/editalbum/0">
+        <a class="btn btn-primary rounded-pill px-4 shadow-sm" href="/creater/editalbum/new">
             <i class="fas fa-plus-circle me-2"></i> Створити альбом
         </a>
     </div>
@@ -142,10 +142,10 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
                                 <li><a class="dropdown-item py-2" th:href="@{'/album/view/' + ${album.uuid}}"><i class="fas fa-external-link-alt me-2 text-success"></i>Переглянути на сайті</a></li>
-                                <li><a class="dropdown-item py-2" th:href="@{'/creater/editalbum/' + ${album.id}}"><i class="fas fa-edit me-2 text-primary"></i>Редагувати дані</a></li>
-                                <li><a class="dropdown-item py-2" th:href="@{'/creater/setalbumcover/' + ${album.id}}"><i class="fas fa-image me-2 text-secondary"></i>Змінити обкладинку</a></li>
+                                <li><a class="dropdown-item py-2" th:href="@{'/creater/editalbum/' + ${album.uuid}}"><i class="fas fa-edit me-2 text-primary"></i>Редагувати дані</a></li>
+                                <li><a class="dropdown-item py-2" th:href="@{'/creater/setalbumcover/' + ${album.uuid}}"><i class="fas fa-image me-2 text-secondary"></i>Змінити обкладинку</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger" th:href="@{'/creater/deletealbum/' + ${album.id}}" onclick="return confirm('Ви впевнені, що хочете видалити цей альбом? Ваші треки НЕ будуть видалені.');"><i class="fas fa-trash-alt me-2"></i>Видалити</a></li>
+                                <li><a class="dropdown-item py-2 text-danger" th:href="@{'/creater/deletealbum/' + ${album.uuid}}" onclick="return confirm('Ви впевнені, що хочете видалити цей альбом? Ваші треки НЕ будуть видалені. Цю дію неможливо скасувати');"><i class="fas fa-trash-alt me-2"></i>Видалити</a></li>
                             </ul>
                         </div>
                     </div>
