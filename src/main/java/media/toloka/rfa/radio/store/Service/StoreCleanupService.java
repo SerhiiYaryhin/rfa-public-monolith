@@ -272,54 +272,6 @@ public class StoreCleanupService {
         albumRepository.delete(managedAlbum);
         albumRepository.flush();
 
-        // Очищення файлу обкладинки зі сховища, якщо вона більше не використовується
-        if (coverUuid != null) {
-            Store coverStore = storeService.GetStoreByUUID(coverUuid);
-            if (coverStore != null) {
-                Map<String, List<?>> deps = dependencyService.findDependencies(coverStore);
-                if (deps.isEmpty()) {
-                    storeService.DeleteInStore(coverStore);
-                    logger.info("Обкладинку альбому {} ({}) видалено (більше не використовується)", coverStore.getFilename(), coverStore.getUuid());
-                } else {
-                    logger.info("Обкладинку альбому {} ({}) залишено, бо є інші залежності: {}",
-                            coverStore.getFilename(), coverStore.getUuid(), deps.keySet());
-                }
-            }
-        }
-
         logger.info("Альбом {} успішно видалено з БД", album.getId());
     }
-//    public void safeDeleteTrack(media.toloka.rfa.radio.model.Track track) {
-//        Store store = track.getStoreitem();
-//        String trackUuid = track.getUuid();
-//
-//        // СИНХРОНІЗАЦІЯ ДВОСТОРONНІХ ЗВ'ЯЗКІВ (Обов'язково для Hibernate)
-//        // Відв'язуємо від клієнта
-//        if (track.getClientdetail() != null && track.getClientdetail().getTrackList() != null) {
-//            track.getClientdetail().getTrackList().remove(track);
-//        }
-//        // 2. Відв'язуємо від альбому, щоб не було конфліктів
-//        track.setAlbum(null);
-//
-//        // 1. Видаляємо трек
-//        track.setStoreitem(null);
-//        track.setStoreuuid(null);
-//        trackRepository.save(track);
-//        trackRepository.delete(track);
-//        // Забезпечуємо синхронізацію з БД перед пошуком залежностей
-//        trackRepository.flush();
-//        logger.info("Запис про трек {} видалено", trackUuid);
-//
-//        // 2. Якщо був файл, перевіряємо чи він ще десь потрібен
-//        if (store != null) {
-//            Map<String, List<?>> deps = dependencyService.findDependencies(store);
-//            if (deps.isEmpty()) {
-//                storeService.DeleteInStore(store);
-//                logger.info("Аудіофайл треку {} ({}) видалено (більше не використовується)", store.getFilename(), store.getUuid());
-//            } else {
-//                logger.info("Аудіофайл треку {} ({}) залишено, бо він має інші залежності: {}",
-//                        store.getFilename(), store.getUuid(), deps.keySet());
-//            }
-//        }
-//    }
 }
