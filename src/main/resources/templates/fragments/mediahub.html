@@ -354,7 +354,7 @@
                                 <div class="ratio ratio-1x1 overflow-hidden bg-dark" th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
                                     <a th:href="'/guest/authors/article/' + ${art.slug}">
                                         <img th:if="${art.coverUuid != null}"
-                                             th:src="|/store/thrumbal/w/300/${coverstore.uuid}/${coverstore.filename}|"
+                                             th:src="|/store/thrumbal/w/600/${coverstore.uuid}/${coverstore.filename}|"
                                              class="card-img-top w-100 h-100" style="object-fit: cover;"
                                              th:alt="${art.title}">
                                         <div th:if="${art.coverUuid == null}" class="h-100 d-flex align-items-center justify-content-center text-white-50">
@@ -391,7 +391,7 @@
                                 <div class="flex-shrink-0 bg-dark rounded" style="width: 60px; height: 60px;" th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
                                     <a th:href="'/guest/authors/article/' + ${art.slug}">
                                         <img th:if="${art.coverUuid != null}"
-                                             th:src="|/store/thrumbal/w/300/${coverstore.uuid}/${coverstore.filename}|"
+                                             th:src="|/store/thrumbal/w/100/${coverstore.uuid}/${coverstore.filename}|"
                                              class="rounded w-100 h-100" style="object-fit: cover;">
                                         <div th:if="${art.coverUuid == null}" class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
                                             <i class="fas fa-file-alt"></i>
