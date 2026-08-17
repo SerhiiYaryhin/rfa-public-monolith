@@ -61,6 +61,7 @@ public class AuthorPublicController {
         model.addAttribute("articles", articlesPage.getContent());
         model.addAttribute("totalPages", articlesPage.getTotalPages());
         model.addAttribute("currentPage", page);
+        model.addAttribute("storeService", storeService);
         return "/guest/author_articles_list";
     }
 

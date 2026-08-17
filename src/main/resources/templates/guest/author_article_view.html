@@ -89,7 +89,14 @@
         <!-- Блок автора -->
         <div class="author-card-bottom shadow-sm">
             <div class="row align-items-center">
-                <div class="col-md-auto text-center mb-3 mb-md-0">
+
+                <div class="mb-1">
+                    <i class="far fa-user me-1"></i>
+                    <a th:if="${author != null}" th:href="'/guest/profile/'+${author.uuid}" class="text-decoration-none text-muted" ></a>
+                    <span th:if="${author == null}">Толока</span>
+                </div>
+
+                <div class="col-md-auto text-center mb-3 mb-md-0"  th:with="coverstore=${storeService.storeRepositore.getByUuid(art.coverUuid)}">
                     <img th:if="${article.column.author.profilephoto != null}" 
                          th:src="'/store/content/' + ${article.column.author.profilephoto.uuid}"
                          class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid #fff;">
