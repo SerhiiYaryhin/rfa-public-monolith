@@ -90,7 +90,7 @@
         <div class="row align-items-center">
             <div class="col-md-4 text-center mb-4 mb-md-0">
                 <img th:if="${podcast.imagechanelstore != null}"
-                     th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                     th:src="|/store/thrumbal/w/300/${podcast.imagechanelstore.uuid}/${podcast.imagechanelstore.filename}|"
                      class="podcast-cover-large shadow" style="aspect-ratio: 1/1; object-fit: cover;" alt="Cover">
                 <div th:if="${podcast.imagechanelstore == null}"
                      class="podcast-cover-large bg-secondary d-inline-flex align-items-center justify-content-center text-white-50 mx-auto" style="aspect-ratio: 1/1; width: 300px;">
@@ -155,8 +155,7 @@
 
                             <div th:if="${item.imagestoreitem != null}" class="episode-thumbnail-wrapper shadow-sm">
                                 <img class="episode-thumbnail"
-                                     th:src="'/store/content/' + ${item.imagestoreitem.uuid}"
-                                     alt="Episode cover">
+                                     th:src="|/store/thrumbal/w/100/${item.imagestoreitem.uuid}/${item.imagestoreitem.filename}|"   >
                             </div>
 
                             <div class="col">
