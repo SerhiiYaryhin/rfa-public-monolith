@@ -87,7 +87,7 @@
                         <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark" th:text="${art.title}">Заголовок</a>
                     </h3>
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <span class="small text-muted"><i class="far fa-eye me-1"></i>[[${art.looked}]]</span>
+                        <span class="small text-muted"><i class="far fa-eye me-1"></i>[[${art.looked}]] <i class="far fa-calendar-alt me-1"></i>[[${#dates.format(art.publishDate, 'dd.MM.yyyy')}]]</span>
                         <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold">Читати <i class="fas fa-arrow-right ms-1"></i></a>
                     </div>
                 </div>
