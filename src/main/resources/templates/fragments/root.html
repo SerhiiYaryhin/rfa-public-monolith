@@ -382,13 +382,15 @@
 
 <section th:fragment="allnewstab" class="latest-content py-4 bg-light">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h4 mb-0">Нові надходження</h2>
-
+        <!-- Шапка блоку -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 fw-bold mb-0 text-dark">
+                <i class="fas fa-bolt me-2 latest-accent"></i>Нові надходження
+            </h2>
         </div>
 
-        <!-- Навігаційні таби -->
-        <ul class="nav nav-tabs custom-tabs mb-3" id="contentTabs" role="tablist">
+        <!-- Таби-пігулки -->
+        <ul class="nav nav-pills latest-pills mb-3" id="contentTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="podcasts-tab" data-bs-toggle="tab"
                         data-bs-target="#podcasts-content" type="button" role="tab">
@@ -410,7 +412,7 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="column-tab" data-bs-toggle="tab"
                         data-bs-target="#columns-content" type="button" role="tab">
-                    📰 Колонки
+                    ✍️ Колонки
                 </button>
             </li>
         </ul>
