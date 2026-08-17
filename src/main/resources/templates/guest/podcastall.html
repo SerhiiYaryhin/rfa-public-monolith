@@ -99,8 +99,8 @@
                 <div class="card podcast-card shadow-sm">
                     <!-- Обкладинка -->
                     <a th:href="'/podcast/view/'+${podcast.uuid}">
-                        <img th:if="${podcast.imagechanelstore != null}" 
-                             th:src="'/store/content/' + ${podcast.imagechanelstore.uuid}"
+                        <img th:if="${podcast.imagechanelstore != null}"
+                             th:src="|/store/thrumbal/w/300/${podcast.imagechanelstore.uuid}/${podcast.imagechanelstore.filename}|"
                              class="podcast-cover" style="aspect-ratio: 1/1; object-fit: cover;" alt="Podcast Cover">
                         <div th:if="${podcast.imagechanelstore == null}" 
                              class="podcast-cover bg-dark d-flex align-items-center justify-content-center text-white-50" style="aspect-ratio: 1/1;">
