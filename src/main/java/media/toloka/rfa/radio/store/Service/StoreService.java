@@ -137,4 +137,8 @@ public class StoreService extends StoreFileImplementation {
     public List<Store> GetStoreFilesByCdAndType(Clientdetail cd, EStoreFileType type) {
         return storeRepositore.findByClientdetailAndStorefiletype(cd, type);
     }
+
+    public Store GetStoreByUUID(String uuid) {
+        return storeRepositore.getByUuid(uuid);
+    }
 }
