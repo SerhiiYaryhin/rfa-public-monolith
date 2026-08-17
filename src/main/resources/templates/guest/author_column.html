@@ -74,16 +74,11 @@
         <div th:each="art : ${articles}" class="col">
             <div class="card article-card shadow-sm">
                 <a th:href="'/guest/authors/article/' + ${art.slug}">
-                    <div class="cover-box">
-                        <!-- ЗМІНА: Додали клас img-fluid для гнучкості -->
-                        <img th:if="${art.coverUuid != null}"
-                             th:src="'/store/content/' + ${art.coverUuid}"
-                             class="cover-img img-fluid">
-
-                        <!-- ЗМІНА: Змінили колір іконки-заглушки на темніший для світлого фону -->
-                        <div th:if="${art.coverUuid == null}" class="text-muted opacity-50">
-                            <i class="fas fa-feather-alt fa-3x"></i>
-                        </div>
+                    <div th:if="${art.coverUuid != null}" class="cover-box" th:with="coverstore=${storeService.storeRepositore.getByUuid(art.coverUuid)}">
+                        <img th:src="|/store/thrumbal/w/300/${coverstore.uuid}/${coverstore.filename}|" class="cover-img img-fluid">
+                    </div>
+                    <div th:if="${art.coverUuid == null}" class="text-muted opacity-50">
+                        <i class="fas fa-feather-alt fa-3x"></i>
                     </div>
                 </a>
                 <div class="card-body d-flex flex-column p-4">
