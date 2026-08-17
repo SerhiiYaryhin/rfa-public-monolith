@@ -46,14 +46,14 @@
         <!-- Masthead-->
     <div th:insert="~{/fragments/root :: masthead}">  </div>
 
+    <!-- слайдер з табами для всіх новин -->
+    <div th:insert="~{/fragments/root :: allnewstab}">  </div>
+
     <!-- карусель зі станціями -->
     <div th:insert="~{/fragments/mediahub :: radiocarusel}"></div>
 
     <!-- Слайдер авторських статей -->
     <div th:insert="~{/fragments/mediahub :: authorSlider}"></div>
-
-    <!-- слайдер з табами для всіх новин -->
-    <div th:insert="~{/fragments/root :: allnewstab}">  </div>
 
     <!-- Толока новини -->
     <div id="tolokaPlayer" th:insert="~{/fragments/mediahub :: tolokanews}">  </div>
