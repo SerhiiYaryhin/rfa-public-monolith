@@ -384,17 +384,11 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h4 mb-0">Нові надходження</h2>
-            <a href="/all-content" class="btn btn-outline-primary btn-sm">Всі матеріали</a>
+
         </div>
 
         <!-- Навігаційні таби -->
         <ul class="nav nav-tabs custom-tabs mb-3" id="contentTabs" role="tablist">
-            <!--            <li class="nav-item" role="presentation">-->
-            <!--                <button class="nav-link active" id="all-tab" data-bs-toggle="tab"-->
-            <!--                        data-bs-target="#all-content" type="button" role="tab">-->
-            <!--                    Всі-->
-            <!--                </button>-->
-            <!--            </li>-->
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="podcasts-tab" data-bs-toggle="tab"
                         data-bs-target="#podcasts-content" type="button" role="tab">
@@ -404,7 +398,7 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="articles-tab" data-bs-toggle="tab"
                         data-bs-target="#articles-content" type="button" role="tab">
-                    📰 Статті
+                    📰 Пости
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -413,67 +407,28 @@
                     🎵 Музика
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="column-tab" data-bs-toggle="tab"
+                        data-bs-target="#columns-content" type="button" role="tab">
+                    📰 Колонки
+                </button>
+            </li>
         </ul>
 
         <!-- Контент табів -->
         <div class="tab-content" id="contentTabsContent">
 
-            <!-- Таб "Всі" -->
-            <!--            <div class="tab-pane fade show active" id="all-content" role="tabpanel">-->
-            <!--                <div class="content-carousel d-flex overflow-auto pb-3 gap-3">-->
-            <!--                    &lt;!&ndash; Ітерація по всіх елементах &ndash;&gt;-->
-            <!--                    <div th:each="item : ${latestContent}"-->
-            <!--                         class="card content-card flex-shrink-0"-->
-            <!--                         th:classappend="${item.type == 'PODCAST'} ? 'podcast-card' :-->
-            <!--                              (${item.type == 'ARTICLE'} ? 'article-card' : 'music-card')">-->
-
-            <!--                        &lt;!&ndash; Зображення/обкладинка &ndash;&gt;-->
-            <!--                        <img th:src="${item.imageUrl}"-->
-            <!--                             th:alt="${item.title}"-->
-            <!--                             class="card-img-top"-->
-            <!--                             loading="lazy">-->
-
-            <!--                        &lt;!&ndash; Бейдж типу контенту &ndash;&gt;-->
-            <!--                        <span class="position-absolute top-0 start-0 m-2 badge"-->
-            <!--                              th:classappend="${item.type == 'PODCAST'} ? 'bg-danger' :-->
-            <!--                                 (${item.type == 'ARTICLE'} ? 'bg-info' : 'bg-success')"-->
-            <!--                              th:text="${item.type == 'PODCAST'} ? 'Подкаст' :-->
-            <!--                           (${item.type == 'ARTICLE'} ? 'Стаття' : 'Трек')">-->
-            <!--                        </span>-->
-
-            <!--                        <div class="card-body p-3">-->
-            <!--                            <h6 class="card-title small mb-1" th:text="${item.title}">Назва</h6>-->
-            <!--                            <p class="card-text text-muted small mb-2"-->
-            <!--                               th:text="${item.author} ?: 'Автор не вказаний'">Автор</p>-->
-            <!--                            <div class="d-flex justify-content-between align-items-center">-->
-            <!--                                <small class="text-muted"-->
-            <!--                                       th:text="${#temporals.format(item.publishedAt, 'dd.MM.yyyy')}">-->
-            <!--                                    01.01.2024-->
-            <!--                                </small>-->
-            <!--                                <a th:href="${item.url}"-->
-            <!--                                   class="btn btn-primary btn-sm"-->
-            <!--                                   th:text="${item.type == 'PODCAST' or item.type == 'TRACK'} ? '▶️' : 'Читати'">-->
-            <!--                                    ▶️-->
-            <!--                                </a>-->
-            <!--                            </div>-->
-            <!--                        </div>-->
-            <!--                    </div>-->
-            <!--                </div>-->
-            <!--            </div>-->
-
-            <!-- Таб "Подкасти" -->
             <!-- Таб "Подкасти" -->
             <div class="tab-pane fade show active" id="podcasts-content" role="tabpanel">
                 <div class="content-carousel d-flex overflow-auto pb-3">
                     <div th:each="podcast, iStat : ${latestPodcasts}"
                          class="row align-items-center flex-shrink-0 me-3 py-2 px-2 rounded"
-                         style="min-width: 280px;"
                          th:style="${iStat.odd}? 'min-width: 280px; background-color: rgba(0,0,0,0.02)' : 'min-width: 280px;'">
                         <div class="col-auto">
                             <a th:href="'/podcast/view/'+${podcast.uuid}" class="text-decoration-none">
                                 <div class="fa-stack text-primary">
                                     <i class="fas fa-circle fa-stack-2x"></i>
-                                    <i class="fas fa-play fa-stack-1x fa-inverse"></i>
+                                    <i class="fas fa-podcast fa-stack-1x fa-inverse"></i>
                                 </div>
                             </a>
                         </div>
@@ -488,7 +443,6 @@
                                 <i class="far fa-user me-1"></i>
                                 <a th:if="${author != null}"
                                    th:href="'/guest/profile/'+${author.uuid}"
-                                   class="text-decoration-none text-muted"
                                    th:text="${author.custname + ' ' + author.custsurname}"></a>
                                 <span th:if="${author == null}">Толока</span>
                             </div>
@@ -497,8 +451,6 @@
                 </div>
             </div>
 
-
-            <!-- Таб "Статті" -->
             <!-- Таб "Статті" -->
             <div class="tab-pane fade" id="articles-content" role="tabpanel">
                 <div class="content-carousel d-flex overflow-auto pb-3">
@@ -520,83 +472,76 @@
                                    th:text="${article.posttitle}">Стаття</a>
                             </div>
                             <div class="x-small text-muted text-truncate" style="max-width: 200px;">
-                                <i class="far fa-user"></i><a
-                                    th:href="'/guest/profile/'+${article.clientdetail.uuid}"><span
-                                    th:text="' '+${article.clientdetail.custname} + ' ' + ${article.clientdetail.custsurname}"/></a>
+                                <i class="far fa-user"></i>
+                                <a th:href="'/guest/profile/'+${article.clientdetail.uuid}">
+                                    <span th:text="' '+${article.clientdetail.custname} + ' ' + ${article.clientdetail.custsurname}"/></a>
                             </div>
-
-                            <!--                            <div class="x-small text-muted text-truncate" style="max-width: 200px;">-->
-                            <!--                                <i class="far fa-calendar me-1"></i>-->
-                            <!--                                <span th:text="${#temporals.format(article.publishedAt, 'dd.MM.yyyy')}">01.01.2024</span>-->
-                            <!--                            </div>-->
                         </div>
                     </div>
                 </div>
             </div>
-            <!--            <div class="tab-pane fade" id="articles-content" role="tabpanel">-->
-            <!--                <div class="content-carousel d-flex overflow-auto pb-3 gap-3">-->
-            <!--                    <div th:each="article, iStat : ${postList}"-->
-            <!--                         class="row align-items-center w-100 py-2 mb-1 rounded"-->
-            <!--                         th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.02)'">-->
-            <!--                        <div class="col-auto">-->
-            <!--                            <a th:href="'/post/postview/'+${article.uuid}" class="text-decoration-none">-->
-            <!--                                <div class="fa-stack text-primary">-->
-            <!--                                    <i class="fas fa-circle fa-stack-2x"></i>-->
-            <!--                                    <i class="fas fa-book-open fa-stack-1x fa-inverse"></i>-->
-            <!--                                </div>-->
-            <!--                            </a>-->
-            <!--                        </div>-->
-            <!--                        <div class="col">-->
-            <!--                            <div class="small fw-bold text-truncate" style="max-width: 200px;">-->
-            <!--                                <a th:href="'/post/postview/'+${article.uuid}"-->
-            <!--                                   class="text-decoration-none text-dark"-->
-            <!--                                   th:text="${article.posttitle}">Стаття</a>-->
-            <!--                            </div>-->
-            <!--                            <div class="x-small text-muted text-truncate" style="max-width: 200px;">-->
-            <!--                                <i class="far fa-user"></i><a th:href="'/guest/profile/'+${article.clientdetail.uuid}"><span-->
-            <!--                                    th:text="' '+${article.clientdetail.custname} + ' ' + ${article.clientdetail.custsurname}"/></a><br>-->
-            <!--&lt;!&ndash;                                <i class="fas fa-eye"></i><span th:text="' '+${article.looked}+' '"/>&ndash;&gt;-->
-            <!--&lt;!&ndash;                                <i class="fas fa-calendar-alt"></i><span&ndash;&gt;-->
-            <!--&lt;!&ndash;                                    th:text="' '+${#dates.format(article.publishdate, 'dd.MM.yyyy')}"/>&ndash;&gt;-->
-            <!--&lt;!&ndash;                                <i class="far fa-calendar me-1"></i>&ndash;&gt;-->
-            <!--&lt;!&ndash;                                <span th:if="${article.publishdate != null}"&ndash;&gt;-->
-            <!--&lt;!&ndash;                                      th:text="${#temporals.format(article.publishdate, 'dd.MM.yyyy')}">01.01.2024</span>&ndash;&gt;-->
-            <!--&lt;!&ndash;                                <span th:if="${article.publishdate == null}">Дата невідома</span>&ndash;&gt;-->
-            <!--                            </div>-->
-            <!--                        </div>-->
-            <!--                    </div>-->
-            <!--                </div>-->
-            <!--            </div>-->
 
             <!-- Таб "Музика" -->
             <div class="tab-pane fade" id="music-content" role="tabpanel">
-                <div class="content-carousel d-flex overflow-auto pb-3 gap-3">
-                    <div th:each="track, iStat : ${trackList}">
-                        <div class="row align-items-center"
-                             th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.02)'">
-                            <div class="col-auto">
-                                <div class="cursor-pointer"
-                                     th:data-uuid="${track.storeuuid}"
-                                     th:data-name="${track.name}"
-                                     th:data-autor="${track.autor}"
-                                     onclick="onClickTrack(this.dataset.uuid, this.dataset.name, this.dataset.autor)">
-                                    <div class="fa-stack text-primary">
-                                        <i class="fas fa-circle fa-stack-2x"></i>
-                                        <i class="fas fa-play fa-stack-1x fa-inverse"></i>
-                                    </div>
+                <div class="content-carousel d-flex overflow-auto pb-3">
+                    <div th:each="track, iStat : ${trackList}"
+                         class="row align-items-center flex-shrink-0 me-3 py-2 px-2 rounded"
+                         th:style="${iStat.odd}? 'min-width: 280px; background-color: rgba(0,0,0,0.02)' : 'min-width: 280px;'">
+                        <div class="col-auto">
+                            <div class="cursor-pointer"
+                                 th:data-uuid="${track.storeuuid}"
+                                 th:data-name="${track.name}"
+                                 th:data-autor="${track.autor}"
+                                 onclick="onClickTrack(this.dataset.uuid, this.dataset.name, this.dataset.autor)">
+                                <div class="fa-stack text-primary">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fas fa-play fa-stack-1x fa-inverse"></i>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="small fw-bold text-truncate" style="max-width: 200px;">
-                                    <a th:href="'/guest/viewtrack/'+${track.uuid}"
-                                       class="text-decoration-none text-dark"
-                                       th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></a>
+                        </div>
+                        <div class="col">
+                            <div class="small fw-bold text-truncate" style="max-width: 200px;">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}"
+                                   class="text-decoration-none text-dark"
+                                   th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></a>
+                            </div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 200px;">
+                                <i class="far fa-user"></i>
+                                <a th:href="'/guest/profile/'+${track.clientdetail.uuid}">
+                                    <span th:text="' '+${track.clientdetail.custname} + ' ' + ${track.clientdetail.custsurname}"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Таб "Авторські колонки" -->
+            <div class="tab-pane fade" id="columns-content" role="tabpanel">
+                <div class="content-carousel d-flex overflow-auto pb-3">
+                    <div th:each="column, iStat : ${authorArticles}"
+                         class="row align-items-center flex-shrink-0 me-3 py-2 px-2 rounded"
+                         th:style="${iStat.odd}? 'min-width: 280px; background-color: rgba(0,0,0,0.02)' : 'min-width: 280px;'">
+                        <div class="col-auto">
+                            <a th:href="'/guest/authors/article/' + ${column.slug}" class="text-decoration-none">
+                                <div class="fa-stack text-primary">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fas fa-feather-alt fa-stack-1x fa-inverse"></i>
                                 </div>
-                                <div class="x-small text-muted text-truncate" style="max-width: 200px;">
-                                    <a th:href="'/guest/profile/'+${track.clientdetail.uuid}"
-                                       class="text-decoration-none text-muted"
-                                       th:text="${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}"></a>
-                                </div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <div class="small fw-bold text-truncate" style="max-width: 200px;">
+                                <a th:href="'/guest/authors/article/' + ${column.slug}"
+                                   class="text-decoration-none text-dark"
+                                   th:text="${column.title}">Колонка</a>
+                            </div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 200px;">
+                                <i class="far fa-user me-1"></i>
+                                <a th:href="'/guest/authors/' + ${column.slug}"
+                                   class="text-decoration-none">
+                                    <span th:text="${column.author.custname}"></span>
+                                </a>
                             </div>
                         </div>
                     </div>
