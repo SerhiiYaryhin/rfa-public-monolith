@@ -13,16 +13,18 @@
         border-top: 1px solid #fee2e2;
         border-bottom: 1px solid #fee2e2;
     }
+
     .section-articles {
         background-color: #fffbeb; /* Дуже світлий золотистий/пастельний */
         border-top: 1px solid #fef3c7;
         border-bottom: 1px solid #fef3c7;
     }
-    
+
     /* Оверлей Play для подкастів */
     .podcast-play-overlay {
         position: relative;
     }
+
     .podcast-play-icon {
         position: absolute;
         top: 50%;
@@ -35,10 +37,12 @@
         pointer-events: none;
         z-index: 10;
     }
+
     .card:hover .podcast-play-icon {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.1);
     }
+
     .podcast-play-icon-sm {
         font-size: 0.8rem;
     }
@@ -46,18 +50,22 @@
     .transition-hover {
         transition: all 0.3s ease;
     }
+
     .transition-hover:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
     }
-    
+
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    .x-small { font-size: 0.75rem; }
+
+    .x-small {
+        font-size: 0.75rem;
+    }
 </style>
 
 <!-- Блок останніх авторських статей у сайдбарі -->
@@ -67,18 +75,21 @@
     </div>
     <div class="card-body p-0">
         <ul class="list-group list-group-flush">
-            <li th:each="art : ${authorArticles}" class="list-group-item p-3 border-bottom-0 transition-hover" style="border-bottom: 1px solid #f1f5f9 !important;">
+            <li th:each="art : ${authorArticles}" class="list-group-item p-3 border-bottom-0 transition-hover"
+                style="border-bottom: 1px solid #f1f5f9 !important;">
                 <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none d-block">
                     <div class="fw-bold text-dark mb-1 small line-clamp-2" th:text="${art.title}">Заголовок статті</div>
                 </a>
                 <div class="d-flex justify-content-between align-items-center mt-2">
-                    <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none x-small fw-bold text-primary">
+                    <a th:href="'/guest/authors/' + ${art.column.slug}"
+                       class="text-decoration-none x-small fw-bold text-primary">
                         <i class="far fa-user me-1"></i>[[${art.column.author.custname}]]
                     </a>
                     <span class="x-small text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yy')}">Дата</span>
                 </div>
             </li>
-            <li th:if="${authorArticles == null || authorArticles.isEmpty()}" class="list-group-item p-4 text-center text-muted small">
+            <li th:if="${authorArticles == null || authorArticles.isEmpty()}"
+                class="list-group-item p-4 text-center text-muted small">
                 Статей поки немає
             </li>
         </ul>
@@ -99,12 +110,14 @@
                     <i class="fas fa-feather-alt text-warning me-2"></i>Авторські колонки
                 </a>
             </h2>
-            <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі статті</a>
+            <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі
+                статті</a>
         </div>
         <div class="card-body bg-light p-0">
             <div id="authorCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    <div th:each="art, iStat : ${authorArticles}" class="carousel-item" th:classappend="${iStat.first} ? 'active'" data-bs-interval="7000">
+                    <div th:each="art, iStat : ${authorArticles}" class="carousel-item"
+                         th:classappend="${iStat.first} ? 'active'" data-bs-interval="7000">
                         <div class="px-md-5 py-4">
                             <div class="container">
                                 <div class="row align-items-center justify-content-center">
@@ -123,33 +136,44 @@
                                         </a>
                                     </div>
                                     <div class="col-md text-center text-md-start">
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark">
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="text-decoration-none text-dark">
                                             <h3 class="h4 fw-bold mb-2" th:text="${art.title}">Заголовок статті</h3>
                                         </a>
-                                        <p th:if="${art.lead != null && !art.lead.isEmpty()}" class="small text-muted mb-3 line-clamp-2" th:text="${art.lead}">Лід статті</p>
+                                        <p th:if="${art.lead != null && !art.lead.isEmpty()}"
+                                           class="small text-muted mb-3 line-clamp-2" th:text="${art.lead}">Лід
+                                            статті</p>
                                         <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-3">
-                                            <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none text-muted d-flex align-items-center">
+                                            <a th:href="'/guest/authors/' + ${art.column.slug}"
+                                               class="text-decoration-none text-muted d-flex align-items-center">
                                                 <img th:if="${art.column.author.profilephoto != null}"
                                                      th:src="'/store/content/' + ${art.column.author.profilephoto.uuid}"
                                                      class="rounded-circle me-2"
                                                      style="width: 25px; height: 25px; object-fit: cover;">
-                                                <span class="small fw-bold" th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
+                                                <span class="small fw-bold"
+                                                      th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}">Автор</span>
                                             </a>
                                             <span class="mx-2 text-muted small">•</span>
-                                            <span class="small text-muted" th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}">Дата</span>
+                                            <span class="small text-muted"
+                                                  th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}">Дата</span>
                                         </div>
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="btn btn-sm btn-primary rounded-pill px-4">Читати статтю</a>
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="btn btn-sm btn-primary rounded-pill px-4">Читати статтю</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel" data-bs-slide="prev" style="width: 5%;">
-                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel"
+                        data-bs-slide="prev" style="width: 5%;">
+                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                          style="width: 1.5rem; height: 1.5rem;"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel" data-bs-slide="next" style="width: 5%;">
-                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel"
+                        data-bs-slide="next" style="width: 5%;">
+                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                          style="width: 1.5rem; height: 1.5rem;"></span>
                 </button>
             </div>
         </div>
@@ -160,34 +184,45 @@
 <div th:fragment="radiocarusel">
     <div class="row align-items-center bg-light rounded-3 p-2 mt-4 mx-0 shadow-sm mb-4">
         <div class="col-md-2 text-center text-md-start">
-            <h4 class="h3 mb-0 fw-bold" style="color: #ff8000;"><i class="fas fa-broadcast-tower text-danger me-2"></i>Зараз в етері:</h4>
+            <h4 class="h3 mb-0 fw-bold" style="color: #ff8000;"><i class="fas fa-broadcast-tower text-danger me-2"></i>Зараз
+                в етері:</h4>
         </div>
         <div class="col">
             <div id="theCarouselStation" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     <div th:each="station, iStat : ${stationsonline}">
-                        <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${station.uuid}" data-bs-interval="5000">
+                        <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${station.uuid}"
+                             data-bs-interval="5000">
                             <div class="px-5">
                                 <div class="d-flex align-items-center justify-content-between py-2 mx-4">
-                                    <a style="text-decoration: none !important;" th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
+                                    <a style="text-decoration: none !important;"
+                                       th:href="'https://'+${station.dbname}+'.rfa.toloka.media/'" target="_blank">
                                         <h2 class="h4 mb-0 fw-bold" style="color:#FF8000;">
                                             <span th:text="${station.stationname}">Станція</span>
                                         </h2>
                                     </a>
                                     <div class="text-end d-none d-sm-block ms-3">
-                                        <div class="small fw-bold text-truncate" style="max-width: 200px;" th:text="${station.group}">Виконавець</div>
-                                        <div class="small text-muted text-truncate" style="max-width: 200px;" th:text="${station.track}">Назва треку</div>
+                                        <div class="small fw-bold text-truncate" style="max-width: 200px;"
+                                             th:text="${station.group}">Виконавець
+                                        </div>
+                                        <div class="small text-muted text-truncate" style="max-width: 200px;"
+                                             th:text="${station.track}">Назва треку
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselStation" data-bs-slide="prev" style="width: 5%;">
-                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselStation"
+                        data-bs-slide="prev" style="width: 5%;">
+                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                          style="width: 1.5rem; height: 1.5rem;"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#theCarouselStation" data-bs-slide="next" style="width: 5%;">
-                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="width: 1.5rem; height: 1.5rem;"></span>
+                <button class="carousel-control-next" type="button" data-bs-target="#theCarouselStation"
+                        data-bs-slide="next" style="width: 5%;">
+                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                          style="width: 1.5rem; height: 1.5rem;"></span>
                 </button>
             </div>
         </div>
@@ -202,32 +237,44 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h2 class="h4 mb-0">
-                            <a href="/podcast/all" class="text-decoration-none text-dark"><i class="fas fa-podcast text-primary me-2"></i>Подкасти на Толоці</a>
+                            <a href="/podcast/all" class="text-decoration-none text-dark"><i
+                                    class="fas fa-podcast text-primary me-2"></i>Подкасти на Толоці</a>
                         </h2>
-                        <a href="/podcast/all" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">Всі подкасти</a>
+                        <a href="/podcast/all" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">Всі
+                            подкасти</a>
                     </div>
                     <div class="card-body bg-light">
-                        <div th:if="${podcastChannels != null && !podcastChannels.isEmpty()}" class="carousel slide" data-bs-ride="carousel" id="theCarouselPodcast">
+                        <div th:if="${podcastChannels != null && !podcastChannels.isEmpty()}" class="carousel slide"
+                             data-bs-ride="carousel" id="theCarouselPodcast">
                             <div class="carousel-inner">
                                 <div th:each="podcast, iStat : ${podcastChannels}">
-                                    <div class="carousel-item" th:classappend="${iStat.first} ? 'active'" th:id="${podcast.uuid}">
+                                    <div class="carousel-item" th:classappend="${iStat.first} ? 'active'"
+                                         th:id="${podcast.uuid}">
                                         <div class="p-4 text-center">
                                             <a th:href="'/podcast/view/'+${podcast.uuid}" class="text-decoration-none">
-                                                <h3 class="h4 fw-bold text-primary mb-3 text-uppercase" th:text="${podcast.title}"></h3>
+                                                <h3 class="h4 fw-bold text-primary mb-3 text-uppercase"
+                                                    th:text="${podcast.title}"></h3>
                                             </a>
-                                            <div class="text-dark fw-bold mb-2 px-lg-5 mx-auto" style="max-width: 800px;" th:if="${podcast.lead}" th:text="${podcast.lead}"></div>
-                                            <div th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description != null}" class="text-muted small px-lg-5 mx-auto" style="max-width: 800px;">
+                                            <div class="text-dark fw-bold mb-2 px-lg-5 mx-auto"
+                                                 style="max-width: 800px;" th:if="${podcast.lead}"
+                                                 th:text="${podcast.lead}"></div>
+                                            <div th:if="${(podcast.lead == null || podcast.lead.isEmpty()) && podcast.description != null}"
+                                                 class="text-muted small px-lg-5 mx-auto" style="max-width: 800px;">
                                                 <div th:utext="${#strings.length(podcast.description) > 300 ? #strings.substring(podcast.description,0,300) + '...' : podcast.description}"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselPodcast" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#theCarouselPodcast"
+                                    data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"
+                                      style="width: 2rem; height: 2rem;"></span>
                             </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#theCarouselPodcast" data-bs-slide="next">
-                                <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            <button class="carousel-control-next" type="button" data-bs-target="#theCarouselPodcast"
+                                    data-bs-slide="next">
+                                <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"
+                                      style="width: 2rem; height: 2rem;"></span>
                             </button>
                         </div>
                     </div>
@@ -247,13 +294,15 @@
             <!-- Секція новин (білий фон) -->
             <div class="card shadow-sm border-0 mb-5">
                 <div class="card-header bg-white py-4">
-                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/postall/0" class="text-decoration-none text-dark"><i class="far fa-newspaper text-primary me-3"></i>Новини на Толоці</a></h3>
+                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/postall/0" class="text-decoration-none text-dark"><i
+                            class="far fa-newspaper text-primary me-3"></i>Новини на Толоці</a></h3>
                 </div>
                 <div class="card-body px-4 pb-4">
                     <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
                 </div>
                 <div class="card-footer bg-white border-top-0 text-center py-4">
-                    <a href="/guest/postall/0" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">Подивитися всі новини</a>
+                    <a href="/guest/postall/0" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">Подивитися
+                        всі новини</a>
                 </div>
             </div>
 
@@ -261,9 +310,11 @@
             <div class="rfa-banner rfa-banner-text"></div>
 
             <!-- Новий блок: Останні подкасти (пастельний червоний фон) -->
-            <div class="card shadow-sm border-0 mb-5 section-podcasts overflow-hidden" th:if="${latestPodcasts != null && !latestPodcasts.isEmpty()}" style="border-radius: 20px;">
+            <div class="card shadow-sm border-0 mb-5 section-podcasts overflow-hidden"
+                 th:if="${latestPodcasts != null && !latestPodcasts.isEmpty()}" style="border-radius: 20px;">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
-                    <h3 class="h3 mb-0 fw-bold"><a href="/podcast/all" class="text-decoration-none text-dark"><i class="fas fa-microphone-alt text-danger me-3"></i>Останні подкасти</a></h3>
+                    <h3 class="h3 mb-0 fw-bold"><a href="/podcast/all" class="text-decoration-none text-dark"><i
+                            class="fas fa-microphone-alt text-danger me-3"></i>Останні подкасти</a></h3>
                     <a href="/podcast/all" class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold">Всі подкасти</a>
                 </div>
                 <div class="card-body px-4 pb-4">
@@ -273,12 +324,13 @@
                             <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover overflow-hidden rounded-4">
                                 <div class="ratio ratio-1x1 overflow-hidden podcast-play-overlay">
                                     <a th:href="'/podcast/view/'+${pod.uuid}">
-<!--                                        th:src="'/store/content/'+${pod.imagechanelstore.uuid}"-->
+                                        <!--                                        th:src="'/store/content/'+${pod.imagechanelstore.uuid}"-->
                                         <img th:if="${pod.imagechanelstore != null}"
                                              th:src="|/store/thrumbal/w/600/${pod.imagechanelstore.uuid}/${pod.imagechanelstore.filename}|"
                                              class="card-img-top w-100 h-100" style="object-fit: cover;"
                                              th:alt="${pod.title}">
-                                        <div th:if="${pod.imagechanelstore == null}" class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white-50">
+                                        <div th:if="${pod.imagechanelstore == null}"
+                                             class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white-50">
                                             <i class="fas fa-podcast fa-4x"></i>
                                         </div>
                                         <div class="podcast-play-icon">
@@ -288,14 +340,19 @@
                                 </div>
                                 <div class="card-body p-3 bg-white">
                                     <h5 class="card-title h6 fw-bold mb-2">
-                                        <a th:href="'/podcast/view/'+${pod.uuid}" class="text-decoration-none text-dark line-clamp-2" th:text="${pod.title}"></a>
+                                        <a th:href="'/podcast/view/'+${pod.uuid}"
+                                           class="text-decoration-none text-dark line-clamp-2"
+                                           th:text="${pod.title}"></a>
                                     </h5>
                                 </div>
                                 <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
                                     <div class="x-small text-muted">
-                                        <div class="mb-1" th:with="author=${clientService.GetClientDetailByUUID(pod.clientdetail)}">
+                                        <div class="mb-1"
+                                             th:with="author=${clientService.GetClientDetailByUUID(pod.clientdetail)}">
                                             <i class="far fa-user me-1"></i>
-                                            <a th:if="${author != null}" th:href="'/guest/profile/'+${author.uuid}" class="text-decoration-none text-muted" th:text="${author.custname + ' ' + author.custsurname}"></a>
+                                            <a th:if="${author != null}" th:href="'/guest/profile/'+${author.uuid}"
+                                               class="text-decoration-none text-muted"
+                                               th:text="${author.custname + ' ' + author.custsurname}"></a>
                                             <span th:if="${author == null}">Толока</span>
                                         </div>
                                         <div class="d-flex justify-content-between">
@@ -310,14 +367,17 @@
 
                     <!-- Решта подкастів (Компактний стиль) -->
                     <div class="row g-3" th:if="${latestPodcasts.size() > 3}">
-                        <div th:each="pod, iStat : ${latestPodcasts}" th:if="${iStat.index >= 3}" class="col-md-6 col-lg-4">
+                        <div th:each="pod, iStat : ${latestPodcasts}" th:if="${iStat.index >= 3}"
+                             class="col-md-6 col-lg-4">
                             <div class="d-flex align-items-center p-2 rounded transition-hover bg-white shadow-sm h-100">
-                                <div class="flex-shrink-0 podcast-play-overlay podcast-play-overlay-sm" style="width: 60px; height: 60px;">
+                                <div class="flex-shrink-0 podcast-play-overlay podcast-play-overlay-sm"
+                                     style="width: 60px; height: 60px;">
                                     <a th:href="'/podcast/view/'+${pod.uuid}">
                                         <img th:if="${pod.imagechanelstore != null}"
                                              th:src="|/store/thrumbal/w/100/${pod.imagechanelstore.uuid}/${pod.imagechanelstore.filename}|"
                                              class="rounded w-100 h-100" style="object-fit: cover;">
-                                        <div th:if="${pod.imagechanelstore == null}" class="bg-light rounded w-100 h-100 d-flex align-items-center justify-content-center text-muted">
+                                        <div th:if="${pod.imagechanelstore == null}"
+                                             class="bg-light rounded w-100 h-100 d-flex align-items-center justify-content-center text-muted">
                                             <i class="fas fa-podcast"></i>
                                         </div>
                                         <div class="podcast-play-icon podcast-play-icon-sm">
@@ -325,11 +385,24 @@
                                         </div>
                                     </a>
                                 </div>
-                                <div class="flex-grow-1 ms-3 overflow-hidden">
+                                <div class="x-small flex-grow-1 ms-3 overflow-hidden">
                                     <h6 class="mb-0 text-truncate">
-                                        <a th:href="'/podcast/view/'+${pod.uuid}" class="text-decoration-none text-dark small fw-bold" th:text="${pod.title}"></a>
+                                        <a th:href="'/podcast/view/'+${pod.uuid}"
+                                           class="text-decoration-none text-dark small fw-bold"
+                                           th:text="${pod.title}"></a>
                                     </h6>
-                                    <small class="text-muted x-small" th:text="${#dates.format(pod.lastbuilddate, 'dd.MM.yyyy')}"></small>
+                                    <div class="mb-1"
+                                         th:with="author=${clientService.GetClientDetailByUUID(pod.clientdetail)}">
+                                        <i class="far fa-user me-1"></i>
+                                        <a th:if="${author != null}" th:href="'/guest/profile/'+${author.uuid}"
+                                           class="text-decoration-none text-muted"
+                                           th:text="${author.custname + ' ' + author.custsurname}"></a>
+                                        <span th:if="${author == null}">Толока</span>
+                                    </div>
+                                    <div class=" text-muted d-flex justify-content-between">
+                                        <span><i class="fas fa-eye me-1"></i>[[${pod.looked}]]</span>
+                                        <span><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(pod.lastbuilddate, 'dd.MM.yyyy')}]]</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -341,37 +414,46 @@
             <div class="rfa-banner rfa-banner-text"></div>
 
             <!-- Новий блок: Останні авторські статті (пастельний золотистий фон) -->
-            <div class="card shadow-sm border-0 mb-5 section-articles overflow-hidden" th:if="${authorArticles != null && !authorArticles.isEmpty()}" style="border-radius: 20px;">
+            <div class="card shadow-sm border-0 mb-5 section-articles overflow-hidden"
+                 th:if="${authorArticles != null && !authorArticles.isEmpty()}" style="border-radius: 20px;">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
-                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/authors/articles-all" class="text-decoration-none text-dark"><i class="fas fa-feather-alt text-warning me-3"></i>Останні авторські статті</a></h3>
-                    <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі статті</a>
+                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/authors/articles-all"
+                                                   class="text-decoration-none text-dark"><i
+                            class="fas fa-feather-alt text-warning me-3"></i>Останні авторські статті</a></h3>
+                    <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі
+                        статті</a>
                 </div>
                 <div class="card-body px-4 pb-4">
                     <!-- Перші 3 статті (Великий стиль - Квадратна ілюстрація) -->
                     <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
                         <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index < 3}" class="col">
                             <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover overflow-hidden rounded-4">
-                                <div class="ratio ratio-1x1 overflow-hidden bg-dark" th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
+                                <div class="ratio ratio-1x1 overflow-hidden bg-dark"
+                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
                                     <a th:href="'/guest/authors/article/' + ${art.slug}">
                                         <img th:if="${art.coverUuid != null}"
                                              th:src="|/store/thrumbal/w/600/${coverstore.uuid}/${coverstore.filename}|"
                                              class="card-img-top w-100 h-100" style="object-fit: cover;"
                                              th:alt="${art.title}">
-                                        <div th:if="${art.coverUuid == null}" class="h-100 d-flex align-items-center justify-content-center text-white-50">
+                                        <div th:if="${art.coverUuid == null}"
+                                             class="h-100 d-flex align-items-center justify-content-center text-white-50">
                                             <i class="fas fa-file-alt fa-4x"></i>
                                         </div>
                                     </a>
                                 </div>
                                 <div class="card-body p-3 bg-white">
                                     <h5 class="card-title h6 fw-bold mb-2">
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark line-clamp-2" th:text="${art.title}"></a>
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="text-decoration-none text-dark line-clamp-2"
+                                           th:text="${art.title}"></a>
                                     </h5>
                                 </div>
                                 <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
                                     <div class="x-small text-muted">
                                         <div class="mb-1">
                                             <i class="far fa-user me-1"></i>
-                                            <a th:href="'/guest/authors/' + ${art.column.slug}" class="text-decoration-none text-muted" 
+                                            <a th:href="'/guest/authors/' + ${art.column.slug}"
+                                               class="text-decoration-none text-muted"
                                                th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}"></a>
                                         </div>
                                         <div class="d-flex justify-content-between">
@@ -386,24 +468,32 @@
 
                     <!-- Решта статей (Компактний стиль) -->
                     <div class="row g-3" th:if="${authorArticles.size() > 3}">
-                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index >= 3}" class="col-md-6 col-lg-4">
+                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index >= 3}"
+                             class="col-md-6 col-lg-4">
                             <div class="d-flex align-items-center p-2 rounded transition-hover bg-white shadow-sm h-100">
-                                <div class="flex-shrink-0 bg-dark rounded" style="width: 60px; height: 60px;" th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
+                                <div class="flex-shrink-0 bg-dark rounded" style="width: 60px; height: 60px;"
+                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
                                     <a th:href="'/guest/authors/article/' + ${art.slug}">
                                         <img th:if="${art.coverUuid != null}"
                                              th:src="|/store/thrumbal/w/100/${coverstore.uuid}/${coverstore.filename}|"
                                              class="rounded w-100 h-100" style="object-fit: cover;">
-                                        <div th:if="${art.coverUuid == null}" class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
+                                        <div th:if="${art.coverUuid == null}"
+                                             class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
                                             <i class="fas fa-file-alt"></i>
                                         </div>
                                     </a>
                                 </div>
                                 <div class="flex-grow-1 ms-3 overflow-hidden">
                                     <h6 class="mb-0 text-truncate">
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}" class="text-decoration-none text-dark small fw-bold" th:text="${art.title}"></a>
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="text-decoration-none text-dark small fw-bold"
+                                           th:text="${art.title}"></a>
                                     </h6>
                                     <span>
-                                       <small class="text-muted x-small"><i class="fas fa-eye me-1"></i> [[${art.looked}]] <i class="far fa-calendar-alt me-1"></i> </small> <small class="text-muted x-small" th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}"></small>
+                                       <small class="text-muted x-small"><i class="fas fa-eye me-1"></i> [[${art.looked}]] <i
+                                               class="far fa-calendar-alt me-1"></i> </small> <small
+                                            class="text-muted x-small"
+                                            th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}"></small>
                                     </span>
                                 </div>
                             </div>
@@ -442,6 +532,7 @@
             height: 20px;
             float: left;
         }
+
         #audio-player-container {
             position: relative;
             margin: 0px 2.5% auto 2.5%;
@@ -455,6 +546,7 @@
             --buffered-width: 0%;
             letter-spacing: -0.5px;
         }
+
         #audio-player-container::before {
             position: absolute;
             content: '';
@@ -465,6 +557,7 @@
             background: linear-gradient(to left, #007db5, #ff8a00);
             z-index: -1;
         }
+
         p {
             position: absolute;
             top: -18px;
@@ -474,12 +567,15 @@
             font-size: 0.8rem;
             background: #fff;
         }
+
         #play-icon {
             margin: 20px 2.5% 10px 2.5%;
         }
+
         path {
             stroke: #007db5;
         }
+
         .time {
             display: inline-block;
             width: 37px;
@@ -488,6 +584,7 @@
             margin: 20px 0 0px 0;
             float: left;
         }
+
         output {
             display: inline-block;
             width: 20px;
@@ -497,25 +594,32 @@
             float: left;
             clear: left;
         }
+
         #volume-slider {
             margin: 0px 2.5%;
             width: 43%;
         }
+
         #volume-slider::-webkit-slider-runnable-track {
             background: rgba(0, 125, 181, 0.6);
         }
+
         #volume-slider::-moz-range-track {
             background: rgba(0, 125, 181, 0.6);
         }
+
         #volume-slider::-ms-fill-upper {
             background: rgba(0, 125, 181, 0.6);
         }
+
         #volume-slider::before {
             width: var(--volume-before-width);
         }
+
         #mute-icon {
             margin: 0 2.5%;
         }
+
         input[type="range"] {
             position: relative;
             -webkit-appearance: none;
@@ -527,12 +631,14 @@
             float: left;
             outline: none;
         }
+
         input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
             height: 3px;
             cursor: pointer;
             background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
         }
+
         input[type="range"]::before {
             position: absolute;
             content: "";
@@ -543,6 +649,7 @@
             background-color: #007db5;
             cursor: pointer;
         }
+
         input[type="range"]::-webkit-slider-thumb {
             position: relative;
             -webkit-appearance: none;
@@ -555,22 +662,27 @@
             cursor: pointer;
             margin: -7px 0 0 0;
         }
+
         input[type="range"]:active::-webkit-slider-thumb {
             transform: scale(1.2);
             background: #007db5;
         }
+
         input[type="range"]::-moz-range-track {
             width: 100%;
             height: 3px;
             cursor: pointer;
             background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
         }
+
         input[type="range"]::-moz-range-progress {
             background-color: #007db5;
         }
+
         input[type="range"]::-moz-focus-outer {
             border: 0;
         }
+
         input[type="range"]::-moz-range-thumb {
             box-sizing: content-box;
             border: 1px solid #007db5;
@@ -580,10 +692,12 @@
             background-color: #fff;
             cursor: pointer;
         }
+
         input[type="range"]:active::-moz-range-thumb {
             transform: scale(1.2);
             background: #007db5;
         }
+
         input[type="range"]::-ms-track {
             width: 100%;
             height: 3px;
@@ -592,12 +706,15 @@
             border: solid transparent;
             color: transparent;
         }
+
         input[type="range"]::-ms-fill-lower {
             background-color: #007db5;
         }
+
         input[type="range"]::-ms-fill-upper {
             background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
         }
+
         input[type="range"]::-ms-thumb {
             box-sizing: content-box;
             border: 1px solid #007db5;
@@ -607,6 +724,7 @@
             background-color: #fff;
             cursor: pointer;
         }
+
         input[type="range"]:active::-ms-thumb {
             transform: scale(1.2);
             background: #007db5;
@@ -631,8 +749,9 @@
         <div class="card-header bg-white py-3 text-center">
             <h3 class="h5 fw-bold mb-0">Нові треки</h3>
         </div>
-        <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body" style="padding-bottom: 35px;">
-            <audio-player id="audio-player" style="padding:0" 
+        <div th:if="${trackList != null && !trackList.isEmpty()}" class="text-center card-body"
+             style="padding-bottom: 35px;">
+            <audio-player id="audio-player" style="padding:0"
                           th:data-src="'/store/audio/' + ${trackList[0].storeuuid}"
                           th:data-name="${trackList[0].name}"
                           th:data-autor="${trackList[0].autor}"/>
@@ -668,7 +787,8 @@
                                    th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}"></a>
                             </div>
                             <div class="x-small text-muted text-truncate" style="max-width: 150px;">
-                                <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-muted"
+                                <a th:href="'/guest/profile/'+${track.clientdetail.uuid}"
+                                   class="text-decoration-none text-muted"
                                    th:text="${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}"></a>
                             </div>
                         </div>
@@ -694,7 +814,8 @@
                 </div>
                 <div th:each="track, iStat : ${trackList}">
                     <li class="list-group-item py-3">
-                        <div class="row align-items-center" th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.01)'">
+                        <div class="row align-items-center"
+                             th:style="${iStat.odd}? 'background-color: rgba(0,0,0,0.01)'">
                             <div class="col-auto ps-4">
                                 <div class="cursor-pointer"
                                      th:data-uuid="${track.storeuuid}"
@@ -708,25 +829,31 @@
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <a th:if="${track.storeitem != null}" th:href="'/store/content/' + ${track.storeitem.uuid}"
-                                   th:download="${track.storeitem.filename}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <a th:if="${track.storeitem != null}"
+                                   th:href="'/store/content/' + ${track.storeitem.uuid}"
+                                   th:download="${track.storeitem.filename}"
+                                   class="btn btn-sm btn-outline-secondary rounded-pill">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                             </div>
                             <div class="col px-3">
                                 <div class="fw-bold">
-                                    <a th:href="'/guest/viewtrack/'+${track.uuid}" class="text-decoration-none text-dark"
+                                    <a th:href="'/guest/viewtrack/'+${track.uuid}"
+                                       class="text-decoration-none text-dark"
                                        th:text="${(track.name == null || track.name.isEmpty()) ? '[Без назви]' : track.name}">Назва</a>
                                 </div>
                                 <div class="small text-muted">
-                                    <a th:href="'/guest/profile/'+${track.clientdetail.uuid}" class="text-decoration-none text-secondary">
-                                        <i class="far fa-user me-1"></i>[[${(track.autor == null || track.autor.isEmpty()) ? '[Невідомий]' : track.autor}]]
+                                    <a th:href="'/guest/profile/'+${track.clientdetail.uuid}"
+                                       class="text-decoration-none text-secondary">
+                                        <i class="far fa-user me-1"></i>[[${(track.autor == null ||
+                                        track.autor.isEmpty()) ? '[Невідомий]' : track.autor}]]
                                     </a>
                                     <span class="ms-3"><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(track.uploaddate, 'dd.MM.yyyy')}]]</span>
                                 </div>
                             </div>
                             <div class="col-auto pe-4">
-                                <a th:href="'/guest/viewtrack/'+${track.uuid}" class="btn btn-sm btn-link text-decoration-none">
+                                <a th:href="'/guest/viewtrack/'+${track.uuid}"
+                                   class="btn btn-sm btn-link text-decoration-none">
                                     Детальніше <i class="fas fa-chevron-right ms-1"></i>
                                 </a>
                             </div>
@@ -740,35 +867,45 @@
                 <ul class="pagination pagination-sm justify-content-center mb-0 shadow-sm">
                     <!-- Початок / -10 -->
                     <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/0'" title="Перша сторінка"><i class="fas fa-angle-double-left"></i></a>
+                        <a class="page-link" th:href="'/guest/tracksall/0'" title="Перша сторінка"><i
+                                class="fas fa-angle-double-left"></i></a>
                     </li>
                     <li class="page-item" th:classappend="${currentpage < 10} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/' + ${currentpage - 10 < 0 ? 0 : currentpage - 10}" title="-10 сторінок">-10</a>
+                        <a class="page-link"
+                           th:href="'/guest/tracksall/' + ${currentpage - 10 < 0 ? 0 : currentpage - 10}"
+                           title="-10 сторінок">-10</a>
                     </li>
 
                     <!-- Попередня -->
                     <li class="page-item" th:classappend="${currentpage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/'+${privpage}"><i class="fas fa-chevron-left"></i></a>
+                        <a class="page-link" th:href="'/guest/tracksall/'+${privpage}"><i
+                                class="fas fa-chevron-left"></i></a>
                     </li>
 
                     <!-- Номери сторінок (обмежено поточна +- 2) -->
-                    <th:block th:with="start=${currentpage - 2 < 0 ? 0 : currentpage - 2}, end=${currentpage + 2 > totalpage - 1 ? totalpage - 1 : currentpage + 2}">
-                        <li class="page-item" th:each="lpage : ${#numbers.sequence(start, end)}" th:classappend="${lpage == currentpage} ? 'active'">
+                    <th:block
+                            th:with="start=${currentpage - 2 < 0 ? 0 : currentpage - 2}, end=${currentpage + 2 > totalpage - 1 ? totalpage - 1 : currentpage + 2}">
+                        <li class="page-item" th:each="lpage : ${#numbers.sequence(start, end)}"
+                            th:classappend="${lpage == currentpage} ? 'active'">
                             <a class="page-link" th:href="'/guest/tracksall/'+${lpage}" th:text="${lpage+1}">1</a>
                         </li>
                     </th:block>
 
                     <!-- Наступна -->
                     <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/'+${nextpage}"><i class="fas fa-chevron-right"></i></a>
+                        <a class="page-link" th:href="'/guest/tracksall/'+${nextpage}"><i
+                                class="fas fa-chevron-right"></i></a>
                     </li>
 
                     <!-- +10 / Кінець -->
                     <li class="page-item" th:classappend="${currentpage > totalpage - 11} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/' + ${currentpage + 10 > totalpage - 1 ? totalpage - 1 : currentpage + 10}" title="+10 сторінок">+10</a>
+                        <a class="page-link"
+                           th:href="'/guest/tracksall/' + ${currentpage + 10 > totalpage - 1 ? totalpage - 1 : currentpage + 10}"
+                           title="+10 сторінок">+10</a>
                     </li>
                     <li class="page-item" th:classappend="${currentpage >= totalpage - 1} ? 'disabled'">
-                        <a class="page-link" th:href="'/guest/tracksall/' + ${totalpage - 1}" title="Остання сторінка"><i class="fas fa-angle-double-right"></i></a>
+                        <a class="page-link" th:href="'/guest/tracksall/' + ${totalpage - 1}"
+                           title="Остання сторінка"><i class="fas fa-angle-double-right"></i></a>
                     </li>
                 </ul>
             </nav>
