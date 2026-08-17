@@ -273,8 +273,9 @@
                             <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover overflow-hidden rounded-4">
                                 <div class="ratio ratio-1x1 overflow-hidden podcast-play-overlay">
                                     <a th:href="'/podcast/view/'+${pod.uuid}">
-                                        <img th:if="${pod.imagechanelstore != null}" 
-                                             th:src="'/store/content/'+${pod.imagechanelstore.uuid}" 
+<!--                                        th:src="'/store/content/'+${pod.imagechanelstore.uuid}"-->
+                                        <img th:if="${pod.imagechanelstore != null}"
+                                             th:src="|/store/thrumbal/w/600/${pod.imagechanelstore.uuid}/${pod.imagechanelstore.filename}|"
                                              class="card-img-top w-100 h-100" style="object-fit: cover;"
                                              th:alt="${pod.title}">
                                         <div th:if="${pod.imagechanelstore == null}" class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white-50">
