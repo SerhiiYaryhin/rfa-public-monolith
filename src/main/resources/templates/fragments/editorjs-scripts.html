@@ -1,0 +1,31 @@
+<!--
+  ============================================================================
+  ФАЙЛ: fragments/editorjs-scripts.html
+  ОПИС: CDN-скрипти для Editor.js та його плагінів з фіксованими сумісними версіями.
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="editorjs-scripts">
+    <!-- Ядро Editor.js (фіксована стабільна версія) -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.29.0"></script>
+
+    <!-- Плагіни (сумісні версії для ядра 2.29.x) -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.0"></script>
+
+    <!-- Додаткові плагіни (розкоментуйте за потреби, переконайтесь у сумісності версій) -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2"></script> -->
+</th:block>
+
+</body>
+</html>

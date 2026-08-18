@@ -1,0 +1,31 @@
+<!--
+  ============================================================================
+  ФАЙЛ: fragments/editorjs-edit.html
+  ОПИС: Модульний фрагмент для редагування контенту через Editor.js.
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="editorjsEdit(uniqueId, jsonContent, fieldName)">
+    <!-- Контейнер для Editor.js -->
+    <div th:id="'rfa-editorjs-edit-' + ${uniqueId}" class="rfa-editorjs-edit-container"></div>
+
+    <!-- Приховане поле для збереження даних ПЕРЕД відправкою форми -->
+    <textarea th:id="'rfa-editorjs-edit-data-' + ${uniqueId}"
+              th:name="${fieldName}"
+              class="d-none"></textarea>
+
+    <!-- Початкові JSON-дані з БД -->
+    <!-- Використовуємо script type="text/plain" замість textarea -->
+    <!-- th:utext гарантує, що лапки НЕ екрануються -->
+    <!-- type="text/plain" каже браузеру не інтерпретувати вміст -->
+    <script th:if="${jsonContent != null and !#strings.isEmpty(jsonContent) and jsonContent.trim() != '{}'}"
+            type="text/plain"
+            th:id="'rfa-editorjs-edit-initial-' + ${uniqueId}"
+            th:utext="${jsonContent}"></script>
+</div>
+
+</body>
+</html>

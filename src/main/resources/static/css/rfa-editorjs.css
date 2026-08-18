@@ -1,0 +1,211 @@
+/*
+  ============================================================================
+  ФАЙЛ: static/css/rfa-editorjs.css
+  ОПИС: Стилі для відображення контенту Editor.js у режимі read-only.
+        Усі класи мають префікс rfa-editorjs- для ізоляції.
+  ============================================================================
+*/
+
+/* Загальний контейнер */
+.rfa-editorjs-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #334155;
+}
+
+/* Заголовки */
+.rfa-editorjs-content h1,
+.rfa-editorjs-content h2,
+.rfa-editorjs-content h3,
+.rfa-editorjs-content h4,
+.rfa-editorjs-content h5,
+.rfa-editorjs-content h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.6em;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.rfa-editorjs-content h1 { font-size: 2rem; }
+.rfa-editorjs-content h2 { font-size: 1.75rem; }
+.rfa-editorjs-content h3 { font-size: 1.5rem; }
+.rfa-editorjs-content h4 { font-size: 1.25rem; }
+.rfa-editorjs-content h5 { font-size: 1.1rem; }
+.rfa-editorjs-content h6 { font-size: 1rem; }
+
+/* Абзаци */
+.rfa-editorjs-content p {
+    margin-bottom: 1em;
+}
+
+/* Зображення */
+.rfa-editorjs-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1em 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.rfa-editorjs-content .image-caption,
+.rfa-editorjs-content figcaption {
+    text-align: center;
+    font-size: 0.9em;
+    color: #64748b;
+    font-style: italic;
+    margin-top: -0.5em;
+    margin-bottom: 1em;
+}
+
+/* Цитати */
+.rfa-editorjs-content blockquote,
+.rfa-editorjs-content .ce-quote {
+    border-left: 4px solid #2563eb;
+    background-color: #f8fafc;
+    padding: 1em 1.2em;
+    margin: 1em 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: #475569;
+}
+
+.rfa-editorjs-content blockquote cite,
+.rfa-editorjs-content .ce-quote__caption {
+    display: block;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: #64748b;
+    font-style: normal;
+}
+
+/* Блоки коду */
+.rfa-editorjs-content pre,
+.rfa-editorjs-content .ce-code__textarea {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 0.9em;
+    margin: 1em 0;
+}
+
+/* Списки */
+.rfa-editorjs-content ul,
+.rfa-editorjs-content ol {
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+.rfa-editorjs-content li {
+    margin-bottom: 0.3em;
+}
+
+/* Роздільник */
+.rfa-editorjs-content .delimiter,
+.rfa-editorjs-content .ce-delimiter {
+    text-align: center;
+    margin: 1.5em 0;
+    font-size: 1.5em;
+    color: #cbd5e0;
+    letter-spacing: 0.3em;
+}
+
+/* Попереджувальний блок */
+.rfa-editorjs-content .warning-block,
+.rfa-editorjs-content .cdx-warning {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 1em;
+    border-radius: 0 8px 8px 0;
+    margin: 1em 0;
+}
+
+.rfa-editorjs-content .warning-block .warning-title,
+.rfa-editorjs-content .cdx-warning__title {
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 0.3em;
+}
+
+/* Картка посилання */
+.rfa-editorjs-content .link-tool,
+.rfa-editorjs-content .ce-link-tool {
+    display: block;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1em;
+    margin: 1em 0;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+}
+
+.rfa-editorjs-content .link-tool:hover,
+.rfa-editorjs-content .ce-link-tool:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #2563eb;
+    color: inherit;
+}
+
+.rfa-editorjs-content .link-tool .link-tool-title,
+.rfa-editorjs-content .ce-link-tool__title {
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 0.3em;
+}
+
+.rfa-editorjs-content .link-tool .link-tool-description,
+.rfa-editorjs-content .ce-link-tool__description {
+    font-size: 0.9em;
+    color: #64748b;
+}
+
+.rfa-editorjs-content .link-tool .link-tool-anchor,
+.rfa-editorjs-content .ce-link-tool__anchor {
+    font-size: 0.85em;
+    color: #94a3b8;
+    margin-top: 0.3em;
+    word-break: break-all;
+}
+
+/* Вирівнювання Editor.js (щоб не було відступів, як у редакторі) */
+.rfa-editorjs-content .ce-block__content,
+.rfa-editorjs-content .ce-toolbar__content {
+    max-width: 100%;
+}
+
+.rfa-editorjs-content .cdx-block {
+    margin-bottom: 0.5em;
+}
+
+/* Приховуємо тулбар та курсори у режимі read-only */
+.rfa-editorjs-content .ce-toolbar,
+.rfa-editorjs-content .ce-block--selected .ce-block__content {
+    display: none !important;
+}
+
+/* Стилі для контейнера редактора в режимі редагування */
+.rfa-editorjs-edit-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    min-height: 200px; /* Мінімальна висота, щоб редактор був помітний, навіть коли порожній */
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.rfa-editorjs-edit-container:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Внутрішні відступи Editor.js */
+.rfa-editorjs-edit-container .ce-block__content,
+.rfa-editorjs-edit-container .ce-toolbar__content {
+    max-width: 100%;
+}

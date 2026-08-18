@@ -1,0 +1,52 @@
+<!--
+  ============================================================================
+  ФАЙЛ: fragments/editorjs-view.html
+  ОПИС: Модульний фрагмент для відображення контенту Editor.js у режимі read-only.
+  ============================================================================
+  ВИКОРИСТАННЯ:
+    <div th:replace="~{fragments/editorjs-view :: editorjs(
+        ${uniqueId},
+        ${jsonContent}
+    )}"></div>
+
+  ПАРАМЕТРИ:
+    - uniqueId (String): Унікальний ідентифікатор для цього екземпляра редактора.
+                         Наприклад: "album-desc-" + ${album.uuid}
+                         Це дозволяє мати кілька редакторів на одній сторінці.
+    - jsonContent (String): JSON-рядок, збережений з Editor.js.
+                            Якщо це звичайний текст — відобразиться як абзац.
+
+  ПРИКЛАДИ ВИКОРИСТАННЯ:
+    1. Для альбому:
+       <div th:replace="~{fragments/editorjs-view :: editorjs('album-' + ${album.uuid}, ${album.description})}"></div>
+
+    2. Для поста:
+       <div th:replace="~{fragments/editorjs-view :: editorjs('post-' + ${post.uuid}, ${post.content})}"></div>
+
+    3. Для подкасту:
+       <div th:replace="~{fragments/editorjs-view :: editorjs('podcast-' + ${podcast.uuid}, ${podcast.description})}"></div>
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Початок фрагмента Editor.js -->
+<div th:fragment="editorjs(uniqueId, jsonContent)">
+
+    <!-- Контейнер, куди буде відмальовано контент -->
+    <div th:id="'rfa-editorjs-' + ${uniqueId}" class="rfa-editorjs-content"></div>
+
+    <!-- Безпечна передача сирих JSON-даних БЕЗ HTML-екранування -->
+    <!-- th:utext гарантує, що лапки " не перетворяться на &quot; -->
+    <!-- type="text/plain" запобігає виконанню вмісту як JS -->
+    <script th:if="${jsonContent != null and !#strings.isEmpty(jsonContent) and jsonContent.trim() != '{}'}"
+            type="text/plain"
+            th:id="'rfa-editorjs-data-' + ${uniqueId}"
+            th:utext="${jsonContent}"></script>
+
+</div>
+<!-- Кінець фрагмента Editor.js -->
+
+</body>
+</html>

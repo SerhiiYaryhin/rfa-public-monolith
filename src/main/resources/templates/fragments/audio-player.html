@@ -1,0 +1,61 @@
+<!--
+  ФАЙЛ: fragments/audio-player.html
+  ОПИС: Модульний фрагмент глобального аудіоплеєра.
+  ВИКОРИСТАННЯ: <div th:replace="~{fragments/audio-player :: player(${trackList})}"></div>
+  ПАРАМЕТРИ:
+    - trackList: Список об'єктів Track, які мають поля uuid, name, autor, storeuuid
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Початок фрагмента плеєра -->
+<div th:fragment="player(trackList)"
+     th:if="${trackList != null and !trackList.empty}"
+     class="rfa-player-bar"
+     id="rfa-global-player">
+
+    <div class="container">
+        <div class="row align-items-center g-2 g-md-3">
+
+            <!-- 1. Кнопки керування -->
+            <div class="col-auto d-flex align-items-center">
+                <button class="rfa-player-btn" id="rfa-prev-btn" title="Попередній трек">
+                    <i class="bi bi-skip-start-fill"></i>
+                </button>
+                <button class="rfa-player-btn rfa-player-btn-play" id="rfa-play-pause-btn" title="Відтворити/Пауза">
+                    <i class="bi bi-play-fill"></i>
+                </button>
+                <button class="rfa-player-btn" id="rfa-next-btn" title="Наступний трек">
+                    <i class="bi bi-skip-end-fill"></i>
+                </button>
+            </div>
+
+            <!-- 2. Інформація про трек та прогрес-бар -->
+            <div class="col flex-grow-1">
+                <div class="d-flex justify-content-between align-items-end mb-1">
+                    <div class="text-truncate pe-3">
+                        <div id="rfa-current-track-title" class="fw-bold text-truncate">Оберіть трек</div>
+                        <div id="rfa-current-track-author" class="text-muted small text-truncate">---</div>
+                    </div>
+                    <div id="rfa-time-display" class="text-muted small flex-shrink-0">0:00 / 0:00</div>
+                </div>
+                <!-- Повзунок перемотки -->
+                <input type="range" id="rfa-progress-bar" class="rfa-player-range" min="0" max="100" value="0" step="0.1" title="Перемотка">
+            </div>
+
+            <!-- 3. Регулятор гучності (прихований на мобільних) -->
+            <div class="col-auto d-none d-sm-flex align-items-center gap-2">
+                <i class="bi bi-volume-up-fill text-secondary" id="rfa-volume-icon"></i>
+                <input type="range" id="rfa-volume-slider" class="rfa-player-range" min="0" max="1" step="0.05" value="1" style="width: 80px;" title="Гучність">
+            </div>
+        </div>
+    </div>
+
+    <!-- Прихований HTML5 аудіо елемент -->
+    <audio id="rfa-global-audio" preload="metadata"></audio>
+</div>
+<!-- Кінець фрагмента плеєра -->
+
+</body>
+</html>

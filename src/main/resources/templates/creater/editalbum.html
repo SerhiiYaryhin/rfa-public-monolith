@@ -10,23 +10,13 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- Editor.js Core and Tools -->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-    <!-- ВИПРАВЛЕННЯ: Розкоментовано підключення плагіна List -->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/text-variant-tune@latest"></script>
-
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
+
+    <!-- ============================================ -->
+    <!-- НАШІ МОДУЛЬНІ СТИЛІ                          -->
+    <!-- ============================================ -->
+    <link rel="stylesheet" th:href="@{/css/rfa-player.css}">
+    <link rel="stylesheet" th:href="@{/css/rfa-editorjs.css}">
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; color: #2d3436; min-height: 100vh; display: flex; flex-direction: column; }
@@ -45,29 +35,59 @@
         .album-cover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; color: #fff; }
         .album-cover-box:hover .album-cover-overlay { opacity: 1; }
 
-        .track-list-item { background: #f8fafc; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #edf2f7; transition: 0.2s; }
-        .track-list-item:hover { background: #fff; transform: translateX(5px); border-color: #6c5ce7; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* Адаптація стилів треків для роботи з модульним плеєром */
+        .rfa-track-item {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #edf2f7;
+            transition: 0.2s;
+        }
+        .rfa-track-item:hover {
+            background: #fff;
+            transform: translateX(5px);
+            border-color: #6c5ce7;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .rfa-track-item.active {
+            background: #f0f0ff;
+            border-color: #6c5ce7;
+        }
+        .rfa-track-item.active .rfa-track-name { color: #6c5ce7; }
 
         .track-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
         .btn-action { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; border: none; background: transparent; }
-        .btn-play { color: #6c5ce7; background: rgba(108, 92, 231, 0.1); }
-        .btn-play:hover { background: #6c5ce7; color: #fff; }
         .btn-remove { color: #ff7675; }
         .btn-remove:hover { background: #ff7675; color: #fff; }
 
-        /* Editor.js Styling */
-        #editorjs { background: #f8fafc; border-radius: 15px; padding: 20px; border: 2px solid #edf2f7; min-height: 200px; }
-        .ce-block__content, .ce-toolbar__content { max-width: 100% !important; }
-
-        /* Custom Audio Player */
-        .mini-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 50px; padding: 10px 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 1000; transition: 0.3s; }
-        .mini-player.hidden { bottom: -100px; }
+        /* Стилі для Editor.js */
+        .rfa-editorjs-edit-container {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #edf2f7;
+            min-height: 200px;
+        }
+        .rfa-editorjs-edit-container:focus-within {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+        }
+        .rfa-editorjs-edit-container .ce-block__content,
+        .rfa-editorjs-edit-container .ce-toolbar__content {
+            max-width: 100% !important;
+        }
     </style>
 </head>
 <body>
 <header>
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
+
+<!-- ============================================ -->
+<!-- МОДУЛЬНИЙ ПЛЕЄР (закріплений зверху)         -->
+<!-- ============================================ -->
+<div th:replace="~{/fragments/audio-player :: player(${trackList})}"></div>
 
 <div class="container" style="padding-top: 80px;">
     <div class="row justify-content-center">
@@ -94,7 +114,7 @@
 
                                 <div class="album-cover-box shadow-sm" onclick="document.getElementById('coverInput').click()">
                                     <img id="coverPreview" th:if="${album.storeuuidalbumcover != null}"
-                                         th:src="'/store/content/' + ${album.storeuuidalbumcover}" class="album-cover-img">
+                                         th:src="@{/store/content/{uuid}(uuid=${album.storeuuidalbumcover})}" class="album-cover-img">
                                     <div id="coverPlaceholder" th:if="${album.storeuuidalbumcover == null}" class="album-cover-placeholder">
                                         <i class="fas fa-image fa-3x mb-2"></i>
                                         <span class="small">Натисніть для вибору</span>
@@ -115,29 +135,32 @@
                             <div class="mt-4">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="fw-bold mb-0">Треки альбому</h5>
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openAddTrackModal()">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill" type="button" onclick="openAddTrackModal()">
                                         <i class="fas fa-plus me-1"></i> Додати
                                     </button>
                                 </div>
 
+                                <!-- ============================================ -->
+                                <!-- СПИСОК ТРЕКІВ (Адаптований для модульного плеєра) -->
+                                <!-- ============================================ -->
                                 <div class="track-list" id="albumTracks">
-                                    <div th:each="track : ${trackList}" class="track-list-item d-flex align-items-center" th:id="'track-' + ${track.uuid}">
-                                        <div class="me-3">
-                                            <button class="btn-action btn-play track-play-btn" th:if="${track.storeitem != null}"
-                                                    th:data-name="${track.name}" th:data-url="${'/store/audio/' + track.storeitem.uuid}">
-                                                <i class="fas fa-play"></i>
-                                            </button>
-                                            <i class="fas fa-exclamation-triangle text-warning" th:if="${track.storeitem == null}" title="Файл відсутній"></i>
-                                        </div>
+                                    <div th:each="track : ${trackList}"
+                                         class="rfa-track-item d-flex align-items-center"
+                                         th:id="'track-' + ${track.uuid}"
+                                         th:data-audio-src="@{/store/audio/{uuid}(uuid=${track.storeitem != null ? track.storeitem.uuid : track.storeuuid})}"
+                                         th:data-track-name="${track.name}"
+                                         th:data-track-autor="${track.autor}">
+
                                         <div class="flex-grow-1 overflow-hidden">
-                                            <div class="fw-bold text-truncate small" th:text="${track.name}">Назва треку</div>
+                                            <div class="fw-bold text-truncate small rfa-track-name" th:text="${track.name}">Назва треку</div>
                                             <div class="x-small text-muted" style="font-size: 0.75rem;" th:text="${track.autor}">Виконавець</div>
                                         </div>
+
                                         <div class="d-flex gap-1">
-                                            <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="btn-action" title="Редагувати">
+                                            <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="btn-action" title="Редагувати" onclick="event.stopPropagation()">
                                                 <i class="fas fa-edit text-muted"></i>
                                             </a>
-                                            <button class="btn-action btn-remove track-remove-btn" th:data-uuid="${track.uuid}" title="Видалити з альбому">
+                                            <button class="btn-action btn-remove track-remove-btn" th:data-uuid="${track.uuid}" title="Видалити з альбому" type="button" onclick="event.stopPropagation()">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
@@ -157,9 +180,6 @@
                             <form id="albumSaveForm" th:action="@{/creater/editalbum}" method="post" th:object="${album}">
                                 <input type="hidden" th:field="*{id}" id="albumId"/>
                                 <input type="hidden" th:field="*{uuid}" id="albumUuidInput"/>
-
-                                <!-- Поле опису (без th:field для уникнення конфлікту з JS) -->
-                                <input type="hidden" name="description" id="albumDescriptionInput" th:value="${album.description}" />
 
                                 <div class="mb-3">
                                     <label class="form-label">Назва альбому</label>
@@ -185,9 +205,13 @@
                                     </div>
                                 </div>
 
+                                <!-- ============================================ -->
+                                <!-- МОДУЛЬНИЙ ФРАГМЕНТ EDITOR.JS ДЛЯ РЕДАГУВАННЯ -->
+                                <!-- ============================================ -->
                                 <div class="mb-4">
-                                    <label class="form-label">Опис альбому (Editor.js)</label>
-                                    <div id="editorjs"></div>
+                                    <label class="form-label">Опис альбому</label>
+                                    <div th:replace="~{/fragments/editorjs-edit :: editorjsEdit(${album.uuid}, ${album.description}, 'description')}"></div>
+                                    <div class="form-text text-muted">Використовуйте інструменти редактора для форматування тексту, додавання списків та зображень.</div>
                                 </div>
 
                                 <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5">
@@ -224,68 +248,31 @@
     </div>
 </div>
 
-<!-- Mini Audio Player -->
-<div id="miniPlayer" class="mini-player hidden">
-    <button class="btn btn-primary rounded-circle p-0" style="width: 40px; height: 40px;" onclick="togglePlay()">
-        <i id="playIcon" class="fas fa-pause"></i>
-    </button>
-    <div class="overflow-hidden">
-        <div id="playerTrackName" class="fw-bold text-truncate" style="max-width: 150px; font-size: 0.9rem;"></div>
-        <div class="progress" style="height: 4px; width: 150px;">
-            <div id="playerProgress" class="progress-bar" style="width: 0%"></div>
-        </div>
-    </div>
-    <button class="btn-close" onclick="closePlayer()"></button>
-    <audio id="mainAudio" class="d-none"></audio>
-</div>
-
 <footer class="mt-auto py-4">
     <div th:insert="~{/fragments/common :: footer}"></div>
 </footer>
 
+<!-- Базові скрипти -->
 <script th:src="@{/js/jquery.min.js}"></script>
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
+
+<!-- ============================================ -->
+<!-- ПІДКЛЮЧЕННЯ EDITOR.JS ЧЕРЕЗ ФРАГМЕНТ         -->
+<!-- ============================================ -->
+<th:block th:replace="~{/fragments/editorjs-scripts :: editorjs-scripts}"></th:block>
+
+<!-- ============================================ -->
+<!-- НАШІ МОДУЛЬНІ СКРИПТИ                        -->
+<!-- ============================================ -->
+<script th:src="@{/js/rfa-player.js}"></script>
+<script th:src="@{/js/rfa-editorjs-edit.js}"></script>
+
 <script th:inline="javascript">
     const csrfToken = /*[[${_csrf.token}]]*/ '';
     const albumUuid = /*[[${album.uuid}]]*/ '';
-    const initialDescription = /*[[${album.description}]]*/ '{}';
 
-    // Initialize Editor.js
-    let editor;
-    try {
-        const parsedData = initialDescription ? JSON.parse(initialDescription) : {};
-        editor = new EditorJS({
-            holder: 'editorjs',
-            tools: {
-                header: { class: Header, config: { levels: [2, 3], defaultLevel: 2 } },
-                paragraph: { config: { preserveBlank: true } },
-                //list: { class: List, inlineToolbar: true },
-                //quote: { class: Quote, inlineToolbar: true },
-                delimiter: Delimiter
-            },
-            data: parsedData,
-            placeholder: 'Опишіть ваш альбом...'
-        });
-    } catch (e) {
-        console.error("EditorJS Init Error:", e);
-        editor = new EditorJS({ holder: 'editorjs' });
-    }
-
-    // Handle Form Submit with EditorJS save
-    document.getElementById('albumSaveForm').onsubmit = async function(e) {
-        e.preventDefault();
-        try {
-            const outputData = await editor.save();
-            document.getElementById('albumDescriptionInput').value = JSON.stringify(outputData);
-            this.submit();
-        } catch (error) {
-            console.error('Saving failed: ', error);
-            toastr.error('Помилка збереження опису');
-        }
-    };
-
-    // Album Cover Upload
+    // --- Album Cover Upload ---
     async function handleCoverUpload(file) {
         if (!file) return;
         if (!file.type.startsWith('image/')) {
@@ -385,18 +372,11 @@
         }
     }
 
-    // --- Делегування подій ---
+    // --- Делегування подій (тільки для видалення, бо play тепер через rfa-player.js) ---
     document.getElementById('albumTracks').addEventListener('click', function(e) {
-        const playBtn = e.target.closest('.track-play-btn');
-        if (playBtn) {
-            const name = playBtn.getAttribute('data-name');
-            const url = playBtn.getAttribute('data-url');
-            playTrack(name, url);
-            return;
-        }
-
         const removeBtn = e.target.closest('.track-remove-btn');
         if (removeBtn) {
+            e.stopPropagation(); // Зупиняємо спливання, щоб не спрацював клік по треку
             const uuid = removeBtn.getAttribute('data-uuid');
             removeTrack(uuid);
             return;
@@ -412,46 +392,6 @@
             addTrackToAlbum(uuid, name, autor);
         }
     });
-
-    // --- Mini Player Logic ---
-    const player = document.getElementById('miniPlayer');
-    const audio = document.getElementById('mainAudio');
-    const playIcon = document.getElementById('playIcon');
-    const progressBar = document.getElementById('playerProgress');
-
-    function playTrack(name, url) {
-        document.getElementById('playerTrackName').innerText = name;
-        audio.src = url;
-        audio.play();
-        player.classList.remove('hidden');
-        playIcon.className = 'fas fa-pause';
-    }
-
-    function togglePlay() {
-        if (audio.paused) {
-            audio.play();
-            playIcon.className = 'fas fa-pause';
-        } else {
-            audio.pause();
-            playIcon.className = 'fas fa-play';
-        }
-    }
-
-    function closePlayer() {
-        audio.pause();
-        player.classList.add('hidden');
-    }
-
-    audio.ontimeupdate = () => {
-        if (audio.duration) {
-            const pct = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = pct + '%';
-        }
-    };
-
-    audio.onended = () => {
-        playIcon.className = 'fas fa-play';
-    };
 </script>
 </body>
 </html>
