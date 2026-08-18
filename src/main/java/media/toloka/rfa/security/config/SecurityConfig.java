@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/home", "/register", "/saveUser", "/guest/**",
+                                "/albums", "/album/view/**",
                                 "/post/**", "/podcast/**", "/rss/**", "/error/**", "/robots.txt", "/robot.txt",
                                 "/api/1.0/**", "/api/2.0/banners/**", "/api/v1/auth/**", "/api/v1/dashboard", "/api/v1/columns/**", "/api/v1/podcasts/**", "/api/v1/tracks/**", "/api/v1/posts/**", "/css/**", "/icons/**", "/js/**", "/pictures/**", "/assets/**",  "/assets/favicon.ico"
                         ).permitAll()

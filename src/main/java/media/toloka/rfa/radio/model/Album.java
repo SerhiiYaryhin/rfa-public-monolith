@@ -38,7 +38,8 @@ public class Album {
     @DateTimeFormat(pattern = "dd-MM-yy")
     private Date datealbumrelise = new Date();
 
-
+    @Expose
+    private Boolean published = false;
 
     @Expose
     private String storeuuidalbumcover;

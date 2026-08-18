@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Альбоми - RFA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Градієнтний фон для header */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Картки альбомів */
+        .album-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .album-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .album-cover-wrapper {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            aspect-ratio: 1;
+        }
+
+        .album-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .album-card:hover .album-cover {
+            transform: scale(1.05);
+        }
+
+        .album-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 4rem;
+        }
+
+        .album-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .album-body {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .album-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .album-artist {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .album-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .album-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .album-btn {
+            margin-top: auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .album-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Пагінація */
+        .pagination-wrapper {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination .page-link {
+            border: none;
+            margin: 0 4px;
+            border-radius: 12px !important;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: #f0f4ff;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #cbd5e0;
+            background: transparent;
+        }
+
+        /* Анімація появи карток */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .album-col {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .album-col:nth-child(1) { animation-delay: 0.1s; }
+        .album-col:nth-child(2) { animation-delay: 0.2s; }
+        .album-col:nth-child(3) { animation-delay: 0.3s; }
+        .album-col:nth-child(4) { animation-delay: 0.4s; }
+        .album-col:nth-child(5) { animation-delay: 0.5s; }
+        .album-col:nth-child(6) { animation-delay: 0.6s; }
+        .album-col:nth-child(7) { animation-delay: 0.7s; }
+        .album-col:nth-child(8) { animation-delay: 0.8s; }
+        .album-col:nth-child(9) { animation-delay: 0.9s; }
+        .album-col:nth-child(10) { animation-delay: 1.0s; }
+        .album-col:nth-child(11) { animation-delay: 1.1s; }
+        .album-col:nth-child(12) { animation-delay: 1.2s; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            color: #cbd5e0;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-music-note-beamed me-3"></i>Музичні альбоми
+                </h1>
+                <p class="lead mb-0 opacity-90">
+                    Відкрийте для себе нову музику від талановитих виконавців
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end d-none d-lg-block">
+                <i class="bi bi-disc" style="font-size: 8rem; opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Empty State -->
+    <div th:if="${albumPage == null or albumPage.empty}" class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-disc"></i>
+        </div>
+        <h3 class="text-muted mb-3">Наразі немає опублікованих альбомів</h3>
+        <p class="text-muted">Слідкуйте за оновленнями — нові альбоми з'являться тут зовсім скоро!</p>
+    </div>
+
+    <!-- Albums Grid -->
+    <div th:if="${albumPage != null and !albumPage.empty}" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        <div th:each="album : ${albumPage.content}" class="col album-col">
+            <div class="album-card bg-white">
+                <!-- Cover -->
+                <div class="album-cover-wrapper">
+                    <img th:if="${album.storeuuidalbumcover != null}"
+                         th:src="@{/store/image/{uuid}(uuid=${album.storeuuidalbumcover})}"
+                         class="album-cover"
+                         alt="Обкладинка альбому">
+                    <div th:unless="${album.storeuuidalbumcover != null}" class="album-cover-placeholder">
+                        <i class="bi bi-music-note-beamed"></i>
+                    </div>
+                    <div class="album-badge" th:if="${album.style != null and !album.style.isEmpty()}">
+                        <i class="bi bi-tag-fill me-1"></i>
+                        <span th:text="${album.style}">Стиль</span>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="album-body">
+                    <h5 class="album-title" th:text="${album.name}">Назва альбому</h5>
+                    <div class="album-artist" th:text="${album.autor}">Виконавець</div>
+
+                    <div class="album-meta">
+                        <div class="album-meta-item">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${#dates.format(album.datealbumrelise, 'dd.MM.yyyy')}">01.01.2024</span>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/album/view/{uuid}(uuid=${album.uuid})}" class="btn album-btn text-white w-100">
+                        <i class="bi bi-play-circle-fill me-2"></i>Слухати альбом
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${totalPages != null and totalPages > 1}" class="pagination-wrapper">
+        <nav aria-label="Навігація по сторінках">
+            <ul class="pagination">
+                <!-- Previous -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/albums(page=${currentPage - 1}, size=${albumPage.size})}" aria-label="Попередня">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <li class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/albums(page=${i}, size=${albumPage.size})}" th:text="${i + 1}">1</a>
+                    </li>
+                </th:block>
+
+                <!-- Next -->
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/albums(page=${currentPage + 1}, size=${albumPage.size})}" aria-label="Наступна">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Info -->
+    <div th:if="${albumPage != null and !albumPage.empty}" class="text-center mt-4">
+        <small class="text-muted">
+            Показано <span th:text="${albumPage.numberOfElements}">12</span> з
+            <span th:text="${albumPage.totalElements}">100</span> альбомів
+        </small>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

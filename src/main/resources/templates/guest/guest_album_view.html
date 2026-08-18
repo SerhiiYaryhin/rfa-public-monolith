@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${album.name} + ' - RFA'">Альбом - RFA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Стилі для коректного відображення блоків Editor.js у режимі читання -->
+    <style>
+        .ce-block__content { max-width: 100%; }
+        .ce-toolbar__content { max-width: 100%; }
+        .cdx-block { margin-bottom: 0.5em; }
+        /* Додаткові стилі для цитат та зображень, якщо потрібно */
+        .ce-quote { border-left: 4px solid #0d6efd; padding-left: 1em; font-style: italic; color: #6c757d; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <a href="/albums" class="btn btn-outline-secondary mb-4">&larr; Назад до списку альбомів</a>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-4 p-md-5">
+            <div class="row">
+                <!-- Ліва колонка: Обкладинка -->
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <img th:if="${coverStore != null}"
+                         th:src="@{/store/image/{uuid}(uuid=${coverStore.uuid})}"
+                         class="img-fluid rounded shadow" style="max-width: 100%;" alt="Обкладинка">
+                    <div th:unless="${coverStore != null}"
+                         class="d-flex align-items-center justify-content-center bg-secondary text-white rounded shadow" style="height: 300px;">
+                        <span>Немає обкладинки</span>
+                    </div>
+                </div>
+
+                <!-- Права колонка: Інформація -->
+                <div class="col-md-8">
+                    <h1 class="display-6 fw-bold" th:text="${album.name}">Назва альбому</h1>
+                    <h4 class="text-primary mb-3" th:text="${album.autor}">Виконавець</h4>
+
+                    <ul class="list-unstyled text-muted mb-4">
+                        <li class="mb-2"><strong>Стиль:</strong> <span th:text="${album.style ?: 'Не вказано'}">Стиль</span></li>
+                        <li><strong>Дата релізу:</strong> <span th:text="${#dates.format(album.datealbumrelise, 'dd MMMM yyyy')}">Дата</span></li>
+                    </ul>
+
+                    <div class="mb-4" th:if="${album.description != null and album.description != '' and album.description != '{}'}">
+                        <h5 class="fw-bold">Опис:</h5>
+                        <!-- Контейнер для Editor.js -->
+                        <div id="editorjs-render" class="text-muted"></div>
+                    </div>
+                    <div class="mb-4" th:if="${album.description == null or album.description == '' or album.description == '{}'}">
+                        <h5 class="fw-bold">Опис:</h5>
+                        <p class="text-muted fst-italic">Опис відсутній.</p>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Список треків -->
+            <h3 class="mb-3 fw-bold">Список треків</h3>
+            <div th:if="${trackList == null or trackList.empty}" class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>У цьому альбомі поки що немає треків.
+            </div>
+
+            <div class="list-group list-group-flush">
+                <div th:each="track, iterStat : ${trackList}" class="list-group-item py-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">
+                                <span class="badge bg-primary me-2" th:text="${iterStat.count}">1</span>
+                                <span th:text="${track.name}">Назва треку</span>
+                            </h6>
+                            <small class="text-muted" th:text="${track.autor}">Автор треку</small>
+                        </div>
+
+                        <!-- Аудіо плеєр -->
+                        <div class="w-100 w-md-auto" style="min-width: 280px;">
+                            <audio controls class="w-100">
+                                <source th:src="@{/store/audio/{uuid}(uuid=${track.storeuuid})}" type="audio/mpeg">
+                                Ваш браузер не підтримує аудіо елемент.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Безпечна передача JSON-опису з Thymeleaf у JavaScript -->
+<th:block th:if="${album.description != null and album.description != '' and album.description != '{}'}">
+    <script type="application/json" id="album-description-json" th:inline="text">[[${album.description}]]</script>
+</th:block>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Editor.js Core та інструменти (Read-only) -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+
+<script>
+    // 1. Зупинка інших плеєрів при запуску нового
+    document.addEventListener('play', function(e){
+        var audios = document.getElementsByTagName('audio');
+        for(var i = 0, len = audios.length; i < len; i++){
+            if(audios[i] != e.target){
+                audios[i].pause();
+            }
+        }
+    }, true);
+
+    // 2. Ініціалізація Editor.js у режимі читання
+    document.addEventListener('DOMContentLoaded', function() {
+        const descriptionEl = document.getElementById('album-description-json');
+        if (descriptionEl) {
+            const rawData = descriptionEl.textContent.trim();
+            if (rawData && rawData !== '{}' && rawData !== '') {
+                try {
+                    const parsedData = JSON.parse(rawData);
+
+                    const editor = new EditorJS({
+                        holder: 'editorjs-render',
+                        readOnly: true, // <-- Режим тільки для читання
+                        tools: {
+                            header: { class: Header, inlineToolbar: false },
+                            list: { class: List, inlineToolbar: false },
+                            quote: { class: Quote, inlineToolbar: false },
+                            delimiter: Delimiter,
+                            paragraph: { class: Paragraph, inlineToolbar: false },
+                            image: { class: ImageTool, inlineToolbar: false }
+                        },
+                        data: parsedData
+                    });
+                } catch (e) {
+                    console.error('Помилка парсингу JSON опису альбому:', e);
+                    document.getElementById('editorjs-render').innerHTML = '<p class="text-danger">Помилка відображення опису.</p>';
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

@@ -305,4 +305,27 @@ public class CreaterService {
 //        Page<> page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
         return postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
     }
+    /**
+     * Отримати список всіх опублікованих альбомів
+     */
+    public List<Album> GetAllPublishedAlbums() {
+        return albumRepository.findByPublishedTrue();
+    }
+
+    /**
+     * Отримати сторінку опублікованих альбомів з пагінацією
+     */
+    public Page<Album> GetPublishedAlbumsPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("datealbumrelise").descending());
+        return albumRepository.findByPublishedTrue(pageable);
+    }
+
+    /**
+     * Отримати опублікований альбом за UUID разом з треками (JOIN FETCH)
+     */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Album GetPublishedAlbumByUuid(String uuid) {
+        return albumRepository.findByUuidAndPublishedTrue(uuid).orElse(null);
+    }
+
 }
