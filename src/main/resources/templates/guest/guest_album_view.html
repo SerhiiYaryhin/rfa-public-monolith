@@ -6,17 +6,107 @@
     <title th:text="${album.name} + ' - RFA'">Альбом - RFA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <!-- Стилі для коректного відображення блоків Editor.js у режимі читання -->
     <style>
+        /* Стилі для Editor.js (Read-only) */
         .ce-block__content { max-width: 100%; }
         .ce-toolbar__content { max-width: 100%; }
         .cdx-block { margin-bottom: 0.5em; }
-        /* Додаткові стилі для цитат та зображень, якщо потрібно */
-        .ce-quote { border-left: 4px solid #0d6efd; padding-left: 1em; font-style: italic; color: #6c757d; }
+        .editorjs-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; }
+        .editorjs-content blockquote { border-left: 4px solid #2563eb; padding-left: 1em; font-style: italic; color: #64748b; }
+
+        /* Стилі для глобального плеєра */
+        .main-player-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Кастомізація повзунків (progress & volume) */
+        .form-range::-webkit-slider-thumb {
+            background: #2563eb;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .form-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .form-range::-moz-range-thumb {
+            background: #2563eb;
+            cursor: pointer;
+        }
+
+        .track-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .track-item:hover { background-color: #f8fafc; }
+        .track-item.active-playing {
+            background-color: #eff6ff;
+            border-left-color: #2563eb;
+        }
+        .track-item.active-playing .track-name { color: #2563eb; font-weight: 700; }
+
+        .player-btn {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            color: #475569;
+        }
+        .player-btn:hover { background-color: #f1f5f9; color: #2563eb; }
+        .player-btn-play {
+            width: 48px; height: 48px;
+            background-color: #2563eb; color: white;
+        }
+        .player-btn-play:hover { background-color: #1d4ed8; color: white; transform: scale(1.05); }
     </style>
 </head>
 <body class="bg-light">
+
+<!-- Глобальний плеєр (закріплений зверху, показується тільки якщо є треки) -->
+<div class="main-player-bar py-2 py-md-3" th:if="${trackList != null and !trackList.empty}">
+    <div class="container">
+        <div class="row align-items-center g-2 g-md-3">
+            <!-- 1. Кнопки керування (Попередній, Play/Pause, Наступний) -->
+            <div class="col-auto d-flex align-items-center">
+                <button id="prev-btn" class="btn player-btn" title="Попередній трек">
+                    <i class="bi bi-skip-start-fill fs-5"></i>
+                </button>
+                <button id="play-pause-btn" class="btn player-btn player-btn-play mx-2 shadow-sm" title="Відтворити/Пауза">
+                    <i class="bi bi-play-fill fs-4"></i>
+                </button>
+                <button id="next-btn" class="btn player-btn" title="Наступний трек">
+                    <i class="bi bi-skip-end-fill fs-5"></i>
+                </button>
+            </div>
+
+            <!-- 2. Інформація та полоса прогресу -->
+            <div class="col flex-grow-1">
+                <div class="d-flex justify-content-between align-items-end mb-1">
+                    <div class="text-truncate pe-3">
+                        <div id="current-track-title" class="fw-bold text-truncate" style="font-size: 0.95rem;">Оберіть трек</div>
+                        <div id="current-track-author" class="text-muted small text-truncate">---</div>
+                    </div>
+                    <div id="time-display" class="text-muted small flex-shrink-0" style="font-variant-numeric: tabular-nums;">0:00 / 0:00</div>
+                </div>
+                <input type="range" id="progress-bar" class="form-range" min="0" max="100" value="0" step="0.1" title="Перемотка треку">
+            </div>
+
+            <!-- 3. Регулятор гучності (прихований на дуже малих екранах) -->
+            <div class="col-auto d-none d-sm-flex align-items-center gap-2">
+                <i class="bi bi-volume-up-fill text-secondary" id="volume-icon"></i>
+                <input type="range" id="volume-slider" class="form-range" min="0" max="1" step="0.05" value="1" style="width: 80px;" title="Гучність">
+            </div>
+        </div>
+    </div>
+    <!-- Прихований аудіо-елемент -->
+    <audio id="global-audio" preload="metadata"></audio>
+</div>
 
 <div class="container py-5">
     <a href="/albums" class="btn btn-outline-secondary mb-4">&larr; Назад до списку альбомів</a>
@@ -45,12 +135,13 @@
                         <li><strong>Дата релізу:</strong> <span th:text="${#dates.format(album.datealbumrelise, 'dd MMMM yyyy')}">Дата</span></li>
                     </ul>
 
-                    <div class="mb-4" th:if="${album.description != null and album.description != '' and album.description != '{}'}">
+                    <!-- Блок опису з Editor.js -->
+                    <div class="mb-4" th:if="${album.description != null and album.description.trim() != '' and album.description.trim() != '{}'}">
                         <h5 class="fw-bold">Опис:</h5>
-                        <!-- Контейнер для Editor.js -->
-                        <div id="editorjs-render" class="text-muted"></div>
+                        <script type="text/plain" id="album-description-raw" th:utext="${album.description}"></script>
+                        <div id="editorjs-render" class="editorjs-content text-muted"></div>
                     </div>
-                    <div class="mb-4" th:if="${album.description == null or album.description == '' or album.description == '{}'}">
+                    <div class="mb-4" th:if="${album.description == null or album.description.trim() == '' or album.description.trim() == '{}'}">
                         <h5 class="fw-bold">Опис:</h5>
                         <p class="text-muted fst-italic">Опис відсутній.</p>
                     </div>
@@ -65,23 +156,24 @@
                 <i class="bi bi-info-circle me-2"></i>У цьому альбомі поки що немає треків.
             </div>
 
-            <div class="list-group list-group-flush">
-                <div th:each="track, iterStat : ${trackList}" class="list-group-item py-3">
+            <div class="list-group list-group-flush" id="track-playlist">
+                <div th:each="track, iterStat : ${trackList}"
+                     class="track-item list-group-item py-3"
+                     th:data-audio-src="@{/store/audio/{uuid}(uuid=${track.storeuuid})}"
+                     th:data-track-name="${track.name}"
+                     th:data-track-autor="${track.autor}">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-bold">
-                                <span class="badge bg-primary me-2" th:text="${iterStat.count}">1</span>
-                                <span th:text="${track.name}">Назва треку</span>
-                            </h6>
-                            <small class="text-muted" th:text="${track.autor}">Автор треку</small>
+                        <div class="flex-grow-1 d-flex align-items-center">
+                            <span class="badge bg-secondary me-3 track-number" th:text="${iterStat.count}">1</span>
+                            <div>
+                                <h6 class="mb-1 track-name" th:text="${track.name}">Назва треку</h6>
+                                <small class="text-muted" th:text="${track.autor}">Автор треку</small>
+                            </div>
                         </div>
 
-                        <!-- Аудіо плеєр -->
-                        <div class="w-100 w-md-auto" style="min-width: 280px;">
-                            <audio controls class="w-100">
-                                <source th:src="@{/store/audio/{uuid}(uuid=${track.storeuuid})}" type="audio/mpeg">
-                                Ваш браузер не підтримує аудіо елемент.
-                            </audio>
+                        <!-- Іконка статусу відтворення -->
+                        <div class="track-status-icon text-primary d-none">
+                            <i class="bi bi-soundwave fs-4"></i>
                         </div>
                     </div>
                 </div>
@@ -91,62 +183,223 @@
     </div>
 </div>
 
-<!-- Безпечна передача JSON-опису з Thymeleaf у JavaScript -->
-<th:block th:if="${album.description != null and album.description != '' and album.description != '{}'}">
-    <script type="application/json" id="album-description-json" th:inline="text">[[${album.description}]]</script>
-</th:block>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Editor.js Core та інструменти (Read-only) -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-
-<script>
-    // 1. Зупинка інших плеєрів при запуску нового
-    document.addEventListener('play', function(e){
-        var audios = document.getElementsByTagName('audio');
-        for(var i = 0, len = audios.length; i < len; i++){
-            if(audios[i] != e.target){
-                audios[i].pause();
-            }
-        }
-    }, true);
-
-    // 2. Ініціалізація Editor.js у режимі читання
+<!-- ========================================== -->
+<!-- 1. СКРИПТ ДЛЯ EDITOR.JS (READ-ONLY MODE)   -->
+<!-- ========================================== -->
+<script th:if="${album.description != null and album.description.trim() != '' and album.description.trim() != '{}'}">
     document.addEventListener('DOMContentLoaded', function() {
-        const descriptionEl = document.getElementById('album-description-json');
-        if (descriptionEl) {
-            const rawData = descriptionEl.textContent.trim();
-            if (rawData && rawData !== '{}' && rawData !== '') {
+        const rawEl = document.getElementById('album-description-raw');
+        const renderTarget = document.getElementById('editorjs-render');
+        if (rawEl && renderTarget) {
+            const rawData = rawEl.textContent.trim();
+            if (rawData && rawData !== '{}' && rawData.startsWith('{')) {
                 try {
                     const parsedData = JSON.parse(rawData);
-
-                    const editor = new EditorJS({
-                        holder: 'editorjs-render',
-                        readOnly: true, // <-- Режим тільки для читання
-                        tools: {
-                            header: { class: Header, inlineToolbar: false },
-                            list: { class: List, inlineToolbar: false },
-                            quote: { class: Quote, inlineToolbar: false },
-                            delimiter: Delimiter,
-                            paragraph: { class: Paragraph, inlineToolbar: false },
-                            image: { class: ImageTool, inlineToolbar: false }
-                        },
-                        data: parsedData
-                    });
+                    if (parsedData.blocks && Array.isArray(parsedData.blocks)) {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest';
+                        script.onload = () => {
+                            new EditorJS({
+                                holder: 'editorjs-render',
+                                readOnly: true,
+                                tools: {
+                                    header: { class: window.Header, inlineToolbar: false },
+                                    paragraph: { class: window.Paragraph, inlineToolbar: false },
+                                    list: { class: window.List, inlineToolbar: false },
+                                    quote: { class: window.Quote, inlineToolbar: false },
+                                    delimiter: window.Delimiter,
+                                    image: { class: window.ImageTool, inlineToolbar: false }
+                                },
+                                data: parsedData
+                            });
+                        };
+                        document.head.appendChild(script);
+                    } else {
+                        renderTarget.innerHTML = '<p style="white-space: pre-wrap;">' + rawData + '</p>';
+                    }
                 } catch (e) {
-                    console.error('Помилка парсингу JSON опису альбому:', e);
-                    document.getElementById('editorjs-render').innerHTML = '<p class="text-danger">Помилка відображення опису.</p>';
+                    renderTarget.innerHTML = '<p style="white-space: pre-wrap;">' + rawData + '</p>';
                 }
+            } else {
+                renderTarget.innerHTML = '<p style="white-space: pre-wrap;">' + rawData + '</p>';
             }
         }
+    });
+</script>
+
+<!-- ========================================== -->
+<!-- 2. СКРИПТ РОЗШИРЕНОГО ПЛЕЄРА               -->
+<!-- ========================================== -->
+<script th:if="${trackList != null and !trackList.empty}">
+    document.addEventListener('DOMContentLoaded', function() {
+        const audio = document.getElementById('global-audio');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const trackTitle = document.getElementById('current-track-title');
+        const trackAuthor = document.getElementById('current-track-author');
+        const progressBar = document.getElementById('progress-bar');
+        const timeDisplay = document.getElementById('time-display');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeIcon = document.getElementById('volume-icon');
+        const trackItems = document.querySelectorAll('.track-item');
+
+        let currentTrackIndex = -1;
+        let isPlaying = false;
+        let isDraggingProgress = false;
+
+        // Форматування часу (секунди -> ММ:СС)
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function loadTrack(index, autoPlay = true) {
+            if (index < 0) index = trackItems.length - 1; // Зациклення на кінець
+            if (index >= trackItems.length) index = 0;    // Зациклення на початок
+
+            currentTrackIndex = index;
+            const item = trackItems[index];
+
+            audio.src = item.getAttribute('data-audio-src');
+            trackTitle.textContent = item.getAttribute('data-track-name');
+            trackAuthor.textContent = item.getAttribute('data-track-autor') || 'Невідомий автор';
+
+            // Оновлення візуального стану списку
+            trackItems.forEach(el => {
+                el.classList.remove('active-playing');
+                el.querySelector('.track-status-icon').classList.add('d-none');
+                el.querySelector('.track-number').classList.remove('d-none');
+            });
+            item.classList.add('active-playing');
+            item.querySelector('.track-status-icon').classList.remove('d-none');
+            item.querySelector('.track-number').classList.add('d-none');
+
+            if (autoPlay) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayButton();
+                }).catch(e => console.error("Помилка відтворення:", e));
+            } else {
+                isPlaying = false;
+                updatePlayButton();
+            }
+        }
+
+        function updatePlayButton() {
+            playPauseBtn.innerHTML = isPlaying ? '<i class="bi bi-pause-fill fs-4"></i>' : '<i class="bi bi-play-fill fs-4"></i>';
+        }
+
+        function updateVolumeIcon() {
+            if (audio.volume === 0) {
+                volumeIcon.className = 'bi bi-volume-mute-fill text-secondary';
+            } else if (audio.volume < 0.5) {
+                volumeIcon.className = 'bi bi-volume-down-fill text-secondary';
+            } else {
+                volumeIcon.className = 'bi bi-volume-up-fill text-secondary';
+            }
+        }
+
+        // --- Обробники подій ---
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                if (currentTrackIndex === -1 && trackItems.length > 0) {
+                    loadTrack(0, true);
+                } else {
+                    audio.play();
+                    isPlaying = true;
+                    updatePlayButton();
+                }
+            } else {
+                audio.pause();
+                isPlaying = false;
+                updatePlayButton();
+            }
+        });
+
+        // Попередній трек
+        prevBtn.addEventListener('click', () => {
+            if (audio.currentTime > 3) {
+                audio.currentTime = 0; // Якщо пройшло більше 3 сек, повертаємо на початок
+            } else {
+                loadTrack(currentTrackIndex - 1, true);
+            }
+        });
+
+        // Наступний трек
+        nextBtn.addEventListener('click', () => {
+            loadTrack(currentTrackIndex + 1, true);
+        });
+
+        // Автоматичне перемикання при закінченні
+        audio.addEventListener('ended', () => {
+            loadTrack(currentTrackIndex + 1, true);
+        });
+
+        // Оновлення прогрес-бару під час відтворення
+        audio.addEventListener('timeupdate', () => {
+            if (!isDraggingProgress && !isNaN(audio.duration)) {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                progressBar.value = progress;
+                timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+            }
+        });
+
+        // Завантаження метаданих (для відображення загальної тривалості одразу)
+        audio.addEventListener('loadedmetadata', () => {
+            timeDisplay.textContent = `0:00 / ${formatTime(audio.duration)}`;
+        });
+
+        // Перемотка (перетягування повзунка)
+        progressBar.addEventListener('input', () => {
+            isDraggingProgress = true;
+            const seekTime = (progressBar.value / 100) * audio.duration;
+            timeDisplay.textContent = `${formatTime(seekTime)} / ${formatTime(audio.duration)}`;
+        });
+
+        progressBar.addEventListener('change', () => {
+            isDraggingProgress = false;
+            audio.currentTime = (progressBar.value / 100) * audio.duration;
+            if (audio.paused && currentTrackIndex !== -1) {
+                audio.play();
+                isPlaying = true;
+                updatePlayButton();
+            }
+        });
+
+        // Регулювання гучності
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+            updateVolumeIcon();
+        });
+
+        // Клік по треку в списку
+        trackItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                if (currentTrackIndex === index && !audio.paused) {
+                    audio.pause();
+                    isPlaying = false;
+                    updatePlayButton();
+                } else {
+                    loadTrack(index, true);
+                }
+            });
+        });
+
+        // Обробка помилок завантаження
+        audio.addEventListener('error', () => {
+            console.error("Помилка завантаження аудіо. Перехід до наступного треку.");
+            loadTrack(currentTrackIndex + 1, true);
+        });
+
+        // Ініціалізація гучності
+        updateVolumeIcon();
     });
 </script>
 </body>
