@@ -328,4 +328,11 @@ public class CreaterService {
         return albumRepository.findByUuidAndPublishedTrue(uuid).orElse(null);
     }
 
+    /**
+     * Отримати останні 10 опублікованих альбомів (для головної сторінки)
+     */
+    public List<Album> GetLatestPublishedAlbums() {
+        return albumRepository.findTop10ByPublishedTrueOrderByCreatedateDesc();
+    }
+
 }

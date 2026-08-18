@@ -415,6 +415,13 @@
                     ✍️ Колонки
                 </button>
             </li>
+            <!-- ВИПРАВЛЕНО: Кнопка таба "Альбоми" тепер всередині <ul> -->
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="albums-tab" data-bs-toggle="tab"
+                        data-bs-target="#albums-content" type="button" role="tab">
+                    💿 Альбоми
+                </button>
+            </li>
         </ul>
 
         <!-- Контент табів -->
@@ -450,6 +457,10 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Повідомлення, якщо немає подкастів -->
+                    <div th:if="${#lists.isEmpty(latestPodcasts)}" class="text-muted px-3">
+                        <small>Немає подкастів</small>
+                    </div>
                 </div>
             </div>
 
@@ -479,6 +490,10 @@
                                     <span th:text="' '+${article.clientdetail.custname} + ' ' + ${article.clientdetail.custsurname}"/></a>
                             </div>
                         </div>
+                    </div>
+                    <!-- Повідомлення, якщо немає статей -->
+                    <div th:if="${#lists.isEmpty(postList)}" class="text-muted px-3">
+                        <small>Немає статей</small>
                     </div>
                 </div>
             </div>
@@ -515,6 +530,10 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Повідомлення, якщо немає треків -->
+                    <div th:if="${#lists.isEmpty(trackList)}" class="text-muted px-3">
+                        <small>Немає треків</small>
+                    </div>
                 </div>
             </div>
 
@@ -547,8 +566,46 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Повідомлення, якщо немає колонок -->
+                    <div th:if="${#lists.isEmpty(authorArticles)}" class="text-muted px-3">
+                        <small>Немає авторських колонок</small>
+                    </div>
                 </div>
             </div>
+
+            <!-- Таб "Альбоми" -->
+            <div class="tab-pane fade" id="albums-content" role="tabpanel">
+                <div class="content-carousel d-flex overflow-auto pb-3">
+                    <div th:each="album, iStat : ${latestAlbums}"
+                         class="row align-items-center flex-shrink-0 me-3 py-2 px-2 rounded"
+                         th:style="${iStat.odd}? 'min-width: 280px; background-color: rgba(0,0,0,0.02)' : 'min-width: 280px;'">
+                        <div class="col-auto">
+                            <a th:href="'/album/view/' + ${album.uuid}" class="text-decoration-none">
+                                <div class="fa-stack text-primary">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fas fa-compact-disc fa-stack-1x fa-inverse"></i>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <div class="small fw-bold text-truncate" style="max-width: 200px;">
+                                <a th:href="'/album/view/' + ${album.uuid}"
+                                   class="text-decoration-none text-dark"
+                                   th:text="${album.name}">Альбом</a>
+                            </div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 200px;">
+                                <i class="far fa-user me-1"></i>
+                                <span th:text="${album.autor}">Виконавець</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Повідомлення, якщо немає альбомів -->
+                    <div th:if="${#lists.isEmpty(latestAlbums)}" class="text-muted px-3">
+                        <small>Немає альбомів</small>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>

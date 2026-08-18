@@ -1,6 +1,7 @@
 package media.toloka.rfa.radio.root;
 
 import media.toloka.rfa.radio.creater.service.CreaterService;
+import media.toloka.rfa.radio.model.Album;
 import media.toloka.rfa.radio.model.MessageFromSite;
 import media.toloka.rfa.radio.model.Post;
 import media.toloka.rfa.radio.model.Track;
@@ -72,7 +73,6 @@ public class RootController {
     @GetMapping(value = "/")
     public String index(Model model) {
         long startTime = System.currentTimeMillis();
-
         List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
 
         // Подкасти для каруселі
@@ -91,15 +91,19 @@ public class RootController {
         // Останні змінені подкасти для нового блоку (15 штук)
         Page<PodcastChannel> latestPodcastsPage = podcastService.GetPublicPodcastsPage(0, 15);
 
-        model.addAttribute("trackList", publicTracks );
-        model.addAttribute("postList", pagePost.getContent() );
-        model.addAttribute("stationsonline", stationOnlineList );
-        model.addAttribute("podcastChannels", podcastChannels );
+        // НОВЕ: Останні опубліковані альбоми
+        List<Album> latestAlbums = createrService.GetLatestPublishedAlbums();
+
+        model.addAttribute("trackList", publicTracks);
+        model.addAttribute("postList", pagePost.getContent());
+        model.addAttribute("stationsonline", stationOnlineList);
+        model.addAttribute("podcastChannels", podcastChannels);
         model.addAttribute("latestPodcasts", latestPodcastsPage.getContent());
         model.addAttribute("authorArticles", authorArticlePage.getContent());
+        model.addAttribute("latestAlbums", latestAlbums); // НОВЕ
 
         // Open graph image
-        model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
+        model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593");
         model.addAttribute("storeService", storeService);
         model.addAttribute("clientService", clientService);
 
@@ -108,9 +112,51 @@ public class RootController {
 
         long endTime = System.currentTimeMillis();
         logger.info("Root index loading time: {} ms", (endTime - startTime));
-        
         return "/root";
     }
+
+//    @GetMapping(value = "/")
+//    public String index(Model model) {
+//        long startTime = System.currentTimeMillis();
+//
+//        List<ListOnlineFront> stationOnlineList = StationOnlineList.getInstance().GetOnlineList();
+//
+//        // Подкасти для каруселі
+//        List<PodcastChannel> podcastChannels = podcastService.GetPodcastListForRootCarusel();
+//
+//        // Авторські статті для слайдера та нового блоку (15 штук)
+//        Page<media.toloka.rfa.author.model.AuthorArticle> authorArticlePage = createrService.GetPublicAuthorArticlesPage(0, 15);
+//
+//        // Схвалені треки (пагінація)
+//        Page<Track> pageTrack = createrService.GetPublicTracksPage(0, 10);
+//        List<Track> publicTracks = pageTrack.getContent();
+//
+//        // Схвалені пости (пагінація)
+//        Page<Post> pagePost = createrService.GetPublicPostsPage(0, 9);
+//
+//        // Останні змінені подкасти для нового блоку (15 штук)
+//        Page<PodcastChannel> latestPodcastsPage = podcastService.GetPublicPodcastsPage(0, 15);
+//
+//        model.addAttribute("trackList", publicTracks );
+//        model.addAttribute("postList", pagePost.getContent() );
+//        model.addAttribute("stationsonline", stationOnlineList );
+//        model.addAttribute("podcastChannels", podcastChannels );
+//        model.addAttribute("latestPodcasts", latestPodcastsPage.getContent());
+//        model.addAttribute("authorArticles", authorArticlePage.getContent());
+//
+//        // Open graph image
+//        model.addAttribute("ogimage", "1889f972-e5d2-4fd9-9eca-43422e6b4593" );
+//        model.addAttribute("storeService", storeService);
+//        model.addAttribute("clientService", clientService);
+//
+//        MessageFromSite QuestionForm = new MessageFromSite();
+//        model.addAttribute("question", QuestionForm);
+//
+//        long endTime = System.currentTimeMillis();
+//        logger.info("Root index loading time: {} ms", (endTime - startTime));
+//
+//        return "/root";
+//    }
 
     @GetMapping(value = "/about")
     public String about(Model model) {

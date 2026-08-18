@@ -30,4 +30,8 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     // при зверненні до album.getTrack() у Thymeleaf-шаблоні поза межами транзакції.
     @Query("SELECT a FROM Album a LEFT JOIN FETCH a.track WHERE a.uuid = :uuid AND a.published = true")
     Optional<Album> findByUuidAndPublishedTrue(@Param("uuid") String uuid);
+
+    // Отримати останні опубліковані альбоми (для головної сторінки)
+    List<Album> findTop10ByPublishedTrueOrderByCreatedateDesc();
+
 }
