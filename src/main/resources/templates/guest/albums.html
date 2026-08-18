@@ -284,7 +284,7 @@
                 <!-- Cover -->
                 <div class="album-cover-wrapper">
                     <img th:if="${album.storeuuidalbumcover != null}"
-                         th:src="@{/store/image/{uuid}(uuid=${album.storeuuidalbumcover})}"
+                         th:src="@{/store/content/{uuid}(uuid=${album.storeuuidalbumcover})}"
                          class="album-cover"
                          alt="Обкладинка альбому">
                     <div th:unless="${album.storeuuidalbumcover != null}" class="album-cover-placeholder">
