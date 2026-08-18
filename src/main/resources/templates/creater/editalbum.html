@@ -12,9 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link th:rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
 
-    <!-- ============================================ -->
-    <!-- НАШІ МОДУЛЬНІ СТИЛІ                          -->
-    <!-- ============================================ -->
+    <!-- Наші модульні стилі -->
     <link rel="stylesheet" th:href="@{/css/rfa-player.css}">
     <link rel="stylesheet" th:href="@{/css/rfa-editorjs.css}">
 
@@ -28,32 +26,22 @@
         .btn-save { background: #6c5ce7; color: #fff; border-radius: 12px; padding: 14px 35px; font-weight: 700; transition: 0.3s; border: none; }
         .btn-save:hover { background: #5b4cc4; transform: translateY(-2px); color: #fff; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); }
 
-        .album-cover-box { position: relative; width: 250px; height: 250px; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; cursor: pointer; transition: 0.3s; margin: 0 auto 30px; }
+        /* Обкладинка альбому */
+        .album-cover-box {
+            position: relative; width: 250px; height: 250px; border-radius: 20px;
+            overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1;
+            cursor: pointer; transition: 0.3s; margin: 0 auto 30px;
+        }
         .album-cover-box:hover { border-color: #6c5ce7; background: #f0f0ff; }
         .album-cover-img { width: 100%; height: 100%; object-fit: cover; }
         .album-cover-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; }
         .album-cover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; color: #fff; }
         .album-cover-box:hover .album-cover-overlay { opacity: 1; }
 
-        /* Адаптація стилів треків для роботи з модульним плеєром */
-        .rfa-track-item {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border: 1px solid #edf2f7;
-            transition: 0.2s;
-        }
-        .rfa-track-item:hover {
-            background: #fff;
-            transform: translateX(5px);
-            border-color: #6c5ce7;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .rfa-track-item.active {
-            background: #f0f0ff;
-            border-color: #6c5ce7;
-        }
+        /* Треки */
+        .rfa-track-item { background: #f8fafc; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #edf2f7; transition: 0.2s; }
+        .rfa-track-item:hover { background: #fff; transform: translateX(5px); border-color: #6c5ce7; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .rfa-track-item.active { background: #f0f0ff; border-color: #6c5ce7; }
         .rfa-track-item.active .rfa-track-name { color: #6c5ce7; }
 
         .track-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
@@ -61,21 +49,68 @@
         .btn-remove { color: #ff7675; }
         .btn-remove:hover { background: #ff7675; color: #fff; }
 
-        /* Стилі для Editor.js */
-        .rfa-editorjs-edit-container {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid #edf2f7;
-            min-height: 200px;
-        }
-        .rfa-editorjs-edit-container:focus-within {
-            border-color: #6c5ce7;
-            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
-        }
+        /* Editor.js */
+        .rfa-editorjs-edit-container { background: #f8fafc; border-radius: 15px; padding: 20px; border: 2px solid #edf2f7; min-height: 200px; }
+        .rfa-editorjs-edit-container:focus-within { border-color: #6c5ce7; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
         .rfa-editorjs-edit-container .ce-block__content,
-        .rfa-editorjs-edit-container .ce-toolbar__content {
-            max-width: 100% !important;
+        .rfa-editorjs-edit-container .ce-toolbar__content { max-width: 100% !important; }
+
+        /* ============================================ */
+        /* СТИЛІ ДЛЯ МОДАЛКИ ВИБОРУ ОБКЛАДИНКИ          */
+        /* ============================================ */
+        .cover-gallery-item {
+            position: relative;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: #f8fafc;
+        }
+        .cover-gallery-item:hover {
+            border-color: #6c5ce7;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.15);
+        }
+        .cover-gallery-item.active {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+        .cover-gallery-item img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+        .cover-current-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #6c5ce7;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .cover-upload-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: #f8fafc;
+        }
+        .cover-upload-zone:hover {
+            border-color: #6c5ce7;
+            background: #f0f0ff;
+        }
+        .cover-upload-zone i {
+            font-size: 3rem;
+            color: #6c5ce7;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -84,9 +119,7 @@
     <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
 </header>
 
-<!-- ============================================ -->
-<!-- МОДУЛЬНИЙ ПЛЕЄР (закріплений зверху)         -->
-<!-- ============================================ -->
+<!-- Модульний плеєр -->
 <div th:replace="~{/fragments/audio-player :: player(${trackList})}"></div>
 
 <div class="container" style="padding-top: 80px;">
@@ -112,22 +145,18 @@
                             <div class="text-center">
                                 <h5 class="fw-bold mb-4">Обкладинка альбому</h5>
 
-                                <div class="album-cover-box shadow-sm" onclick="document.getElementById('coverInput').click()">
-                                    <img id="coverPreview" th:if="${album.storeuuidalbumcover != null}"
-                                         th:src="@{/store/content/{uuid}(uuid=${album.storeuuidalbumcover})}" class="album-cover-img">
+                                <!-- Клік по цьому блоку відкриває модалку -->
+                                <div class="album-cover-box shadow-sm" id="coverBox" onclick="openCoverModal()">
+                                    <img id="coverPreview"
+                                         th:if="${album.storeuuidalbumcover != null}"
+                                         th:src="@{/store/content/{uuid}(uuid=${album.storeuuidalbumcover})}"
+                                         class="album-cover-img">
                                     <div id="coverPlaceholder" th:if="${album.storeuuidalbumcover == null}" class="album-cover-placeholder">
                                         <i class="fas fa-image fa-3x mb-2"></i>
                                         <span class="small">Натисніть для вибору</span>
                                     </div>
                                     <div class="album-cover-overlay">
                                         <i class="fas fa-camera fa-2x"></i>
-                                    </div>
-                                    <input type="file" id="coverInput" hidden accept="image/*" onchange="handleCoverUpload(this.files[0])">
-                                </div>
-
-                                <div id="uploadProgress" class="d-none mb-4 mx-auto" style="max-width: 250px;">
-                                    <div class="progress" style="height: 6px;">
-                                        <div id="progressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -140,9 +169,6 @@
                                     </button>
                                 </div>
 
-                                <!-- ============================================ -->
-                                <!-- СПИСОК ТРЕКІВ (Адаптований для модульного плеєра) -->
-                                <!-- ============================================ -->
                                 <div class="track-list" id="albumTracks">
                                     <div th:each="track : ${trackList}"
                                          class="rfa-track-item d-flex align-items-center"
@@ -150,12 +176,10 @@
                                          th:data-audio-src="@{/store/audio/{uuid}(uuid=${track.storeitem != null ? track.storeitem.uuid : track.storeuuid})}"
                                          th:data-track-name="${track.name}"
                                          th:data-track-autor="${track.autor}">
-
                                         <div class="flex-grow-1 overflow-hidden">
                                             <div class="fw-bold text-truncate small rfa-track-name" th:text="${track.name}">Назва треку</div>
                                             <div class="x-small text-muted" style="font-size: 0.75rem;" th:text="${track.autor}">Виконавець</div>
                                         </div>
-
                                         <div class="d-flex gap-1">
                                             <a th:href="@{'/creater/edittrack/' + ${track.uuid}}" class="btn-action" title="Редагувати" onclick="event.stopPropagation()">
                                                 <i class="fas fa-edit text-muted"></i>
@@ -205,19 +229,15 @@
                                     </div>
                                 </div>
 
-                                <!-- ============================================ -->
-                                <!-- МОДУЛЬНИЙ ФРАГМЕНТ EDITOR.JS ДЛЯ РЕДАГУВАННЯ -->
-                                <!-- ============================================ -->
+                                <!-- Модульний Editor.js -->
                                 <div class="mb-4">
                                     <label class="form-label">Опис альбому</label>
                                     <div th:replace="~{/fragments/editorjs-edit :: editorjsEdit(${album.uuid}, ${album.description}, 'description')}"></div>
-                                    <div class="form-text text-muted">Використовуйте інструменти редактора для форматування тексту, додавання списків та зображень.</div>
+                                    <div class="form-text text-muted">Використовуйте інструменти редактора для форматування тексту.</div>
                                 </div>
 
                                 <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5">
-                                    <a th:href="@{/creater/albums}" class="btn btn-light rounded-pill px-4">
-                                        Скасувати
-                                    </a>
+                                    <a th:href="@{/creater/albums}" class="btn btn-light rounded-pill px-4">Скасувати</a>
                                     <button type="submit" class="btn btn-save shadow">
                                         <i class="fas fa-check me-2"></i>Зберегти зміни
                                     </button>
@@ -231,13 +251,76 @@
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- МОДАЛКА ВИБОРУ/ЗАВАНТАЖЕННЯ ОБКЛАДИНКИ       -->
+<!-- ============================================ -->
+<div class="modal fade" id="coverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-image me-2 text-primary"></i>Обкладинка альбому
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                <!-- Зона завантаження нового зображення -->
+                <div class="cover-upload-zone mb-4" onclick="document.getElementById('newCoverInput').click()">
+                    <i class="fas fa-cloud-upload-alt d-block"></i>
+                    <h6 class="fw-bold mb-1">Завантажити нове зображення</h6>
+                    <small class="text-muted">Натисніть або перетягніть файл сюди</small>
+                    <input type="file" id="newCoverInput" hidden accept="image/*">
+                </div>
+
+                <div id="coverUploadProgress" class="d-none mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <small class="text-muted">Завантаження...</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div id="coverUploadBar" class="progress-bar bg-primary" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Галерея існуючих обкладинок -->
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-th me-2 text-primary"></i>Або виберіть із завантажених раніше:
+                </h6>
+
+                <div class="row g-3" id="coverGallery">
+                    <div th:each="store : ${coverlist}" class="col-6 col-md-4">
+                        <div class="cover-gallery-item"
+                             th:data-uuid="${store.uuid}"
+                             th:classappend="${store.uuid == cover} ? 'active' : ''"
+                             th:title="${store.filename}">
+                            <img th:src="@{/store/thrumbal/w/250/{uuid}/{filename}(uuid=${store.uuid}, filename=${store.filename})}"
+                                 alt="Обкладинка">
+                            <div class="cover-current-badge" th:if="${store.uuid == cover}">
+                                <i class="fas fa-check me-1"></i>Поточна
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${coverlist == null || coverlist.isEmpty()}" class="text-center py-5 text-muted">
+                    <i class="fas fa-image fa-3x mb-3 d-block opacity-50"></i>
+                    <p class="mb-0">У вас ще немає завантажених обкладинок.<br>Завантажте перше зображення вище!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal for adding tracks -->
 <div class="modal fade" id="addTrackModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold">Додати трек до альбому</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div id="availableTracksList" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
@@ -257,23 +340,76 @@
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/toastr.min.js}"></script>
 
-<!-- ============================================ -->
-<!-- ПІДКЛЮЧЕННЯ EDITOR.JS ЧЕРЕЗ ФРАГМЕНТ         -->
-<!-- ============================================ -->
+<!-- Editor.js -->
 <th:block th:replace="~{/fragments/editorjs-scripts :: editorjs-scripts}"></th:block>
 
-<!-- ============================================ -->
-<!-- НАШІ МОДУЛЬНІ СКРИПТИ                        -->
-<!-- ============================================ -->
+<!-- Наші модульні скрипти -->
 <script th:src="@{/js/rfa-player.js}"></script>
 <script th:src="@{/js/rfa-editorjs-edit.js}"></script>
 
 <script th:inline="javascript">
     const csrfToken = /*[[${_csrf.token}]]*/ '';
     const albumUuid = /*[[${album.uuid}]]*/ '';
+    let currentCoverUuid = /*[[${album.storeuuidalbumcover}]]*/ null;
 
-    // --- Album Cover Upload ---
-    async function handleCoverUpload(file) {
+    // ============================================
+    // КЕРУВАННЯ ОБКЛАДИНКОЮ
+    // ============================================
+
+    function openCoverModal() {
+        const modal = new bootstrap.Modal(document.getElementById('coverModal'));
+        modal.show();
+    }
+
+    // Вибір існуючої обкладинки з галереї
+    document.getElementById('coverGallery').addEventListener('click', async function(e) {
+        const item = e.target.closest('.cover-gallery-item');
+        if (!item) return;
+
+        const storeUuid = item.getAttribute('data-uuid');
+        if (!storeUuid || storeUuid === currentCoverUuid) {
+            if (storeUuid === currentCoverUuid) {
+                toastr.info('Ця обкладинка вже встановлена');
+            }
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/creater/album/${albumUuid}/set-cover/${storeUuid}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            });
+            const result = await res.json();
+            if (result.success) {
+                // Оновлюємо прев'ю
+                updateCoverPreview(result.url);
+                currentCoverUuid = result.uuid;
+
+                // Оновлюємо активний стан в галереї
+                document.querySelectorAll('.cover-gallery-item').forEach(el => {
+                    el.classList.remove('active');
+                    const badge = el.querySelector('.cover-current-badge');
+                    if (badge) badge.remove();
+                });
+                item.classList.add('active');
+                const newBadge = document.createElement('div');
+                newBadge.className = 'cover-current-badge';
+                newBadge.innerHTML = '<i class="fas fa-check me-1"></i>Поточна';
+                item.appendChild(newBadge);
+
+                toastr.success('Обкладинку оновлено');
+            } else {
+                toastr.error(result.message || 'Помилка');
+            }
+        } catch (e) {
+            console.error(e);
+            toastr.error('Помилка з\'єднання');
+        }
+    });
+
+    // Завантаження нової обкладинки
+    document.getElementById('newCoverInput').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
         if (!file) return;
         if (!file.type.startsWith('image/')) {
             toastr.error('Будь ласка, оберіть зображення');
@@ -283,31 +419,49 @@
         const formData = new FormData();
         formData.append('file', file);
 
-        const progress = document.getElementById('uploadProgress');
-        const bar = document.getElementById('progressBar');
+        const progress = document.getElementById('coverUploadProgress');
+        const bar = document.getElementById('coverUploadBar');
         progress.classList.remove('d-none');
+        bar.style.width = '0%';
 
         try {
-            const response = await fetch(`/api/creater/album/replace-cover/${albumUuid}`, {
+            const response = await fetch(`/api/creater/album/${albumUuid}/replace-cover`, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 body: formData
             });
             const result = await response.json();
             if (result.success) {
-                document.getElementById('coverPreview').src = result.url;
-                toastr.success('Обкладинку оновлено');
+                bar.style.width = '100%';
+                updateCoverPreview(result.url);
+                currentCoverUuid = result.uuid;
+                toastr.success('Обкладинку завантажено та встановлено');
+
+                // Перезавантажуємо сторінку, щоб оновити галерею
+                setTimeout(() => location.reload(), 1200);
             } else {
                 toastr.error(result.message || 'Помилка завантаження');
+                progress.classList.add('d-none');
             }
         } catch (e) {
+            console.error(e);
             toastr.error('Помилка завантаження');
-        } finally {
             progress.classList.add('d-none');
         }
+    });
+
+    function updateCoverPreview(url) {
+        const preview = document.getElementById('coverPreview');
+        const placeholder = document.getElementById('coverPlaceholder');
+        preview.src = url;
+        preview.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
     }
 
-    // --- Track Management ---
+    // ============================================
+    // КЕРУВАННЯ ТРЕКАМИ
+    // ============================================
+
     async function removeTrack(uuid) {
         if (!confirm('Видалити цей трек з альбому?')) return;
         try {
@@ -372,11 +526,11 @@
         }
     }
 
-    // --- Делегування подій (тільки для видалення, бо play тепер через rfa-player.js) ---
+    // Делегування подій для треків
     document.getElementById('albumTracks').addEventListener('click', function(e) {
         const removeBtn = e.target.closest('.track-remove-btn');
         if (removeBtn) {
-            e.stopPropagation(); // Зупиняємо спливання, щоб не спрацював клік по треку
+            e.stopPropagation();
             const uuid = removeBtn.getAttribute('data-uuid');
             removeTrack(uuid);
             return;
