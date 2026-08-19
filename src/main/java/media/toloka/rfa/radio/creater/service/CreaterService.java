@@ -305,34 +305,59 @@ public class CreaterService {
 //        Page<> page = postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
         return postRepositore.findByClientdetailOrderByCreatedateDesc(storePage,cd);
     }
+
     /**
-     * Отримати список всіх опублікованих альбомів
+     * Отримати список всіх опублікованих альбомів (для публічного перегляду)
+     * Тепер враховуємо подвійну умову: published=true І status=APPROVED
      */
     public List<Album> GetAllPublishedAlbums() {
-        return albumRepository.findByPublishedTrue();
+        return albumRepository.findByPublishedTrueAndStatus(media.toloka.rfa.radio.model.enumerate.EAlbumStatus.APPROVED);
     }
 
     /**
      * Отримати сторінку опублікованих альбомів з пагінацією
      */
-    public Page<Album> GetPublishedAlbumsPage(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("datealbumrelise").descending());
-        return albumRepository.findByPublishedTrue(pageable);
+    public org.springframework.data.domain.Page<Album> GetPublishedAlbumsPage(int page, int size) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("datealbumrelise").descending());
+        return albumRepository.findByPublishedTrueAndStatus(media.toloka.rfa.radio.model.enumerate.EAlbumStatus.APPROVED, pageable);
     }
 
     /**
-     * Отримати опублікований альбом за UUID разом з треками (JOIN FETCH)
+     * Отримати опублікований альбом за UUID разом з треками
      */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Album GetPublishedAlbumByUuid(String uuid) {
-        return albumRepository.findByUuidAndPublishedTrue(uuid).orElse(null);
+        return albumRepository.findByUuidAndPublishedTrueAndStatus(uuid, media.toloka.rfa.radio.model.enumerate.EAlbumStatus.APPROVED).orElse(null);
     }
 
     /**
      * Отримати останні 10 опублікованих альбомів (для головної сторінки)
      */
     public List<Album> GetLatestPublishedAlbums() {
-        return albumRepository.findTop10ByPublishedTrueOrderByCreatedateDesc();
+        return albumRepository.findTop10ByPublishedTrueAndStatusOrderByCreatedateDesc(media.toloka.rfa.radio.model.enumerate.EAlbumStatus.APPROVED);
+    }
+
+    /**
+     * Отримати всі альбоми для адмін-панелі (з пагінацією)
+     */
+    public org.springframework.data.domain.Page<Album> GetAllAlbumsForAdmin(int page, int size) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdate").descending());
+        return albumRepository.findAllByOrderByCreatedateDesc(pageable);
+    }
+
+    /**
+     * Лічильник альбомів на модерації (для головної сторінки адмінки)
+     */
+    public long GetPendingAlbumsCount() {
+        return albumRepository.countByStatus(media.toloka.rfa.radio.model.enumerate.EAlbumStatus.PENDING);
+    }
+
+    /**
+     * Видалити альбом (для адмін-панелі)
+     */
+    public void DeleteAlbum(Album album) {
+        albumRepository.delete(album);
     }
 
 }

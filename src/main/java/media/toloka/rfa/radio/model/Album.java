@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import media.toloka.rfa.radio.model.enumerate.EAlbumStatus;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
@@ -39,7 +40,12 @@ public class Album {
     private Date datealbumrelise = new Date();
 
     @Expose
-    private Boolean published = false;
+    private Boolean published = false; // ознака публікації альбому в публічному просторі
+
+    @Expose
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private EAlbumStatus status = EAlbumStatus.PENDING; // статус процесу схвалення альбому модератором/адміністратором.
 
     @Expose
     private String storeuuidalbumcover;

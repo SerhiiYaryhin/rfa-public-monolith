@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Адмін - Керування альбомами</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .admin-container {
+            margin-top: 100px;
+        }
+
+        .table img {
+            border-radius: 8px;
+        }
+
+        .badge-status {
+            font-size: 0.85em;
+            padding: 6px 10px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
+
+<div class="container admin-container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Керування альбомами</h2>
+            <p class="text-muted mb-0">Модерація та публікація музичних альбомів</p>
+        </div>
+        <a href="/admin/home" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>На головну
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4" style="width: 80px;">Обкладинка</th>
+                        <th>Назва / Автор</th>
+                        <th style="width: 140px;">Статус</th>
+                        <th style="width: 100px;">Публічно</th>
+                        <th style="width: 80px;">Треків</th>
+                        <th style="width: 120px;">Дата</th>
+                        <th class="text-end pe-4" style="width: 200px;">Дії</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="album : ${albumList}">
+                        <td class="ps-4">
+                            <img th:if="${album.storeuuidalbumcover != null}"
+                                 th:src="@{/store/thrumbal/w/60/{uuid}/{filename}(uuid=${album.storeuuidalbumcover}, filename='cover.jpg')}"
+                                 style="width: 60px; height: 60px; object-fit: cover;" alt="Cover">
+                            <div th:unless="${album.storeuuidalbumcover != null}"
+                                 class="bg-secondary text-white rounded d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold" th:text="${album.name}">Назва</div>
+                            <small class="text-muted" th:text="${album.autor}">Автор</small>
+                        </td>
+                        <td>
+                                    <span class="badge badge-status"
+                                          th:classappend="${album.status != null and album.status.name() == 'APPROVED'} ? 'bg-success' : (${album.status != null and album.status.name() == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                          th:text="${album.status != null ? album.status.label : 'Невідомо'}">
+                                        Статус
+                                    </span>
+                        </td>
+                        <td>
+                            <a th:href="@{'/admin/togglepublishalbum/' + ${album.uuid}}"
+                               class="text-decoration-none"
+                               th:title="${album.published ? 'Натисніть, щоб зняти з публікації' : 'Натисніть, щоб опублікувати'}">
+                                <i class="fas"
+                                   th:classappend="${album.published != null and album.published} ? 'fa-check-circle text-success' : 'fa-times-circle text-secondary'"
+                                   style="font-size: 1.5rem;">
+                                </i>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark"
+                                  th:text="${album.track != null ? album.track.size() : 0}">0</span>
+                        </td>
+                        <td>
+                            <small th:text="${album.createdate != null ? #dates.format(album.createdate, 'dd.MM.yyyy') : '-'}">Дата</small>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a th:href="@{'/admin/editalbum/' + ${album.uuid}}"
+                               class="btn btn-sm btn-outline-primary me-1" title="Редагувати">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{'/admin/approvealbum/' + ${album.uuid}}"
+                               class="btn btn-sm btn-outline-success me-1" title="Схвалити"
+                               onclick="return confirm('Схвалити цей альбом для публікації?');">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a th:href="@{'/admin/rejectalbum/' + ${album.uuid}}"
+                               class="btn btn-sm btn-outline-danger me-1" title="Відхилити"
+                               onclick="return confirm('Відхилити цей альбом?');">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            <a th:href="@{'/admin/delalbum/' + ${album.uuid}}"
+                               class="btn btn-sm btn-outline-dark" title="Видалити"
+                               onclick="return confirm('Ви впевнені, що хочете ПОВНІСТЮ видалити цей альбом? Цю дію не можна скасувати.');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${albumList == null or albumList.empty}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>
+                            Наразі немає альбомів для відображення.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пагінація -->
+    <div th:if="${totalPages > 1}" class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{${linkPage}(page=${currentPage - 1})}">Назад</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{${linkPage}(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{${linkPage}(page=${currentPage + 1})}">Вперед</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<div th:insert="~{/fragments/common :: footer}"></div>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

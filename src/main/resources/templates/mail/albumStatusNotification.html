@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Статус вашого альбому</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<h2 style="color: #0d6efd;">Радіо Толока</h2>
+<p>Вітаємо, <span th:text="${userName}">Користувач</span>!</p>
+<p>Повідомляємо вас про зміну статусу вашого альбому: <strong th:text="${albumName}">Назва альбому</strong>.</p>
+
+<div th:if="${status == 'APPROVED'}" style="background-color: #d1e7dd; color: #0f5132; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    ✅ <strong>Ваш альбом був схвалений адміністратором</strong> і тепер доступний для прослуховування на сайті!
+</div>
+
+<div th:if="${status == 'REJECTED'}" style="background-color: #f8d7da; color: #842029; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    ❌ <strong>На жаль, ваш альбом був відхилений модератором.</strong>
+    Будь ласка, перевірте правильність заповнення полів та відповідність правилам сервісу.
+</div>
+
+<div th:if="${status == 'DELETED'}" style="background-color: #fff3cd; color: #664d03; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    ⚠️ <strong>Ваш альбом був видалений адміністратором.</strong>
+    Це могло статися через невідповідність правилам сервісу або технічну помилку.
+</div>
+
+<p style="margin-top: 30px;">З повагою,<br>команда Радіо Толока.</p>
+<p style="font-size: 12px; color: #6c757d;">Це автоматичне повідомлення, будь ласка, не відповідайте на нього.</p>
+</body>
+</html>

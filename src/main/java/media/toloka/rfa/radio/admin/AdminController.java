@@ -74,6 +74,8 @@ public class AdminController {
         model.addAttribute("usersList", adminService.GetAllUsers().size() );
         // Адреси до опрацювання
         model.addAttribute("addressesList", adminService.GetNotApruvedAddresses().size() );
+        // Альбоми до опрацювання
+        model.addAttribute("pendingAlbums", createrService.GetPendingAlbumsCount());
 
         return "/admin/home";
     }
