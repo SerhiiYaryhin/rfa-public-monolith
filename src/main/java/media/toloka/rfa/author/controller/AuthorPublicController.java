@@ -6,6 +6,7 @@ import media.toloka.rfa.author.model.AuthorColumn;
 import media.toloka.rfa.author.service.AuthorArticleService;
 import media.toloka.rfa.banner.fileupload.BannerDropPostFileController;
 import media.toloka.rfa.comments.model.enumerate.ECommentSourceType;
+import media.toloka.rfa.radio.store.Service.StoreService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,8 @@ public class AuthorPublicController {
     private AuthorArticleService articleService;
 
     @Autowired
-    private media.toloka.rfa.radio.store.Service.StoreService storeService;
+//    private media.toloka.rfa.radio.store.Service.StoreService storeService;
+    private StoreService storeService;
 
     final Logger logger = LoggerFactory.getLogger(AuthorPublicController.class);
 
