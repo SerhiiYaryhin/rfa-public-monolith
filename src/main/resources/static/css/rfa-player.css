@@ -6,7 +6,7 @@
 /* Закріплена панель зверху */
 .rfa-player-bar {
     position: sticky;
-    top: 0;
+    top: 70px;
     z-index: 1030;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);

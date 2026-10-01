@@ -4,17 +4,17 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <!-- SEO & Social Meta Tags -->
-    <div th:replace="~{/fragments/common :: metadata(
+        <th:block th:replace="~{/fragments/common :: metadata(
         title=${album.name} + ' - ' + ${album.autor},
         description=${album.autor} + ' представляє альбом ' + ${album.name},
         image=${album.storeuuidalbumcover},
         url='/album/view/' + ${album.uuid},
         type='music.album')}"/>
-    
-    <title th:text="${album.name} + ' - ' + ${album.autor} + ' | RFA'"></title>
-    
+
+        <title th:text="${album.name} + ' - ' + ${album.autor} + ' | RFA'"></title>
+
     <link href="/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
