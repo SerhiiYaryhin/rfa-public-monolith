@@ -73,6 +73,7 @@ public class ScheduledTasks {
             try {
                 // сформували урл для станції
 //                url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
+                logger.info("===> Станція: " + stationOnline.getDbname()+ " - " + stationOnline.getName() );
                 url = URI.create("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback").toURL();
             } catch (MalformedURLException e) {
                 logger.info("GetStationOnlineList: MalformedURLException new URL");
