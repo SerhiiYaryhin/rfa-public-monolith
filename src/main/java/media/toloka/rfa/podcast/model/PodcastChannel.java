@@ -71,6 +71,7 @@ public class PodcastChannel {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "chanel", orphanRemoval = true, fetch=FetchType.LAZY, cascade = {CascadeType.ALL})
+    @OrderBy("date DESC")
     private List<PodcastItem> item = new ArrayList<>(); // перелік епізодів
 
     @ToString.Exclude
