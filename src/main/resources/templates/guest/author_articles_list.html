@@ -34,7 +34,8 @@
             <div th:each="art : ${articles}" class="col">
                 <div class="card article-card shadow-sm">
                     <a th:href="'/guest/authors/article/' + ${art.slug}">
-                        <div th:if="${art.coverUuid != null}" class="cover-box" th:with="coverstore=${storeService.storeRepositore.getByUuid(art.coverUuid)}">
+<!--                        <div th:if="${art.coverUuid != null}" class="cover-box" th:with="coverstore=${storeService.storeRepositore.getByUuid(art.coverUuid)}">-->
+                        <div th:if="${art.coverUuid != null}" class="cover-box" th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
                             <img
                                  th:src="|/store/thrumbal/w/300/${coverstore.uuid}/${coverstore.filename}|"
                                  class="cover-img">
