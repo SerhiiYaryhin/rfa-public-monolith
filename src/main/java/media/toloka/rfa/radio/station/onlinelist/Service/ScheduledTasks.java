@@ -73,46 +73,31 @@ public class ScheduledTasks {
             URL url;
             try {
                 // сформували урл для станції
-//                url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
-//                logger.info("===> Станція: " + stationOnline.getDbname()+ " - " + stationOnline.getName() );
                 url = URI.create("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback").toURL();
             } catch (MalformedURLException e) {
                 logger.info("GetStationOnlineList: Помилка формування URL.");
                 continue;
-//                throw new RuntimeException(e);
             }
             String json;
             // Перекидаємо отриману строку в JSON
             try {
                 json = IOUtils.toString(url, Charset.forName("UTF-8"));
             } catch (IOException e) {
-//                logger.info("Перекидаємо отриману строку в JSON GetStationOnlineList: IOException IOUtils.toString ");
                 continue;
-//                throw new RuntimeException(e);
             }
-//            GsonBuilder builder = new GsonBuilder();
-//            Object o = builder.create().fromJson(json, Object.class);
-//            Map<String, Object> Report = (Map<String, Object>) o;
-
 // 1. Оголошуємо точний тип, який нам потрібен (Мапа String -> Object)
             Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
-//            logger.info("GetStationOnlineList: " + json);
-
 // 2. Передаємо цей тип у Gson
             Gson gson = new GsonBuilder().create();
+            // перевірили, чи є рядок коректним json рядком. Це на випадок, коли nginx віддасть html сторінку
             if (!isValidJson(gson,json)) continue;
-            Map<String, Object> Report = gson.fromJson(json, mapType); // 👈 Ніяких кастингів і нуль варнінгів!
-
-
-            //            Map<String, Object> previous = (Map<String, Object>) Report.get("previous");
-
+            Map<String, Object> Report = gson.fromJson(json, mapType);
             Map<String, Object> current = (Map<String, Object>) Report.get("current");
             if (current != null) {
                 Map<String, Object> currentmetadata = (Map<String, Object>) current.get("metadata");
                 if (currentmetadata != null) {
                     String currentmetadataTrackTitle = (String) currentmetadata.get("track_title");
                     String currentmetadataArtistName = (String) currentmetadata.get("artist_name");
-
                     // Заповнюємо екземпляр станції
                     ListOnlineFront lof = new ListOnlineFront();
                     lof.setUuid(stationOnline.getUuid());
@@ -125,8 +110,6 @@ public class ScheduledTasks {
                     listOnlineFronts.add(lof);
                 }
             }
-            // return new JSONObject(json);
-
         }
         for (ListOnlineFront tlof : listOnlineFronts) {
             if (tlof.getCurdate() != currentUpdate) {
@@ -134,9 +117,6 @@ public class ScheduledTasks {
                 listOnlineFronts.remove(tlof);
             }
         }
-//        logger.info("GetStationOnlineList: END The time is now {}", dateFormat.format(new Date()));
-
-
     }
 
     public static boolean isValidJson(Gson gson, String jsonInString) {
