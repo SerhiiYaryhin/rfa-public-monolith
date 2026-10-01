@@ -4,6 +4,7 @@ package media.toloka.rfa.radio.station.onlinelist.Service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.station.ClientHomeStationController;
@@ -73,10 +74,10 @@ public class ScheduledTasks {
             try {
                 // сформували урл для станції
 //                url = new URL("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback");
-                logger.info("===> Станція: " + stationOnline.getDbname()+ " - " + stationOnline.getName() );
+//                logger.info("===> Станція: " + stationOnline.getDbname()+ " - " + stationOnline.getName() );
                 url = URI.create("https://" + stationOnline.getDbname() + ".rfa.toloka.media/api/live-info/?callback").toURL();
             } catch (MalformedURLException e) {
-                logger.info("GetStationOnlineList: MalformedURLException new URL");
+                logger.info("GetStationOnlineList: Помилка формування URL.");
                 continue;
 //                throw new RuntimeException(e);
             }
@@ -95,9 +96,11 @@ public class ScheduledTasks {
 
 // 1. Оголошуємо точний тип, який нам потрібен (Мапа String -> Object)
             Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
+//            logger.info("GetStationOnlineList: " + json);
 
 // 2. Передаємо цей тип у Gson
             Gson gson = new GsonBuilder().create();
+            if (!isValidJson(gson,json)) continue;
             Map<String, Object> Report = gson.fromJson(json, mapType); // 👈 Ніяких кастингів і нуль варнінгів!
 
 
@@ -135,4 +138,17 @@ public class ScheduledTasks {
 
 
     }
+
+    public static boolean isValidJson(Gson gson, String jsonInString) {
+        try {
+            // Пробуємо розпарсити рядок у базовий внутрішній об'єкт Gson
+            gson.fromJson(jsonInString, Object.class);
+            return true;
+        } catch (JsonSyntaxException e) {
+            // Якщо синтаксис порушено, перехоплюємо виняток
+            return false;
+        }
+    }
+
+
 }
