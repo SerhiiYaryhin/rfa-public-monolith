@@ -126,7 +126,7 @@ public class RadioLiveServiceV2 {
     }
 
     // ============================================================
-    // УПРАВЛІННЯ ТРАНЛЯЦІЯМИ
+    // УПРАВЛІННЯ ТРАНСЛЯЦІЯМИ
     // ============================================================
 
 //    @Transactional
@@ -218,15 +218,15 @@ public class RadioLiveServiceV2 {
     @Transactional
     public JanusLiveStream startBroadcast(String stationId) {
         return portService.getStreamByStation(stationId).orElseGet(() -> {
-            log.info("🎬 === startBroadcast() === stationId={}", stationId);
+            log.info("🎬 === startBroadcast() === stationId={}", stationId); // todo 261015 Замінити на uuid
 
-            String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
+            String sourceStreamUrl = "http://icecast.rfa:8000/ukraine"; // todo 261015 Використати реальну адресу станції
             // Отримуємо вільний локальний UDP порт для біндингу FFmpeg
             Integer freePort = portService.findNextFreePort();
             log.info("🔌 Виділено UDP порт: {}", freePort);
 
             // Кімната в Janus відповідає ID станції
-            Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", ""));
+            Long janusRoomId = Long.parseLong(stationId.replaceAll("[^0-9]", "")); // адаптувати для uuid
             log.info("🏠 Janus Room ID: {} (з stationId='{}')", janusRoomId, stationId);
 
             // Крок 1: Створення кімнати в Janus Gateway
