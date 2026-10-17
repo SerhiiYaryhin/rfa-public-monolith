@@ -291,25 +291,99 @@
 <section th:fragment="tolokanews" class="page-section p-0" id="news">
     <div class="row g-4">
         <div class="col-lg-9 col-sm-12">
-            <!-- Секція новин (білий фон) -->
-            <div class="card shadow-sm border-0 mb-5">
-                <div class="card-header bg-white py-4">
-                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/postall/0" class="text-decoration-none text-dark"><i
-                            class="far fa-newspaper text-primary me-3"></i>Новини на Толоці</a></h3>
+            <!-- Останні авторські статті (пастельний золотистий фон) -->
+            <div class="card shadow-sm border-0 mb-5 section-articles overflow-hidden"
+                 th:if="${authorArticles != null && !authorArticles.isEmpty()}" style="border-radius: 20px;">
+                <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/authors/articles-all"
+                                                   class="text-decoration-none text-dark"><i
+                            class="fas fa-feather-alt text-warning me-3"></i>Останні авторські статті</a></h3>
+                    <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі
+                        статті</a>
                 </div>
                 <div class="card-body px-4 pb-4">
-                    <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
-                </div>
-                <div class="card-footer bg-white border-top-0 text-center py-4">
-                    <a href="/guest/postall/0" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">Подивитися
-                        всі новини</a>
+                    <!-- Перші 3 статті (Великий стиль - Квадратна ілюстрація) -->
+                    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index < 3}" class="col">
+                            <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover overflow-hidden rounded-4">
+                                <div class="ratio ratio-1x1 overflow-hidden bg-dark"
+                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
+                                    <a th:href="'/guest/authors/article/' + ${art.slug}">
+                                        <img th:if="${art.coverUuid != null}"
+                                             th:src="|/store/thrumbal/w/600/${coverstore.uuid}/${coverstore.filename}|"
+                                             class="card-img-top w-100 h-100" style="object-fit: cover;"
+                                             th:alt="${art.title}">
+                                        <div th:if="${art.coverUuid == null}"
+                                             class="h-100 d-flex align-items-center justify-content-center text-white-50">
+                                            <i class="fas fa-file-alt fa-4x"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="card-body p-3 bg-white">
+                                    <h5 class="card-title h6 fw-bold mb-2">
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="text-decoration-none text-dark line-clamp-2"
+                                           th:text="${art.title}"></a>
+                                    </h5>
+                                </div>
+                                <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
+                                    <div class="x-small text-muted">
+                                        <div class="mb-1">
+                                            <i class="far fa-user me-1"></i>
+                                            <a th:href="'/guest/authors/' + ${art.column.slug}"
+                                               class="text-decoration-none text-muted"
+                                               th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}"></a>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span><i class="fas fa-eye me-1"></i>[[${art.looked}]]</span>
+                                            <span><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(art.publishDate, 'dd.MM.yyyy')}]]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Решта статей (Компактний стиль) -->
+                    <div class="row g-3" th:if="${authorArticles.size() > 3}">
+                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index >= 3}"
+                             class="col-md-6 col-lg-4">
+                            <div class="d-flex align-items-center p-2 rounded transition-hover bg-white shadow-sm h-100">
+                                <div class="flex-shrink-0 bg-dark rounded" style="width: 60px; height: 60px;"
+                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
+                                    <a th:href="'/guest/authors/article/' + ${art.slug}">
+                                        <img th:if="${art.coverUuid != null}"
+                                             th:src="|/store/thrumbal/w/100/${coverstore.uuid}/${coverstore.filename}|"
+                                             class="rounded w-100 h-100" style="object-fit: cover;">
+                                        <div th:if="${art.coverUuid == null}"
+                                             class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="flex-grow-1 ms-3 overflow-hidden">
+                                    <h6 class="mb-0 text-truncate">
+                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
+                                           class="text-decoration-none text-dark small fw-bold"
+                                           th:text="${art.title}"></a>
+                                    </h6>
+                                    <span>
+                                       <small class="text-muted x-small"><i class="fas fa-eye me-1"></i> [[${art.looked}]] <i
+                                               class="far fa-calendar-alt me-1"></i> </small> <small
+                                            class="text-muted x-small"
+                                            th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}"></small>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Додаємо текстовий банер-->
             <div class="rfa-banner rfa-banner-text"></div>
 
-            <!-- Новий блок: Останні подкасти (пастельний червоний фон) -->
+            <!-- Останні подкасти (пастельний червоний фон) -->
             <div class="card shadow-sm border-0 mb-5 section-podcasts overflow-hidden"
                  th:if="${latestPodcasts != null && !latestPodcasts.isEmpty()}" style="border-radius: 20px;">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
@@ -412,95 +486,22 @@
 
             <!-- Додаємо текстовий банер-->
             <div class="rfa-banner rfa-banner-text"></div>
-
-            <!-- Новий блок: Останні авторські статті (пастельний золотистий фон) -->
-            <div class="card shadow-sm border-0 mb-5 section-articles overflow-hidden"
-                 th:if="${authorArticles != null && !authorArticles.isEmpty()}" style="border-radius: 20px;">
-                <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
-                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/authors/articles-all"
-                                                   class="text-decoration-none text-dark"><i
-                            class="fas fa-feather-alt text-warning me-3"></i>Останні авторські статті</a></h3>
-                    <a href="/guest/authors/articles-all" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">Всі
-                        статті</a>
+            <!-- Секція новин (білий фон) -->
+            <div class="card shadow-sm border-0 mb-5">
+                <div class="card-header bg-white py-4">
+                    <h3 class="h3 mb-0 fw-bold"><a href="/guest/postall/0" class="text-decoration-none text-dark"><i
+                            class="far fa-newspaper text-primary me-3"></i>Новини на Толоці</a></h3>
                 </div>
                 <div class="card-body px-4 pb-4">
-                    <!-- Перші 3 статті (Великий стиль - Квадратна ілюстрація) -->
-                    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index < 3}" class="col">
-                            <div class="card d-flex flex-column h-100 border-0 shadow-sm transition-hover overflow-hidden rounded-4">
-                                <div class="ratio ratio-1x1 overflow-hidden bg-dark"
-                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
-                                    <a th:href="'/guest/authors/article/' + ${art.slug}">
-                                        <img th:if="${art.coverUuid != null}"
-                                             th:src="|/store/thrumbal/w/600/${coverstore.uuid}/${coverstore.filename}|"
-                                             class="card-img-top w-100 h-100" style="object-fit: cover;"
-                                             th:alt="${art.title}">
-                                        <div th:if="${art.coverUuid == null}"
-                                             class="h-100 d-flex align-items-center justify-content-center text-white-50">
-                                            <i class="fas fa-file-alt fa-4x"></i>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="card-body p-3 bg-white">
-                                    <h5 class="card-title h6 fw-bold mb-2">
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
-                                           class="text-decoration-none text-dark line-clamp-2"
-                                           th:text="${art.title}"></a>
-                                    </h5>
-                                </div>
-                                <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
-                                    <div class="x-small text-muted">
-                                        <div class="mb-1">
-                                            <i class="far fa-user me-1"></i>
-                                            <a th:href="'/guest/authors/' + ${art.column.slug}"
-                                               class="text-decoration-none text-muted"
-                                               th:text="${art.column.author.custname + ' ' + art.column.author.custsurname}"></a>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <span><i class="fas fa-eye me-1"></i>[[${art.looked}]]</span>
-                                            <span><i class="far fa-calendar-alt me-1"></i>[[${#dates.format(art.publishDate, 'dd.MM.yyyy')}]]</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Решта статей (Компактний стиль) -->
-                    <div class="row g-3" th:if="${authorArticles.size() > 3}">
-                        <div th:each="art, iStat : ${authorArticles}" th:if="${iStat.index >= 3}"
-                             class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-center p-2 rounded transition-hover bg-white shadow-sm h-100">
-                                <div class="flex-shrink-0 bg-dark rounded" style="width: 60px; height: 60px;"
-                                     th:with="coverstore=${storeService.GetStoreByUUID(art.coverUuid)}">
-                                    <a th:href="'/guest/authors/article/' + ${art.slug}">
-                                        <img th:if="${art.coverUuid != null}"
-                                             th:src="|/store/thrumbal/w/100/${coverstore.uuid}/${coverstore.filename}|"
-                                             class="rounded w-100 h-100" style="object-fit: cover;">
-                                        <div th:if="${art.coverUuid == null}"
-                                             class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
-                                            <i class="fas fa-file-alt"></i>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="flex-grow-1 ms-3 overflow-hidden">
-                                    <h6 class="mb-0 text-truncate">
-                                        <a th:href="'/guest/authors/article/' + ${art.slug}"
-                                           class="text-decoration-none text-dark small fw-bold"
-                                           th:text="${art.title}"></a>
-                                    </h6>
-                                    <span>
-                                       <small class="text-muted x-small"><i class="fas fa-eye me-1"></i> [[${art.looked}]] <i
-                                               class="far fa-calendar-alt me-1"></i> </small> <small
-                                            class="text-muted x-small"
-                                            th:text="${#dates.format(art.publishDate, 'dd.MM.yyyy')}"></small>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div th:insert="~{/fragments/infoblock :: postcardtile}"/>
+                </div>
+                <div class="card-footer bg-white border-top-0 text-center py-4">
+                    <a href="/guest/postall/0" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">Подивитися
+                        всі новини</a>
                 </div>
             </div>
+
+
         </div>
         <!-- колонка медіа хаб (сайдбар) -->
         <div class="col-lg-3 col-sm-12">
