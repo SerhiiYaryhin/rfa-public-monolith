@@ -503,8 +503,7 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * 🔑 СТАНДАРТНИЙ МЕТОД: Використовує вбудований у Spring Direct Reply-To.
-     * Працює коректно ТІЛЬКИ якщо у janus.transport.rabbitmq.jcfg закоментовано from_janus.
+     * Синхронна відправка запиту у чергу RabbitMQ 'janus-commands'.
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
@@ -512,8 +511,8 @@ public class JanusRabbitClientOptimized {
 
         org.springframework.amqp.core.MessageProperties properties = new org.springframework.amqp.core.MessageProperties();
         properties.setContentType(org.springframework.amqp.core.MessageProperties.CONTENT_TYPE_JSON);
-        properties.setCorrelationId(transactionId); // 🔑 Janus очікує саме це
-        properties.setReplyTo(queueJanusFrom);      // 🔑 Явно вказуємо чергу відповідей
+        properties.setCorrelationId(transactionId); // Janus очікує саме це
+        properties.setReplyTo(queueJanusFrom);      // Явно вказуємо чергу відповідей
 
         org.springframework.amqp.core.Message message = rabbitTemplate.getMessageConverter().toMessage(request, properties);
         org.springframework.amqp.core.Message reply = rabbitTemplate.sendAndReceive(message);
@@ -531,7 +530,7 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * 🔑 СТАНДАРТНИЙ МЕТОД для Admin API.
+     * Синхронна відправка адміністративного запиту у чергу RabbitMQ 'janus-admin-commands'.
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
@@ -539,8 +538,8 @@ public class JanusRabbitClientOptimized {
 
         org.springframework.amqp.core.MessageProperties properties = new org.springframework.amqp.core.MessageProperties();
         properties.setContentType(org.springframework.amqp.core.MessageProperties.CONTENT_TYPE_JSON);
-        properties.setCorrelationId(transactionId); // 🔑 Janus очікує саме це
-        properties.setReplyTo(queueJanusAdminFrom); // 🔑 Явно вказуємо чергу відповідей
+        properties.setCorrelationId(transactionId);
+        properties.setReplyTo(queueJanusAdminFrom); // Явно вказуємо чергу відповідей
 
         org.springframework.amqp.core.Message message = adminRabbitTemplate.getMessageConverter().toMessage(request, properties);
         org.springframework.amqp.core.Message reply = adminRabbitTemplate.sendAndReceive(message);
@@ -556,6 +555,7 @@ public class JanusRabbitClientOptimized {
         }
         throw new RuntimeException("Невірний формат відповіді від Janus Admin API");
     }
+
 
     private String generateShortUUID() {
         return UUID.randomUUID().toString().substring(0, 8);
