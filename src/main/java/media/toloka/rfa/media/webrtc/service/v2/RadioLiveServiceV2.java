@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 public class RadioLiveServiceV2 {
 
     // Клієнт для зв'язку з Janus Gateway через RabbitMQ
-    private final media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized janusClient;
+    //private final media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized janusClient;
+    private final media.toloka.rfa.media.messanger.webrtc.service.v2.JanusGatewayFacade janusClient;
     
     // Сервіс виділення та трекінгу UDP-портів для FFmpeg
     private final PortAllocationService portService;
@@ -62,7 +63,8 @@ public class RadioLiveServiceV2 {
      * Конструктор з впровадженням залежностей.
      */
     public RadioLiveServiceV2(
-            media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized janusClient,
+            media.toloka.rfa.media.messanger.webrtc.service.v2.JanusGatewayFacade janusClient,
+            //media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized janusClient,
             PortAllocationService portService,
             RabbitTemplate rabbitTemplate,
             ObjectMapper objectMapper) {

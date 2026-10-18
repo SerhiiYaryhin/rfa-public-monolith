@@ -1,7 +1,7 @@
 package media.toloka.rfa.media.webrtc.config;
 
 import com.google.gson.Gson;
-import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized;
+import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusAmqpClient;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -13,6 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * ⚙️ Конфігурація RabbitMQ для взаємодії з медіасервером Janus (версія v2).
+ * Використовує SimpleMessageListenerContainer для перехоплення відповідей
+ * зі спеціалізованих черг (from-janus / from-janus-admin).
+ */
 @Configuration
 public class JanusRabbitConfig {
 
@@ -70,9 +75,10 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanus);
-        // Вимикаємо Direct Reply-To, щоб уникнути конфлікту з нашим кастомним MessageListener
-        rabbitTemplate.setUseDirectReplyToContainer(false);
+        rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
+        // Вимикаємо Direct Reply-To, щоб уникнути конфлікту з SimpleMessageListenerContainer
+        rabbitTemplate.setUseDirectReplyToContainer(false);
         return rabbitTemplate;
     }
 
@@ -80,33 +86,35 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusAdminRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
+        rabbitTemplate.setReplyTimeout(replyTimeout);
+        rabbitTemplate.setMessageConverter(janusMessageConverter());
         // Вимикаємо Direct Reply-To
         rabbitTemplate.setUseDirectReplyToContainer(false);
-        rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
     }
 
     // ========================================================================
-    // 🔑 КЛЮЧОВИЙ МОМЕНТ: Реєструємо JanusRabbitClientOptimized як MessageListener
-    // Це дозволяє йому перехоплювати відповіді, ігнорувати "ack" і завершувати CompletableFuture
+    // 🔑 Слухачі відповідей (Reply Listeners)
     // ========================================================================
+    // Реєструємо JanusAmqpClient як MessageListener для контейнерів
+
     @Bean
     public SimpleMessageListenerContainer janusReplyListenerContainer(
             @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            JanusRabbitClientOptimized janusClientOptimized) {
+            JanusAmqpClient janusAmqpClient) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusFrom, true, false, false));
-        container.setMessageListener(janusClientOptimized); // <-- ТУТ ЗМІНА
+        container.setMessageListener(janusAmqpClient);
         return container;
     }
 
     @Bean
     public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
             @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            JanusRabbitClientOptimized janusClientOptimized) {
+            JanusAmqpClient janusAmqpClient) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusAdminFrom, true, false, false));
-        container.setMessageListener(janusClientOptimized); // <-- ТУТ ЗМІНА
+        container.setMessageListener(janusAmqpClient);
         return container;
     }
     // ========================================================================
