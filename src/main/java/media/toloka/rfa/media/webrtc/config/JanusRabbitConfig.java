@@ -12,6 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
+ * Використовує SimpleMessageListenerContainer для перехоплення відповідей
+ * зі спеціалізованих черг (from-janus / from-janus-admin), оскільки Janus
+ * ігнорує стандартний reply_to і використовує налаштований from_janus.
+ */
 @Configuration
 public class JanusRabbitConfig {
 
@@ -71,8 +77,10 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanus);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
-        // 🔑 КЛЮЧОВЕ: Вимикаємо Direct Reply-To, щоб уникнути конфлікту з ручними контейнерами
+
+        // 🔑 КЛЮЧОВЕ ВИПРАВЛЕННЯ 1: Вимикаємо Direct Reply-To, щоб уникнути конфлікту
         rabbitTemplate.setUseDirectReplyToContainer(false);
+
         return rabbitTemplate;
     }
 
@@ -82,12 +90,17 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
-        // 🔑 КЛЮЧОВЕ: Вимикаємо Direct Reply-To
+
+        // 🔑 КЛЮЧОВЕ ВИПРАВЛЕННЯ 2: Вимикаємо Direct Reply-To для Admin API
         rabbitTemplate.setUseDirectReplyToContainer(false);
+
         return rabbitTemplate;
     }
 
-    // 🔑 Слухачі відповідей (тепер вони працюватимуть без конфліктів)
+    // ========================================================================
+    // 🔑 Слухачі відповідей (Reply Listeners)
+    // Вони перехоплюють відповідь з черги 'from-janus' і передають її в RabbitTemplate
+    // ========================================================================
     @Bean
     public SimpleMessageListenerContainer janusReplyListenerContainer(
             @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
@@ -107,6 +120,7 @@ public class JanusRabbitConfig {
         container.setMessageListener(rabbitTemplate);
         return container;
     }
+    // ========================================================================
 
     @Bean
     public Queue myQueueJanus() {
