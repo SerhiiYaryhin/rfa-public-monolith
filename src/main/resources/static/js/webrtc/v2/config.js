@@ -7,7 +7,7 @@ const CONFIG = {
 
     // Адреса WebSocket підключення до Janus Gateway
     // JANUS_WS_URL: "wss://test.rfa.toloka.media/janus-ws",
-    JANUS_WS_URL: `wss://${window.location.hostname}/janus-ws
+    JANUS_WS_URL: `wss://${window.location.hostname}/janus-ws`,
 
     // ID аудіокімнати за замовчуванням при першому вході на сторінку
     DEFAULT_ROOM_ID: 802,
