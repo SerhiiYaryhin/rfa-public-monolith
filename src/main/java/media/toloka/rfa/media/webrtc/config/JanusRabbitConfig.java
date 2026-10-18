@@ -5,7 +5,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +13,8 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
- * Використовує SimpleMessageListenerContainer для перехоплення відповідей
- * зі спеціалізованих черг (from-janus / from-janus-admin),
- * оскільки Janus ігнорує стандартний reply_to від Spring.
+ * Використовує вбудований у Spring механізм Direct Reply-To для RPC запитів.
+ * Ручні SimpleMessageListenerContainer видалені, щоб уникнути конфлікту.
  */
 @Configuration
 public class JanusRabbitConfig {
@@ -26,12 +24,6 @@ public class JanusRabbitConfig {
 
     @Value("${rabbitmq.queueJanusAdmin:janus-admin-commands}")
     private String queueJanusAdmin;
-
-    @Value("${rabbitmq.queueJanusFrom:from-janus}")
-    private String queueJanusFrom;
-
-    @Value("${rabbitmq.queueJanusAdminFrom:from-janus-admin}")
-    private String queueJanusAdminFrom;
 
     @Value("${rabbitmq.reply.timeout:5000}")
     private Integer replyTimeout;
@@ -77,6 +69,7 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanus);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
+        // Direct Reply-To увімкнено за замовчуванням у сучасному Spring, це найефективніший режим
         return rabbitTemplate;
     }
 
@@ -89,36 +82,7 @@ public class JanusRabbitConfig {
         return rabbitTemplate;
     }
 
-    // ========================================================================
-    // 🔑 КЛЮЧОВИЙ МОМЕНТ: Слухачі відповідей (Reply Listeners)
-    // ========================================================================
-    // Ці контейнери постійно слухають черги, в які Janus реально відправляє відповіді.
-    // Коли вони отримують повідомлення, вони автоматично передають його
-    // відповідному RabbitTemplate, який "чекає" на нього в методі sendAndReceive.
-
-    @Bean
-    public SimpleMessageListenerContainer janusReplyListenerContainer(
-            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        // Створюємо або підключаємось до черги відповідей (durable=true, exclusive=false, autoDelete=false)
-        container.setQueues(new Queue(queueJanusFrom, true, false, false));
-        container.setMessageListener(rabbitTemplate);
-        return container;
-    }
-
-    @Bean
-    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
-            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        // Створюємо або підключаємось до черги адмін-відповідей
-        container.setQueues(new Queue(queueJanusAdminFrom, true, false, false));
-        container.setMessageListener(rabbitTemplate);
-        return container;
-    }
-    // ========================================================================
-
+    // Оголошення черг запитів (Janus створить їх автоматично, але ми оголошуємо для порядку)
     @Bean
     public Queue myQueueJanus() {
         return new Queue(queueJanus, true, false, false);
@@ -128,4 +92,6 @@ public class JanusRabbitConfig {
     public Queue myQueueJanusAdmin() {
         return new Queue(queueJanusAdmin, true, false, false);
     }
+
+    // ❗️ ВАЖЛИВО: SimpleMessageListenerContainer біни ПОВНІСТЮ ВИДАЛЕНІ звідси.
 }

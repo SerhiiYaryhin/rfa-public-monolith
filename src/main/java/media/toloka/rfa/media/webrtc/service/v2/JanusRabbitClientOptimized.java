@@ -2,8 +2,6 @@ package media.toloka.rfa.media.messanger.webrtc.service.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +15,7 @@ import java.util.stream.Collectors;
 
 /**
  * 🐇 Оптимізований низькорівневий RPC-клієнт для взаємодії з Janus Gateway через RabbitMQ (версія v2).
- * Використовує ручне формування Message для коректного узгодження correlation_id та reply_to
- * з поведінкою Janus Gateway.
+ * Використовує стандартний механізм Spring AMQP convertSendAndReceive (Direct Reply-To).
  */
 @Service
 public class JanusRabbitClientOptimized {
@@ -32,13 +29,6 @@ public class JanusRabbitClientOptimized {
 
     @Value("${janus.secret}")
     private String apiSecret;
-
-    // 🔑 Додаємо черги відповідей, щоб явно вказувати їх у заголовках повідомлень
-    @Value("${rabbitmq.queueJanusFrom:from-janus}")
-    private String queueJanusFrom;
-
-    @Value("${rabbitmq.queueJanusAdminFrom:from-janus-admin}")
-    private String queueJanusAdminFrom;
 
     public String getApiSecret() {
         return apiSecret;
@@ -507,63 +497,30 @@ public class JanusRabbitClientOptimized {
     }
 
     /**
-     * 🔑 ВИПРАВЛЕНИЙ МЕТОД: Ручне формування повідомлення для коректного узгодження з Janus.
+     * 🔑 СТАНДАРТНИЙ МЕТОД: Використовує вбудований у Spring Direct Reply-To.
+     * Працює коректно ТІЛЬКИ якщо у janus.transport.rabbitmq.jcfg закоментовано from_janus.
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        String transactionId = (String) request.get("transaction");
-
-        // 1. Створюємо властивості повідомлення
-        MessageProperties properties = new MessageProperties();
-        properties.setContentType(MessageProperties.CONTENT_TYPE_JSON);
-        // 2. Встановлюємо correlation_id рівним transaction_id (так очікує Janus)
-        properties.setCorrelationId(transactionId);
-        // 3. Явно вказуємо чергу, в яку Janus має відправити відповідь
-        properties.setReplyTo(queueJanusFrom);
-
-        // 4. Конвертуємо Map у Message
-        Message message = rabbitTemplate.getMessageConverter().toMessage(request, properties);
-
-        // 5. Відправляємо і чекаємо відповідь (SimpleMessageListenerContainer перехопить її з queueJanusFrom)
-        Message reply = rabbitTemplate.sendAndReceive(message);
-
-        if (reply == null) {
-            log.error("❌ Таймаут Janus API. Відповідь не отримана в чергу: {}", queueJanusFrom);
+        Object res = rabbitTemplate.convertSendAndReceive(request);
+        if (res == null) {
+            log.error("❌ Таймаут Janus API. Переконайтеся, що рядок 'from_janus' закоментовано у janus.transport.rabbitmq.jcfg");
             throw new RuntimeException("Таймаут Janus API");
         }
-
-        Object converted = rabbitTemplate.getMessageConverter().fromMessage(reply);
-        if (converted instanceof Map) {
-            return (Map<String, Object>) converted;
-        }
-        throw new RuntimeException("Невірний формат відповіді від Janus API");
+        return (Map<String, Object>) res;
     }
 
     /**
-     * 🔑 ВИПРАВЛЕНИЙ МЕТОД: Ручне формування повідомлення для Admin API.
+     * 🔑 СТАНДАРТНИЙ МЕТОД для Admin API.
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
-        String transactionId = (String) request.get("transaction");
-
-        MessageProperties properties = new MessageProperties();
-        properties.setContentType(MessageProperties.CONTENT_TYPE_JSON);
-        properties.setCorrelationId(transactionId);
-        properties.setReplyTo(queueJanusAdminFrom);
-
-        Message message = adminRabbitTemplate.getMessageConverter().toMessage(request, properties);
-        Message reply = adminRabbitTemplate.sendAndReceive(message);
-
-        if (reply == null) {
-            log.error("❌ Таймаут Janus Admin API. Відповідь не отримана в чергу: {}", queueJanusAdminFrom);
+        Object res = adminRabbitTemplate.convertSendAndReceive(request);
+        if (res == null) {
+            log.error("❌ Таймаут Janus Admin API. Переконайтеся, що рядок 'from_janus_admin' закоментовано у janus.transport.rabbitmq.jcfg");
             throw new RuntimeException("Таймаут Janus Admin API");
         }
-
-        Object converted = adminRabbitTemplate.getMessageConverter().fromMessage(reply);
-        if (converted instanceof Map) {
-            return (Map<String, Object>) converted;
-        }
-        throw new RuntimeException("Невірний формат відповіді від Janus Admin API");
+        return (Map<String, Object>) res;
     }
 
     private String generateShortUUID() {
