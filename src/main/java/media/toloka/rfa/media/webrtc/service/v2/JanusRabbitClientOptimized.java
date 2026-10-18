@@ -1,28 +1,35 @@
 package media.toloka.rfa.media.messanger.webrtc.service.v2;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * 🐇 Оптимізований низькорівневий RPC-клієнт для взаємодії з Janus Gateway через RabbitMQ (версія v2).
- * Використовує стандартний механізм Spring AMQP convertSendAndReceive (Direct Reply-To).
- */
 @Service
-public class JanusRabbitClientOptimized {
+public class JanusRabbitClientOptimized implements MessageListener {
+
     private static final Logger log = LoggerFactory.getLogger(JanusRabbitClientOptimized.class);
+    private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
 
     private final RabbitTemplate rabbitTemplate;
     private final RabbitTemplate adminRabbitTemplate;
+    private final Gson gson;
 
     @Value("${janus.admin_secret}")
     private String adminSecret;
@@ -30,25 +37,101 @@ public class JanusRabbitClientOptimized {
     @Value("${janus.secret}")
     private String apiSecret;
 
-    @Value("${rabbitmq.queueJanusFrom:from-janus}")
-    private String queueJanusFrom;
+    @Value("${rabbitmq.reply.timeout:5000}")
+    private long replyTimeout;
 
-    @Value("${rabbitmq.queueJanusAdminFrom:from-janus-admin}")
-    private String queueJanusAdminFrom;
+    // Мапа для зберігання очікуваних відповідей за transaction ID
+    private final Map<String, CompletableFuture<Map<String, Object>>> pendingRequests = new ConcurrentHashMap<>();
+
+    public JanusRabbitClientOptimized(
+            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
+            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate,
+            Gson gson) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.adminRabbitTemplate = adminRabbitTemplate;
+        this.gson = gson;
+    }
 
     public String getApiSecret() {
         return apiSecret;
     }
 
-    public JanusRabbitClientOptimized(
-            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate,
-            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate adminRabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
-        this.adminRabbitTemplate = adminRabbitTemplate;
+    // ============================================================
+    // АСИНХРОННА ОБРОБКА ВІДПОВІДЕЙ (MessageListener)
+    // ============================================================
+    @Override
+    public void onMessage(Message message) {
+        try {
+            String json = new String(message.getBody(), "UTF-8");
+            Map<String, Object> response = gson.fromJson(json, MAP_TYPE);
+
+            // Отримуємо ID транзакції з заголовка або з тіла повідомлення
+            String transactionId = message.getMessageProperties().getCorrelationId();
+            if (transactionId == null && response.containsKey("transaction")) {
+                transactionId = (String) response.get("transaction");
+            }
+
+            if (transactionId != null) {
+                CompletableFuture<Map<String, Object>> future = pendingRequests.get(transactionId);
+                if (future != null) {
+                    String janusType = (String) response.get("janus");
+                    if ("ack".equals(janusType)) {
+                        // Це лише підтвердження отримання. Не завершуємо future, чекаємо на справжню відповідь.
+                        log.debug("Отримано ack для транзакції {}", transactionId);
+                    } else {
+                        // Це фінальна відповідь (success або error)
+                        pendingRequests.remove(transactionId);
+                        future.complete(response);
+                    }
+                } else {
+                    log.warn("Отримано відповідь для невідомої транзакції: {}", transactionId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Помилка обробки повідомлення від Janus: {}", e.getMessage(), e);
+        }
     }
 
     // ============================================================
-    // СТВОРЕННЯ КІМНАТ
+    // МЕТОДИ ВІДПРАВКИ ТА ОЧІКУВАННЯ
+    // ============================================================
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
+        String transactionId = (String) request.get("transaction");
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
+        pendingRequests.put(transactionId, future);
+
+        try {
+            // Відправляємо повідомлення асинхронно
+            rabbitTemplate.convertAndSend(request);
+
+            // Чекаємо на фінальну відповідь (ігноруючи ack завдяки onMessage)
+            return future.get(replyTimeout, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            pendingRequests.remove(transactionId);
+            log.error("❌ Таймаут або помилка Janus API для транзакції {}: {}", transactionId, e.getMessage());
+            throw new RuntimeException("Таймаут Janus API", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
+        String transactionId = (String) request.get("transaction");
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
+        pendingRequests.put(transactionId, future);
+
+        try {
+            adminRabbitTemplate.convertAndSend(request);
+            return future.get(replyTimeout, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            pendingRequests.remove(transactionId);
+            log.error("❌ Таймаут або помилка Janus Admin API для транзакції {}: {}", transactionId, e.getMessage());
+            throw new RuntimeException("Таймаут Janus Admin API", e);
+        }
+    }
+
+    // ============================================================
+    // БІЗНЕС-ЛОГІКА (без змін, вони тепер працюватимуть ідеально)
     // ============================================================
     public void createAudioBridgeRoom(Long roomId, String name) {
         if (roomId == null) {
@@ -113,9 +196,6 @@ public class JanusRabbitClientOptimized {
         }
     }
 
-    // ============================================================
-    // PLAIN RTP PARTICIPANT
-    // ============================================================
     @SuppressWarnings("unchecked")
     public Map<String, Object> joinAsRtpParticipant(Long sessionId, Long handleId, Long roomId, String display, String ip, Integer rtpPort) {
         log.info("Приєднання Plain RTP до кімнати {} на порт джерела {}", roomId, rtpPort);
@@ -144,9 +224,6 @@ public class JanusRabbitClientOptimized {
         return response;
     }
 
-    // ============================================================
-    // RTP FORWARD
-    // ============================================================
     @SuppressWarnings("unchecked")
     public Long createRtpForward(Long roomId, String host, Integer rtpPort) {
         if (roomId == null || rtpPort == null || host == null) {
@@ -202,9 +279,6 @@ public class JanusRabbitClientOptimized {
         });
     }
 
-    // ============================================================
-    // ОТРИМАННЯ ДАНИХ КІМНАТ ТА УЧАСНИКІВ
-    // ============================================================
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getJanusRoomsAndParticipants() {
         return executeInSession((sessionId, handleId) -> {
@@ -310,9 +384,6 @@ public class JanusRabbitClientOptimized {
         });
     }
 
-    // ============================================================
-    // МОДЕРАЦІЯ
-    // ============================================================
     @SuppressWarnings("unchecked")
     public void kickUserFromAudioBridgeRoom(Long roomId, String userToken) {
         log.info("Спроба видалити користувача з токеном {} з кімнати {}", userToken, roomId);
@@ -424,9 +495,6 @@ public class JanusRabbitClientOptimized {
         });
     }
 
-    // ============================================================
-    // ADMIN API
-    // ============================================================
     public boolean pingJanus() {
         String transactionId = "ping-" + generateShortUUID();
         Map<String, Object> request = Map.of("janus", "ping", "admin_secret", adminSecret, "transaction", transactionId);
@@ -479,7 +547,7 @@ public class JanusRabbitClientOptimized {
     }
 
     // ============================================================
-    // ВНУТРІШНІ ДОПОМІЖНІ МЕТОДИ
+    // ДОПОМІЖНІ МЕТОДИ
     // ============================================================
     private Map<String, Object> createBaseRequest(String janusType, String transactionId) {
         Map<String, Object> request = new HashMap<>();
@@ -501,61 +569,6 @@ public class JanusRabbitClientOptimized {
             throw new RuntimeException("Plugin error: " + (data.get("error") != null ? data.get("error") : data.get("error_code")));
         }
     }
-
-    /**
-     * Синхронна відправка запиту у чергу RabbitMQ 'janus-commands'.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> sendAndReceive(Map<String, Object> request) {
-        String transactionId = (String) request.get("transaction");
-
-        org.springframework.amqp.core.MessageProperties properties = new org.springframework.amqp.core.MessageProperties();
-        properties.setContentType(org.springframework.amqp.core.MessageProperties.CONTENT_TYPE_JSON);
-        properties.setCorrelationId(transactionId); // Janus очікує саме це
-        properties.setReplyTo(queueJanusFrom);      // Явно вказуємо чергу відповідей
-
-        org.springframework.amqp.core.Message message = rabbitTemplate.getMessageConverter().toMessage(request, properties);
-        org.springframework.amqp.core.Message reply = rabbitTemplate.sendAndReceive(message);
-
-        if (reply == null) {
-            log.error("❌ Таймаут Janus API. Відповідь не отримана в чергу: {}", queueJanusFrom);
-            throw new RuntimeException("Таймаут Janus API");
-        }
-
-        Object converted = rabbitTemplate.getMessageConverter().fromMessage(reply);
-        if (converted instanceof Map) {
-            return (Map<String, Object>) converted;
-        }
-        throw new RuntimeException("Невірний формат відповіді від Janus API");
-    }
-
-    /**
-     * Синхронна відправка адміністративного запиту у чергу RabbitMQ 'janus-admin-commands'.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
-        String transactionId = (String) request.get("transaction");
-
-        org.springframework.amqp.core.MessageProperties properties = new org.springframework.amqp.core.MessageProperties();
-        properties.setContentType(org.springframework.amqp.core.MessageProperties.CONTENT_TYPE_JSON);
-        properties.setCorrelationId(transactionId);
-        properties.setReplyTo(queueJanusAdminFrom); // Явно вказуємо чергу відповідей
-
-        org.springframework.amqp.core.Message message = adminRabbitTemplate.getMessageConverter().toMessage(request, properties);
-        org.springframework.amqp.core.Message reply = adminRabbitTemplate.sendAndReceive(message);
-
-        if (reply == null) {
-            log.error("❌ Таймаут Janus Admin API. Відповідь не отримана в чергу: {}", queueJanusAdminFrom);
-            throw new RuntimeException("Таймаут Janus Admin API");
-        }
-
-        Object converted = adminRabbitTemplate.getMessageConverter().fromMessage(reply);
-        if (converted instanceof Map) {
-            return (Map<String, Object>) converted;
-        }
-        throw new RuntimeException("Невірний формат відповіді від Janus Admin API");
-    }
-
 
     private String generateShortUUID() {
         return UUID.randomUUID().toString().substring(0, 8);

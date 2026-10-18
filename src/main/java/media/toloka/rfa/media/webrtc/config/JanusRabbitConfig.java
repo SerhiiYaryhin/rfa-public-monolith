@@ -1,6 +1,7 @@
 package media.toloka.rfa.media.webrtc.config;
 
 import com.google.gson.Gson;
+import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusRabbitClientOptimized;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -12,12 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
- * Використовує SimpleMessageListenerContainer для перехоплення відповідей
- * зі спеціалізованих черг (from-janus / from-janus-admin), оскільки Janus
- * ігнорує стандартний reply_to і використовує налаштований from_janus.
- */
 @Configuration
 public class JanusRabbitConfig {
 
@@ -75,12 +70,9 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanus);
-        rabbitTemplate.setReplyTimeout(replyTimeout);
-        rabbitTemplate.setMessageConverter(janusMessageConverter());
-
-        // 🔑 КЛЮЧОВЕ ВИПРАВЛЕННЯ 1: Вимикаємо Direct Reply-To, щоб уникнути конфлікту
+        // Вимикаємо Direct Reply-To, щоб уникнути конфлікту з нашим кастомним MessageListener
         rabbitTemplate.setUseDirectReplyToContainer(false);
-
+        rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
     }
 
@@ -88,36 +80,33 @@ public class JanusRabbitConfig {
     public RabbitTemplate janusAdminRabbitTemplate(@Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
-        rabbitTemplate.setReplyTimeout(replyTimeout);
-        rabbitTemplate.setMessageConverter(janusMessageConverter());
-
-        // 🔑 КЛЮЧОВЕ ВИПРАВЛЕННЯ 2: Вимикаємо Direct Reply-To для Admin API
+        // Вимикаємо Direct Reply-To
         rabbitTemplate.setUseDirectReplyToContainer(false);
-
+        rabbitTemplate.setMessageConverter(janusMessageConverter());
         return rabbitTemplate;
     }
 
     // ========================================================================
-    // 🔑 Слухачі відповідей (Reply Listeners)
-    // Вони перехоплюють відповідь з черги 'from-janus' і передають її в RabbitTemplate
+    // 🔑 КЛЮЧОВИЙ МОМЕНТ: Реєструємо JanusRabbitClientOptimized як MessageListener
+    // Це дозволяє йому перехоплювати відповіді, ігнорувати "ack" і завершувати CompletableFuture
     // ========================================================================
     @Bean
     public SimpleMessageListenerContainer janusReplyListenerContainer(
             @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
+            JanusRabbitClientOptimized janusClientOptimized) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusFrom, true, false, false));
-        container.setMessageListener(rabbitTemplate);
+        container.setMessageListener(janusClientOptimized); // <-- ТУТ ЗМІНА
         return container;
     }
 
     @Bean
     public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
             @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
-            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
+            JanusRabbitClientOptimized janusClientOptimized) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusAdminFrom, true, false, false));
-        container.setMessageListener(rabbitTemplate);
+        container.setMessageListener(janusClientOptimized); // <-- ТУТ ЗМІНА
         return container;
     }
     // ========================================================================
