@@ -5,17 +5,13 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Конфігурація RabbitMQ для взаємодії з медіасервером Janus.
- * Використовує вбудований у Spring механізм Direct Reply-To для RPC запитів.
- * Ручні SimpleMessageListenerContainer видалені, щоб уникнути конфлікту.
- */
 @Configuration
 public class JanusRabbitConfig {
 
@@ -24,6 +20,12 @@ public class JanusRabbitConfig {
 
     @Value("${rabbitmq.queueJanusAdmin:janus-admin-commands}")
     private String queueJanusAdmin;
+
+    @Value("${rabbitmq.queueJanusFrom:from-janus}")
+    private String queueJanusFrom;
+
+    @Value("${rabbitmq.queueJanusAdminFrom:from-janus-admin}")
+    private String queueJanusAdminFrom;
 
     @Value("${rabbitmq.reply.timeout:5000}")
     private Integer replyTimeout;
@@ -69,7 +71,8 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanus);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
-        // Direct Reply-To увімкнено за замовчуванням у сучасному Spring, це найефективніший режим
+        // 🔑 КЛЮЧОВЕ: Вимикаємо Direct Reply-To, щоб уникнути конфлікту з ручними контейнерами
+        rabbitTemplate.setUseDirectReplyToContainer(false);
         return rabbitTemplate;
     }
 
@@ -79,10 +82,32 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
+        // 🔑 КЛЮЧОВЕ: Вимикаємо Direct Reply-To
+        rabbitTemplate.setUseDirectReplyToContainer(false);
         return rabbitTemplate;
     }
 
-    // Оголошення черг запитів (Janus створить їх автоматично, але ми оголошуємо для порядку)
+    // 🔑 Слухачі відповідей (тепер вони працюватимуть без конфліктів)
+    @Bean
+    public SimpleMessageListenerContainer janusReplyListenerContainer(
+            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+            @Qualifier("janusRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusFrom, true, false, false));
+        container.setMessageListener(rabbitTemplate);
+        return container;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer janusAdminReplyListenerContainer(
+            @Qualifier("janusConnectionFactory") ConnectionFactory connectionFactory,
+            @Qualifier("janusAdminRabbitTemplate") RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(new Queue(queueJanusAdminFrom, true, false, false));
+        container.setMessageListener(rabbitTemplate);
+        return container;
+    }
+
     @Bean
     public Queue myQueueJanus() {
         return new Queue(queueJanus, true, false, false);
@@ -92,6 +117,4 @@ public class JanusRabbitConfig {
     public Queue myQueueJanusAdmin() {
         return new Queue(queueJanusAdmin, true, false, false);
     }
-
-    // ❗️ ВАЖЛИВО: SimpleMessageListenerContainer біни ПОВНІСТЮ ВИДАЛЕНІ звідси.
 }
