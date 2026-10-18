@@ -21,6 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+// Тестовий застосунок запрацював!
+// Тепер розібʼємо цей великий клас на декілька маленьких.
+
 @Service
 public class JanusRabbitClientOptimized implements MessageListener {
 
