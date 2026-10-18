@@ -1,5 +1,6 @@
-package media.toloka.rfa.media.messanger.webrtc.service.v2;
+package media.toloka.rfa.media.webrtc.service.v2;
 
+import media.toloka.rfa.media.webrtc.service.v2.JanusAmqpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

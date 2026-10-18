@@ -1,7 +1,7 @@
 package media.toloka.rfa.media.webrtc.config;
 
 import com.google.gson.Gson;
-import media.toloka.rfa.media.messanger.webrtc.service.v2.JanusAmqpClient;
+import media.toloka.rfa.media.webrtc.service.v2.JanusAmqpClient;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -13,11 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * ⚙️ Конфігурація RabbitMQ для взаємодії з медіасервером Janus (версія v2).
- * Використовує SimpleMessageListenerContainer для перехоплення відповідей
- * зі спеціалізованих черг (from-janus / from-janus-admin).
- */
 @Configuration
 public class JanusRabbitConfig {
 
@@ -77,8 +72,6 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanus);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
-        // Вимикаємо Direct Reply-To, щоб уникнути конфлікту з SimpleMessageListenerContainer
-        rabbitTemplate.setUseDirectReplyToContainer(false);
         return rabbitTemplate;
     }
 
@@ -88,15 +81,8 @@ public class JanusRabbitConfig {
         rabbitTemplate.setRoutingKey(queueJanusAdmin);
         rabbitTemplate.setReplyTimeout(replyTimeout);
         rabbitTemplate.setMessageConverter(janusMessageConverter());
-        // Вимикаємо Direct Reply-To
-        rabbitTemplate.setUseDirectReplyToContainer(false);
         return rabbitTemplate;
     }
-
-    // ========================================================================
-    // 🔑 Слухачі відповідей (Reply Listeners)
-    // ========================================================================
-    // Реєструємо JanusAmqpClient як MessageListener для контейнерів
 
     @Bean
     public SimpleMessageListenerContainer janusReplyListenerContainer(
@@ -104,7 +90,7 @@ public class JanusRabbitConfig {
             JanusAmqpClient janusAmqpClient) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusFrom, true, false, false));
-        container.setMessageListener(janusAmqpClient);
+        container.setMessageListener(janusAmqpClient); // <-- КЛЮЧОВИЙ МОМЕНТ
         return container;
     }
 
@@ -114,10 +100,9 @@ public class JanusRabbitConfig {
             JanusAmqpClient janusAmqpClient) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(new Queue(queueJanusAdminFrom, true, false, false));
-        container.setMessageListener(janusAmqpClient);
+        container.setMessageListener(janusAmqpClient); // <-- КЛЮЧОВИЙ МОМЕНТ
         return container;
     }
-    // ========================================================================
 
     @Bean
     public Queue myQueueJanus() {

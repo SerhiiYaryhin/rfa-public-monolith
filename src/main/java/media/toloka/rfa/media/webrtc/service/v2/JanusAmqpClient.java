@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.service.v2;
+package media.toloka.rfa.media.webrtc.service.v2;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -20,12 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- *  Низькорівневий AMQP клієнт для взаємодії з Janus Gateway.
- * Відповідає за:
- * - Відправку запитів у черги RabbitMQ
- * - Отримання та кореляцію відповідей (ігнорує проміжні "ack")
- * - Валідацію відповідей Janus API
- * - Генерацію transaction ID
+ * 🐇 Низькорівневий AMQP клієнт для взаємодії з Janus Gateway.
+ * Відповідає за відправку/отримання повідомлень, кореляцію відповідей та базову валідацію.
  */
 @Component
 public class JanusAmqpClient implements MessageListener {
@@ -40,7 +36,6 @@ public class JanusAmqpClient implements MessageListener {
     @Value("${rabbitmq.reply.timeout:5000}")
     private long replyTimeout;
 
-    // Мапа очікуваних відповідей за transaction ID
     private final Map<String, CompletableFuture<Map<String, Object>>> pendingRequests = new ConcurrentHashMap<>();
 
     public JanusAmqpClient(
@@ -52,17 +47,12 @@ public class JanusAmqpClient implements MessageListener {
         this.gson = gson;
     }
 
-    // ============================================================
-    // ОБРОБКА ВХІДНИХ ПОВІДОМЛЕНЬ (MessageListener)
-    // ============================================================
-
     @Override
     public void onMessage(Message message) {
         try {
             String json = new String(message.getBody(), "UTF-8");
             Map<String, Object> response = gson.fromJson(json, MAP_TYPE);
 
-            // Отримуємо transaction ID з заголовка або з тіла повідомлення
             String transactionId = message.getMessageProperties().getCorrelationId();
             if (transactionId == null && response.containsKey("transaction")) {
                 transactionId = (String) response.get("transaction");
@@ -72,16 +62,10 @@ public class JanusAmqpClient implements MessageListener {
                 CompletableFuture<Map<String, Object>> future = pendingRequests.get(transactionId);
                 if (future != null) {
                     String janusType = (String) response.get("janus");
-                    if ("ack".equals(janusType)) {
-                        // Проміжне підтвердження - не завершуємо future
-                        log.debug("Отримано ack для транзакції {}", transactionId);
-                    } else {
-                        // Фінальна відповідь (success або error)
+                    if (!"ack".equals(janusType)) {
                         pendingRequests.remove(transactionId);
                         future.complete(response);
                     }
-                } else {
-                    log.debug("Ігноруємо відповідь для завершеної або невідомої транзакції: {}", transactionId);
                 }
             }
         } catch (Exception e) {
@@ -89,13 +73,6 @@ public class JanusAmqpClient implements MessageListener {
         }
     }
 
-    // ============================================================
-    // МЕТОДИ ВІДПРАВКИ ТА ОЧІКУВАННЯ
-    // ============================================================
-
-    /**
-     * Синхронна відправка запиту у чергу 'janus-commands' та очікування відповіді.
-     */
     @SuppressWarnings("unchecked")
     public Map<String, Object> sendAndReceive(Map<String, Object> request) {
         String transactionId = (String) request.get("transaction");
@@ -107,14 +84,10 @@ public class JanusAmqpClient implements MessageListener {
             return future.get(replyTimeout, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             pendingRequests.remove(transactionId);
-            log.error(" Таймаут Janus API для транзакції {}: {}", transactionId, e.getMessage());
             throw new RuntimeException("Таймаут Janus API", e);
         }
     }
 
-    /**
-     * Синхронна відправка адміністративного запиту у чергу 'janus-admin-commands'.
-     */
     @SuppressWarnings("unchecked")
     public Map<String, Object> sendAndReceiveAdmin(Map<String, Object> request) {
         String transactionId = (String) request.get("transaction");
@@ -126,14 +99,9 @@ public class JanusAmqpClient implements MessageListener {
             return future.get(replyTimeout, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             pendingRequests.remove(transactionId);
-            log.error("❌ Таймаут Janus Admin API для транзакції {}: {}", transactionId, e.getMessage());
             throw new RuntimeException("Таймаут Janus Admin API", e);
         }
     }
-
-    // ============================================================
-    // ДОПОМІЖНІ МЕТОДИ
-    // ============================================================
 
     /**
      * Створення базового повідомлення для Client API Janus.
@@ -148,7 +116,7 @@ public class JanusAmqpClient implements MessageListener {
 
     /**
      * Перевірка статусу відповіді Janus.
-     * Кидає RuntimeException якщо Janus повернув помилку.
+     * Кидає RuntimeException, якщо Janus повернув помилку.
      */
     @SuppressWarnings("unchecked")
     public void validatePluginResponse(Map<String, Object> response) {

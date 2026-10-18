@@ -1,4 +1,4 @@
-package media.toloka.rfa.media.messanger.webrtc.service.v2;
+package media.toloka.rfa.media.webrtc.service.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,10 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 🔐 Сервіс адміністрування Janus Gateway.
- * Відповідає за реєстрацію токенів, ping, перевірку токенів.
- */
 @Service
 public class JanusAdminService {
 
@@ -26,9 +22,6 @@ public class JanusAdminService {
         this.amqpClient = amqpClient;
     }
 
-    /**
-     * 🔎 Діагностичний запит ping до Janus Gateway Admin API.
-     */
     public boolean pingJanus() {
         String transactionId = amqpClient.generateTransactionId("ping");
         Map<String, Object> request = Map.of(
@@ -46,9 +39,6 @@ public class JanusAdminService {
         }
     }
 
-    /**
-     * 🔑 Реєстрація токена авторизації користувача в списку дозволених токенів Janus.
-     */
     public void registerUserToken(String token) {
         log.info("Реєстрація токена користувача в Janus: {}", token);
 
@@ -62,11 +52,9 @@ public class JanusAdminService {
 
         try {
             Map<String, Object> response = amqpClient.sendAndReceiveAdmin(request);
-
             if (!"success".equals(response.get("janus"))) {
                 throw new RuntimeException("Помилка реєстрації токена: " + response);
             }
-
             log.info("Токен користувача {} успішно зареєстровано в Janus", token);
         } catch (Exception e) {
             log.error("Помилка реєстрації токена користувача: {}", e.getMessage(), e);
@@ -74,9 +62,6 @@ public class JanusAdminService {
         }
     }
 
-    /**
-     * 🔑 Перевірка, чи зареєстрований токен користувача в Janus.
-     */
     @SuppressWarnings("unchecked")
     public boolean checkUserTokenInJanus(String token) {
         String transactionId = amqpClient.generateTransactionId("tokens-list");
@@ -88,7 +73,6 @@ public class JanusAdminService {
 
         try {
             Map<String, Object> response = amqpClient.sendAndReceiveAdmin(request);
-
             if (!"success".equals(response.get("janus"))) {
                 return false;
             }
