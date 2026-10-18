@@ -48,7 +48,7 @@ public class JanusRabbitConfig {
     @Value("${rabbitmq.password}")
     private String rabbitPassword;
 
-    @Value("${janus.rabbitmq.vhost:/rfa-dev}")
+    @Value("${janus.rabbitmq.vhost:/rfa}")
     private String janusVhost;
 
     private final Gson gson;
