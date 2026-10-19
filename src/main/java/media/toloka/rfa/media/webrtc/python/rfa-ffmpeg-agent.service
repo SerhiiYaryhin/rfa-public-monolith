@@ -4,11 +4,11 @@ After=network.target
 
 [Service]
 # Користувач, від імені якого запускається скрипт
-User=ysv
-WorkingDirectory=/home/ysv/rfa-agent
+User=chat
+WorkingDirectory=/home/chat/rfa-agent
 
 # Команда для запуску вашої програми (вказуємо абсолютні шляхи)
-ExecStart=/usr/bin/python3 /home/ysv/rfa-agent/rfa-ffmpeg-agent.py
+ExecStart=/usr/bin/python3 /home/chat/bin/rfa-ffmpeg-agent.py
 
 # Автоматичне перезапускання скрипта, якщо він впаде через помилку мережі
 Restart=always
