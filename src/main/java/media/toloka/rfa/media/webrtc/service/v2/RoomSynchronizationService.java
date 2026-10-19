@@ -4,7 +4,7 @@ import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.media.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.webrtc.model.dto.StationDto;
 import media.toloka.rfa.media.webrtc.service.PortAllocationService;
-import media.toloka.rfa.radio.station.service.StationService; // ✅ ДОДАНО ЦЕЙ ІМПОРТ
+import media.toloka.rfa.radio.station.service.StationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 🔄 Сервіс синхронізації кімнат з Janus Gateway.
+ * Відповідає за отримання списку кімнат, видалення осиротілих кімнат та самовідновлення.
+ *
+ * Логіка визначення стану трансляції (LIVE індикатор):
+ * - LIVE (stationstate=true): кімната є в Janus І є активний запис про стрім в БД
+ * - НЕ LIVE (stationstate=false): кімнати немає в Janus, або немає запису в БД
+ */
 @Service
 public class RoomSynchronizationService {
 
@@ -43,13 +51,24 @@ public class RoomSynchronizationService {
         this.stationService = stationService;
     }
 
+    /**
+     * Отримання списку активних кімнат з синхронізацією та самовідновленням.
+     *
+     * Для кожної станції перевіряється:
+     * 1. Чи існує кімната в Janus Gateway
+     * 2. Чи є активний запис про стрім в БД (portService)
+     * 3. Якщо кімнати немає в Janus — запускається самовідновлення
+     */
     @Transactional
     public List<StationDto> getActiveRoomsInfo() {
         log.debug("Отримання списку активних кімнат");
 
         List<StationDto> activeStations = stationService.getActiveStations();
-        Set<Long> validRoomIds = activeStations.stream().map(StationDto::getId).collect(Collectors.toSet());
+        Set<Long> validRoomIds = activeStations.stream()
+                .map(StationDto::getId)
+                .collect(Collectors.toSet());
 
+        // Отримання кімнат з Janus
         List<Map<String, Object>> janusRooms;
         try {
             janusRooms = roomService.getJanusRoomsAndParticipants();
@@ -59,6 +78,7 @@ public class RoomSynchronizationService {
             return activeStations;
         }
 
+        // Мапа кімнат за ID для швидкого пошуку
         Map<Long, Map<String, Object>> janusRoomsMap = new HashMap<>();
         for (Map<String, Object> jRoom : janusRooms) {
             Number roomIdNum = (Number) jRoom.get("room");
@@ -67,23 +87,40 @@ public class RoomSynchronizationService {
             }
         }
 
+        // Видалення зайвих (осиротілих) кімнат з Janus
         removeOrphanRooms(janusRoomsMap, validRoomIds);
 
+        // Синхронізація та самовідновлення для кожної станції
         for (StationDto station : activeStations) {
             Long roomId = station.getId();
             String stationIdStr = String.valueOf(roomId);
             Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
 
+            // Перевіряємо, чи є активний запис про стрім в БД
+            Optional<JanusLiveStream> activeStream = portService.getStreamByStation(stationIdStr);
+
             if (jRoomData != null) {
-                enrichStationFromJanus(station, jRoomData);
+                // Кімната існує в Janus
+                if (activeStream.isPresent()) {
+                    // ✅ Кімната є в Janus І є активний стрім в БД → LIVE
+                    enrichStationFromJanus(station, jRoomData, true);
+                } else {
+                    // ⚠️ Кімната є в Janus, але стрім не активний в БД → НЕ LIVE
+                    // (кімната може існувати для ручного підключення користувачів)
+                    enrichStationFromJanus(station, jRoomData, false);
+                }
             } else {
-                recoverLostRoom(station, stationIdStr, roomId);
+                // ❌ Кімнати немає в Janus → самовідновлення
+                recoverLostRoom(station, stationIdStr, roomId, activeStream);
             }
         }
 
         return activeStations;
     }
 
+    /**
+     * Видалення осиротілих кімнат з Janus (яких немає в БД станцій).
+     */
     private void removeOrphanRooms(Map<Long, Map<String, Object>> janusRoomsMap, Set<Long> validRoomIds) {
         for (Long janusRoomId : janusRoomsMap.keySet()) {
             if (!validRoomIds.contains(janusRoomId)) {
@@ -111,23 +148,38 @@ public class RoomSynchronizationService {
         }
     }
 
-    private void enrichStationFromJanus(StationDto station, Map<String, Object> jRoomData) {
-        station.setStationstate(true);
+    /**
+     * Збагачення даних станції інформацією з Janus.
+     *
+     * @param station Станція для оновлення
+     * @param jRoomData Дані кімнати з Janus
+     * @param isLive true якщо є активний стрім в БД (показувати LIVE індикатор)
+     */
+    private void enrichStationFromJanus(StationDto station, Map<String, Object> jRoomData, boolean isLive) {
+        station.setStationstate(isLive);
         List<Object> participants = (List<Object>) jRoomData.get("participants");
         station.setParticipants(participants != null ? participants : new ArrayList<>());
     }
 
-    private void recoverLostRoom(StationDto station, String stationIdStr, Long roomId) {
+    /**
+     * Самовідновлення кімнати, яка пропала в Janus Gateway.
+     * Якщо в БД є активний стрім — відновлює Plain RTP учасника та перезапускає FFmpeg.
+     */
+    private void recoverLostRoom(StationDto station, String stationIdStr, Long roomId,
+                                 Optional<JanusLiveStream> activeStream) {
         log.info("Кімната {} відсутня в Janus. Створюємо...", roomId);
+
         try {
+            // Створюємо кімнату заново
             roomService.createAudioBridgeRoom(roomId, station.getName());
 
-            Optional<JanusLiveStream> existingStream = portService.getStreamByStation(stationIdStr);
-            if (existingStream.isPresent()) {
-                recoverPlainRtpParticipant(stationIdStr, roomId, existingStream.get());
+            if (activeStream.isPresent()) {
+                // Відновлюємо Plain RTP учасника та FFmpeg
+                recoverPlainRtpParticipant(stationIdStr, roomId, activeStream.get());
             }
 
-            station.setStationstate(true);
+            // LIVE тільки якщо є активний стрім в БД
+            station.setStationstate(activeStream.isPresent());
             station.setParticipants(new ArrayList<>());
         } catch (Exception e) {
             log.error("Помилка створення кімнати {}", roomId, e);
@@ -135,8 +187,13 @@ public class RoomSynchronizationService {
         }
     }
 
+    /**
+     * Відновлення Plain RTP учасника для кімнати після її зникнення в Janus.
+     * Перезапускає FFmpeg на новий порт, який виділив Janus.
+     */
     private void recoverPlainRtpParticipant(String stationIdStr, Long roomId, JanusLiveStream stream) {
         log.info("Відновлюємо Plain RTP для станції {}", stationIdStr);
+
         try {
             Long sessionId = sessionManager.createSession();
             Long handleId = sessionManager.attachPlugin(sessionId, "janus.plugin.audiobridge");
@@ -150,16 +207,20 @@ public class RoomSynchronizationService {
             Map<String, Object> rtp = (Map<String, Object>) data.get("rtp");
             Integer janusRtpPort = ((Number) rtp.get("port")).intValue();
 
+            // Оновлюємо сесії в БД
             stream.setJanusSessionId(sessionId);
             stream.setJanusHandleId(handleId);
             portService.saveStream(stream);
 
+            // Перезапускаємо FFmpeg на новий порт Janus
             ffmpegService.sendStopCommand(stationIdStr);
-            String rtpUrl = String.format("rtp://janus.rfa:%d?localport=%d&pkt_size=1200", janusRtpPort, stream.getRtpPort());
+            String rtpUrl = String.format("rtp://janus.rfa:%d?localport=%d&pkt_size=1200",
+                    janusRtpPort, stream.getRtpPort());
             String sourceStreamUrl = "http://icecast.rfa:8000/ukraine";
             ffmpegService.sendStartCommand(stationIdStr, sourceStreamUrl, rtpUrl);
 
-            log.info("Plain RTP успішно відновлено для кімнати {}: session={}, handle={}, port={}", roomId, sessionId, handleId, janusRtpPort);
+            log.info("Plain RTP успішно відновлено для кімнати {}: session={}, handle={}, port={}",
+                    roomId, sessionId, handleId, janusRtpPort);
         } catch (Exception ex) {
             log.error("Помилка відновлення Plain RTP для кімнати {}: {}", roomId, ex.getMessage(), ex);
         }
