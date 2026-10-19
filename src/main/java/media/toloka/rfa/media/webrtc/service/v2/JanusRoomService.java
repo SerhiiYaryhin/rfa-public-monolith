@@ -32,6 +32,7 @@ public class JanusRoomService {
         this.sessionManager = sessionManager;
     }
 
+
     /**
      * 🎙️ Створення нової голосової кімнати в Janus AudioBridge.
      * Параметр allow_rtp_participants встановлюється в true для прийому Plain RTP потоку від FFmpeg.
@@ -41,7 +42,6 @@ public class JanusRoomService {
             log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
             return;
         }
-
         log.info("Створення аудіокімнати в Janus. ID: {}, Назва: {}", roomId, name);
 
         try {
@@ -70,11 +70,62 @@ public class JanusRoomService {
                 log.info("Аудіокімнату ID: {} ('{}') успішно створено з allow_rtp_participants=true", roomId, name);
                 return null;
             });
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            // 🛡️ ГРАЦІЙНА ОБРОБКА: Якщо кімната вже існує, це не є фатальною помилкою при старті
+            if (e.getMessage() != null && e.getMessage().contains("already exists")) {
+                log.warn("⚠️ Кімната {} вже існує в Janus (ймовірно, залишилася після попереднього запуску). Продовжуємо підключення...", roomId);
+                return; // Просто виходимо, кімната вже готова до використання
+            }
+
+            // Якщо це інша помилка (наприклад, неправильний secret або відмова в доступі), кидаємо її далі
             log.error("Не вдалося створити кімнату {} в Janus: {}", roomId, e.getMessage(), e);
             throw new RuntimeException("Помилка створення кімнати в Janus", e);
         }
     }
+
+    /**
+     * 🎙️ Створення нової голосової кімнати в Janus AudioBridge.
+     * Параметр allow_rtp_participants встановлюється в true для прийому Plain RTP потоку від FFmpeg.
+     */
+//    public void createAudioBridgeRoom(Long roomId, String name) {
+//        if (roomId == null) {
+//            log.warn("Спроба створити кімнату в Janus із порожнім ID (null)");
+//            return;
+//        }
+//
+//        log.info("Створення аудіокімнати в Janus. ID: {}, Назва: {}", roomId, name);
+//
+//        try {
+//            sessionManager.executeInSession((sessionId, handleId) -> {
+//                String transactionId = amqpClient.generateTransactionId("room-create");
+//                Map<String, Object> request = amqpClient.createBaseRequest("message", transactionId, apiSecret);
+//                request.put("session_id", sessionId);
+//                request.put("handle_id", handleId);
+//
+//                Map<String, Object> body = new HashMap<>();
+//                body.put("request", "create");
+//                body.put("room", roomId);
+//                body.put("description", name);
+//                body.put("secret", apiSecret);
+//                body.put("permanent", false);
+//                body.put("sampling_rate", 48000);
+//                body.put("audio_codec", "opus");
+//                body.put("is_private", false);
+//                body.put("audio_level_average", 25);
+//                body.put("allow_rtp_participants", true);
+//                request.put("body", body);
+//
+//                Map<String, Object> response = amqpClient.sendAndReceive(request);
+//                amqpClient.validatePluginResponse(response);
+//
+//                log.info("Аудіокімнату ID: {} ('{}') успішно створено з allow_rtp_participants=true", roomId, name);
+//                return null;
+//            });
+//        } catch (Exception e) {
+//            log.error("Не вдалося створити кімнату {} в Janus: {}", roomId, e.getMessage(), e);
+//            throw new RuntimeException("Помилка створення кімнати в Janus", e);
+//        }
+//    }
 
     /**
      * 💥 Видалення аудіокімнати з Janus.
