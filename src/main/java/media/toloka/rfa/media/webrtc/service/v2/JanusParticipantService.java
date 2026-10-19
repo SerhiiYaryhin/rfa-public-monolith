@@ -42,6 +42,8 @@ public class JanusParticipantService {
         body.put("display", display);
         body.put("secret", apiSecret);
 
+        body.put("muted", false);
+
         Map<String, Object> rtpData = new HashMap<>();
         rtpData.put("ip", ip);
         rtpData.put("port", rtpPort);
