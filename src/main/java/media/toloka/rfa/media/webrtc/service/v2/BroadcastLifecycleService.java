@@ -6,6 +6,7 @@ import media.toloka.rfa.media.webrtc.service.PortAllocationService;
 import media.toloka.rfa.radio.station.service.StationService; // ✅ ДОДАНО ЦЕЙ ІМПОРТ
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ import java.util.Optional;
 public class BroadcastLifecycleService {
 
     private static final Logger log = LoggerFactory.getLogger(BroadcastLifecycleService.class);
+
+    @Value("${ffmpeg.agent.host}")
+    private String ffmpegAgentHost;
 
     private final JanusRoomService roomService;
     private final JanusParticipantService participantService;
@@ -109,7 +113,7 @@ public class BroadcastLifecycleService {
                 handleId = sessionManager.attachPlugin(sessionId, "janus.plugin.audiobridge");
 
                 Map<String, Object> joinResponse = participantService.joinAsRtpParticipant(
-                        sessionId, handleId, janusRoomId, "Радіо Ефір", "127.0.0.1", freePort
+                        sessionId, handleId, janusRoomId, "Радіо Ефір", ffmpegAgentHost, freePort
                 );
 
                 Map<String, Object> plugindata = (Map<String, Object>) joinResponse.get("plugindata");

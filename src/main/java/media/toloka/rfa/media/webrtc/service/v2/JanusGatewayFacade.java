@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Не використовується!!!
+ *
  * 🎭 Фасад для взаємодії з Janus Gateway.
  * Забезпечує зворотну сумісність зі старим інтерфейсом JanusRabbitClientOptimized,
  * делегуючи виклики до відповідних сервісів.
