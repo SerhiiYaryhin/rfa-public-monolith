@@ -1,16 +1,24 @@
 /**
  🛠️ Модуль Moderator (версія v3).
- Надає функції для відправки запитів модерації на бекенд.
- Додано глобальне керування RTP Forward для поточної кімнати.
+ Надає функції для відправки запитів модерації на бекенд:
+ - muteUser: вимкнення/увімкнення мікрофона гостя.
+ - kickUser: примусове видалення користувача з голосового чату.
+ - moveUser: переміщення користувача між кімнатами.
+ - forwardCurrentRoom / stopCurrentForward: керування RTP Forward для поточної кімнати.
  */
 const Moderator = {
     // Словник активних трансляцій RTP Forward: roomId -> streamId
     activeForwards: {},
 
+    /**
+     🔇 Керування мікрофоном учасника (мутування/розмутування).
+     */
     async muteUser(roomId, participantId, muted) {
         Logger.log(`🔇 Зміна мікрофона учасника ${participantId} в кімнаті ${roomId} на: ${muted ? 'вимкнено' : 'увімкнено'}`, "INFO");
         try {
-            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/mute?roomId=${roomId}&participantId=${participantId}&muted=${muted}`, { method: 'POST' });
+            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/mute?roomId=${roomId}&participantId=${participantId}&muted=${muted}`, {
+                method: 'POST'
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const res = await response.json();
             if (res.success) {
@@ -24,11 +32,16 @@ const Moderator = {
         }
     },
 
+    /**
+     ❌ Вигнання учасника з голосової кімнати.
+     */
     async kickUser(roomId, participantId) {
         if (!confirm(`Ви дійсно хочете вигнати учасника ${participantId}?`)) return;
         Logger.log(`❌ Вигнання учасника ${participantId} з кімнати ${roomId}`, "INFO");
         try {
-            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/kick?roomId=${roomId}&participantId=${participantId}`, { method: 'POST' });
+            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/kick?roomId=${roomId}&participantId=${participantId}`, {
+                method: 'POST'
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const res = await response.json();
             if (res.success) {
@@ -42,6 +55,9 @@ const Moderator = {
         }
     },
 
+    /**
+     🔄 Переміщення учасника в іншу голосову кімнату.
+     */
     async moveUser(userUuid, targetRoomId) {
         if (!userUuid) {
             Logger.log("⚠️ Неможливо перемістити: UUID користувача відсутній", "WARN");
@@ -49,7 +65,9 @@ const Moderator = {
         }
         Logger.log(`🔄 Запит на переміщення користувача ${userUuid.substring(0, 8)}... в кімнату ${targetRoomId}`, "INFO");
         try {
-            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/move?userUuid=${userUuid}&targetRoomId=${targetRoomId}`, { method: 'POST' });
+            const response = await fetch(`${CONFIG.BACKEND_API}/moderate/move?userUuid=${userUuid}&targetRoomId=${targetRoomId}`, {
+                method: 'POST'
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const res = await response.json();
             if (res.success) {
@@ -63,10 +81,13 @@ const Moderator = {
         }
     },
 
+    // ================================================================
     // 🎯 НОВІ МЕТОДИ ДЛЯ ГЛОБАЛЬНОГО RTP FORWARD
+    // ================================================================
 
     /**
      📡 Запуск RTP Forward для поточної кімнати (де сидить користувач).
+     Бере host/port з полів вводу, зберігає в localStorage.
      */
     async forwardCurrentRoom() {
         const roomId = RoomManager.currentRoomId;
@@ -78,7 +99,10 @@ const Moderator = {
 
         const hostEl = document.getElementById('forward-host');
         const portEl = document.getElementById('forward-port');
-        if (!hostEl || !portEl) return;
+        if (!hostEl || !portEl) {
+            Logger.log("❌ Елементи вводу не знайдено", "ERROR");
+            return;
+        }
 
         const host = hostEl.value.trim() || "127.0.0.1";
         const port = parseInt(portEl.value.trim());
@@ -156,6 +180,8 @@ const Moderator = {
 
     /**
      🎨 Оновлення UI глобальної панелі RTP Forward.
+     @param {boolean} isActive Чи активний forward
+     @param {number} [streamId] ID потоку (якщо активний)
      */
     updateForwardUI(isActive, streamId = null) {
         const btnStart = document.getElementById('btn-start-forward');
@@ -173,8 +199,28 @@ const Moderator = {
         }
         if (statusText) {
             statusText.textContent = isActive
-                ? `Активно (Stream ID: ${streamId})`
+                ? `✅ Активно (Stream ID: ${streamId})`
                 : 'Неактивно';
+        }
+    },
+
+    /**
+     🔄 Оновити інформацію про поточну кімнату в панелі RTP Forward.
+     Викликається при зміні кімнати.
+     */
+    updateCurrentRoomInfo() {
+        const infoEl = document.getElementById('current-room-info');
+        if (!infoEl) return;
+
+        const roomId = RoomManager.currentRoomId;
+        if (roomId) {
+            infoEl.textContent = `Поточна кімната: ${roomId}`;
+            infoEl.style.color = '#27ae60';
+            infoEl.style.fontWeight = '600';
+        } else {
+            infoEl.textContent = 'Поточна кімната: не обрана';
+            infoEl.style.color = '#6c757d';
+            infoEl.style.fontWeight = 'normal';
         }
     }
 };

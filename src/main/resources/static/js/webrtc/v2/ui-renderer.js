@@ -1,27 +1,42 @@
 /**
  🎨 Модуль UIRenderer (версія v3).
- Відповідає за відображення інтерфейсу користувача.
+ Відповідає за відображення інтерфейсу користувача та оновлення DOM-дерева.
  🎯 ВИПРАВЛЕНО: Прибрано генерацію полів RTP Forward з карток кімнат,
  щоб вони не зникали при періодичному оновленні.
  */
 const UIRenderer = {
+    /**
+     📡 Асинхронно завантажує дані про кімнати з бекенду та ініціює їх рендеринг.
+     */
     async loadRooms() {
         if (!JanusConnection.isJanusReady) return;
         try {
             const response = await fetch(`${CONFIG.BACKEND_API}/rooms`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             this.renderRooms(await response.json());
+
+            // 🎯 Оновлюємо інформацію про поточну кімнату в панелі RTP Forward
+            if (typeof Moderator !== 'undefined' && Moderator.updateCurrentRoomInfo) {
+                Moderator.updateCurrentRoomInfo();
+            }
         } catch (error) {
             Logger.log(`❌ Помилка завантаження кімнат: ${error.message}`, "ERROR");
         }
     },
 
+    /**
+     🎨 Динамічно рендерить HTML-код для всіх кімнат у DOM-контейнер.
+     @param {Array} rooms Масив об'єктів кімнат, отриманий з сервера
+     */
     renderRooms(rooms) {
         const container = document.getElementById("roomsList");
         if (!container) return;
 
         if (!rooms || rooms.length === 0) {
-            container.innerHTML = `<div class="no-rooms"> <div class="no-rooms-icon">📭</div> <div class="no-rooms-text">Немає активних кімнат</div> </div>`;
+            container.innerHTML = `<div class="no-rooms">
+                <div class="no-rooms-icon">📭</div>
+                <div class="no-rooms-text">Немає активних кімнат</div>
+            </div>`;
             return;
         }
 
@@ -35,17 +50,21 @@ const UIRenderer = {
             const btnAction = isCurrent ? '' : `onclick="RoomManager.switchRoom(${room.id})"`;
             const stationId = room.id;
 
+            // Кнопки управління трансляцією радіо в кімнату (FFmpeg + Plain RTP)
             const streamButtons = `
                 <button class="btn-action-room btn-start-stream" 
-                        onclick="StreamManager.startStreamToRoom(${stationId})" title="Запустити трансляцію">
+                        onclick="StreamManager.startStreamToRoom(${stationId})"
+                        title="Запустити трансляцію">
                     ▶️ Запустити
                 </button>
                 <button class="btn-action-room btn-stop-stream" 
-                        onclick="StreamManager.stopStreamFromRoom(${stationId})" title="Зупинити трансляцію">
+                        onclick="StreamManager.stopStreamFromRoom(${stationId})"
+                        title="Зупинити трансляцію">
                     ⏹️ Зупинити
                 </button>
             `;
 
+            // Формуємо список учасників кімнати
             let participantsHtml = '<div class="no-users" style="padding:10px; color:#6c757d;">Немає користувачів</div>';
             if (room.participants && room.participants.length > 0) {
                 participantsHtml = '<ul class="user-list">' + room.participants.map(p => {
@@ -54,10 +73,10 @@ const UIRenderer = {
 
                     const isMuted = p.muted === true;
                     const muteBtn = isMuted
-                        ? `<button class="btn-user-action btn-unmute" onclick="Moderator.muteUser(${room.id}, ${p.id}, false)" title="Увімкнути">🔊</button>`
-                        : `<button class="btn-user-action btn-mute" onclick="Moderator.muteUser(${room.id}, ${p.id}, true)" title="Вимкнути">🔇</button>`;
+                        ? `<button class="btn-user-action btn-unmute" onclick="Moderator.muteUser(${room.id}, ${p.id}, false)" title="Увімкнути мікрофон">🔊</button>`
+                        : `<button class="btn-user-action btn-mute" onclick="Moderator.muteUser(${room.id}, ${p.id}, true)" title="Вимкнути мікрофон">🔇</button>`;
 
-                    const kickBtn = `<button class="btn-user-action btn-kick" onclick="Moderator.kickUser(${room.id}, ${p.id})" title="Вигнати">❌</button>`;
+                    const kickBtn = `<button class="btn-user-action btn-kick" onclick="Moderator.kickUser(${room.id}, ${p.id})" title="Вигнати учасника">❌</button>`;
 
                     let moveHtml = '';
                     if (p.token) {
@@ -89,9 +108,13 @@ const UIRenderer = {
                 }).join('') + '</ul>';
             }
 
-            const liveBadge = isStreaming ? '<span class="badge badge-live-pulse">🔴 LIVE</span>' : '';
+            // Червоний LIVE імпульсний індикатор
+            const liveBadge = isStreaming
+                ? '<span class="badge badge-live-pulse">🔴 LIVE</span>'
+                : '';
 
-            // 🎯 ВИПРАВЛЕНО: Видалено блок rtpForwardSection звідси!
+            // 🎯 ВИПРАВЛЕНО: rtpForwardSection ВИДАЛЕНО звідси!
+            // RTP Forward тепер керується глобальною панеллю зверху
 
             return `
             <div class="room-card ${isStreaming ? 'room-card-live' : ''} ${isCurrent ? 'room-card-current' : ''}">
@@ -103,7 +126,9 @@ const UIRenderer = {
                     ${liveBadge}
                 </div>
                 <div class="room-body">
-                    <div class="participants-title" style="font-weight:600; margin-bottom:8px;">Учасники (${room.participants ? room.participants.length : 0}):</div>
+                    <div class="participants-title" style="font-weight:600; margin-bottom:8px;">
+                        Учасники (${room.participants ? room.participants.length : 0}):
+                    </div>
                     ${participantsHtml}
                 </div>
                 <div class="room-actions" style="margin-top:15px; border-top:1px solid #e9ecef; padding-top:10px;">
@@ -114,10 +139,16 @@ const UIRenderer = {
         }).join('');
     },
 
+    /**
+     ✅ Дозволяє клікати по кнопках кімнат.
+     */
     enableRoomButtons() {
         document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = false);
     },
 
+    /**
+     ⛔ Тимчасово блокує всі кнопки дій під час виконання транзакцій переходу.
+     */
     disableRoomButtons() {
         document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);
     }

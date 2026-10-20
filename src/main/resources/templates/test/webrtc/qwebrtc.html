@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFA WebRTC - Прямий Ефір</title>
 
-    <!-- ✅ КОРЕКТНА АДРЕСА БІБЛІОТЕКИ JANUS -->
     <script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.2/adapter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
     <style>
-        /* Базові стилі */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,10 +18,7 @@
             padding: 20px;
             min-height: 100vh;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
         header {
             background: white;
             padding: 20px;
@@ -52,7 +47,7 @@
         }
         audio { width: 100%; margin: 10px 0; }
 
-        /* Стилі для моніторингу аудіо */
+        /* Моніторинг аудіо */
         .audio-monitor-container {
             display: flex;
             align-items: center;
@@ -75,7 +70,6 @@
             background-color: #e9ecef;
             border-radius: 7px;
             overflow: hidden;
-            position: relative;
         }
         .volume-bar-fill {
             height: 100%;
@@ -90,11 +84,16 @@
             text-align: right;
         }
 
-        /* 🎯 НОВІ Стилі для глобальної панелі RTP Forward */
+        /* 🎯 Стилі для панелі RTP Forward */
         .rtp-forward-panel {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-top: 15px;
         }
         .forward-inputs-row {
             display: flex;
@@ -129,18 +128,25 @@
             align-items: center;
             gap: 10px;
             padding: 10px;
-            background: #f8f9fa;
+            background: white;
             border-radius: 5px;
             font-size: 14px;
+            border: 1px solid #e9ecef;
         }
         .btn-start-forward { background: #9b59b6; color: white; }
         .btn-stop-forward { background: #e74c3c; color: white; }
-        .btn-start-forward:disabled, .btn-stop-forward:disabled {
+        .btn-start-forward:disabled,
+        .btn-stop-forward:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+        .current-room-info {
+            font-size: 13px;
+            color: #6c757d;
+            font-style: italic;
+        }
 
-        /* Стилі для кімнат */
+        /* Кімнати */
         .rooms-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -311,9 +317,21 @@
             <span id="mic-level-text" class="audio-level-text">0%</span>
         </div>
 
-        <!-- 🎯 НОВЕ: Глобальна панель RTP Forward -->
-        <div class="audio-monitor-container" style="margin-top: 15px; flex-direction: column; align-items: stretch;">
-            <span class="monitor-label" style="margin-bottom: 10px;">📡 RTP Forward (Трансляція міксу назовні)</span>
+        <div class="audio-monitor-container">
+            <span class="monitor-label">🔊 Гучність ефіру:</span>
+            <input type="range" id="volume-slider" min="50" max="300" value="150"
+                   style="flex-grow: 1; height: 14px; cursor: pointer;"
+                   oninput="AudioMonitor.setVolume(this.value)">
+            <span id="volume-text" class="audio-level-text">150%</span>
+        </div>
+
+        <!-- 🎯 ПАНЕЛЬ RTP FORWARD -->
+        <div class="rtp-forward-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span class="monitor-label" style="margin: 0;">📡 RTP Forward — Трансляція міксу назовні</span>
+                <span class="current-room-info" id="current-room-info">Поточна кімната: не обрана</span>
+            </div>
+
             <div class="forward-inputs-row">
                 <div class="input-group">
                     <label for="forward-host">Host:</label>
@@ -324,7 +342,8 @@
                     <input type="number" id="forward-port" placeholder="5004" value="5004">
                 </div>
             </div>
-            <div class="forward-actions" style="margin-top: 10px;">
+
+            <div class="forward-actions">
                 <button class="btn-action-room btn-start-forward" id="btn-start-forward" onclick="Moderator.forwardCurrentRoom()">
                     ▶️ Транслювати поточну кімнату
                 </button>
@@ -332,7 +351,8 @@
                     ⏹️ Зупинити трансляцію
                 </button>
             </div>
-            <div class="forward-status" style="margin-top: 10px;">
+
+            <div class="forward-status">
                 <span class="status-indicator status-disconnected" id="forward-indicator"></span>
                 <span id="forward-status-text">Неактивно</span>
             </div>
