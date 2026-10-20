@@ -204,6 +204,15 @@
             <span id="audio-level-text" class="audio-level-text">0%</span>
         </div>
 
+        <!-- Додайте після блоку моніторингу ефіру -->
+        <div class="audio-monitor-container">
+            <span class="monitor-label">🔊 Гучність ефіру:</span>
+            <input type="range" id="volume-slider" min="0" max="400" value="200"
+                   style="flex-grow: 1; height: 14px;"
+                   oninput="AudioMonitor.setVolume(this.value / 100)">
+            <span id="volume-text" class="audio-level-text">200%</span>
+        </div>
+
         <!-- 🎤 Моніторинг рівня звуку МІКРОФОНА -->
         <div class="audio-monitor-container">
             <span class="monitor-label">🎤 Рівень мікрофона:</span>

@@ -169,4 +169,11 @@ const AudioMonitor = {
         this._paint('audio-visualizer', 'audio-level-text', 0, 'remote');
         this._paint('mic-visualizer', 'mic-level-text', 0, 'mic');
     }
+
+    setVolume(gain) {
+        if (this.remoteGain) {
+            this.remoteGain.gain.value = gain;
+            Logger.log(`🔊 Гучність ефіру: ${Math.round(gain * 100)}%`, "INFO");
+        }
+    }
 };
