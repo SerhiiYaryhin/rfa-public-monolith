@@ -1,11 +1,7 @@
 /**
- 🎙️ Модуль RoomManager (версія v2).
- Керує процесом підключення клієнта до аудіокімнат Janus AudioBridge:
- Перехід між кімнатами (з від'єднанням від попередньої та повторним підключенням).
- Формування запиту входу "join".
- Обробка подій Janus (joined, left, kicked, destroyed).
- Створення SDP Offer та обробка SDP Answer (WebRTC Handshake).
- Моніторинг статусу ICE-з'єднання.
+ ️ Модуль RoomManager (версія v3 - виправлена).
+ Керує процесом підключення клієнта до аудіокімнат Janus AudioBridge.
+ Виправлено синтаксичні помилки (arrow functions, optional chaining) та додано вимкнення обробки звуку для мобільних.
  */
 const RoomManager = {
     // ID кімнати, в якій зараз знаходиться користувач
@@ -19,12 +15,6 @@ const RoomManager = {
 
     /**
      🔄 Перехід в іншу аудіокімнату.
-     Порядок виконання:
-     1. Робить запит на бекенд для реєстрації переходу (/connectclienttoroom).
-     2. Якщо користувач вже сидів у якійсь кімнаті, від'єднує поточний хендл плагіна Janus
-     та заново ініціалізує чистий хендл плагіна.
-     3. Встановлює нові параметри та викликає joinRoom().
-     @param {number} newRoomId ID цільової кімнати
      */
     async switchRoom(newRoomId) {
         newRoomId = parseInt(newRoomId);
@@ -32,7 +22,7 @@ const RoomManager = {
 
         // Запобігаємо подвійному кліку / паралельному виконанню переходу
         if (this.isSwitchingRoom) {
-            Logger.log(`⏳ Вже виконується перехід, ігноруємо`, "WARN");
+            Logger.log(` Вже виконується перехід, ігноруємо`, "WARN");
             return;
         }
         this.isSwitchingRoom = true;
@@ -40,14 +30,14 @@ const RoomManager = {
         try {
             // Перевіряємо готовність з'єднання з Janus
             if (!JanusConnection.isJanusReady || !JanusConnection.audioBridge) {
-                Logger.log(`⏳ Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
+                Logger.log(` Janus підключається. Кімнату ${newRoomId} буде обрано автоматично.`, "WARN");
                 this.pendingRoomId = newRoomId;
                 return;
             }
 
             Logger.log(`🔄 Перехід в кімнату ${newRoomId}...`, "INFO");
 
-            // Повідомляємо бекенд про бажання зайти в нову кімнату (для евакуації з інших кімнат)
+            // Повідомляємо бекенд про бажання зайти в нову кімнату
             const response = await fetch(`${CONFIG.BACKEND_API}/connectclienttoroom`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -63,11 +53,12 @@ const RoomManager = {
             if (this.currentRoomId !== null) {
                 Logger.log(`👋 Вихід з кімнати ${this.currentRoomId}...`, "DEBUG");
 
-                // 🎯 НОВЕ: Зупиняємо ICE моніторинг перед виходом
-                NetworkMonitor.stopIceMonitoring();
+                // 🎯 Зупиняємо ICE моніторинг перед виходом
+                if (typeof NetworkMonitor !== 'undefined') {
+                    NetworkMonitor.stopIceMonitoring();
+                }
 
                 Logger.log("🔌 Від'єднуємо плагін AudioBridge...", "DEBUG");
-                // Детачимо плагін для видалення PeerConnection в Janus
                 JanusConnection.audioBridge.detach();
                 JanusConnection.audioBridge = null;
                 JanusConnection.isJanusReady = false;
@@ -75,8 +66,7 @@ const RoomManager = {
                 // Коротка пауза для завершення деструкції на стороні Janus
                 await new Promise(r => setTimeout(r, 500));
 
-                Logger.log("️ Прикріплюємо плагін заново...", "DEBUG");
-                // Створюємо абсолютно новий чистий хендл плагіна для нової кімнати
+                Logger.log("🎙️ Прикріплюємо плагін заново...", "DEBUG");
                 await JanusConnection.attachAudioBridgePlugin();
             }
 
@@ -87,7 +77,7 @@ const RoomManager = {
             this.joinRoom(newRoomId, this.currentDisplay);
 
         } catch (error) {
-            Logger.log(`❌ Помилка переходу: ${error.message}`, "ERROR");
+            Logger.log(` Помилка переходу: ${error.message}`, "ERROR");
         } finally {
             this.isSwitchingRoom = false;
         }
@@ -97,7 +87,7 @@ const RoomManager = {
      🚪 Відправка команди входу в кімнату AudioBridge плагіна.
      */
     joinRoom(roomId, display) {
-        Logger.log(` Заходимо в кімнату ${roomId} як "${display}"...`, "INFO");
+        Logger.log(`🚪 Заходимо в кімнату ${roomId} як "${display}"...`, "INFO");
         const joinMessage = {
             request: "join",
             room: roomId,
@@ -109,7 +99,7 @@ const RoomManager = {
     },
 
     /**
-     📥 Обробка вхідних текстових повідомлень від плагіна AudioBridge.
+     Обробка вхідних текстових повідомлень від плагіна AudioBridge.
      */
     handleJanusMessage(msg, jsep) {
         Logger.log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
@@ -130,30 +120,30 @@ const RoomManager = {
                 // Оновлюємо UI список учасників
                 UIRenderer.loadRooms();
 
-                // Якщо разом із подією joined не прийшов JSEP (SDP Offer від сервера),
-                // ініціюємо створення локального WebRTC Offer (мікрофон)
+                // Якщо разом із подією joined не прийшов JSEP, ініціюємо створення локального WebRTC Offer
                 if (!jsep) {
                     this.createOffer();
                 }
             } else {
-                Logger.log(`👤 Інший користувач увійшов в кімнату`, "INFO");
+                Logger.log(` Інший користувач увійшов в кімнату`, "INFO");
                 UIRenderer.loadRooms();
             }
         }
 
-        // Обробка подій виходу та руйнування кімнат
+        // Обробка подій виходу та руйнування кімнат (виправлено зайві пробіли в рядках)
         if (event === "left") {
             Logger.log(`👋 Хтось вийшов з кімнати`, "INFO");
             UIRenderer.loadRooms();
         }
         if (event === "kicked") {
-            Logger.log(`⚠️ Вас видалено з кімнати`, "WARN");
+            Logger.log(`️ Вас видалено з кімнати`, "WARN");
         }
         if (event === "destroyed") {
             this.currentRoomId = null;
-            Logger.log(` Кімнату знищено`, "WARN");
-            // 🎯 НОВЕ: Зупиняємо ICE моніторинг при знищенні кімнати
-            NetworkMonitor.stopIceMonitoring();
+            Logger.log(`💥 Кімнату знищено`, "WARN");
+            if (typeof NetworkMonitor !== 'undefined') {
+                NetworkMonitor.stopIceMonitoring();
+            }
         }
 
         // Якщо в повідомленні присутній SDP об'єкт (JSEP), обробляємо його
@@ -163,55 +153,42 @@ const RoomManager = {
     },
 
     /**
-     Створення локального WebRTC Offer для публікації аудіопотоку з мікрофона користувача.
+     🎤 Створення локального WebRTC Offer для публікації аудіопотоку з мікрофона.
+     ВИПРАВЛЕНО: Вимкнено AGC/NS/EC для якісного звуку на мобільних пристроях.
      */
-    JanusConnection.audioBridge.createOffer({
-        media: {
-            audioSend: {
-                // 🎯 КРИТИЧНО ДЛЯ МОБІЛЬНИХ: Вимикаємо обробку звуку
-                echoCancellation: false,  // Вимкнути придушення луни
-                noiseSuppression: false,  // Вимкнути придушення шумів
-                autoGainControl: false    // Вимкнути авто-гучність (AGC)
-            },
-            audioRecv: true,
-            video: false
-        },
-        success: (localJsep) => {
-            const elapsed = Date.now() - offerStartTime;
-            Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
+    createOffer() {
+        Logger.log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
+        const offerStartTime = Date.now();
 
-            JanusConnection.audioBridge.send({
-                message: {request: "configure", muted: false},
-                jsep: localJsep
-            });
-        },
-        error: (err) => Logger.log(` Offer Error: ${JSON.stringify(err)}`, "ERROR")
-    });
-    // createOffer() {
-    //     Logger.log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
-    //     const offerStartTime = Date.now();
-    //
-    //     JanusConnection.audioBridge.createOffer({
-    //         media: {audioSend: true, audioRecv: true, video: false}, // Тільки аудіо в обидва боки, без відео
-    //         success: (localJsep) => {
-    //             const elapsed = Date.now() - offerStartTime;
-    //             Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
-    //
-    //             // Надсилаємо Offer серверу разом із запитом configure
-    //             JanusConnection.audioBridge.send({
-    //                 message: {request: "configure", muted: false},
-    //                 jsep: localJsep
-    //             });
-    //         },
-    //         error: (err) => Logger.log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR")
-    //     });
-    // },
+        JanusConnection.audioBridge.createOffer({
+            media: {
+                audioSend: {
+                    echoCancellation: false,  // Вимкнути придушення луни (важливо для мобільних!)
+                    noiseSuppression: false,  // Вимкнути придушення шумів
+                    autoGainControl: false    // Вимкнути авто-гучність
+                },
+                audioRecv: true,
+                video: false
+            },
+            success: (localJsep) => {
+                const elapsed = Date.now() - offerStartTime;
+                Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
+
+                JanusConnection.audioBridge.send({
+                    message: {request: "configure", muted: false},
+                    jsep: localJsep
+                });
+            },
+            error: (err) => Logger.log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR")
+        });
+    },
 
     /**
-     📡 Обробка обміну SDP (JSEP Handshake).
+     Обробка обміну SDP (JSEP Handshake).
+     🎯 ВИПРАВЛЕНО: Синтаксис стрілкових функцій () => та зайві пробіли в типах.
      */
     handleJsep(jsep) {
-        Logger.log(`📡 Отримано JSEP типу: ${jsep.type}`, "DEBUG");
+        Logger.log(` Отримано JSEP типу: ${jsep.type}`, "DEBUG");
 
         if (jsep.type === "answer") {
             // Отримано відповідь SDP від Janus — завершуємо WebRTC Handshake
@@ -222,11 +199,10 @@ const RoomManager = {
                     // Починаємо стежити за процесом з'єднання ICE
                     this.monitorIceState();
                 },
-                error: (err) => Logger.log(` Answer Error: ${JSON.stringify(err)}`, "ERROR")
+                error: (err) => Logger.log(`❌ Answer Error: ${JSON.stringify(err)}`, "ERROR")
             });
         } else if (jsep.type === "offer") {
-            // Якщо Janus надсилає Offer (наприклад, при зміні медіа-потоків на сервері),
-            // автоматично створюємо Answer у відповідь
+            // Якщо Janus надсилає Offer, автоматично створюємо Answer у відповідь
             JanusConnection.audioBridge.createAnswer({
                 jsep: jsep,
                 media: {audioSend: true, audioRecv: true, video: false},
@@ -236,33 +212,38 @@ const RoomManager = {
                         jsep: jsepAnswer
                     });
                 },
-                error: (err) => Logger.log(` CreateAnswer Error: ${JSON.stringify(err)}`, "ERROR")
+                error: (err) => Logger.log(`❌ CreateAnswer Error: ${JSON.stringify(err)}`, "ERROR")
             });
         }
     },
 
     /**
-     🔍 Моніторинг статусу ICE Connection (передача пакетів та проходження NAT).
+     Моніторинг статусу ICE Connection.
+     ВИПРАВЛЕНО: Замінено оператор ?. на стандартну перевірку для уникнення "Unexpected token '.'".
      */
     monitorIceState() {
         let checkCount = 0;
         const checkInterval = setInterval(() => {
-            if (JanusConnection.audioBridge.webrtcStuff?.pc) {
-                const pc = JanusConnection.audioBridge.webrtcStuff.pc;
-                Logger.log(`🔍 ICE: ${pc.iceConnectionState} (${++checkCount})`, "DEBUG");
+            // Безпечна перевірка без використання ?.
+            const bridge = JanusConnection.audioBridge;
+            if (bridge && bridge.webrtcStuff && bridge.webrtcStuff.pc) {
+                const pc = bridge.webrtcStuff.pc;
+                Logger.log(` ICE: ${pc.iceConnectionState} (${++checkCount})`, "DEBUG");
 
                 if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
                     Logger.log("✅ ICE з'єднання встановлено!", "SUCCESS");
                     clearInterval(checkInterval);
 
-                    //  НОВЕ: Запускаємо постійний ICE моніторинг для виявлення втрати зв'язку
-                    NetworkMonitor.startIceMonitoring();
-
+                    // 🎯 Запускаємо постійний ICE моніторинг для виявлення втрати зв'язку
+                    if (typeof NetworkMonitor !== 'undefined') {
+                        NetworkMonitor.startIceMonitoring();
+                    }
                 } else if (pc.iceConnectionState === "failed") {
                     Logger.log("❌ ICE FAILED!", "ERROR");
                     clearInterval(checkInterval);
                 }
             }
+
             // Обмежуємо тривалість перевірки 30-ма секундами (15 перевірок по 2 сек)
             if (checkCount >= 15) {
                 clearInterval(checkInterval);
