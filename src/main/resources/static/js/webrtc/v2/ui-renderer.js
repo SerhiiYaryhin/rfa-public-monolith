@@ -1,5 +1,5 @@
 /**
- 🎨 Модуль UIRenderer (версія v3).
+ Модуль UIRenderer (версія v3).
  Відповідає за відображення інтерфейсу користувача та оновлення DOM-дерева.
  🎯 ВИПРАВЛЕНО: Прибрано генерацію полів RTP Forward з карток кімнат,
  щоб вони не зникали при періодичному оновленні.
@@ -16,6 +16,7 @@ const UIRenderer = {
             this.renderRooms(await response.json());
 
             // 🎯 Оновлюємо інформацію про поточну кімнату в панелі RTP Forward
+            // Це важливо для підтримки правильного стану кнопок
             if (typeof Moderator !== 'undefined' && Moderator.updateCurrentRoomInfo) {
                 Moderator.updateCurrentRoomInfo();
             }
@@ -147,7 +148,7 @@ const UIRenderer = {
     },
 
     /**
-     ⛔ Тимчасово блокує всі кнопки дій під час виконання транзакцій переходу.
+     Тимчасово блокує всі кнопки дій під час виконання транзакцій переходу.
      */
     disableRoomButtons() {
         document.querySelectorAll('.btn-action-room').forEach(btn => btn.disabled = true);

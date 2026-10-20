@@ -3,7 +3,7 @@
  Надає функції для відправки запитів модерації на бекенд:
  - muteUser: вимкнення/увімкнення мікрофона гостя.
  - kickUser: примусове видалення користувача з голосового чату.
- - moveUser: переміщення користувача між кімнатами.
+ - moveUser: переміщення користувача між кімнатами за допомогою WebSocket сигналізації.
  - forwardCurrentRoom / stopCurrentForward: керування RTP Forward для поточної кімнати.
  */
 const Moderator = {
@@ -60,10 +60,10 @@ const Moderator = {
      */
     async moveUser(userUuid, targetRoomId) {
         if (!userUuid) {
-            Logger.log("⚠️ Неможливо перемістити: UUID користувача відсутній", "WARN");
+            Logger.log("️ Неможливо перемістити: UUID користувача відсутній", "WARN");
             return;
         }
-        Logger.log(`🔄 Запит на переміщення користувача ${userUuid.substring(0, 8)}... в кімнату ${targetRoomId}`, "INFO");
+        Logger.log(` Запит на переміщення користувача ${userUuid.substring(0, 8)}... в кімнату ${targetRoomId}`, "INFO");
         try {
             const response = await fetch(`${CONFIG.BACKEND_API}/moderate/move?userUuid=${userUuid}&targetRoomId=${targetRoomId}`, {
                 method: 'POST'
@@ -82,18 +82,24 @@ const Moderator = {
     },
 
     // ================================================================
-    // 🎯 НОВІ МЕТОДИ ДЛЯ ГЛОБАЛЬНОГО RTP FORWARD
+    // 🎯 МЕТОДИ ДЛЯ ГЛОБАЛЬНОГО RTP FORWARD
     // ================================================================
 
     /**
      📡 Запуск RTP Forward для поточної кімнати (де сидить користувач).
-     Бере host/port з полів вводу, зберігає в localStorage.
      */
     async forwardCurrentRoom() {
         const roomId = RoomManager.currentRoomId;
         if (!roomId) {
             Logger.log("⚠️ Ви не знаходитесь в жодній кімнаті!", "WARN");
             alert("Спочатку увійдіть в кімнату!");
+            return;
+        }
+
+        // Перевірка: чи не запущено вже forward для цієї кімнати
+        if (this.activeForwards[roomId]) {
+            Logger.log(`⚠️ RTP Forward для кімнати ${roomId} вже активний (Stream ID: ${this.activeForwards[roomId]})`, "WARN");
+            alert("Трансляція вже активна для цієї кімнати!");
             return;
         }
 
@@ -152,7 +158,7 @@ const Moderator = {
 
         const streamId = this.activeForwards[roomId];
         if (!streamId) {
-            Logger.log("⚠️ Немає активного forward для цієї кімнати", "WARN");
+            Logger.log("️ Немає активного forward для цієї кімнати", "WARN");
             return;
         }
 
@@ -180,8 +186,7 @@ const Moderator = {
 
     /**
      🎨 Оновлення UI глобальної панелі RTP Forward.
-     @param {boolean} isActive Чи активний forward
-     @param {number} [streamId] ID потоку (якщо активний)
+     ВИПРАВЛЕНО: Правильна логіка disabled стану кнопок.
      */
     updateForwardUI(isActive, streamId = null) {
         const btnStart = document.getElementById('btn-start-forward');
@@ -189,8 +194,15 @@ const Moderator = {
         const indicator = document.getElementById('forward-indicator');
         const statusText = document.getElementById('forward-status-text');
 
-        if (btnStart) btnStart.disabled = isActive;
-        if (btnStop) btnStop.disabled = !isActive;
+        if (btnStart) {
+            // Кнопка "Транслювати" НЕактивна, коли forward АКТИВНИЙ або коли немає поточної кімнати
+            const noRoom = !RoomManager.currentRoomId;
+            btnStart.disabled = isActive || noRoom;
+        }
+        if (btnStop) {
+            // Кнопка "Зупинити" АКТИВНА тільки коли forward АКТИВНИЙ
+            btnStop.disabled = !isActive;
+        }
 
         if (indicator) {
             indicator.className = isActive
@@ -222,5 +234,9 @@ const Moderator = {
             infoEl.style.color = '#6c757d';
             infoEl.style.fontWeight = 'normal';
         }
+
+        // 🎯 Оновлюємо стан кнопок залежно від наявності кімнати
+        const isActive = roomId && this.activeForwards[roomId];
+        this.updateForwardUI(!!isActive, isActive ? this.activeForwards[roomId] : null);
     }
 };

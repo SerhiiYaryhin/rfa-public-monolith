@@ -1,6 +1,6 @@
 /**
- 🚀 Головна точка входу для WebRTC голосового чату (версія v3).
- Виконує послідовну ініціалізацію при завантаженні сторінки.
+ Головна точка входу для WebRTC голосового чату (версія v3).
+ Виконує послідовну ініціалізацію при завантаженні сторінки (DOMContentLoaded).
  Додає обробники подій мережі для автоматичного перепідключення.
  */
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Тимчасово блокуємо елементи інтерфейсу до завершення підключення
     UIRenderer.disableRoomButtons();
 
-    // 🎯 Завантаження збережених налаштувань RTP Forward з localStorage
+    // 🎯 НОВЕ: Завантаження збережених налаштувань RTP Forward з localStorage
     const savedHost = localStorage.getItem('rtp-forward-host');
     const savedPort = localStorage.getItem('rtp-forward-port');
     if (savedHost) {
@@ -37,7 +37,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         await RoomManager.switchRoom(CONFIG.DEFAULT_ROOM_ID);
 
         // 🎯 Оновлюємо інформацію про поточну кімнату в панелі RTP Forward
-        Moderator.updateCurrentRoomInfo();
+        // Це розблокує кнопку "Транслювати поточну кімнату"
+        if (typeof Moderator !== 'undefined' && Moderator.updateCurrentRoomInfo) {
+            Moderator.updateCurrentRoomInfo();
+        }
     } catch (error) {
         Logger.log(`❌ Критична помилка ініціалізації: ${error}`, "ERROR");
     }
@@ -57,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     window.addEventListener('offline', () => {
-        Logger.log("⚠️ Мережа втрачена", "WARN");
+        Logger.log("️ Мережа втрачена", "WARN");
         Logger.updateConnectionStatus(false, "Немає мережі");
     });
 
@@ -66,6 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 /**
  🧹 Обробник події вивантаження сторінки (закриття вкладки).
+ Гарантує коректне закриття WebSocket сесії та очищення хендлів плагінів у Janus Gateway.
  */
 window.addEventListener("beforeunload", () => {
     if (JanusConnection.janusInstance) {
@@ -77,6 +81,7 @@ window.addEventListener("beforeunload", () => {
 });
 
 // Експорт об'єктів-модулів у глобальний простір імен window
+// для можливості виклику функцій з HTML (onclick інлайн-обробники)
 window.RoomManager = RoomManager;
 window.StreamManager = StreamManager;
 window.Moderator = Moderator;

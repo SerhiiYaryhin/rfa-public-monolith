@@ -140,6 +140,14 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        .btn-start-forward:not(:disabled):hover {
+            background: #8e44ad;
+            transform: translateY(-1px);
+        }
+        .btn-stop-forward:not(:disabled):hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
         .current-room-info {
             font-size: 13px;
             color: #6c757d;
@@ -302,7 +310,7 @@
         <audio id="audioPlayer" controls autoplay playsinline></audio>
 
         <div class="audio-monitor-container">
-            <span class="monitor-label">📻 Рівень ефіру:</span>
+            <span class="monitor-label"> Рівень ефіру:</span>
             <div class="volume-bar-bg">
                 <div id="audio-visualizer" class="volume-bar-fill" style="background: linear-gradient(90deg, #27ae60, #f1c40f, #e74c3c);"></div>
             </div>
@@ -362,7 +370,7 @@
     <!-- Активні кімнати -->
     <div class="section">
         <h2>🎙️ Активні кімнати</h2>
-        <button class="btn-refresh" onclick="UIRenderer.loadRooms()">🔄 Оновити</button>
+        <button class="btn-refresh" onclick="UIRenderer.loadRooms()"> Оновити</button>
         <div id="roomsList" class="rooms-grid">
             <div class="loading">⏳ Завантаження даних про кімнати...</div>
         </div>
@@ -390,7 +398,7 @@
 
 <script>
     if (typeof Janus === 'undefined') {
-        console.error("❌ КРИТИЧНА ПОМИЛКА: Бібліотека Janus.js не завантажилася!");
+        console.error(" КРИТИЧНА ПОМИЛКА: Бібліотека Janus.js не завантажилася!");
         alert("Помилка: Не вдалося завантажити WebRTC бібліотеку Janus.");
     } else {
         console.log("✅ Janus.js успішно завантажено");
