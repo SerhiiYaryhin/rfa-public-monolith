@@ -5,22 +5,17 @@
  - Ініціалізація WebSocket сесії Janus.
  - Прикріплення плагіна AudioBridge.
  - Обробка та відтворення віддалених аудіо треків (WebRTC Audio).
+ - Передача треків у AudioMonitor для візуалізації рівня звуку.
  */
 const JanusConnection = {
-    // Екземпляр головного об'єкта Janus JS SDK
     janusInstance: null,
-    // Хендл прикріпленого плагіна AudioBridge
     audioBridge: null,
-    // Авторизаційний токен поточної сесії користувача (UUID)
     currentSessionToken: null,
-    // Флаг готовності Janus з'єднання
     isJanusReady: false,
-    // Статус виконання авто-перепідключення
     isReconnecting: false,
 
     /**
      🔑 Отримання токена сесії користувача від нашого бекенду.
-     Запобігає передачі api_secret клієнту.
      */
     async initUserSession() {
         Logger.log("🔑 Отримання токена користувача...", "INFO");
@@ -105,8 +100,15 @@ const JanusConnection = {
                 onremotetrack: (track, mid, on) => {
                     this.handleRemoteTrack(track, mid, on);
                 },
-                onlocaltrack: (track, mid) => {
-                    Logger.log(`🎤 Локальний трек додано: ${track.kind} (mid=${mid})`, "DEBUG");
+                // 🎤 Сумісність з обома сигнатурами janus.js: (track, on) та (track, mid, on)
+                onlocaltrack: (track, midOrOn, on) => {
+                    const added = (typeof on === 'boolean') ? on
+                        : (typeof midOrOn === 'boolean') ? midOrOn
+                            : true;
+                    Logger.log(`🎤 Локальний трек: ${track ? track.kind : 'null'}, added=${added}`, "DEBUG");
+                    if (added && track && track.kind === 'audio') {
+                        AudioMonitor.attachLocalTrack(track);
+                    }
                 },
                 onmessage: (msg, jsep) => RoomManager.handleJanusMessage(msg, jsep),
                 oncleanup: () => Logger.log("🧹 З'єднання плагіна очищено", "INFO"),
@@ -117,9 +119,6 @@ const JanusConnection = {
 
     /**
      🔊 Обробка віддаленого аудіо треку WebRTC (Mixed audio).
-     @param {MediaStreamTrack} track Медіа трек від Janus
-     @param {string} mid Ідентифікатор медіа-каналу
-     @param {boolean} on Флаг підключення (true) чи відключення (false)
      */
     handleRemoteTrack(track, mid, on) {
         Logger.log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
@@ -127,7 +126,6 @@ const JanusConnection = {
         if (on && track.kind === 'audio') {
             let audio = document.getElementById("audioPlayer");
 
-            // Якщо плеєра немає на сторінці, створюємо динамічно
             if (!audio) {
                 audio = document.getElementById("remoteAudio-" + mid);
                 if (!audio) {
@@ -142,19 +140,16 @@ const JanusConnection = {
             const stream = new MediaStream([track]);
             audio.srcObject = stream;
 
-            // 🎯 ВИПРАВЛЕННЯ: Зупиняємо старий моніторинг перед запуском нового
-            AudioMonitor.stop();
-
+            // ✅ БЕЗ stop()! Монітор живє весь час життя сторінки.
             audio.play().then(() => {
                 Logger.log("✅ Аудіо відтворення розпочато успішно", "SUCCESS");
-                AudioMonitor.init(audio);
+                AudioMonitor.attachRemote(audio);
             }).catch(e => {
                 Logger.log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
-                // Навіть якщо autoplay заблоковано, ініціалізуємо монітор (він буде готовий до кліку користувача)
-                AudioMonitor.init(audio);
+                AudioMonitor.attachRemote(audio);
             });
         } else if (!on) {
-            // Якщо трек видалено (користувач вийшов або змінив кімнату), зупиняємо візуалізацію
+            // Трек видалено (вихід з кімнати): лише обнуляємо смужки, контекст НЕ чіпаємо
             AudioMonitor.stop();
         }
     }
