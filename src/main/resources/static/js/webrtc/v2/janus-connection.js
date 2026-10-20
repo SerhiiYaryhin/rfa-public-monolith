@@ -46,7 +46,7 @@ const JanusConnection = {
     initJanusConnection() {
         return new Promise((resolve, reject) => {
             if (!this.currentSessionToken) return reject("Токен відсутній");
-            Logger.log(" Підключення до Janus WebSocket...", "INFO");
+            Logger.log("🔌 Підключення до Janus WebSocket...", "INFO");
 
             Janus.init({
                 debug: ["error", "warn"],
@@ -99,7 +99,7 @@ const JanusConnection = {
                     resolve();
                 },
                 error: (error) => {
-                    Logger.log(` Помилка прикріплення плагіна: ${error}`, "ERROR");
+                    Logger.log(`❌ Помилка прикріплення плагіна: ${error}`, "ERROR");
                     reject(error);
                 },
                 onremotetrack: (track, mid, on) => {
@@ -123,9 +123,11 @@ const JanusConnection = {
      */
     handleRemoteTrack(track, mid, on) {
         Logger.log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
+
         if (on && track.kind === 'audio') {
             let audio = document.getElementById("audioPlayer");
 
+            // Якщо плеєра немає на сторінці, створюємо динамічно
             if (!audio) {
                 audio = document.getElementById("remoteAudio-" + mid);
                 if (!audio) {
@@ -140,13 +142,13 @@ const JanusConnection = {
             const stream = new MediaStream([track]);
             audio.srcObject = stream;
 
-            // 🎯 НОВЕ: Запускаємо моніторинг рівня звуку
+            // 🎯 ВИПРАВЛЕННЯ: Запускаємо відтворення та ініціалізуємо монітор
             audio.play().then(() => {
                 Logger.log("✅ Аудіо відтворення розпочато успішно", "SUCCESS");
-                AudioMonitor.init(audio);
+                AudioMonitor.init(audio); // <-- ЦЬОГО НЕ ВИСТАЧАЛО!
             }).catch(e => {
                 Logger.log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
-                // Навіть якщо autoplay заблоковано, ініціалізуємо моніторинг для готовності
+                // Навіть якщо автоплей заблоковано, ініціалізуємо монітор (він спробує відновити контекст при кліку)
                 AudioMonitor.init(audio);
             });
         }

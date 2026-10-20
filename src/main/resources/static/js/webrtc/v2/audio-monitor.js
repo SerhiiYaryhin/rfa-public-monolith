@@ -24,12 +24,22 @@ const AudioMonitor = {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioContext = new AudioContext();
 
+            // 🎯 КРИТИЧНЕ ВИПРАВЛЕННЯ ДЛЯ МОБІЛЬНИХ БРАУЗЕРІВ:
+            // Примусове відновлення AudioContext, якщо браузер його призупинив до взаємодії
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => {
+                    Logger.log("🔄 AudioContext відновлено (потрібна взаємодія зі сторінкою)", "INFO");
+                }).catch(e => {
+                    Logger.log(`⚠️ Не вдалося відновити AudioContext: ${e.message}`, "WARN");
+                });
+            }
+
             // Створюємо джерело з існуючого HTML <audio> елемента
             this.source = this.audioContext.createMediaElementSource(audioElement);
 
             // Створюємо аналізатор
             this.analyser = this.audioContext.createAnalyser();
-            this.analyser.fftSize = 256;
+            this.analyser.fftSize = 256; // Розмір вибірки (256 дає 128 частотних бінів)
 
             // З'єднуємо ланцюжок: Джерело -> Аналізатор -> Вихід (динаміки)
             this.source.connect(this.analyser);
@@ -57,18 +67,24 @@ const AudioMonitor = {
         const update = () => {
             if (!this.analyser) return;
 
+            // Отримуємо частотні дані (значення від 0 до 255)
             this.analyser.getByteFrequencyData(dataArray);
 
+            // Обчислюємо середній рівень гучності
             let sum = 0;
             for (let i = 0; i < bufferLength; i++) {
                 sum += dataArray[i];
             }
             const average = sum / bufferLength;
 
+            // Масштабуємо 0-255 у відсотки (0-100%).
+            // Множник 1.5 додається для кращої чутливості до тихих звуків
             const percentage = Math.min(100, Math.round((average / 255) * 100 * 1.5));
 
+            // Оновлюємо інтерфейс
             this.updateUI(percentage);
 
+            // Запускаємо наступний кадр
             this.animationId = requestAnimationFrame(update);
         };
 
@@ -87,12 +103,13 @@ const AudioMonitor = {
             visualizer.style.width = `${percentage}%`;
             levelText.textContent = `${percentage}%`;
 
+            // Динамічна зміна кольору залежно від гучності
             if (percentage < 10) {
-                visualizer.style.background = '#e74c3c';
+                visualizer.style.background = '#e74c3c'; // Червоний (тиша)
             } else if (percentage < 40) {
-                visualizer.style.background = '#f1c40f';
+                visualizer.style.background = '#f1c40f'; // Жовтий (нормальний рівень)
             } else {
-                visualizer.style.background = '#27ae60';
+                visualizer.style.background = '#27ae60'; // Зелений (гучний сигнал)
             }
         }
     },
