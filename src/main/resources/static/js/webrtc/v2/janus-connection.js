@@ -122,12 +122,11 @@ const JanusConnection = {
      @param {boolean} on Флаг підключення (true) чи відключення (false)
      */
     handleRemoteTrack(track, mid, on) {
-        Logger.log(`🔊 ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
+        Logger.log(` ${on ? 'Додано' : 'Видалено'} віддалений трек: ${track.kind} (mid=${mid})`, "SUCCESS");
 
         if (on && track.kind === 'audio') {
             let audio = document.getElementById("audioPlayer");
 
-            // Якщо плеєра немає на сторінці, створюємо динамічно
             if (!audio) {
                 audio = document.getElementById("remoteAudio-" + mid);
                 if (!audio) {
@@ -142,13 +141,14 @@ const JanusConnection = {
             const stream = new MediaStream([track]);
             audio.srcObject = stream;
 
-            // 🎯 ВИПРАВЛЕННЯ: Запускаємо відтворення та ініціалізуємо монітор
+            // 🎯 ВИПРАВЛЕННЯ: Зупиняємо старий моніторинг перед запуском нового
+            AudioMonitor.stop();
+
             audio.play().then(() => {
                 Logger.log("✅ Аудіо відтворення розпочато успішно", "SUCCESS");
-                AudioMonitor.init(audio); // <-- ЦЬОГО НЕ ВИСТАЧАЛО!
+                AudioMonitor.init(audio);
             }).catch(e => {
                 Logger.log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
-                // Навіть якщо автоплей заблоковано, ініціалізуємо монітор (він спробує відновити контекст при кліку)
                 AudioMonitor.init(audio);
             });
         }
