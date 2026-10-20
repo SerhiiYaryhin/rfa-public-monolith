@@ -1,11 +1,11 @@
 /**
- * 🚀 Головна точка входу для WebRTC голосового чату (версія v2).
- * 
- * Виконує послідовну ініціалізацію при завантаженні сторінки (DOMContentLoaded).
+ 🚀 Головна точка входу для WebRTC голосового чату (версія v2).
+ Виконує послідовну ініціалізацію при завантаженні сторінки (DOMContentLoaded).
+ Додає обробники подій мережі для автоматичного перепідключення.
  */
 document.addEventListener("DOMContentLoaded", async () => {
     Logger.log("🚀 Сторінку завантажено. Ініціалізація...", "INFO");
-    
+
     // Тимчасово блокуємо елементи інтерфейсу до завершення підключення
     UIRenderer.disableRoomButtons();
 
@@ -29,24 +29,41 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Перший рендеринг списку кімнат
     UIRenderer.loadRooms();
-    
+
     // Встановлюємо інтервал для періодичного оновлення списку кімнат та учасників
     setInterval(() => UIRenderer.loadRooms(), CONFIG.ROOMS_REFRESH_INTERVAL);
+
+    // 🎯 НОВЕ: Обробники подій мережі для автоматичного перепідключення
+    window.addEventListener('online', () => {
+        Logger.log("🌐 Мережа відновлена", "SUCCESS");
+        // Перевіряємо стан з'єднань і перепідключаємося при необхідності
+        NetworkMonitor.checkAndReconnect();
+    });
+
+    window.addEventListener('offline', () => {
+        Logger.log("⚠️ Мережа втрачена", "WARN");
+        Logger.updateConnectionStatus(false, "Немає мережі");
+    });
+
+    Logger.log("✅ Обробники мережі активовано", "INFO");
 });
 
 /**
- * 🧹 Обробник події вивантаження сторінки (закриття вкладки).
- * Гарантує коректне закриття WebSocket сесії та очищення хендлів плагінів у Janus Gateway.
+ 🧹 Обробник події вивантаження сторінки (закриття вкладки).
+ Гарантує коректне закриття WebSocket сесії та очищення хендлів плагінів у Janus Gateway.
  */
 window.addEventListener("beforeunload", () => {
     if (JanusConnection.janusInstance) {
         JanusConnection.janusInstance.destroy({cleanupHandles: true});
     }
+    // Зупиняємо ICE моніторинг при закритті сторінки
+    NetworkMonitor.stopIceMonitoring();
 });
 
-// Експорт об'єктів-модулів у глобальний простір імен window 
+// Експорт об'єктів-модулів у глобальний простір імен window
 // для можливості виклику функцій з HTML (onclick інлайн-обробники)
 window.RoomManager = RoomManager;
 window.StreamManager = StreamManager;
 window.Moderator = Moderator;
 window.WebSocketSignaling = WebSocketSignaling;
+window.NetworkMonitor = NetworkMonitor;

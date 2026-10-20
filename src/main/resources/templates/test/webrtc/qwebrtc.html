@@ -182,7 +182,7 @@
 </head>
 <body>
 <header>
-    <h1>📡 RFA WebRTC - Прямий Ефір</h1>
+    <h1> RFA WebRTC - Прямий Ефір</h1>
     <div class="status-container">
         <span id="statusIndicator" class="status-indicator status-disconnected"></span>
         <span id="statusText">Відключено</span>
@@ -192,12 +192,12 @@
 <div class="container">
     <!-- Аудіоплеєр та Моніторинг -->
     <div class="section">
-        <h2> Аудіоплеєр</h2>
+        <h2>🔊 Аудіоплеєр</h2>
         <audio id="audioPlayer" controls autoplay></audio>
 
         <!-- 🎯 Моніторинг рівня звуку ЕФІРУ (від Janus) -->
         <div class="audio-monitor-container">
-            <span class="monitor-label">📻 Рівень ефіру:</span>
+            <span class="monitor-label"> Рівень ефіру:</span>
             <div class="volume-bar-bg">
                 <div id="audio-visualizer" class="volume-bar-fill" style="background: linear-gradient(90deg, #27ae60, #f1c40f, #e74c3c);"></div>
             </div>
@@ -240,7 +240,7 @@
 <script src="/js/webrtc/v2/stream-manager.js"></script>
 <script src="/js/webrtc/v2/ui-renderer.js"></script>
 <script src="/js/webrtc/v2/audio-monitor.js"></script>
-<!--<script src="/js/webrtc/v2/microphone-monitor.js"></script> &lt;!&ndash; 🎤 НОВИЙ ФАЙЛ &ndash;&gt;-->
+<script src="/js/webrtc/v2/network-monitor.js"></script> <!-- 🎯 НОВИЙ ФАЙЛ -->
 <script src="/js/webrtc/v2/main.js"></script>
 
 <!-- Перевірка завантаження Janus -->
