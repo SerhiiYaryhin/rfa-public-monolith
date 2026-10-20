@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -37,6 +38,27 @@ public class FfmpegCommandService {
      */
     public void sendStopCommand(String stationId) {
         sendFfmpegCommand("stop", stationId, null, null);
+    }
+
+    /**
+     * 💓 Heartbeat для FFmpeg агента.
+     * Відправляється кожні 2 хвилини (120000 мс).
+     * Якщо агент не отримає heartbeat протягом 5 хвилин, він автоматично зупинить FFmpeg.
+     */
+    @Scheduled(fixedRate = 120000)
+    public void sendHeartbeat() {
+        try {
+            Map<String, Object> message = new HashMap<>();
+            message.put("command", "heartbeat");
+            message.put("timestamp", System.currentTimeMillis());
+
+            String jsonPayload = objectMapper.writeValueAsString(message);
+            log.debug("💓 Відправка Heartbeat FFmpeg агенту");
+
+            rabbitTemplate.convertAndSend("ffmpeg-agent-commands", jsonPayload);
+        } catch (Exception e) {
+            log.error("❌ Помилка відправки Heartbeat: {}", e.getMessage(), e);
+        }
     }
 
     /**
