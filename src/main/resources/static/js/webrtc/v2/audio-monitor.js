@@ -123,7 +123,7 @@ const AudioMonitor = {
             const now = Date.now();
             if (now - this.lastDebugLog > 5000) {
                 this.lastDebugLog = now;
-                Logger.log(`📊 [MON] ефір=${remotePct}% мікрофон=${micPct}% ctx=${this.ctx ? this.ctx.state : '-'}`, "DEBUG");
+                // Logger.log(`📊 [MON] ефір=${remotePct}% мікрофон=${micPct}% ctx=${this.ctx ? this.ctx.state : '-'}`, "DEBUG");
             }
         };
         this.loopId = requestAnimationFrame(tick);

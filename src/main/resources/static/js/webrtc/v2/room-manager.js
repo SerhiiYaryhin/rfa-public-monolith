@@ -47,7 +47,7 @@ const RoomManager = {
             const serverResponse = await response.json();
             if (!serverResponse.success) throw new Error(serverResponse.error || "Помилка сервера");
 
-            Logger.log(`✅ Бекенд підтвердив перехід. Display: "${serverResponse.display}"`, "SUCCESS");
+            // Logger.log(`✅ Бекенд підтвердив перехід. Display: "${serverResponse.display}"`, "SUCCESS");
 
             // Якщо користувач вже сидить у кімнаті, очищуємо попереднє PeerConnection
             if (this.currentRoomId !== null) {
@@ -94,7 +94,7 @@ const RoomManager = {
             display: display,
             muted: false
         };
-        Logger.log(`📤 Відправка: ${JSON.stringify(joinMessage)}`, "DEBUG");
+        // Logger.log(`📤 Відправка: ${JSON.stringify(joinMessage)}`, "DEBUG");
         JanusConnection.audioBridge.send({message: joinMessage});
     },
 
@@ -102,7 +102,7 @@ const RoomManager = {
      Обробка вхідних текстових повідомлень від плагіна AudioBridge.
      */
     handleJanusMessage(msg, jsep) {
-        Logger.log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
+        // Logger.log(`📥 Отримано від Janus: ${JSON.stringify(msg).substring(0, 300)}...`, "DEBUG");
         const event = msg.audiobridge;
 
         if (msg.error_code || msg.error) {
@@ -115,7 +115,8 @@ const RoomManager = {
             if (msg.id) {
                 const myId = msg.id;
                 const myDisplay = msg.display || this.currentDisplay;
-                Logger.log(`✅ Увійшли в кімнату ${this.currentRoomId}. Ваш ID: ${myId}, Display: "${myDisplay}"`, "SUCCESS");
+                Logger.log(`✅ Увійшли в кімнату ${this.currentRoomId}. Display: "${myDisplay}"`, "SUCCESS");
+                // Logger.log(`✅ Увійшли в кімнату ${this.currentRoomId}. Ваш ID: ${myId}, Display: "${myDisplay}"`, "SUCCESS");
 
                 // Оновлюємо UI список учасників
                 UIRenderer.loadRooms();
@@ -125,14 +126,14 @@ const RoomManager = {
                     this.createOffer();
                 }
             } else {
-                Logger.log(` Інший користувач увійшов в кімнату`, "INFO");
+                // Logger.log(` Інший користувач увійшов в кімнату`, "INFO");
                 UIRenderer.loadRooms();
             }
         }
 
         // Обробка подій виходу та руйнування кімнат (виправлено зайві пробіли в рядках)
         if (event === "left") {
-            Logger.log(`👋 Хтось вийшов з кімнати`, "INFO");
+            // Logger.log(`👋 Хтось вийшов з кімнати`, "INFO");
             UIRenderer.loadRooms();
         }
         if (event === "kicked") {
@@ -188,7 +189,7 @@ const RoomManager = {
      🎯 ВИПРАВЛЕНО: Синтаксис стрілкових функцій () => та зайві пробіли в типах.
      */
     handleJsep(jsep) {
-        Logger.log(` Отримано JSEP типу: ${jsep.type}`, "DEBUG");
+        // Logger.log(` Отримано JSEP типу: ${jsep.type}`, "DEBUG");
 
         if (jsep.type === "answer") {
             // Отримано відповідь SDP від Janus — завершуємо WebRTC Handshake
