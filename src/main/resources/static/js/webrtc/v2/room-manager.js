@@ -165,25 +165,47 @@ const RoomManager = {
     /**
      Створення локального WebRTC Offer для публікації аудіопотоку з мікрофона користувача.
      */
-    createOffer() {
-        Logger.log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
-        const offerStartTime = Date.now();
-
-        JanusConnection.audioBridge.createOffer({
-            media: {audioSend: true, audioRecv: true, video: false}, // Тільки аудіо в обидва боки, без відео
-            success: (localJsep) => {
-                const elapsed = Date.now() - offerStartTime;
-                Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
-
-                // Надсилаємо Offer серверу разом із запитом configure
-                JanusConnection.audioBridge.send({
-                    message: {request: "configure", muted: false},
-                    jsep: localJsep
-                });
+    JanusConnection.audioBridge.createOffer({
+        media: {
+            audioSend: {
+                // 🎯 КРИТИЧНО ДЛЯ МОБІЛЬНИХ: Вимикаємо обробку звуку
+                echoCancellation: false,  // Вимкнути придушення луни
+                noiseSuppression: false,  // Вимкнути придушення шумів
+                autoGainControl: false    // Вимкнути авто-гучність (AGC)
             },
-            error: (err) => Logger.log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR")
-        });
-    },
+            audioRecv: true,
+            video: false
+        },
+        success: (localJsep) => {
+            const elapsed = Date.now() - offerStartTime;
+            Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
+
+            JanusConnection.audioBridge.send({
+                message: {request: "configure", muted: false},
+                jsep: localJsep
+            });
+        },
+        error: (err) => Logger.log(` Offer Error: ${JSON.stringify(err)}`, "ERROR")
+    });
+    // createOffer() {
+    //     Logger.log("🎤 Створюємо WebRTC Offer (мікрофон)...", "DEBUG");
+    //     const offerStartTime = Date.now();
+    //
+    //     JanusConnection.audioBridge.createOffer({
+    //         media: {audioSend: true, audioRecv: true, video: false}, // Тільки аудіо в обидва боки, без відео
+    //         success: (localJsep) => {
+    //             const elapsed = Date.now() - offerStartTime;
+    //             Logger.log(`📤 SDP Offer готовий (за ${elapsed}мс). Надсилаємо configure...`, "INFO");
+    //
+    //             // Надсилаємо Offer серверу разом із запитом configure
+    //             JanusConnection.audioBridge.send({
+    //                 message: {request: "configure", muted: false},
+    //                 jsep: localJsep
+    //             });
+    //         },
+    //         error: (err) => Logger.log(`❌ Offer Error: ${JSON.stringify(err)}`, "ERROR")
+    //     });
+    // },
 
     /**
      📡 Обробка обміну SDP (JSEP Handshake).
