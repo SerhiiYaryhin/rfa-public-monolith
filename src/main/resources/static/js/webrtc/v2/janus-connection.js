@@ -142,8 +142,7 @@ const JanusConnection = {
             const stream = new MediaStream([track]);
             audio.srcObject = stream;
 
-            // 🎯 ВИПРАВЛЕННЯ: Зупиняємо старий моніторинг перед запуском нового,
-            // щоб уникнути помилки InvalidStateError (HTMLMediaElement already connected).
+            // 🎯 ВИПРАВЛЕННЯ: Зупиняємо старий моніторинг перед запуском нового
             AudioMonitor.stop();
 
             audio.play().then(() => {

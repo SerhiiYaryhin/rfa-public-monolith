@@ -1,16 +1,22 @@
 /**
- 📊 Модуль AudioMonitor.
+ Модуль AudioMonitor.
  Відповідає за візуалізацію рівня гучності аудіопотоку за допомогою Web Audio API.
- Виправлено: безпечна повторна ініціалізація без помилки InvalidStateError.
+ Аналізує HTML <audio> елемент і оновлює відповідні DOM-елементи інтерфейсу.
+ Моніторинг працює тільки для поточної кімнати, в якій знаходиться користувач.
  */
 const AudioMonitor = {
+    // Внутрішній стан модуля
     audioContext: null,
     analyser: null,
     source: null,
     animationId: null,
     isInitialized: false,
-    targetElement: null, // Зберігаємо посилання на елемент, який моніторимо
+    targetElement: null,
 
+    /**
+     ️ Ініціалізація аналізатора для конкретного <audio> елемента.
+     @param {HTMLAudioElement} audioElement - Елемент, з якого береться звук.
+     */
     init(audioElement) {
         if (!audioElement) {
             Logger.log("❌ audioElement не передано", "ERROR");
@@ -44,7 +50,7 @@ const AudioMonitor = {
                     this.source = this.audioContext.createMediaElementSource(audioElement);
                 } catch (e) {
                     // Якщо елемент вже підключено, ігноруємо помилку і використовуємо існуючу конфігурацію
-                    Logger.log("⚠️ Елемент вже підключено, використовуємо існуючий ланцюжок", "WARN");
+                    Logger.log("️ Елемент вже підключено, використовуємо існуючий ланцюжок", "WARN");
                 }
             }
 
@@ -74,6 +80,9 @@ const AudioMonitor = {
         }
     },
 
+    /**
+     🔄 Головний цикл аналізу частот (викликається ~60 разів на секунду).
+     */
     startLoop() {
         if (!this.analyser) return;
 
@@ -83,22 +92,34 @@ const AudioMonitor = {
         const update = () => {
             if (!this.analyser) return;
 
+            // Отримуємо частотні дані (значення від 0 до 255)
             this.analyser.getByteFrequencyData(dataArray);
 
+            // Обчислюємо середній рівень гучності
             let sum = 0;
             for (let i = 0; i < bufferLength; i++) {
                 sum += dataArray[i];
             }
             const average = sum / bufferLength;
+
+            // Масштабуємо 0-255 у відсотки (0-100%).
+            // Множник 1.5 додається для кращої чутливості до тихих звуків
             const percentage = Math.min(100, Math.round((average / 255) * 100 * 1.5));
 
+            // Оновлюємо інтерфейс
             this.updateUI(percentage);
+
+            // Запускаємо наступний кадр
             this.animationId = requestAnimationFrame(update);
         };
 
         this.animationId = requestAnimationFrame(update);
     },
 
+    /**
+     🎨 Оновлення DOM-елементів візуалізатора.
+     @param {number} percentage Рівень гучності від 0 до 100
+     */
     updateUI(percentage) {
         const visualizer = document.getElementById('audio-visualizer');
         const levelText = document.getElementById('audio-level-text');
@@ -107,24 +128,32 @@ const AudioMonitor = {
             visualizer.style.width = `${percentage}%`;
             levelText.textContent = `${percentage}%`;
 
+            // Динамічна зміна кольору залежно від гучності
             if (percentage < 10) {
-                visualizer.style.background = '#e74c3c';
+                visualizer.style.background = '#e74c3c'; // Червоний (тиша)
             } else if (percentage < 40) {
-                visualizer.style.background = '#f1c40f';
+                visualizer.style.background = '#f1c40f'; // Жовтий (нормальний рівень)
             } else {
-                visualizer.style.background = '#27ae60';
+                visualizer.style.background = '#27ae60'; // Зелений (гучний сигнал)
             }
         }
     },
 
+    /**
+     🛑 Зупинка моніторингу та очищення ресурсів.
+     ВАЖЛИВО: Ми ТІЛЬКИ зупиняємо анімацію, НЕ закриваємо AudioContext!
+     */
     stop() {
-        // ❗ ВАЖЛИВО: Ми ТІЛЬКИ зупиняємо анімацію.
-        // Ми НЕ знищуємо AudioContext і НЕ відключаємо source,
-        // щоб уникнути InvalidStateError при наступному виклику init().
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
+        //  НЕ закриваємо AudioContext, щоб уникнути InvalidStateError
+        // if (this.audioContext && this.audioContext.state !== 'closed') {
+        //     this.audioContext.close();
+        // }
+        // ❗ НЕ скидаємо isInitialized, щоб можна було відновити
+        // this.isInitialized = false;
         Logger.log("🛑 Моніторинг аудіо сигналу призупинено", "INFO");
     }
 };
