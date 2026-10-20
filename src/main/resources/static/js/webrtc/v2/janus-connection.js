@@ -1,11 +1,11 @@
 /**
- 🔌 Модуль JanusConnection (версія v2).
+ 🔌 Модуль JanusConnection (версія v5).
  Керує підключенням до медіасервера Janus Gateway:
- - Отримання токена сесії з бекенду (Spring Security Integration).
- - Ініціалізація WebSocket сесії Janus.
- - Прикріплення плагіна AudioBridge.
- - Обробка та відтворення віддалених аудіо треків (WebRTC Audio).
- - Передача треків у AudioMonitor для візуалізації рівня звуку.
+ Отримання токена сесії з бекенду (Spring Security Integration).
+ Ініціалізація WebSocket сесії Janus.
+ Прикріплення плагіна AudioBridge.
+ Обробка та відтворення віддалених аудіо треків (WebRTC Audio).
+ Передача треків у AudioMonitor (v5) для візуалізації рівня звуку.
  */
 const JanusConnection = {
     janusInstance: null,
@@ -14,16 +14,12 @@ const JanusConnection = {
     isJanusReady: false,
     isReconnecting: false,
 
-    /**
-     🔑 Отримання токена сесії користувача від нашого бекенду.
-     */
     async initUserSession() {
         Logger.log("🔑 Отримання токена користувача...", "INFO");
         try {
             const response = await fetch(`${CONFIG.BACKEND_API}/token`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-
             this.currentSessionToken = data.token;
             Logger.log(`✅ Токен отримано: ${this.currentSessionToken.substring(0, 8)}...`, "SUCCESS");
             return true;
@@ -35,14 +31,10 @@ const JanusConnection = {
         }
     },
 
-    /**
-     🔌 Ініціалізація з'єднання з Janus медіасервером через WebSocket.
-     */
     initJanusConnection() {
         return new Promise((resolve, reject) => {
             if (!this.currentSessionToken) return reject("Токен відсутній");
             Logger.log("🔌 Підключення до Janus WebSocket...", "INFO");
-
             Janus.init({
                 debug: ["error", "warn"],
                 callback: () => {
@@ -76,9 +68,6 @@ const JanusConnection = {
         });
     },
 
-    /**
-     🎙️ Прикріплення до плагіна AudioBridge (janus.plugin.audiobridge).
-     */
     attachAudioBridgePlugin() {
         return new Promise((resolve, reject) => {
             Logger.log("🎙️ Прикріплення до AudioBridge...", "INFO");
@@ -125,7 +114,6 @@ const JanusConnection = {
 
         if (on && track.kind === 'audio') {
             let audio = document.getElementById("audioPlayer");
-
             if (!audio) {
                 audio = document.getElementById("remoteAudio-" + mid);
                 if (!audio) {
@@ -137,19 +125,16 @@ const JanusConnection = {
                 }
             }
 
-            const stream = new MediaStream([track]);
-            audio.srcObject = stream;
-
-            // ✅ БЕЗ stop()! Монітор живє весь час життя сторінки.
+            audio.srcObject = new MediaStream([track]);
             audio.play().then(() => {
                 Logger.log("✅ Аудіо відтворення розпочато успішно", "SUCCESS");
-                AudioMonitor.attachRemote(audio);
             }).catch(e => {
                 Logger.log(`⚠️ Автопрогравання заблоковано: ${e.message}`, "WARN");
-                AudioMonitor.attachRemote(audio);
             });
+
+            // 🎯 v5: моніторинг ефіру через сам трек (як мікрофон) — НЕ через <audio> елемент
+            AudioMonitor.attachRemoteTrack(track);
         } else if (!on) {
-            // Трек видалено (вихід з кімнати): лише обнуляємо смужки, контекст НЕ чіпаємо
             AudioMonitor.stop();
         }
     }

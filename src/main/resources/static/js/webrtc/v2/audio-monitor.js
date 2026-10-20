@@ -1,38 +1,29 @@
 /**
- 📊 Модуль AudioMonitor (v3 - фінальний).
- Єдиний модуль моніторингу аудіо: ефір (віддалений мікс) + мікрофон (локальний трек).
-
- КЛЮЧОВІ ПРАВИЛА (не порушувати!):
- 1. AudioContext створюється ОДИН РАЗ і НІКОЛИ не закривається.
- 2. createMediaElementSource() викликається ОДИН РАЗ на елемент (обмеження браузера),
- результат кешується у audioElement.__monitorSource.
- 3. При зміні кімнати/треку нічого не перестворюється: джерело прив'язане до
- HTML-елемента і автоматично слідує за новим srcObject.
+ 📊 Модуль AudioMonitor (v5 - фінальний).
+ Єдиний модуль моніторингу: ЕФІР (віддалений трек Janus) + МІКРОФОН (локальний трек Janus).
+ Обидва індикатори аналізують MediaStreamTrack напряму (createMediaStreamSource).
+ НЕ використовується createMediaElementSource — немає конфліктів маршрутизації <audio>.
+ Правила: один AudioContext на сторінку, ніколи не закривається.
  */
 const AudioMonitor = {
     ctx: null,
     remoteAnalyser: null,
+    remoteSource: null,
+    attachedRemoteTrack: null,
     micAnalyser: null,
     micSource: null,
-    attachedTrack: null,
+    attachedMicTrack: null,
     loopId: null,
     lastDebugLog: 0,
 
-    // ---------------------------------------------------------------
-    // Створення/отримання єдиного AudioContext + розблокування на мобільних
-    // ---------------------------------------------------------------
     _ensureContext() {
         if (!this.ctx) {
             const AC = window.AudioContext || window.webkitAudioContext;
             this.ctx = new AC();
             Logger.log(`🎛️ AudioContext створено (стан: ${this.ctx.state})`, "DEBUG");
-
-            // Мобільні браузери тримають контекст у 'suspended' до першої взаємодії
             const resume = () => {
                 if (this.ctx && this.ctx.state === 'suspended') {
-                    this.ctx.resume()
-                        .then(() => Logger.log("▶️ AudioContext розблоковано після взаємодії", "INFO"))
-                        .catch(() => {});
+                    this.ctx.resume().catch(() => {});
                 }
             };
             document.addEventListener('click', resume);
@@ -46,61 +37,52 @@ const AudioMonitor = {
     },
 
     // ---------------------------------------------------------------
-    // 📻 Моніторинг ЕФІРУ: прив'язка до <audio> елемента
+    // 📻 Моніторинг ЕФІРУ: аналіз віддаленого треку Janus напряму
     // ---------------------------------------------------------------
-    attachRemote(audioElement) {
-        if (!audioElement) return;
+    attachRemoteTrack(track) {
+        if (!track || track.kind !== 'audio') return;
+        if (this.attachedRemoteTrack === track) return;
         try {
             const ctx = this._ensureContext();
-
-            // ДЖЕРЕЛО СТВОРЮЄТЬСЯ ЛИШЕ ОДИН РАЗ на елемент!
-            if (!audioElement.__monitorSource) {
-                audioElement.__monitorSource = ctx.createMediaElementSource(audioElement);
-                Logger.log(`🎛️ Створено MediaElementSource для <${audioElement.id}>`, "DEBUG");
-            }
-
             if (!this.remoteAnalyser) {
                 this.remoteAnalyser = ctx.createAnalyser();
                 this.remoteAnalyser.fftSize = 256;
                 this.remoteAnalyser.smoothingTimeConstant = 0.6;
             }
-
-            // Перепідключення безпечне і може викликатись багато разів
-            try { audioElement.__monitorSource.disconnect(); } catch (e) {}
-            try { this.remoteAnalyser.disconnect(); } catch (e) {}
-            audioElement.__monitorSource.connect(this.remoteAnalyser);
-            this.remoteAnalyser.connect(ctx.destination); // звук іде в динаміки
-
+            if (this.remoteSource) {
+                try { this.remoteSource.disconnect(); } catch (e) {}
+            }
+            this.remoteSource = ctx.createMediaStreamSource(new MediaStream([track]));
+            this.remoteSource.connect(this.remoteAnalyser);
+            // ❗ НЕ підключаємо до destination — звук і так грає через <audio> елемент
+            this.attachedRemoteTrack = track;
             this._ensureLoop();
-            Logger.log("📊 Моніторинг ЕФІРУ підключено", "SUCCESS");
+            Logger.log(`📊 Моніторинг ЕФІРУ підключено (трек: ${track.readyState})`, "SUCCESS");
         } catch (e) {
-            Logger.log(`❌ attachRemote: ${e.message}`, "ERROR");
+            Logger.log(`❌ attachRemoteTrack: ${e.message}`, "ERROR");
         }
     },
 
     // ---------------------------------------------------------------
-    // 🎤 Моніторинг МІКРОФОНА: прив'язка до локального треку Janus
+    // 🎤 Моніторинг МІКРОФОНА: аналіз локального треку Janus
     // ---------------------------------------------------------------
     attachLocalTrack(track) {
         if (!track || track.kind !== 'audio' || track.readyState !== 'live') return;
-        if (this.attachedTrack === track) return;
+        if (this.attachedMicTrack === track) return;
         try {
             const ctx = this._ensureContext();
-
             if (!this.micAnalyser) {
                 this.micAnalyser = ctx.createAnalyser();
                 this.micAnalyser.fftSize = 1024;
                 this.micAnalyser.smoothingTimeConstant = 0.6;
             }
-
             if (this.micSource) {
                 try { this.micSource.disconnect(); } catch (e) {}
             }
             this.micSource = ctx.createMediaStreamSource(new MediaStream([track]));
             this.micSource.connect(this.micAnalyser);
             // ❗ НЕ підключаємо до destination — інакше буде луна!
-
-            this.attachedTrack = track;
+            this.attachedMicTrack = track;
             this._ensureLoop();
             Logger.log("🎤 Моніторинг МІКРОФОНА підключено", "SUCCESS");
         } catch (e) {
@@ -114,8 +96,8 @@ const AudioMonitor = {
     _ensureLoop() {
         if (this.loopId) return;
 
-        const freq = new Uint8Array(128);   // fftSize 256 / 2
-        const time = new Uint8Array(1024);  // fftSize 1024
+        const freq = new Uint8Array(128);
+        const time = new Uint8Array(1024);
 
         const tick = () => {
             this.loopId = requestAnimationFrame(tick);
@@ -144,7 +126,6 @@ const AudioMonitor = {
             this._paint('audio-visualizer', 'audio-level-text', remotePct, 'remote');
             this._paint('mic-visualizer', 'mic-level-text', micPct, 'mic');
 
-            // Діагностичний лог кожні 5 секунд (щоб бачити реальні значення у консолі)
             const now = Date.now();
             if (now - this.lastDebugLog > 5000) {
                 this.lastDebugLog = now;
@@ -155,9 +136,6 @@ const AudioMonitor = {
         this.loopId = requestAnimationFrame(tick);
     },
 
-    // ---------------------------------------------------------------
-    // 🎨 Малювання смужки
-    // ---------------------------------------------------------------
     _paint(barId, textId, pct, scheme) {
         const bar = document.getElementById(barId);
         const txt = document.getElementById(textId);
@@ -179,11 +157,15 @@ const AudioMonitor = {
     },
 
     // ---------------------------------------------------------------
-    // Сумісність зі старими викликами (stop/init більше НЕ вбивають монітор)
+    // ⚠️ Застарілі виклики: голосно сигналізують про невідповідність файлів
     // ---------------------------------------------------------------
-    init(el) { this.attachRemote(el); },
+    init(el) {
+        Logger.log("⚠️ AudioMonitor.init() застаріло! Оновіть janus-connection.js до v5 (attachRemoteTrack)!", "WARN");
+    },
+    attachRemote(el) {
+        Logger.log("⚠️ AudioMonitor.attachRemote() застаріло! Оновіть janus-connection.js до v5 (attachRemoteTrack)!", "WARN");
+    },
     stop() {
-        // НІЧОГО не закриваємо! Лише обнуляємо смужки.
         this._paint('audio-visualizer', 'audio-level-text', 0, 'remote');
         this._paint('mic-visualizer', 'mic-level-text', 0, 'mic');
     }
