@@ -64,7 +64,8 @@ public class RequestLoggingFilter implements Filter {
                 String referer = request.getHeader("Referer");
 
                 // Додаємо Referer до логування
-                log.info("RFA. Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
+                // Тимчасово закоментарив
+//                log.info("RFA. Incoming Request: IP={}, URL={}, Referer={}", ipAddress, fullRequestUri, referer != null ? referer : "N/A");
                 // todo передбачити надсилання через RabbitMQ для накопичення і обробки статистики.
 
             }
