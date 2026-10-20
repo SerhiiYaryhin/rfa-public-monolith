@@ -52,7 +52,7 @@
         }
         audio { width: 100%; margin: 10px 0; }
 
-        /* 🎯 Стилі для моніторингу аудіо */
+        /* Стилі для моніторингу аудіо */
         .audio-monitor-container {
             display: flex;
             align-items: center;
@@ -90,6 +90,56 @@
             text-align: right;
         }
 
+        /* 🎯 НОВІ Стилі для глобальної панелі RTP Forward */
+        .rtp-forward-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .forward-inputs-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+        .input-group input {
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .forward-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .forward-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn-start-forward { background: #9b59b6; color: white; }
+        .btn-stop-forward { background: #e74c3c; color: white; }
+        .btn-start-forward:disabled, .btn-stop-forward:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Стилі для кімнат */
         .rooms-grid {
             display: grid;
@@ -110,6 +160,10 @@
         @keyframes pulse-border {
             0%, 100% { border-color: #e74c3c; }
             50% { border-color: #ff6b6b; }
+        }
+        .room-card-current {
+            border-color: #3498db;
+            background: #ebf5fb;
         }
         .room-header {
             display: flex;
@@ -162,6 +216,52 @@
             font-size: 14px;
         }
 
+        /* Учасники */
+        .user-list { list-style: none; padding: 0; margin: 10px 0; }
+        .user-item {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .user-name { font-weight: 600; font-size: 14px; }
+        .user-id { color: #6c757d; font-size: 12px; font-weight: normal; }
+        .state-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+        .state-badge.talking { background: #d4edda; color: #155724; }
+        .state-badge.muted { background: #f8d7da; color: #721c24; }
+        .state-badge.active { background: #cce5ff; color: #004085; }
+        .user-mod-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .btn-user-action {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-mute { background: #ffc107; color: #212529; }
+        .btn-unmute { background: #28a745; color: white; }
+        .btn-kick { background: #dc3545; color: white; }
+        .btn-move { background: #17a2b8; color: white; }
+        .select-room-move {
+            padding: 4px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+        }
+
         /* Логи */
         #logConsole {
             background: #2c3e50;
@@ -177,12 +277,12 @@
         .badge-success { background: #27ae60; color: white; }
         .badge-error { background: #e74c3c; color: white; }
         .badge-debug { background: #95a5a6; color: white; }
-        .loading { text-align: center; padding: 20px; color: #6c757d; }
+        .loading, .no-rooms { text-align: center; padding: 20px; color: #6c757d; }
     </style>
 </head>
 <body>
 <header>
-    <h1> RFA WebRTC - Прямий Ефір</h1>
+    <h1>📡 RFA WebRTC - Прямий Ефір</h1>
     <div class="status-container">
         <span id="statusIndicator" class="status-indicator status-disconnected"></span>
         <span id="statusText">Відключено</span>
@@ -195,31 +295,47 @@
         <h2>🔊 Аудіоплеєр</h2>
         <audio id="audioPlayer" controls autoplay playsinline></audio>
 
-        <!-- 🎯 Моніторинг рівня звуку ЕФІРУ (від Janus) -->
         <div class="audio-monitor-container">
-            <span class="monitor-label"> Рівень ефіру:</span>
+            <span class="monitor-label">📻 Рівень ефіру:</span>
             <div class="volume-bar-bg">
                 <div id="audio-visualizer" class="volume-bar-fill" style="background: linear-gradient(90deg, #27ae60, #f1c40f, #e74c3c);"></div>
             </div>
             <span id="audio-level-text" class="audio-level-text">0%</span>
         </div>
 
-        <!-- 🎯 НОВЕ: Повзунок регулювання гучності ефіру -->
-        <div class="audio-monitor-container">
-            <span class="monitor-label">🔊 Гучність ефіру:</span>
-            <input type="range" id="volume-slider" min="50" max="300" value="150"
-                   style="flex-grow: 1; height: 14px; cursor: pointer;"
-                   oninput="AudioMonitor.setVolume(this.value)">
-            <span id="volume-text" class="audio-level-text">150%</span>
-        </div>
-
-        <!-- 🎤 Моніторинг рівня звуку МІКРОФОНА -->
         <div class="audio-monitor-container">
             <span class="monitor-label">🎤 Рівень мікрофона:</span>
             <div class="volume-bar-bg">
                 <div id="mic-visualizer" class="volume-bar-fill" style="background: #3498db;"></div>
             </div>
             <span id="mic-level-text" class="audio-level-text">0%</span>
+        </div>
+
+        <!-- 🎯 НОВЕ: Глобальна панель RTP Forward -->
+        <div class="audio-monitor-container" style="margin-top: 15px; flex-direction: column; align-items: stretch;">
+            <span class="monitor-label" style="margin-bottom: 10px;">📡 RTP Forward (Трансляція міксу назовні)</span>
+            <div class="forward-inputs-row">
+                <div class="input-group">
+                    <label for="forward-host">Host:</label>
+                    <input type="text" id="forward-host" placeholder="127.0.0.1" value="127.0.0.1">
+                </div>
+                <div class="input-group">
+                    <label for="forward-port">Port:</label>
+                    <input type="number" id="forward-port" placeholder="5004" value="5004">
+                </div>
+            </div>
+            <div class="forward-actions" style="margin-top: 10px;">
+                <button class="btn-action-room btn-start-forward" id="btn-start-forward" onclick="Moderator.forwardCurrentRoom()">
+                    ▶️ Транслювати поточну кімнату
+                </button>
+                <button class="btn-action-room btn-stop-forward" id="btn-stop-forward" onclick="Moderator.stopCurrentForward()" disabled>
+                    ⏹️ Зупинити трансляцію
+                </button>
+            </div>
+            <div class="forward-status" style="margin-top: 10px;">
+                <span class="status-indicator status-disconnected" id="forward-indicator"></span>
+                <span id="forward-status-text">Неактивно</span>
+            </div>
         </div>
     </div>
 
@@ -249,14 +365,13 @@
 <script src="/js/webrtc/v2/stream-manager.js"></script>
 <script src="/js/webrtc/v2/ui-renderer.js"></script>
 <script src="/js/webrtc/v2/audio-monitor.js"></script>
-<script src="/js/webrtc/v2/network-monitor.js"></script> <!-- 🎯 НОВИЙ ФАЙЛ -->
+<script src="/js/webrtc/v2/network-monitor.js"></script>
 <script src="/js/webrtc/v2/main.js"></script>
 
-<!-- Перевірка завантаження Janus -->
 <script>
     if (typeof Janus === 'undefined') {
         console.error("❌ КРИТИЧНА ПОМИЛКА: Бібліотека Janus.js не завантажилася!");
-        alert("Помилка: Не вдалося завантажити WebRTC бібліотеку Janus. Перевірте підключення до інтернету або вимкніть блокувальники реклами.");
+        alert("Помилка: Не вдалося завантажити WebRTC бібліотеку Janus.");
     } else {
         console.log("✅ Janus.js успішно завантажено");
     }

@@ -157,7 +157,7 @@ const AudioMonitor = {
             const textEl = document.getElementById('volume-text');
             if (textEl) textEl.textContent = percent + '%';
 
-            Logger.log(`🔊 Гучність ефіру встановлено: ${percent}% (gain: ${gainValue})`, "INFO");
+            // Logger.log(`🔊 Гучність ефіру встановлено: ${percent}% (gain: ${gainValue})`, "INFO");
         }
     },
 
