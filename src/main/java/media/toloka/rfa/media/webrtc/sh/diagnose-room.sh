@@ -12,7 +12,7 @@ echo ""
 echo "📝 Отримання токена сесії..."
 LOGIN_RESPONSE=$(curl -s -c - "https://rfa.toloka.media/api/v1q/webrtc/stream/token" \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}')
+  -d '{"username":"ysv@toloka.kiev.ua","password":"2B154Lar"}')
 
 if [ -z "$LOGIN_RESPONSE" ]; then
     echo "❌ Не вдалося отримати токен. Перевірте URL та облікові дані."
