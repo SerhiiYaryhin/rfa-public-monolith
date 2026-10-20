@@ -4,61 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFA WebRTC - Прямий Ефір</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/css/webrtc/qwebrtc.css">
-    <link th:href = "@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="stylesheet" href="/css/webrtc/v2/style.css">
+    <style>
+        /* Стилі для моніторингу аудіо */
+        .audio-monitor-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .volume-bar-bg {
+            width: 150px;
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .volume-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #27ae60, #f1c40f, #e74c3c);
+            transition: width 0.1s ease-out;
+            border-radius: 6px;
+        }
+        .audio-level-text {
+            font-weight: bold;
+            color: #495057;
+            min-width: 40px;
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
 <header>
-    <!--    <div th:insert="~{/fragments/user :: user_navbar}">  </div>-->
-    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-</header>
-<div class="container mt-5 pt-4" >
-    <!-- Заголовок -->
-    <div class="header">
-        <h1>📡 RFA WebRTC - Прямий Ефір</h1>
-        <div class="status-container">
-            <div id="statusIndicator" class="status-indicator"></div>
-            <span id="statusText">Відключено</span>
-        </div>
+    <h1>📡 RFA WebRTC - Прямий Ефір</h1>
+    <div class="status-container">
+        <span id="statusIndicator" class="status-indicator status-disconnected"></span>
+        <span id="statusText">Відключено</span>
     </div>
+</header>
 
-    <!-- Аудіоплеєр -->
+<div class="container mt-5 pt-4">
+    <!-- Аудіоплеєр та Моніторинг -->
     <div class="audio-player-section">
         <h2>🔊 Аудіоплеєр</h2>
         <audio id="audioPlayer" controls autoplay></audio>
+
+        <!-- 🎯 НОВЕ: Моніторинг рівня звуку -->
+        <div class="audio-monitor-container">
+            <span>🔊 Рівень сигналу ефіру:</span>
+            <div class="volume-bar-bg">
+                <div id="audio-visualizer" class="volume-bar-fill"></div>
+            </div>
+            <span id="audio-level-text" class="audio-level-text">0%</span>
+        </div>
     </div>
 
-    <!-- Список кімнат -->
+    <!-- Активні кімнати -->
     <div class="rooms-section">
-        <div class="rooms-header">
-            <h2>🎙️ Активні кімнати</h2>
-            <button class="btn-refresh" onclick="UIRenderer.loadRooms()">🔄 Оновити</button>
-        </div>
+        <h2>🎙️ Активні кімнати</h2>
+        <button class="btn-refresh" onclick="UIRenderer.loadRooms()">🔄 Оновити</button>
         <div id="roomsList">
-            <div class="no-rooms">
-                <div class="no-rooms-icon">⏳</div>
-                <div class="no-rooms-text">Завантаження даних про кімнати...</div>
-            </div>
+            <div class="loading"> Завантаження даних про кімнати...</div>
         </div>
     </div>
 
     <!-- Системний журнал -->
     <div class="log-section">
-        <h2>-- СИСТЕМНИЙ ЖУРНАЛ --</h2>
+        <h3>-- СИСТЕМНИЙ ЖУРНАЛ --</h3>
         <div id="logConsole"></div>
     </div>
 </div>
 
 <!-- Залежності -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.2/adapter.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/janus-gateway/1.2.0/janus.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
 <!-- Наші модулі webrtc (порядок важливий!) -->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.2/adapter.min.js"></script>-->
-<!--<script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>-->
 <script src="/js/webrtc/v2/config.js"></script>
 <script src="/js/webrtc/v2/logger.js"></script>
 <script src="/js/webrtc/v2/janus-connection.js"></script>
@@ -67,8 +97,7 @@
 <script src="/js/webrtc/v2/room-manager.js"></script>
 <script src="/js/webrtc/v2/stream-manager.js"></script>
 <script src="/js/webrtc/v2/ui-renderer.js"></script>
+<script src="/js/webrtc/v2/audio-monitor.js"></script> <!-- 🎯 НОВИЙ ФАЙЛ -->
 <script src="/js/webrtc/v2/main.js"></script>
-
-<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
