@@ -160,6 +160,75 @@
 </head>
 <body>
 <div class="efir-container">
+
+    <!-- Блок для відображення токена (тільки для розробки/тестування) -->
+    <div class="card mt-4 border-warning">
+        <div class="card-header bg-warning text-dark fw-bold">
+            <i class="fas fa-key"></i> JWT Токен (для тестування API)
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">
+                Цей токен зчитується з локального сховища вашого браузера.
+                Використовуйте його для запуску скрипта <code>test_broadcast.sh</code>.
+            </p>
+            <div class="input-group">
+                <input type="text" class="form-control font-monospace small" id="jwtTokenDisplay"
+                       readonly value="Завантаження токена..." style="background-color: #f8f9fa;">
+                <button class="btn btn-outline-warning" type="button" onclick="copyToken()" title="Копіювати токен">
+                    <i class="fas fa-copy"></i> Копіювати
+                </button>
+            </div>
+            <div id="copyFeedback" class="text-success small mt-1" style="display: none;">
+                <i class="fas fa-check-circle"></i> Токен успішно скопійовано в буфер обміну!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Спробуємо знайти токен у найбільш поширених місцях зберігання
+            const token = localStorage.getItem('token') ||
+                localStorage.getItem('jwt') ||
+                sessionStorage.getItem('token') ||
+                sessionStorage.getItem('jwt') ||
+                'Токен не знайдено. Переконайтеся, що ви увійшли в систему через основний інтерфейс порталу.';
+
+            const tokenDisplay = document.getElementById('jwtTokenDisplay');
+            if (tokenDisplay) {
+                tokenDisplay.value = token;
+
+                // Якщо токен не знайдено, підсвічуємо червоним
+                if (token.includes('Токен не знайдено')) {
+                    tokenDisplay.classList.add('text-danger');
+                }
+            }
+        });
+
+        function copyToken() {
+            const copyText = document.getElementById("jwtTokenDisplay");
+
+            // Виділяємо текст
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Для мобільних пристроїв
+
+            // Копіюємо в буфер обміну
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                // Показуємо повідомлення про успіх
+                const feedback = document.getElementById('copyFeedback');
+                feedback.style.display = 'block';
+
+                // Ховаємо повідомлення через 3 секунди
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                }, 3000);
+            }).catch(err => {
+                console.error('Помилка копіювання: ', err);
+                alert('Не вдалося скопіювати токен автоматично. Будь ласка, виділіть його вручну.');
+            });
+        }
+    </script>
+
+
     <!-- Заголовок -->
     <div class="efir-header">
         <h1><i class="fas fa-broadcast-tower"></i> Модератор прямого ефіру</h1>
