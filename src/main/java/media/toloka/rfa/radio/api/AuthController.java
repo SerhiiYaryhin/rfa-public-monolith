@@ -6,11 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -40,5 +39,42 @@ public class AuthController {
         } else {
             throw new UsernameNotFoundException("Invalid user request!");
         }
+    }
+
+
+    /**
+     * Отримати JWT токен для поточного авторизованого користувача (через сесію).
+     * Використовується для тестування API з браузера після форм-логіну.
+     * GET /api/v1/auth/current-token
+     */
+    @GetMapping("/current-token")
+    public ResponseEntity<?> getCurrentToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "error", "Користувач не авторизований. Увійдіть через форму логіну."
+            ));
+        }
+
+        // Отримуємо email з UserDetails
+        String email;
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            email = ((UserDetails) authentication.getPrincipal()).getUsername();
+        } else {
+            email = authentication.getName();
+        }
+
+        // Генеруємо JWT токен
+        String token = jwtService.generateToken(email);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "token", token,
+                "email", email,
+                "expiresIn", 36000
+        ));
     }
 }
