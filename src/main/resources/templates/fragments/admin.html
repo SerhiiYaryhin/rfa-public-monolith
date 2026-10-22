@@ -127,6 +127,11 @@
                    target="_blank">Старт</a>
                 <a th:href="@{/user/stopstation(id=${station.id})}" id="stopStation" class="btn btn-primary"
                    target="_blank">Стоп</a>
+                <a th:href="@{/moderator/efir/{uuid}(uuid=${station.uuid})}"
+                   class="btn btn-primary btn-sm"
+                   title="Панель керування прямим ефіром">
+                    <i class="fas fa-broadcast-tower"></i> Ефір
+                </a>
             </td>
         </tr>
         </tbody>

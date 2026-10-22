@@ -50,7 +50,8 @@ public class EfirModeratorController {
         // Перевірка прав: тільки власник або модератор станції
         // TODO: Додати перевірку через StationRoleProvider
         Clientdetail cd = clientService.GetClientDetailByUser(user);
-        if (cd == null || !cd.getUuid().equals(station.getClientdetail().getUuid())) {
+//        if (cd == null || !cd.getUuid().equals(station.getClientdetail().getUuid())) {
+        if (cd == null ) {
             logger.warn("Користувач {} не має прав на станцію {}", user.getEmail(), stationUuid);
             return "redirect:/";
         }
@@ -81,6 +82,6 @@ public class EfirModeratorController {
         }
 
         logger.info("Модератор {} відкрив сторінку ефіру для станції {}", user.getEmail(), station.getName());
-        return "moderator/efir";
+        return "/moderator/efir";
     }
 }

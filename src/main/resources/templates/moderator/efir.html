@@ -175,13 +175,14 @@
 
     <!-- Кнопка підготовки ефіру -->
     <button id="btnPrepareEfir" class="btn-efir btn-prepare"
-            th:onclick="'prepareBroadcast(\'' + ${stationUuid} + '\')'">
+            th:data-station-uuid="${stationUuid}"
+            onclick="prepareBroadcast(this.dataset.stationUuid)">
         <i class="fas fa-play-circle"></i> Підготувати ефір
     </button>
 
     <!-- Сітка кімнат -->
     <div class="rooms-grid">
-        <!-- Головна кімната (текстовий чат) -->
+        <!-- Головна кімната -->
         <div class="room-card" th:if="${mainRoom != null}">
             <h3><i class="fas fa-comments"></i> <span th:text="${mainRoom.roomname}">Головна кімната</span></h3>
             <div class="room-status">
@@ -189,8 +190,11 @@
                 <span th:text="${mainRoom.roomOnlineStatus} ? 'Онлайн' : 'Офлайн'">Статус</span>
             </div>
             <div class="room-actions">
+                <!-- ВИПРАВЛЕНО: використовуємо data-атрибути -->
                 <button class="btn-efir btn-join"
-                        th:onclick="'joinRoom(\'' + ${mainRoom.uuid} + '\', \'' + ${mainRoom.roomname} + '\')'">
+                        th:data-uuid="${mainRoom.uuid}"
+                        th:data-name="${mainRoom.roomname}"
+                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
                     <i class="fas fa-sign-in-alt"></i> Увійти
                 </button>
             </div>
@@ -205,7 +209,9 @@
             </div>
             <div class="room-actions">
                 <button class="btn-efir btn-join"
-                        th:onclick="'joinRoom(\'' + ${greenRoom.uuid} + '\', \'' + ${greenRoom.roomname} + '\')'">
+                        th:data-uuid="${greenRoom.uuid}"
+                        th:data-name="${greenRoom.roomname}"
+                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
                     <i class="fas fa-sign-in-alt"></i> Увійти
                 </button>
             </div>
@@ -220,7 +226,9 @@
             </div>
             <div class="room-actions">
                 <button class="btn-efir btn-join"
-                        th:onclick="'joinRoom(\'' + ${broadcastRoom.uuid} + '\', \'' + ${broadcastRoom.roomname} + '\')'">
+                        th:data-uuid="${broadcastRoom.uuid}"
+                        th:data-name="${broadcastRoom.roomname}"
+                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
                     <i class="fas fa-sign-in-alt"></i> Увійти
                 </button>
             </div>
@@ -235,12 +243,13 @@
             </div>
             <div class="room-actions">
                 <button class="btn-efir btn-join"
-                        th:onclick="'joinRoom(\'' + ${staffRoom.uuid} + '\', \'' + ${staffRoom.roomname} + '\')'">
+                        th:data-uuid="${staffRoom.uuid}"
+                        th:data-name="${staffRoom.roomname}"
+                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
                     <i class="fas fa-sign-in-alt"></i> Увійти
                 </button>
             </div>
         </div>
-    </div>
 
     <!-- Повідомлення, якщо кімнати ще не створені -->
     <div th:if="${greenRoom == null}" style="background: white; padding: 20px; border-radius: 10px; text-align: center; color: #7f8c8d;">
