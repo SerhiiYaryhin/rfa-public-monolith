@@ -27,4 +27,6 @@ public class MessageRoom {
     private Boolean roomOnlineStatus = false; // кімната в онлайні?
     @Expose
     private Date startonline = null; // о котрій був перехід в онлайн
+
+
 }

@@ -68,6 +68,14 @@ public class Station {
     private Boolean stationstate; // TODO: PROPOSAL -> isRunning (CRITICAL: used in JSON/RabbitMQ)
     @Expose
     private String roomuuid = null; // UUID кімнати для онлайн мовлення TODO: PROPOSAL -> roomUuid
+    // Нові поля для прямого ефіру
+    @Expose
+    private String greenRoomUuid = null;    // Кімната підготовки
+    @Expose
+    private String broadcastRoomUuid = null;// Кімната ефіру
+    @Expose
+    private String staffRoomUuid = null;    // Кімната персоналу
+
     @Expose
     private String toradiouser; // TODO: PROPOSAL -> toRadioUser
     @Expose

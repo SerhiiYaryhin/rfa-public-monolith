@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Модератор ефіру - <th:block th:text="${station.name}">Радіостанція</th:block></title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
+    <!-- SockJS & STOMP -->
+    <script src="/js/sockjs.min.js"></script>
+    <script src="/js/stomp.js"></script>
+
+    <style>
+        :root {
+            --accent-color: #6c5ce7;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .efir-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .efir-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .efir-header h1 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .efir-header .station-info {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .room-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .room-card.green { border-left-color: var(--warning-color); }
+        .room-card.broadcast { border-left-color: var(--danger-color); }
+        .room-card.staff { border-left-color: #34495e; }
+
+        .room-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .room-card .room-status {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .room-card .room-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-efir {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-prepare {
+            background: var(--accent-color);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-prepare:hover {
+            background: #5b4cc4;
+            transform: translateY(-2px);
+        }
+
+        .btn-prepare:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-join {
+            background: var(--success-color);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-join:hover {
+            background: #229954;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-active { background: var(--success-color); }
+        .status-inactive { background: #bdc3c7; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+<div class="efir-container">
+    <!-- Заголовок -->
+    <div class="efir-header">
+        <h1><i class="fas fa-broadcast-tower"></i> Модератор прямого ефіру</h1>
+        <div class="station-info">
+            <strong>Станція:</strong> <span th:text="${station.name}">Назва станції</span> |
+            <strong>UUID:</strong> <span th:text="${stationUuid}">uuid</span> |
+            <strong>Модератор:</strong> <span th:text="${curusername}">Ім'я</span>
+        </div>
+    </div>
+
+    <!-- Повідомлення -->
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Кнопка підготовки ефіру -->
+    <button id="btnPrepareEfir" class="btn-efir btn-prepare"
+            th:onclick="'prepareBroadcast(\'' + ${stationUuid} + '\')'">
+        <i class="fas fa-play-circle"></i> Підготувати ефір
+    </button>
+
+    <!-- Сітка кімнат -->
+    <div class="rooms-grid">
+        <!-- Головна кімната (текстовий чат) -->
+        <div class="room-card" th:if="${mainRoom != null}">
+            <h3><i class="fas fa-comments"></i> <span th:text="${mainRoom.roomname}">Головна кімната</span></h3>
+            <div class="room-status">
+                <span class="status-indicator" th:classappend="${mainRoom.roomOnlineStatus} ? 'status-active' : 'status-inactive'"></span>
+                <span th:text="${mainRoom.roomOnlineStatus} ? 'Онлайн' : 'Офлайн'">Статус</span>
+            </div>
+            <div class="room-actions">
+                <button class="btn-efir btn-join"
+                        th:onclick="'joinRoom(\'' + ${mainRoom.uuid} + '\', \'' + ${mainRoom.roomname} + '\')'">
+                    <i class="fas fa-sign-in-alt"></i> Увійти
+                </button>
+            </div>
+        </div>
+
+        <!-- Green Room -->
+        <div class="room-card green" th:if="${greenRoom != null}">
+            <h3><i class="fas fa-door-open"></i> <span th:text="${greenRoom.roomname}">Green Room</span></h3>
+            <div class="room-status">
+                <span class="status-indicator status-inactive"></span>
+                Очікує гостей
+            </div>
+            <div class="room-actions">
+                <button class="btn-efir btn-join"
+                        th:onclick="'joinRoom(\'' + ${greenRoom.uuid} + '\', \'' + ${greenRoom.roomname} + '\')'">
+                    <i class="fas fa-sign-in-alt"></i> Увійти
+                </button>
+            </div>
+        </div>
+
+        <!-- Broadcast Room (Ефір) -->
+        <div class="room-card broadcast" th:if="${broadcastRoom != null}">
+            <h3><i class="fas fa-broadcast-tower"></i> <span th:text="${broadcastRoom.roomname}">Ефір</span></h3>
+            <div class="room-status">
+                <span class="status-indicator status-inactive"></span>
+                Не в ефірі
+            </div>
+            <div class="room-actions">
+                <button class="btn-efir btn-join"
+                        th:onclick="'joinRoom(\'' + ${broadcastRoom.uuid} + '\', \'' + ${broadcastRoom.roomname} + '\')'">
+                    <i class="fas fa-sign-in-alt"></i> Увійти
+                </button>
+            </div>
+        </div>
+
+        <!-- Staff Room -->
+        <div class="room-card staff" th:if="${staffRoom != null}">
+            <h3><i class="fas fa-users-cog"></i> <span th:text="${staffRoom.roomname}">Staff Room</span></h3>
+            <div class="room-status">
+                <span class="status-indicator status-inactive"></span>
+                Тільки персонал
+            </div>
+            <div class="room-actions">
+                <button class="btn-efir btn-join"
+                        th:onclick="'joinRoom(\'' + ${staffRoom.uuid} + '\', \'' + ${staffRoom.roomname} + '\')'">
+                    <i class="fas fa-sign-in-alt"></i> Увійти
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Повідомлення, якщо кімнати ще не створені -->
+    <div th:if="${greenRoom == null}" style="background: white; padding: 20px; border-radius: 10px; text-align: center; color: #7f8c8d;">
+        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+        <p>Кімнати для прямого ефіру ще не створені. Натисніть кнопку "Підготувати ефір" вище.</p>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const stationUuid = /*[[${stationUuid}]]*/ '';
+    const curuuid = /*[[${curuuid}]]*/ '';
+
+    let stompClient = null;
+
+    // Підключення до STOMP WebSocket
+    function connect() {
+        const socket = new SockJS('/rfachat');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, onConnected, onError);
+    }
+
+    function onConnected() {
+        console.log('✅ Підключено до STOMP');
+        // Підписка на оновлення присутності
+        stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
+    }
+
+    function onError(error) {
+        console.error('❌ Помилка STOMP:', error);
+        setTimeout(connect, 5000);
+    }
+
+    function onPresenceUpdate(message) {
+        console.log('🔄 Оновлення присутності:', message.body);
+        // Тут можна оновлювати списки учасників
+    }
+
+    // Підготовка ефіру
+    function prepareBroadcast(uuid) {
+        const btn = document.getElementById('btnPrepareEfir');
+        const alertBox = document.getElementById('alertBox');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
+
+        fetch(`/api/v1/broadcast/prepare/${uuid}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('error', '❌ ' + (data.error || 'Помилка'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-play-circle"></i> Підготувати ефір';
+                }
+            })
+            .catch(error => {
+                console.error('Помилка:', error);
+                showAlert('error', '❌ Помилка мережі');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play-circle"></i> Підготувати ефір';
+            });
+    }
+
+    // Перехід в кімнату
+    function joinRoom(uuid, name) {
+        // Переходимо на сторінку чату з вибраною кімнатою
+        window.location.href = `/chat?room=${uuid}`;
+    }
+
+    // Показ повідомлення
+    function showAlert(type, message) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.className = `alert alert-${type}`;
+        alertBox.textContent = message;
+        alertBox.style.display = 'block';
+
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 5000);
+    }
+
+    // Ініціалізація при завантаженні
+    document.addEventListener('DOMContentLoaded', () => {
+        connect();
+    });
+</script>
+</body>
+</html>
