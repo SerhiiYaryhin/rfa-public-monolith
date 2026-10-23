@@ -18,7 +18,7 @@
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
 
-    <!-- Emoji Picker Element (Modern UTF-8 Support) -->
+    <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
 
     <style>
@@ -32,7 +32,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--chat-bg);
-            height: 100dvh; /* Динамічна висота для мобільних */
+            height: 100dvh;
             margin: 0;
             overflow: hidden;
             display: flex;
@@ -50,7 +50,6 @@
             position: relative;
         }
 
-        /* Sidebar Styling */
         .chat-sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid #edf2f7;
@@ -61,7 +60,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* Main Content Styling */
         .chat-main {
             flex: 1;
             display: flex;
@@ -92,7 +90,6 @@
             background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
         }
 
-        /* Chat Bubbles */
         .bubble { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
         .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
         .bubble-me { align-self: flex-end; background: var(--accent-color); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
@@ -100,7 +97,6 @@
         .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.6; display: flex; align-items: center; gap: 5px; }
         .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
 
-        /* Input Area */
         .input-area {
             padding: 15px 20px;
             padding-bottom: calc(15px + env(safe-area-inset-bottom));
@@ -122,25 +118,37 @@
         .btn-send { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-color); color: #fff; border: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
         .btn-send:hover { transform: scale(1.05) rotate(-10deg); background: #5b4cc4; }
 
-        /* Emoji Picker Styling */
         emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
         emoji-picker.visible { display: block; }
 
-        /* Mobile Specific */
+        /* ✅ CSS для анімації піднятої руки */
+        .hand-raised-active {
+            animation: handPulse 1.5s ease-in-out infinite;
+            border-width: 2px !important;
+        }
+
+        @keyframes handPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+                transform: rotate(0deg);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(231, 76, 60, 0);
+                transform: rotate(-10deg);
+            }
+        }
+
         @media (max-width: 768px) {
             .chat-sidebar { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform: translateX(0); }
             .chat-sidebar.hidden { transform: translateX(-100%); }
             .chat-main { width: 100%; }
             .btn-back { display: block !important; }
             .bubble { max-width: 85%; }
-
-            /* Виправляємо відступ зверху, якщо хедер фіксований */
             header { position: sticky; top: 0; }
         }
 
         .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 10px; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -148,159 +156,143 @@
     </style>
 </head>
 <body>
-    <header>
-        <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
-    </header>
+<header>
+    <div th:insert="~{/fragments/navbar :: navbarUniverse}"></div>
+</header>
 
-    <div class="chat-container">
-        <!-- Sidebar -->
-        <aside class="chat-sidebar" id="chatSidebar">
-            <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0">Чати</h5>
-                <button class="btn btn-sm btn-light rounded-pill"><i class="fas fa-search"></i></button>
+<div class="chat-container">
+    <!-- Sidebar -->
+    <aside class="chat-sidebar" id="chatSidebar">
+        <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Чати</h5>
+            <button class="btn btn-sm btn-light rounded-pill"><i class="fas fa-search"></i></button>
+        </div>
+
+        <div class="flex-grow-1 overflow-y-auto">
+            <div th:insert="~{/fragments/msgframents :: listroom}"/>
+            <div th:insert="~{/fragments/msgframents :: listuser}"/>
+        </div>
+    </aside>
+
+    <!-- Main Chat -->
+    <main class="chat-main">
+        <header class="chat-header">
+            <div class="d-flex align-items-center overflow-hidden">
+                <button class="btn-back" onclick="toggleSidebar()"><i class="fas fa-arrow-left"></i></button>
+                <div class="text-truncate">
+                    <h6 class="fw-bold mb-0 text-truncate" id="chatTitle">Публічний чат</h6>
+                    <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
+                </div>
             </div>
-
-            <div class="flex-grow-1 overflow-y-auto">
-                <div th:insert="~{/fragments/msgframents :: listroom}"/>
-                <div th:insert="~{/fragments/msgframents :: listuser}"/>
+            <div class="dropdown">
+                <button class="btn btn-light rounded-circle" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><a class="dropdown-item py-2" href="/user/user_page"><i class="fas fa-home me-2 text-primary"></i>На портал</a></li>
+                    <li><a class="dropdown-item py-2" href="/user/usereditinfo"><i class="fas fa-user-circle me-2 text-secondary"></i>Профайл</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>Інфо</a></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-ban me-2"></i>Очистити чат</a></li>
+                </ul>
             </div>
-        </aside>
+        </header>
 
-        <!-- Main Chat -->
-        <main class="chat-main">
-            <header class="chat-header">
-                <div class="d-flex align-items-center overflow-hidden">
-                    <button class="btn-back" onclick="toggleSidebar()"><i class="fas fa-arrow-left"></i></button>
-                    <div class="text-truncate">
-                        <h6 class="fw-bold mb-0 text-truncate" id="chatTitle">Публічний чат</h6>
-                        <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
-                    </div>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-light rounded-circle" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item py-2" href="/user/user_page"><i class="fas fa-home me-2 text-primary"></i>На портал</a></li>
-                        <li><a class="dropdown-item py-2" href="/user/usereditinfo"><i class="fas fa-user-circle me-2 text-secondary"></i>Профайл</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>Інфо</a></li>
-                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-ban me-2"></i>Очистити чат</a></li>
-                    </ul>
-                </div>
-            </header>
+        <!-- Unified Message Area -->
+        <div class="messages-area" id="mainMessagesArea">
+            <div id="publicarea" class="d-flex flex-column gap-3"></div>
+            <div id="privatearea" class="d-flex flex-column gap-3"></div>
+        </div>
 
-            <!-- Unified Message Area -->
-            <div class="messages-area" id="mainMessagesArea">
-                <div id="publicarea" class="d-flex flex-column gap-3"></div>
-                <div id="privatearea" class="d-flex flex-column gap-3"></div>
-            </div>
-
-            <!-- Input Area -->
-            <footer class="input-area">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">
-                        <i class="fas fa-image text-muted"></i>
-                    </button>
-                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
-
-                    <!-- ✅ НОВА КНОПКА: Підняти руку -->
-                    <button class="btn btn-warning rounded-circle" onclick="raiseHand()" title="Підняти руку" style="width: 45px; height: 45px;">
-                        <i class="fas fa-hand-paper"></i>
-                    </button>
-                </div>
-
-                <div class="input-group-custom">
-                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">
-                    <button class="btn-emoji" id="emojiToggle">😀</button>
-                </div>
-
-                <emoji-picker id="picker"></emoji-picker>
-
-                <button class="btn-send" onclick="handleSend()">
-                    <i class="fas fa-paper-plane"></i>
+        <!-- Input Area з кнопкою "Підняти руку" -->
+        <footer class="input-area">
+            <div class="d-flex gap-2">
+                <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">
+                    <i class="fas fa-image text-muted"></i>
                 </button>
-            </footer>
-<!--            <footer class="input-area">-->
-<!--                <div class="d-flex gap-2">-->
-<!--                    <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">-->
-<!--                        <i class="fas fa-image text-muted"></i>-->
-<!--                    </button>-->
-<!--                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">-->
-<!--                </div>-->
-<!--                -->
-<!--                <div class="input-group-custom">-->
-<!--                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">-->
-<!--                    <button class="btn-emoji" id="emojiToggle">😀</button>-->
-<!--                </div>-->
-<!--                -->
-<!--                <emoji-picker id="picker"></emoji-picker>-->
+                <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
 
-<!--                <button class="btn-send" onclick="handleSend()">-->
-<!--                    <i class="fas fa-paper-plane"></i>-->
-<!--                </button>-->
-<!--            </footer>-->
-        </main>
-    </div>
+                <!-- ✅ КНОПКА-ПЕРЕМИКАЧ: Підняти ↔ Опустити руку -->
+                <button id="handToggleButton"
+                        class="btn btn-warning rounded-circle"
+                        onclick="toggleHand()"
+                        title="Підняти руку"
+                        style="width: 45px; height: 45px; position: relative;">
+                    <i class="fas fa-hand-paper"></i>
+                </button>
+            </div>
 
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        var curuuid = /*[[${curuuid}]]*/ '';
-        var curusername = /*[[${curusername}]]*/ '';
-        var curroom = /*[[${curroom}]]*/ '';
-        /*]]>*/
+            <div class="input-group-custom">
+                <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">
+                <button class="btn-emoji" id="emojiToggle">😀</button>
+            </div>
 
-        // Mobile Sidebar Toggle
-        function toggleSidebar() {
-            document.getElementById('chatSidebar').classList.toggle('hidden');
+            <emoji-picker id="picker"></emoji-picker>
+
+            <button class="btn-send" onclick="handleSend()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </footer>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var curuuid = /*[[${curuuid}]]*/ '';
+    var curusername = /*[[${curusername}]]*/ '';
+    var curroom = /*[[${curroom}]]*/ '';
+    // stationUuid може бути не доступний на загальній сторінці чату,
+    // тому chat.js використає fallback або значення з URL
+    /*]]>*/
+
+    function toggleSidebar() {
+        document.getElementById('chatSidebar').classList.toggle('hidden');
+    }
+
+    // Emoji Picker Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const picker = document.getElementById('picker');
+        const input = document.getElementById('newmessage');
+        const emojiToggle = document.getElementById('emojiToggle');
+
+        if (emojiToggle) {
+            emojiToggle.onclick = (e) => {
+                e.stopPropagation();
+                picker.classList.toggle('visible');
+            };
         }
 
-        // Emoji Picker Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const picker = document.getElementById('picker');
-            const input = document.getElementById('newmessage');
-            const emojiToggle = document.getElementById('emojiToggle');
-
-            if (emojiToggle) {
-                emojiToggle.onclick = (e) => {
-                    e.stopPropagation();
-                    picker.classList.toggle('visible');
-                };
-            }
-
-            if (picker) {
-                picker.addEventListener('emoji-click', event => {
-                    input.value += event.detail.unicode;
-                    picker.classList.remove('visible');
-                    input.focus();
-                });
-            }
-
-            document.addEventListener('click', () => {
-                if (picker) picker.classList.remove('visible');
+        if (picker) {
+            picker.addEventListener('emoji-click', event => {
+                input.value += event.detail.unicode;
+                picker.classList.remove('visible');
+                input.focus();
             });
-            if (picker) picker.onclick = (e) => e.stopPropagation();
-
-            // Fix for mobile keyboard: scroll to bottom on input focus
-            if (input) {
-                input.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        const area = document.getElementById('mainMessagesArea');
-                        area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
-                    }, 300);
-                });
-            }
-        });
-
-        // Handle Send based on context (Public/Private)
-        function handleSend() {
-            if (typeof window.sendprivate === 'function' && window.clientuuid) {
-                window.sendprivate();
-            } else if (typeof window.sendpublic === 'function') {
-                window.sendpublic();
-            }
         }
-    </script>
 
-    <script src="/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/chat.js"></script>
+        document.addEventListener('click', () => {
+            if (picker) picker.classList.remove('visible');
+        });
+        if (picker) picker.onclick = (e) => e.stopPropagation();
+
+        if (input) {
+            input.addEventListener('focus', () => {
+                setTimeout(() => {
+                    const area = document.getElementById('mainMessagesArea');
+                    area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+                }, 300);
+            });
+        }
+    });
+
+    function handleSend() {
+        if (typeof window.sendprivate === 'function' && window.clientuuid) {
+            window.sendprivate();
+        } else if (typeof window.sendpublic === 'function') {
+            window.sendpublic();
+        }
+    }
+</script>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/chat.js"></script>
 </body>
 </html>

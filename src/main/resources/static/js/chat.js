@@ -1,7 +1,13 @@
 'use strict';
+/**
+ Логіка сучасного чату RFA
+ Включає підтримку WebSockets (STOMP), Емодзі, адаптивний рендеринг повідомлень
+ та механізм "підняття руки" для інтерактивного ефіру.
+ Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
+ */
 
 var stompClient = null;
-var clientuuid = null;
+var clientuuid = null; // Поточний UUID співрозмовника (якщо приватний чат)
 var toclientname = null;
 var subcurroom = null;
 var subprivate = null;
@@ -11,10 +17,17 @@ var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
 var reconnectTimeout = null;
-var reconnectDelay = 1000;
+var reconnectDelay = 1000; // Початкова затримка перепідключення 1с
 
-let messagesArea = null;
+// ✅ Стан "піднятої руки" для поточного користувача
+var handRaised = false;
+var handRaiseTimeout = null; // Таймер для автоопускання
 
+const messagesArea = document.getElementById('mainMessagesArea');
+
+/**
+ Встановлення з'єднання через SockJS та STOMP
+ */
 function connect() {
     if (stompClient && stompClient.connected) return;
     console.log("Attempting to connect to STOMP...");
@@ -29,6 +42,9 @@ function connect() {
     }, onConnected, onError);
 }
 
+/**
+ Callback при успішному підключенні
+ */
 function onConnected() {
     console.log("Connected to STOMP cluster");
     reconnectDelay = 1000;
@@ -36,6 +52,7 @@ function onConnected() {
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
+    // Підписки на канали
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
     subpublic = stompClient.subscribe('/topic/chat.public.' + curuuid, onPublicMessageReceived);
     subprivate = stompClient.subscribe('/topic/chat.private.' + curuuid, onPrivateMessageReceived);
@@ -44,16 +61,21 @@ function onConnected() {
     subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
     subMediaToPublic = stompClient.subscribe('/topic/chat.media', onMediaPublic);
 
+    // Вітаємося з сервером для реєстрації сесії та отримання історії
     stompClient.send("/app/hello", {}, JSON.stringify({
         uuid: curuuid,
         roomuuid: curroom,
         send: Date.now()
     }));
 
+    // Початкове завантаження списків
     getuserlist();
     getroomlist();
 }
 
+/**
+ Обробка помилок та розриву з'єднання
+ */
 function onError(error) {
     console.error("STOMP Error/Disconnect:", error);
     const statusEl = document.getElementById('connectstatus');
@@ -65,6 +87,9 @@ function onError(error) {
     }, reconnectDelay);
 }
 
+/**
+ Детекція повернення користувача на вкладку (критично для мобільних пристроїв)
+ */
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         console.log("App wake up. Checking connection...");
@@ -80,6 +105,9 @@ function onPresenceUpdate(msg) {
     getroomlist();
 }
 
+/**
+ Рендеринг повідомлення у вигляді бульбашки (bubble)
+ */
 function renderBubble(msg, isPrivate = false) {
     const msgId = `msg-${msg.send}-${msg.fromuuid}`;
     if (document.getElementById(msgId)) return;
@@ -103,13 +131,7 @@ function renderBubble(msg, isPrivate = false) {
     const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
     if (container) {
         container.appendChild(bubble);
-
-        if (!messagesArea) {
-            messagesArea = document.getElementById('mainMessagesArea');
-        }
-        if (messagesArea) {
-            messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
-        }
+        messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
     }
 }
 
@@ -188,7 +210,15 @@ function onRoomList(payload) {
     } catch (e) { console.error("Error updating room list", e); }
 }
 
+/**
+ Вибір кімнати
+ */
 function selectroom(uuid, name) {
+    // ✅ Автоматично опускаємо руку при зміні кімнати
+    if (handRaised) {
+        lowerHand();
+    }
+
     if (curroom === uuid && !clientuuid) return;
     if (subcurroom) subcurroom.unsubscribe();
 
@@ -304,38 +334,111 @@ async function uploadImage(file) {
     finally { if (input) input.placeholder = 'Напишіть повідомлення...'; }
 }
 
+// ========================================================================
+// ✅ МЕХАНІЗМ "ПІДНЯТИ / ОПУСТИТИ РУКУ"
+// ========================================================================
+
+/**
+ * Перемикає стан руки: підняти ↔ опустити
+ */
+function toggleHand() {
+    if (handRaised) {
+        lowerHand();
+    } else {
+        raiseHand();
+    }
+}
+
+/**
+ * Гість піднімає руку
+ */
 function raiseHand() {
     if (!stompClient || !stompClient.connected) {
         alert('Немає з\'єднання з сервером');
         return;
     }
 
-    const testStationUuid = typeof stationUuid !== 'undefined' ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
+    // Визначаємо stationUuid (з глобальної змінної або fallback)
+    const stationUuidToUse = (typeof stationUuid !== 'undefined' && stationUuid)
+        ? stationUuid
+        : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
 
     stompClient.send("/app/hand/raise", {}, JSON.stringify({
         uuid: curuuid,
         body: JSON.stringify({
-            stationUuid: testStationUuid,
+            stationUuid: stationUuidToUse,
             roomuuid: curroom
         })
     }));
+
+    handRaised = true;
+    updateHandButton();
     console.log("🙋 Руку піднято!");
+
+    // Скидаємо попередній таймер, якщо він був
+    if (handRaiseTimeout) {
+        clearTimeout(handRaiseTimeout);
+    }
+
+    // Автоматичне опускання через 5 хвилин (захист від "завислих" рук)
+    handRaiseTimeout = setTimeout(() => {
+        if (handRaised) {
+            console.log("⏰ Тайм-аут: автоматичне опускання руки");
+            lowerHand();
+        }
+    }, 5 * 60 * 1000);
 }
 
+/**
+ * Гість опускає руку
+ */
 function lowerHand() {
     if (!stompClient || !stompClient.connected) return;
 
-    const testStationUuid = typeof stationUuid !== 'undefined' ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
+    const stationUuidToUse = (typeof stationUuid !== 'undefined' && stationUuid)
+        ? stationUuid
+        : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
 
     stompClient.send("/app/hand/lower", {}, JSON.stringify({
         uuid: curuuid,
         body: JSON.stringify({
-            stationUuid: testStationUuid,
+            stationUuid: stationUuidToUse,
             targetUuid: curuuid
         })
     }));
+
+    handRaised = false;
+    updateHandButton();
     console.log("✋ Руку опущено!");
+
+    // Очищаємо таймер автоопускання
+    if (handRaiseTimeout) {
+        clearTimeout(handRaiseTimeout);
+        handRaiseTimeout = null;
+    }
 }
+
+/**
+ * Оновлює вигляд кнопки-перемикача
+ */
+function updateHandButton() {
+    const btn = document.getElementById('handToggleButton');
+    if (!btn) return;
+
+    if (handRaised) {
+        btn.className = 'btn btn-outline-danger rounded-circle hand-raised-active';
+        btn.innerHTML = '<i class="fas fa-hand-paper"></i>';
+        btn.title = 'Опустити руку';
+    } else {
+        btn.className = 'btn btn-warning rounded-circle';
+        btn.innerHTML = '<i class="fas fa-hand-paper"></i>';
+        btn.title = 'Підняти руку';
+    }
+}
+
+// ========================================================================
+// Допоміжні функції
+// ========================================================================
 
 function getuserlist() {
     if (stompClient && stompClient.connected) {
@@ -366,11 +469,13 @@ function onMediaPublic(payload) {
     } catch (e) { console.error("Error media parse", e); }
 }
 
+// Експортуємо функції у глобальну область для HTML
 window.sendpublic = sendpublic;
 window.sendprivate = sendprivate;
 window.uploadImage = uploadImage;
 window.selectroom = selectroom;
 window.selectuserFromPublic = selectuserFromPublic;
+window.toggleHand = toggleHand;
 window.raiseHand = raiseHand;
 window.lowerHand = lowerHand;
 window.toggleSidebar = function() {
@@ -378,8 +483,8 @@ window.toggleSidebar = function() {
     if (sidebar) sidebar.classList.toggle('hidden');
 };
 
+// Ініціалізація при завантаженні
 window.addEventListener('DOMContentLoaded', () => {
-    messagesArea = document.getElementById('mainMessagesArea');
     connect();
     setInterval(getuserlist, 15000);
     setInterval(getroomlist, 15000);
