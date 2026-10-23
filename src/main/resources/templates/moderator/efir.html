@@ -222,10 +222,10 @@
         </div>
 
         <div class="cc-participants">
-            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники активної кімнати</div>
+            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники</div>
             <div class="participant-list" id="participantList">
                 <div style="text-align: center; color: #636e72; padding: 20px;">
-                    <i class="fas fa-spinner fa-spin"></i> Завантаження учасників...
+                    <i class="fas fa-spinner fa-spin"></i> Завантаження...
                 </div>
             </div>
         </div>
@@ -275,12 +275,15 @@
     var stationUuid = /*[[${stationUuid}]]*/ '';
     var curroom = null;
     var subcurroom = null;
+    var subusers = null;
+    var subrooms = null;
+    var subPresence = null;
     var reconnectTimeout = null;
     var reconnectDelay = 1000;
     var selectedParticipant = null;
-    var efirStartTime = null;
-    var efirTimerInterval = null;
     var currentRoomType = 'main';
+    var allUsers = [];
+    var allRooms = [];
 
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -289,15 +292,12 @@
         staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
     };
 
-    // Ініціалізація
     document.addEventListener('DOMContentLoaded', () => {
-        // Встановлюємо початкову кімнату
         if (rooms.main) {
             curroom = rooms.main;
             document.getElementById('chatTitle').innerText = 'Основна';
         }
 
-        // Додаємо обробники кліку на кімнати
         document.querySelectorAll('.room-item').forEach(item => {
             item.addEventListener('click', function() {
                 const roomType = this.dataset.roomType;
@@ -311,13 +311,12 @@
 
         connect();
         initEmojiPicker();
-        loadParticipants();
     });
 
-    // STOMP з'єднання
+    // STOMP з'єднання (як у chat.js)
     function connect() {
         if (stompClient && stompClient.connected) return;
-        console.log(" Attempting to connect to STOMP... Current room:", curroom);
+        console.log(" Connecting to STOMP...");
         var socket = new SockJS('/rfachat');
         stompClient = Stomp.over(socket);
         stompClient.debug = function(str) { console.log("STOMP: " + str); };
@@ -325,33 +324,38 @@
     }
 
     function onConnected() {
-        console.log("✅ Connected to STOMP cluster");
+        console.log("✅ Connected to STOMP");
         reconnectDelay = 1000;
         if (reconnectTimeout) clearTimeout(reconnectTimeout);
         const statusEl = document.getElementById('connectstatus');
         if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
-        stompClient.send("/app/hello", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
-        console.log("👋 Sent /app/hello with room:", curroom);
-
+        // Підписки (як у chat.js)
         if (curroom) {
-            console.log("📡 Subscribing to /topic/" + curroom);
-            if (subcurroom) subcurroom.unsubscribe();
             subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
-
-            console.log("📜 Requesting history via /app/room/history for room:", curroom);
-            stompClient.send("/app/room/history", {}, JSON.stringify({
-                uuid: curuuid,
-                roomuuid: curroom,
-                send: Date.now()
-            }));
-        } else {
-            console.warn("⚠️ curroom is invalid:", curroom);
         }
+        subusers = stompClient.subscribe('/topic/chat.userslist.' + curuuid, onUserList);
+        subrooms = stompClient.subscribe('/topic/chat.roomslist.' + curuuid, onRoomList);
+        subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
+
+        // Вітаємося
+        stompClient.send("/app/hello", {}, JSON.stringify({
+            uuid: curuuid,
+            roomuuid: curroom,
+            send: Date.now()
+        }));
+
+        // Запитуємо списки
+        getuserlist();
+        getroomlist();
+
+        // Періодичне оновлення (як у chat.js)
+        setInterval(getuserlist, 15000);
+        setInterval(getroomlist, 15000);
     }
 
     function onError(error) {
-        console.error("❌ STOMP Error/Disconnect:", error);
+        console.error(" STOMP Error:", error);
         const statusEl = document.getElementById('connectstatus');
         if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="fas fa-sync-alt fa-spin me-1"></i> Відключено...</span>';
         if (reconnectTimeout) clearTimeout(reconnectTimeout);
@@ -361,16 +365,140 @@
         }, reconnectDelay);
     }
 
+    function onPresenceUpdate(msg) {
+        console.log("🔄 Presence update");
+        getuserlist();
+        getroomlist();
+    }
+
+    function getuserlist() {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() }));
+        }
+    }
+
+    function getroomlist() {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+        }
+    }
+
+    // Обробка списку користувачів (як у chat.js)
+    function onUserList(payload) {
+        try {
+            let jbody = JSON.parse(payload.body);
+            let users = JSON.parse(jbody.body);
+            allUsers = [];
+
+            users.forEach(function(uJson) {
+                let u = JSON.parse(uJson);
+                allUsers.push(u);
+            });
+
+            renderParticipants();
+        } catch (e) { console.error("Error updating user list", e); }
+    }
+
+    // Обробка списку кімнат (як у chat.js)
+    function onRoomList(payload) {
+        try {
+            let jbody = JSON.parse(payload.body);
+            let rooms = JSON.parse(jbody.body);
+            allRooms = [];
+
+            rooms.forEach(function(rJson) {
+                let r = JSON.parse(rJson);
+                allRooms.push(r);
+            });
+
+            updateRoomCounts();
+        } catch (e) { console.error("Error updating room list", e); }
+    }
+
+    // Рендеринг учасників
+    function renderParticipants() {
+        const list = document.getElementById('participantList');
+        list.innerHTML = '';
+
+        if (allUsers.length === 0) {
+            list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Немає учасників</div>';
+            return;
+        }
+
+        allUsers.forEach(u => {
+            const card = createParticipantCard(u);
+            list.appendChild(card);
+        });
+    }
+
+    function createParticipantCard(u) {
+        const card = document.createElement('div');
+        card.className = 'participant-card';
+        card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(u); };
+
+        const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+
+        card.innerHTML = `
+            <div class="participant-avatar">${initials}<div class="audio-indicator audio-muted"></div></div>
+            <div class="participant-info">
+                <div class="participant-name">${u.name || 'Unknown'}</div>
+                <div class="participant-role">Користувач</div>
+            </div>
+            ${u.unreadCount > 0 ? `<span class="badge rounded-pill bg-danger">${u.unreadCount}</span>` : ''}
+        `;
+        return card;
+    }
+
+    function updateRoomCounts() {
+        // Оновлюємо лічильники для кожної кімнати
+        allRooms.forEach(r => {
+            if (r.uuid === rooms.main) {
+                const el = document.getElementById('countMain');
+                if (el) el.textContent = r.unreadCount || 0;
+            } else if (r.uuid === rooms.green) {
+                const el = document.getElementById('countGreen');
+                if (el) el.textContent = r.unreadCount || 0;
+            } else if (r.uuid === rooms.broadcast) {
+                const el = document.getElementById('countBroadcast');
+                if (el) el.textContent = r.unreadCount || 0;
+            } else if (r.uuid === rooms.staff) {
+                const el = document.getElementById('countStaff');
+                if (el) el.textContent = r.unreadCount || 0;
+            }
+        });
+    }
+
+    // Перемикання кімнат
+    function selectRoom(roomType, roomUuid, roomName) {
+        if (curroom === roomUuid) return;
+
+        document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
+        const activeItem = document.querySelector(`[data-room-type="${roomType}"]`);
+        if (activeItem) activeItem.classList.add('active');
+
+        document.getElementById('chatTitle').innerText = roomName || 'Чат';
+
+        document.getElementById('publicarea').innerHTML = '';
+        document.getElementById('privatearea').innerHTML = '';
+
+        if (subcurroom) subcurroom.unsubscribe();
+        curroom = roomUuid;
+        currentRoomType = roomType;
+
+        if (stompClient && stompClient.connected && curroom) {
+            subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom }));
+        }
+
+        getroomlist();
+    }
+
+    // Чат (як у chat.js)
     function onPublicMessageReceived(payload) {
-        console.log("📩 Received message payload:", payload.body.substring(0, 100) + "...");
         try {
             var msg = JSON.parse(payload.body);
-            console.log("✅ Parsed message:", msg);
             renderBubble(msg, false);
-        } catch (e) {
-            console.error("❌ Error parsing public message:", e);
-            console.error("Raw payload:", payload.body);
-        }
+        } catch (e) { console.error("Error parsing public message", e); }
     }
 
     function renderBubble(msg, isPrivate = false) {
@@ -387,8 +515,7 @@
 
         const meta = document.createElement('div');
         meta.className = 'bubble-meta';
-        const d = new Date(msg.send);
-        const time = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const time = date2string(msg.send);
         meta.innerHTML = `<span>${isMe ? '' : msg.fromname + ' • '}</span><span>${time}</span>`;
 
         bubble.appendChild(content);
@@ -435,102 +562,14 @@
         finally { input.placeholder = oldPlaceholder; }
     }
 
-    // Перемикання кімнат
-    function selectRoom(roomType, roomUuid, roomName) {
-        if (curroom === roomUuid) return;
-
-        document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
-        const activeItem = document.querySelector(`[data-room-type="${roomType}"]`);
-        if (activeItem) activeItem.classList.add('active');
-
-        document.getElementById('chatTitle').innerText = roomName || 'Чат';
-
-        document.getElementById('publicarea').innerHTML = '';
-        document.getElementById('privatearea').innerHTML = '';
-
-        if (subcurroom) subcurroom.unsubscribe();
-        curroom = roomUuid;
-        currentRoomType = roomType;
-
-        if (stompClient && stompClient.connected && curroom) {
-            subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
-            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
-        }
-
-        loadParticipants();
-    }
-
-    // Завантаження учасників через REST API
-    function loadParticipants() {
-        const list = document.getElementById('participantList');
-        list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>';
-
-        fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then(data => {
-                renderParticipants(data);
-            })
-            .catch(error => {
-                console.error('Error loading participants:', error);
-                list.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 20px;">
-                    <i class="fas fa-exclamation-triangle"></i> Помилка завантаження: ${error.message}
-                </div>`;
-            });
-    }
-
-    function renderParticipants(data) {
-        const list = document.getElementById('participantList');
-        list.innerHTML = '';
-
-        // Знаходимо активну кімнату
-        const room = data.rooms.find(r => {
-            if (currentRoomType === 'main') return r.type === 'MAIN';
-            if (currentRoomType === 'green') return r.type === 'GREEN';
-            if (currentRoomType === 'broadcast') return r.type === 'BROADCAST';
-            if (currentRoomType === 'staff') return r.type === 'STAFF';
-            return false;
-        });
-
-        if (!room) {
-            list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Кімната не знайдена</div>';
-            return;
-        }
-
-        // Оновлюємо лічильник
-        const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
-        if (countEl) countEl.textContent = room.participants ? room.participants.length : 0;
-
-        if (!room.participants || room.participants.length === 0) {
-            list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Немає учасників</div>';
-            return;
-        }
-
-        room.participants.forEach(p => {
-            const card = createParticipantCard(p, room.janusRoomId);
-            list.appendChild(card);
-        });
-    }
-
-    function createParticipantCard(p, roomId) {
-        const card = document.createElement('div');
-        card.className = 'participant-card';
-        card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p, roomId); };
-
-        const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
-
-        let audioClass = 'audio-muted';
-        if (p.talking) audioClass = 'audio-speaking';
-
-        card.innerHTML = `
-            <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
-            <div class="participant-info">
-                <div class="participant-name">${p.display || 'Unknown'}</div>
-                <div class="participant-role">Учасник</div>
-            </div>`;
-        return card;
+    function date2string(idate) {
+        let d = new Date(idate);
+        let day = String(d.getDate()).padStart(2, '0');
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let year = d.getFullYear();
+        let hours = String(d.getHours()).padStart(2, '0');
+        let minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
     }
 
     // Emoji Picker
@@ -552,58 +591,17 @@
     }
 
     // Context Menu
-    function showContextMenu(participant, roomId) {
-        selectedParticipant = { ...participant, roomId };
+    function showContextMenu(participant) {
+        selectedParticipant = participant;
         const menu = document.getElementById('contextMenu');
         menu.style.display = 'block';
         menu.style.left = `${event.pageX}px`;
         menu.style.top = `${event.pageY}px`;
-        document.getElementById('muteText').textContent = participant.muted ? 'Unmute' : 'Mute';
+        document.getElementById('muteText').textContent = 'Mute';
     }
 
     function contextAction(action) {
-        if (!selectedParticipant) return;
-
-        const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
-        const body = {};
-
-        if (action === 'mute') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-            body.muted = !selectedParticipant.muted;
-        } else if (action === 'kick') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-        } else if (action === 'move') {
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = prompt('Введіть UUID цільової кімнати:');
-        } else if (action === 'timer') {
-            const minutes = prompt('Таймер (хвилин):', '5');
-            if (minutes) alert(`Таймер ${minutes} хв для ${selectedParticipant.display} (буде реалізовано)`);
-            return;
-        } else if (action === 'giveWord') {
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = rooms.broadcast;
-        }
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadParticipants();
-                } else {
-                    alert('Помилка: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Помилка виконання дії');
-            });
-
+        alert(`Дія "${action}" для ${selectedParticipant?.name} буде реалізована.`);
         document.getElementById('contextMenu').style.display = 'none';
     }
 
