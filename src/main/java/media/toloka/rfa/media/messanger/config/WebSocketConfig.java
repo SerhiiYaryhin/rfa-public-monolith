@@ -1,8 +1,10 @@
 package media.toloka.rfa.media.messanger.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -12,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 /**
  * Конфігурація WebSocket з використанням RabbitMQ STOMP Relay.
- * Це забезпечує доставку повідомлень між усіма вузлами кластера.
+ * Забезпечує доставку повідомлень між усіма вузлами кластера.
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -29,6 +31,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${rabbitmq.virtualhost}")
     private String virtualHost;
+
+    @Autowired
+    private ChatRoomPresenceInterceptor chatRoomPresenceInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -50,11 +55,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/rfachat")
                 .setAllowedOrigins(
-                        "https://rfa.toloka.media", 
-                        "https://test.rfa.toloka.media", 
-                        "https://localhost", 
+                        "https://rfa.toloka.media",
+                        "https://test.rfa.toloka.media",
+                        "https://localhost",
                         "http://localhost:3080")
                 .withSockJS();
+    }
+
+    /**
+     * ✅ Реєструємо interceptor для відстеження підписок на кімнати.
+     * Це дозволяє ChatRoomPresenceService знати, хто в якій кімнаті.
+     */
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(chatRoomPresenceInterceptor);
     }
 
     @Bean
