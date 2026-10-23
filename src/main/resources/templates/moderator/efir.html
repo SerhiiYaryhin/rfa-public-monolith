@@ -271,14 +271,15 @@
     <div class="context-menu-item" onclick="contextAction('timer')"><i class="fas fa-clock"></i> Таймер</div>
     <div class="context-menu-item danger" onclick="contextAction('kick')"><i class="fas fa-ban"></i> Kick</div>
 </div>
-
 <script th:inline="javascript">
-    // Глобальні змінні з chat.js
+    // Глобальні змінні
     var stompClient = null;
     var curuuid = /*[[${curuuid}]]*/ '';
     var curusername = /*[[${curusername}]]*/ '';
-    var curroom = /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/; // За замовчуванням основна кімната
+    var curroom = /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/;
+
     var subcurroom = null;
+    var subpublic = null; // <-- ДОДАНО: для отримання історії
     var reconnectTimeout = null;
     var reconnectDelay = 1000;
     var selectedParticipant = null;
@@ -295,10 +296,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         connect();
         initEmojiPicker();
-        loadParticipants(); // Початкове завантаження (поки що заглушка)
+        loadParticipants();
     });
 
-    // ================= STOMP & CHAT LOGIC (з chat.js) =================
+    // ================= STOMP & CHAT LOGIC =================
     function connect() {
         if (stompClient && stompClient.connected) return;
         var socket = new SockJS('/rfachat');
@@ -315,11 +316,26 @@
         if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
         if (curroom && curroom !== 'null') {
+            // 1. Підписка на загальну кімнату (нові повідомлення)
             subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
-            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+
+            // 2. ПІДПИСКА НА ПЕРСОНАЛЬНУ ЧЕРГУ (історія повідомлень) <-- ВИПРАВЛЕНО
+            subpublic = stompClient.subscribe('/topic/chat.public.' + curuuid, onPublicMessageReceived);
+
+            // 3. Запит історії
+            stompClient.send("/app/room/history", {}, JSON.stringify({
+                uuid: curuuid,
+                roomuuid: curroom,
+                send: Date.now()
+            }));
         }
 
-        stompClient.send("/app/hello", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+        // Реєстрація сесії
+        stompClient.send("/app/hello", {}, JSON.stringify({
+            uuid: curuuid,
+            roomuuid: curroom,
+            send: Date.now()
+        }));
     }
 
     function onError(error) {
@@ -350,7 +366,7 @@
         bubble.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'} animate__animated animate__fadeInUp animate__faster`;
 
         const content = document.createElement('div');
-        content.innerHTML = msg.body; // Підтримує HTML для зображень
+        content.innerHTML = msg.body;
 
         const meta = document.createElement('div');
         meta.className = 'bubble-meta';
@@ -406,41 +422,37 @@
     function selectRoom(roomType, roomUuid, roomName) {
         if (curroom === roomUuid) return;
 
-        // Оновлюємо UI кімнат
         document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
         document.querySelector(`.room-item-${roomType}`).classList.add('active');
-
-        // Оновлюємо заголовок чату
         document.getElementById('chatTitle').innerText = roomName || 'Чат';
 
-        // Очищаємо чат
+        // Очищаємо чат при перемиканні
         document.getElementById('publicarea').innerHTML = '';
         document.getElementById('privatearea').innerHTML = '';
 
-        // Перепідписуємо STOMP
+        // Перепідписуємо ТІЛЬКИ кімнатну підписку, персональну (subpublic) залишаємо!
         if (subcurroom) subcurroom.unsubscribe();
         curroom = roomUuid;
 
         if (stompClient && stompClient.connected && curroom && curroom !== 'null') {
             subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
-            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+            stompClient.send("/app/room/history", {}, JSON.stringify({
+                uuid: curuuid,
+                roomuuid: curroom,
+                send: Date.now()
+            }));
         }
 
-        // Оновлюємо список учасників для нової кімнати
         loadParticipants();
     }
 
-    // ================= PARTICIPANTS (Заглушка для демонстрації) =================
+    // ================= PARTICIPANTS =================
     function loadParticipants() {
         const list = document.getElementById('participantList');
         list.innerHTML = '';
-
-        // Додаємо модератора як приклад
         const card = createParticipantCard({ id: 0, display: curusername, muted: false, talking: false });
         list.appendChild(card);
-
-        // Оновлюємо лічильник
-        const countEl = document.getElementById('countMain'); // Спрощено для прикладу
+        const countEl = document.getElementById('countMain');
         if (countEl) countEl.textContent = '1';
     }
 
@@ -448,10 +460,8 @@
         const card = document.createElement('div');
         card.className = 'participant-card';
         card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p); };
-
         const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
         let audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
-
         card.innerHTML = `
             <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
             <div class="participant-info">
