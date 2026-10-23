@@ -8,10 +8,7 @@ import media.toloka.rfa.media.messanger.model.ChatMessage;
 import media.toloka.rfa.media.messanger.model.ChatPresenceEvent;
 import media.toloka.rfa.media.messanger.model.MessageRoom;
 import media.toloka.rfa.media.messanger.model.enumerate.EChatRoomType;
-import media.toloka.rfa.media.messanger.service.ChatPresenceService;
-import media.toloka.rfa.media.messanger.service.ChatReferenceSingleton;
-import media.toloka.rfa.media.messanger.service.ChatRoomPresenceService;
-import media.toloka.rfa.media.messanger.service.MessangerService;
+import media.toloka.rfa.media.messanger.service.*;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Clientdetail;
 import media.toloka.rfa.security.model.Users;
@@ -50,11 +47,57 @@ public class ChatController {
     private ChatRoomPresenceService chatRoomPresenceService;
 
     @Autowired
+    private HandRaiseService handRaiseService;
+
+    @Autowired
     public ChatController(SimpMessagingTemplate template) {
         this.template = template;
     }
 
     final Logger logger = LoggerFactory.getLogger(ChatController.class);
+
+    // ========================================================================
+    // ✅ НОВІ МЕТОДИ: Управління підняттям руки
+    // ========================================================================
+
+    /**
+     * Гість піднімає руку.
+     * Payload: { "uuid": "...", "stationUuid": "...", "roomuuid": "..." }
+     */
+    @MessageMapping("/hand/raise")
+    public void raiseHand(ChatMessage inmsg) {
+        try {
+            // stationUuid має бути в body або окремому полі.
+            // Для простоти візьмемо його з додаткового поля, або можна парсити body.
+            // Припустимо, ми передаємо stationUuid через roomuuid (якщо це спец. кімната)
+            // або додамо поле в ChatMessage.
+            // Тут використаємо простий підхід: stationUuid передається в body як JSON.
+
+            com.google.gson.JsonObject body = new com.google.gson.JsonParser().parse(inmsg.getBody()).getAsJsonObject();
+            String stationUuid = body.get("stationUuid").getAsString();
+            String roomUuid = body.get("roomuuid").getAsString();
+
+            handRaiseService.raiseHand(stationUuid, inmsg.getUuid(), roomUuid);
+        } catch (Exception e) {
+            logger.error("Error raising hand", e);
+        }
+    }
+
+    /**
+     * Гість або модератор опускає руку.
+     */
+    @MessageMapping("/hand/lower")
+    public void lowerHand(ChatMessage inmsg) {
+        try {
+            com.google.gson.JsonObject body = new com.google.gson.JsonParser().parse(inmsg.getBody()).getAsJsonObject();
+            String stationUuid = body.get("stationUuid").getAsString();
+            String targetUuid = body.has("targetUuid") ? body.get("targetUuid").getAsString() : inmsg.getUuid();
+
+            handRaiseService.lowerHand(stationUuid, targetUuid);
+        } catch (Exception e) {
+            logger.error("Error lowering hand", e);
+        }
+    }
 
     @MessageMapping("/hello")
     public void GetChatMessage(ChatMessage inmsg, @Header("simpSessionId") String sessionId) {

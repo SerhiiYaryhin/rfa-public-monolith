@@ -7,20 +7,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Толока Чат - Спілкування в ефірі</title>
-    
+
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
+
     <!-- SockJS & STOMP -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
-    
+
     <!-- Emoji Picker Element (Modern UTF-8 Support) -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
-    
+
     <style>
         :root {
             --chat-bg: #f0f2f5;
@@ -29,89 +29,89 @@
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--chat-bg); 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--chat-bg);
             height: 100dvh; /* Динамічна висота для мобільних */
             margin: 0;
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        
+
         header { flex-shrink: 0; z-index: 100; }
 
-        .chat-container { 
-            display: flex; 
-            flex: 1; 
-            background: #fff; 
+        .chat-container {
+            display: flex;
+            flex: 1;
+            background: #fff;
             box-shadow: 0 10px 40px rgba(0,0,0,0.05);
             overflow: hidden;
             position: relative;
         }
-        
+
         /* Sidebar Styling */
-        .chat-sidebar { 
-            width: var(--sidebar-width); 
-            border-right: 1px solid #edf2f7; 
-            display: flex; 
-            flex-direction: column; 
-            background: #f8fafc; 
-            z-index: 50; 
-            transition: transform 0.3s ease; 
+        .chat-sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid #edf2f7;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+            z-index: 50;
+            transition: transform 0.3s ease;
         }
-        
+
         /* Main Content Styling */
-        .chat-main { 
+        .chat-main {
             flex: 1;
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            background: #fff; 
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #fff;
             min-width: 0;
         }
-        
-        .chat-header { 
-            padding: 12px 20px; 
-            border-bottom: 1px solid #edf2f7; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            background: var(--glass-bg); 
-            backdrop-filter: blur(10px); 
+
+        .chat-header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
             flex-shrink: 0;
         }
 
-        .messages-area { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); 
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
         }
-        
+
         /* Chat Bubbles */
         .bubble { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
         .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
         .bubble-me { align-self: flex-end; background: var(--accent-color); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
-        
+
         .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.6; display: flex; align-items: center; gap: 5px; }
         .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
 
         /* Input Area */
-        .input-area { 
-            padding: 15px 20px; 
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
-            border-top: 1px solid #edf2f7; 
-            background: #fff; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
+        .input-area {
+            padding: 15px 20px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
+            border-top: 1px solid #edf2f7;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             flex-shrink: 0;
         }
-        
+
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; }
         .chat-input:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
@@ -133,13 +133,13 @@
             .chat-main { width: 100%; }
             .btn-back { display: block !important; }
             .bubble { max-width: 85%; }
-            
+
             /* Виправляємо відступ зверху, якщо хедер фіксований */
             header { position: sticky; top: 0; }
         }
 
         .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 10px; }
-        
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -159,7 +159,7 @@
                 <h5 class="fw-bold mb-0">Чати</h5>
                 <button class="btn btn-sm btn-light rounded-pill"><i class="fas fa-search"></i></button>
             </div>
-            
+
             <div class="flex-grow-1 overflow-y-auto">
                 <div th:insert="~{/fragments/msgframents :: listroom}"/>
                 <div th:insert="~{/fragments/msgframents :: listuser}"/>
@@ -201,19 +201,43 @@
                         <i class="fas fa-image text-muted"></i>
                     </button>
                     <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
+
+                    <!-- ✅ НОВА КНОПКА: Підняти руку -->
+                    <button class="btn btn-warning rounded-circle" onclick="raiseHand()" title="Підняти руку" style="width: 45px; height: 45px;">
+                        <i class="fas fa-hand-paper"></i>
+                    </button>
                 </div>
-                
+
                 <div class="input-group-custom">
                     <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">
                     <button class="btn-emoji" id="emojiToggle">😀</button>
                 </div>
-                
+
                 <emoji-picker id="picker"></emoji-picker>
 
                 <button class="btn-send" onclick="handleSend()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </footer>
+<!--            <footer class="input-area">-->
+<!--                <div class="d-flex gap-2">-->
+<!--                    <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">-->
+<!--                        <i class="fas fa-image text-muted"></i>-->
+<!--                    </button>-->
+<!--                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">-->
+<!--                </div>-->
+<!--                -->
+<!--                <div class="input-group-custom">-->
+<!--                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off">-->
+<!--                    <button class="btn-emoji" id="emojiToggle">😀</button>-->
+<!--                </div>-->
+<!--                -->
+<!--                <emoji-picker id="picker"></emoji-picker>-->
+
+<!--                <button class="btn-send" onclick="handleSend()">-->
+<!--                    <i class="fas fa-paper-plane"></i>-->
+<!--                </button>-->
+<!--            </footer>-->
         </main>
     </div>
 
@@ -254,7 +278,7 @@
                 if (picker) picker.classList.remove('visible');
             });
             if (picker) picker.onclick = (e) => e.stopPropagation();
-            
+
             // Fix for mobile keyboard: scroll to bottom on input focus
             if (input) {
                 input.addEventListener('focus', () => {

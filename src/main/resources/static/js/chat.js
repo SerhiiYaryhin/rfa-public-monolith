@@ -1,9 +1,5 @@
 'use strict';
-/**
- Логіка сучасного чату RFA
- Включає підтримку WebSockets (STOMP), Емодзі та адаптивний рендеринг повідомлень у вигляді бульбашок.
- Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
- */
+
 var stompClient = null;
 var clientuuid = null;
 var toclientname = null;
@@ -17,7 +13,6 @@ var subMediaToPublic = null;
 var reconnectTimeout = null;
 var reconnectDelay = 1000;
 
-// ✅ ВИПРАВЛЕНО: Отримуємо елемент тільки коли DOM готовий
 let messagesArea = null;
 
 function connect() {
@@ -109,7 +104,6 @@ function renderBubble(msg, isPrivate = false) {
     if (container) {
         container.appendChild(bubble);
 
-        // ✅ ВИПРАВЛЕНО: Отримуємо messagesArea тут, а не на початку файлу
         if (!messagesArea) {
             messagesArea = document.getElementById('mainMessagesArea');
         }
@@ -310,6 +304,39 @@ async function uploadImage(file) {
     finally { if (input) input.placeholder = 'Напишіть повідомлення...'; }
 }
 
+function raiseHand() {
+    if (!stompClient || !stompClient.connected) {
+        alert('Немає з\'єднання з сервером');
+        return;
+    }
+
+    const testStationUuid = typeof stationUuid !== 'undefined' ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
+
+    stompClient.send("/app/hand/raise", {}, JSON.stringify({
+        uuid: curuuid,
+        body: JSON.stringify({
+            stationUuid: testStationUuid,
+            roomuuid: curroom
+        })
+    }));
+    console.log("🙋 Руку піднято!");
+}
+
+function lowerHand() {
+    if (!stompClient || !stompClient.connected) return;
+
+    const testStationUuid = typeof stationUuid !== 'undefined' ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
+
+    stompClient.send("/app/hand/lower", {}, JSON.stringify({
+        uuid: curuuid,
+        body: JSON.stringify({
+            stationUuid: testStationUuid,
+            targetUuid: curuuid
+        })
+    }));
+    console.log("✋ Руку опущено!");
+}
+
 function getuserlist() {
     if (stompClient && stompClient.connected) {
         stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() }));
@@ -344,13 +371,14 @@ window.sendprivate = sendprivate;
 window.uploadImage = uploadImage;
 window.selectroom = selectroom;
 window.selectuserFromPublic = selectuserFromPublic;
+window.raiseHand = raiseHand;
+window.lowerHand = lowerHand;
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('chatSidebar');
     if (sidebar) sidebar.classList.toggle('hidden');
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-    // ✅ Ініціалізуємо messagesArea коли DOM готовий
     messagesArea = document.getElementById('mainMessagesArea');
     connect();
     setInterval(getuserlist, 15000);

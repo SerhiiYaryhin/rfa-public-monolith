@@ -106,7 +106,6 @@
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
         .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
-        /* ✅ Секція "Очікують" */
         .waiting-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -179,7 +178,6 @@
         }
         .participant-list { flex: 1; overflow-y: auto; }
 
-        /* ✅ Горизонтальна сітка учасників (чіпси) */
         .participant-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -205,7 +203,6 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
 
-        /* Підсвічення, коли учасник говорить */
         .participant-chip.talking {
             background: rgba(0, 184, 148, 0.15);
             border-color: var(--success);
@@ -337,7 +334,6 @@
     </div>
 
     <div class="cc-main">
-        <!-- Ліва колонка: Кімнати + Очікують -->
         <div class="cc-rooms">
             <div class="cc-section-title"><i class="fas fa-door-open"></i> Кімнати</div>
             <div class="room-item room-item-main active" data-room-type="main" th:data-room-uuid="${mainRoom != null ? mainRoom.uuid : ''}" th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
@@ -357,8 +353,7 @@
                 <div class="room-count" id="countStaff">0</div>
             </div>
 
-            <!-- ✅ Секція "Очікують" -->
-            <div class="waiting-section">
+            <div class="waiting-section" id="waitingSection" style="display: none;">
                 <div class="cc-section-title">
                     <i class="fas fa-hand-paper"></i> Очікують
                     <span class="badge rounded-pill bg-warning text-dark" id="waitingCount" style="margin-left: auto;">0</span>
@@ -369,7 +364,6 @@
             </div>
         </div>
 
-        <!-- Центральна колонка: Учасники (сітка чіпсів) -->
         <div class="cc-participants">
             <div class="cc-section-title">
                 <i class="fas fa-users"></i> Учасники
@@ -385,7 +379,6 @@
             </div>
         </div>
 
-        <!-- Права колонка: Чат -->
         <div class="cc-chat">
             <div class="chat-header">
                 <span><i class="fas fa-comment-dots"></i> <span id="chatTitle">Публічний чат</span></span>
@@ -428,9 +421,9 @@
     var stationUuid = /*[[${stationUuid}]]*/ '';
     var currentRoomType = 'main';
     var clientuuid = null;
-    var subRoomParticipants = null;
     var subBatchParticipants = null;
     var subPresenceUpdate = null;
+    var subWaitingGuests = null;
 
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -439,7 +432,6 @@
         staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
     };
 
-    // Кеш останніх даних про учасників для кожної кімнати
     var participantsCache = {};
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -456,7 +448,6 @@
                     if (typeof selectroom === 'function') {
                         selectroom(roomUuid, roomName);
                     }
-                    // Оновлюємо список учасників для нової активної кімнати
                     renderActiveRoomParticipants();
                 }
             });
@@ -487,14 +478,10 @@
         }, 1500);
     });
 
-    /**
-     * ✅ Налаштування всіх підписок для оновлення в реальному часі
-     */
     function setupModeratorSubscriptions() {
         const trySubscribe = () => {
             if (!stompClient || !stompClient.connected) return false;
 
-            // Підписка на batch-відповідь
             if (!subBatchParticipants) {
                 subBatchParticipants = stompClient.subscribe(
                     '/topic/chat.rooms.batch.' + curuuid,
@@ -502,7 +489,6 @@
                 );
             }
 
-            // Підписка на глобальне сповіщення про зміну складу учасників
             if (!subPresenceUpdate) {
                 subPresenceUpdate = stompClient.subscribe(
                     '/topic/efir.room.presence',
@@ -510,6 +496,13 @@
                         console.log('🔔 Presence update received, requesting batch...');
                         setTimeout(requestBatchParticipants, 150);
                     }
+                );
+            }
+
+            if (!subWaitingGuests) {
+                subWaitingGuests = stompClient.subscribe(
+                    `/topic/efir.${stationUuid}.waiting`,
+                    onWaitingGuestsUpdate
                 );
             }
 
@@ -524,7 +517,6 @@
             setTimeout(() => clearInterval(interval), 30000);
         }
 
-        // Fallback: періодичне оновлення кожні 10 секунд
         setInterval(() => {
             if (stompClient && stompClient.connected) {
                 requestBatchParticipants();
@@ -532,9 +524,6 @@
         }, 10000);
     }
 
-    /**
-     * ✅ Запитуємо учасників для ВСІХ кімнат станції одним запитом
-     */
     function requestBatchParticipants() {
         if (!stompClient || !stompClient.connected) return;
 
@@ -547,28 +536,19 @@
         }));
     }
 
-    /**
-     * ✅ Обробка batch-відповіді: оновлюємо всі лічильники + кеш
-     */
     function onBatchParticipantsReceived(payload) {
         try {
             const data = JSON.parse(payload.body);
-            const batchData = JSON.parse(data.body); // { roomUuid: [...participants] }
+            const batchData = JSON.parse(data.body);
 
-            // Оновлюємо кеш
             participantsCache = batchData;
 
-            // Оновлюємо лічильник кожної кімнати
             updateRoomCount('main', batchData[rooms.main] || []);
             updateRoomCount('green', batchData[rooms.green] || []);
             updateRoomCount('broadcast', batchData[rooms.broadcast] || []);
             updateRoomCount('staff', batchData[rooms.staff] || []);
 
-            // Оновлюємо список учасників для активної кімнати
             renderActiveRoomParticipants();
-
-            // Оновлюємо секцію "Очікують" (гості з Green Room)
-            renderWaitingGuests(batchData[rooms.green] || []);
 
         } catch (e) {
             console.error('Error parsing batch participants:', e);
@@ -580,9 +560,6 @@
         if (countEl) countEl.textContent = participants.length;
     }
 
-    /**
-     * ✅ Рендеринг учасників активної кімнати у вигляді сітки чіпсів
-     */
     function renderActiveRoomParticipants() {
         const grid = document.getElementById('participantGrid');
         const activeCountBadge = document.getElementById('activeRoomCount');
@@ -624,37 +601,43 @@
         });
     }
 
-    /**
-     * ✅ Рендеринг гостей, які підняли руку (з Green Room)
-     */
-    function renderWaitingGuests(greenRoomParticipants) {
+    function onWaitingGuestsUpdate(payload) {
+        try {
+            const guests = JSON.parse(payload.body);
+            renderWaitingGuests(guests);
+        } catch (e) {
+            console.error('Error parsing waiting guests:', e);
+        }
+    }
+
+    function renderWaitingGuests(guests) {
         const list = document.getElementById('waitingList');
+        const section = document.getElementById('waitingSection');
         const countBadge = document.getElementById('waitingCount');
-        if (!list) return;
 
-        // Поки що вважаємо всіх у Green Room "очікуючими"
-        // В майбутньому тут буде фільтр за полем handRaised
-        const waitingGuests = greenRoomParticipants;
+        if (!list || !section) return;
 
-        if (countBadge) countBadge.textContent = waitingGuests.length;
+        if (countBadge) countBadge.textContent = guests.length;
 
-        if (waitingGuests.length === 0) {
-            list.innerHTML = '<div class="waiting-empty">Немає гостей</div>';
+        if (guests.length === 0) {
+            section.style.display = 'none';
             return;
         }
 
+        section.style.display = 'flex';
         list.innerHTML = '';
-        waitingGuests.forEach(u => {
+
+        guests.forEach(g => {
             const item = document.createElement('div');
             item.className = 'waiting-item';
             item.innerHTML = `
                 <i class="fas fa-hand-paper" style="color: var(--warning); flex-shrink: 0;"></i>
-                <div class="waiting-item-name" title="${u.name}">${u.name}</div>
+                <div class="waiting-item-name" title="${g.name}">${g.name}</div>
                 <div class="waiting-actions">
-                    <button class="btn-waiting btn-accept" onclick="acceptGuest('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Запросити в ефір">
+                    <button class="btn-waiting btn-accept" onclick="acceptGuest('${g.uuid}')" title="Запросити в ефір">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button class="btn-waiting btn-decline" onclick="declineGuest('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Відхилити">
+                    <button class="btn-waiting btn-decline" onclick="declineGuest('${g.uuid}')" title="Відхилити">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -663,36 +646,38 @@
         });
     }
 
-    /**
-     * Контекстне меню для чіпса учасника
-     */
     function showChipMenu(event, userUuid, userName) {
         event.stopPropagation();
         selectedParticipant = { uuid: userUuid, name: userName };
         const menu = document.getElementById('contextMenu');
         menu.style.display = 'block';
 
-        // Розміщуємо меню біля кнопки
         const rect = event.currentTarget.getBoundingClientRect();
         menu.style.left = `${rect.left}px`;
         menu.style.top = `${rect.bottom + 5}px`;
     }
 
-    function acceptGuest(userUuid, userName) {
+    function acceptGuest(userUuid) {
         if (!rooms.broadcast) {
             alert('Ефір ще не створено. Натисніть "Підготувати ефір".');
             return;
         }
-        console.log(`✅ Запрошення ${userName} в Ефір`);
-        alert(`${userName} запрошений в ефір (функція буде реалізована)`);
-        // TODO: fetch(`/api/v1/broadcast/${stationUuid}/moderation/invite`, ...)
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/hand/lower", {}, JSON.stringify({
+                uuid: curuuid,
+                body: JSON.stringify({ stationUuid: stationUuid, targetUuid: userUuid })
+            }));
+        }
+        alert(`Гість запрошений в ефір (WebRTC переміщення буде додано наступним кроком)`);
     }
 
-    function declineGuest(userUuid, userName) {
-        if (!rooms.green) return;
-        console.log(`❌ Відхилення ${userName}`);
-        alert(`${userName} відхилений (функція буде реалізована)`);
-        // TODO: fetch(`/api/v1/broadcast/${stationUuid}/moderation/kick`, ...)
+    function declineGuest(userUuid) {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/hand/lower", {}, JSON.stringify({
+                uuid: curuuid,
+                body: JSON.stringify({ stationUuid: stationUuid, targetUuid: userUuid })
+            }));
+        }
     }
 
     var selectedParticipant = null;
