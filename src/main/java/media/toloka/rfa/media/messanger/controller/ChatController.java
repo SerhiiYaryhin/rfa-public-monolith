@@ -29,10 +29,6 @@ import java.util.*;
 
 import static media.toloka.rfa.media.messanger.model.enumerate.EChatRecordType.RECORD_TYPE_TEXT;
 
-/**
- *  STOMP-контролер для роботи чату.
- * Обробляє повідомлення чату, списки користувачів/кімнат та історію.
- */
 @Controller
 public class ChatController {
 
@@ -48,10 +44,11 @@ public class ChatController {
     private ChatPresenceService presenceService;
 
     @Autowired
-    private ChatRoomPresenceService chatRoomPresenceService;
-
-    @Autowired
     private WebSocketEventListener sessionListener;
+
+    // ✅ ДОДАНО: Сервіс для відстеження учасників кімнат
+    @Autowired
+    private ChatRoomPresenceService chatRoomPresenceService;
 
     @Autowired
     public ChatController(SimpMessagingTemplate template) {
@@ -60,33 +57,24 @@ public class ChatController {
 
     final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
-    /**
-     * Реєстрація сесії та отримання історії публічних/приватних повідомлень.
-     * POST /app/hello
-     */
     @MessageMapping("/hello")
     public void GetChatMessage(ChatMessage inmsg, @Header("simpSessionId") String sessionId) {
         try {
-            // Реєструємо сесію для відстеження відключення
             sessionListener.registerSession(sessionId, inmsg.getUuid());
-
             Clientdetail cd = clientService.GetClientDetailByUUID(inmsg.getUuid());
             String fullName = cd != null ? cd.getCustname() + " " + cd.getCustsurname() : "Unknown";
 
-            // Публікуємо подію в RabbitMQ
             presenceService.publishPresenceEvent(
                     ChatPresenceEvent.EventType.USER_CONNECTED,
                     inmsg.getUuid(),
                     fullName
             );
 
-            // Історія публічних повідомлень кімнати
             List<ChatMessage> publicMessageList = messangerService.GetChatPublicRoomList(inmsg.getRoomuuid());
             for (ChatMessage imsg : publicMessageList) {
                 this.template.convertAndSend("/topic/chat.public." + inmsg.getUuid(), imsg);
             }
 
-            // Історія приватних повідомлень + позначка прочитаного
             List<ChatMessage> privateMessageList = messangerService.GetMessagesAsc(inmsg.getUuid());
             for (ChatMessage imsg : privateMessageList) {
                 if (imsg.getReading() != null && !imsg.getReading()) {
@@ -101,17 +89,12 @@ public class ChatController {
         }
     }
 
-    /**
-     * Список всіх онлайн-користувачів (для сайдбара чату).
-     * POST /app/userslist
-     */
     @MessageMapping("/userslist")
     public void GetRoomUserList(ChatMessage inmsg) {
         try {
             ChatReferenceSingleton chatReference = ChatReferenceSingleton.getInstance();
             ChatMessage cmsg = new ChatMessage();
             List<String> usersListMap = new ArrayList<>();
-
             Map<String, String> usersMap = chatReference.GetUsersMap();
             Gson gson = new GsonBuilder().create();
 
@@ -132,10 +115,6 @@ public class ChatController {
         messangerService.CheckUserLastLiveTime();
     }
 
-    /**
-     * Список публічних кімнат (для сайдбара чату).
-     * POST /app/roomslist
-     */
     @MessageMapping("/roomslist")
     public void GetRoomList(ChatMessage inmsg) {
         try {
@@ -145,8 +124,8 @@ public class ChatController {
 
             ChatMessage cmsg = new ChatMessage();
             List<String> roomsListMap = new ArrayList<>();
-
             Map<String, String> roomList = chatReference.GetRoomsMap();
+
             if (roomList.isEmpty()) {
                 List<MessageRoom> messageRoomList = messangerService.GetChatRoomList();
                 for (MessageRoom entry : messageRoomList) {
@@ -173,12 +152,9 @@ public class ChatController {
         }
     }
 
-    /**
-     * 🎯 НОВИЙ МЕТОД: Отримання списку учасників конкретної кімнати.
-     * Повертає тільки тих, хто зараз підписаний на /topic/{roomUuid}.
-     * POST /app/room/participants
-     * Payload: { "uuid": "user-uuid", "roomuuid": "room-uuid" }
-     */
+    // ========================================================================
+    // ✅ НОВИЙ МЕТОД: Відповідь на запит фронтенду про учасників кімнати
+    // ========================================================================
     @MessageMapping("/room/participants")
     public void getRoomParticipants(ChatMessage inmsg) {
         try {
@@ -188,41 +164,39 @@ public class ChatController {
                 return;
             }
 
+            // Отримуємо UUID учасників з нашого сервісу відстеження
             Set<String> participantUuids = chatRoomPresenceService.getRoomParticipants(roomUuid);
 
-            // Формуємо список з іменами
             List<Map<String, String>> userList = new ArrayList<>();
             for (String userUuid : participantUuids) {
                 Map<String, String> user = new HashMap<>();
                 user.put("uuid", userUuid);
 
-                Clientdetail cd = clientService.GetClientDetailByUUID(userUuid);
+                // Отримуємо ім'я користувача з БД
+                Clientdetail cd = clientService.GetClientDetailByUuid(userUuid);
                 if (cd != null) {
                     user.put("name", cd.getCustname() + " " + cd.getCustsurname());
                 } else {
-                    user.put("name", "Unknown");
+                    user.put("name", "Unknown (" + userUuid.substring(0, 8) + "...)");
                 }
                 userList.add(user);
             }
 
-            // Відправляємо результат назад клієнту
+            // Відправляємо результат назад конкретному користувачу
             ChatMessage response = new ChatMessage();
             response.setUuid(inmsg.getUuid());
             response.setRoomuuid(roomUuid);
             response.setBody(new GsonBuilder().create().toJson(userList));
 
             this.template.convertAndSend("/topic/chat.room.participants." + inmsg.getUuid(), response);
-
             logger.debug("📋 Учасники кімнати {}: {}", roomUuid, userList.size());
+
         } catch (Exception e) {
             logger.error("Error getting room participants", e);
         }
     }
+    // ========================================================================
 
-    /**
-     * Отримання історії повідомлень для конкретної кімнати.
-     * POST /app/room/history
-     */
     @MessageMapping("/room/history")
     public void getRoomHistory(ChatMessage inmsg) {
         try {
@@ -235,10 +209,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Отримання історії приватних повідомлень.
-     * POST /app/private/history
-     */
     @MessageMapping("/private/history")
     public void getPrivateHistory(ChatMessage inmsg) {
         try {
@@ -254,10 +224,6 @@ public class ChatController {
         }
     }
 
-    /**
-     * Публічне повідомлення в кімнату.
-     * POST /app/public
-     */
     @MessageMapping("/public")
     public void GetChatPublicmessage(ChatMessage inmsg) {
         try {
@@ -270,10 +236,6 @@ public class ChatController {
         messangerService.SaveMessageFromChat(inmsg);
     }
 
-    /**
-     * Приватне повідомлення.
-     * POST /app/private
-     */
     @MessageMapping("/private")
     public void GetChatPrivateMessage(ChatMessage message) {
         try {
@@ -293,9 +255,6 @@ public class ChatController {
         messangerService.SaveMessageFromChat(message);
     }
 
-    /**
-     * Сторінка чату.
-     */
     @GetMapping(value = "/chat")
     public String getUserHome(Model model) {
         Users user = clientService.GetCurrentUser();

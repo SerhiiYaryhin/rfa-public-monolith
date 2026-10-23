@@ -56,17 +56,17 @@ public class WebSocketEventListener {
         }
     }
 
-    /**
-     * Отримати UUID користувача за sessionId.
-     */
-    public String getUserUuidBySession(String sessionId) {
-        return sessionUserMap.get(sessionId);
-    }
-
-    /**
+     /**
      * Допоміжний метод для зв'язування сесії з користувачем (викликається з контролера).
      */
     public void registerSession(String sessionId, String userUuid) {
         sessionUserMap.put(sessionId, userUuid);
+    }
+
+    /**
+     * ✅ ДОДАНО: Отримати UUID користувача за sessionId (потрібно для ChatRoomPresenceInterceptor)
+     */
+    public String getUserUuidBySession(String sessionId) {
+        return sessionUserMap.get(sessionId);
     }
 }
