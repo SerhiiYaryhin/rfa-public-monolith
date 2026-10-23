@@ -4,11 +4,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Модератор ефіру - <th:block th:text="${station.name}">Радіостанція</th:block></title>
+    <title>️ Command Center - <th:block th:text="${station.name}">Радіостанція</th:block></title>
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
     <!-- SockJS & STOMP -->
@@ -17,290 +17,862 @@
 
     <style>
         :root {
-            --accent-color: #6c5ce7;
-            --danger-color: #e74c3c;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
+            --primary: #6c5ce7;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --info: #0984e3;
+            --dark: #2d3436;
+            --light: #dfe6e9;
+            --sidebar-width: 280px;
+            --chat-width: 400px;
         }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .efir-container { max-width: 1200px; margin: 0 auto; }
-        .efir-header { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .efir-header h1 { margin: 0 0 10px 0; color: #2c3e50; }
-        .efir-header .station-info { color: #7f8c8d; font-size: 0.9rem; }
-        .rooms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .room-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid var(--accent-color); }
-        .room-card.green { border-left-color: var(--warning-color); }
-        .room-card.broadcast { border-left-color: var(--danger-color); }
-        .room-card.staff { border-left-color: #34495e; }
-        .room-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
-        .room-card .room-status { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px; }
-        .room-card .room-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn-efir { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .btn-prepare { background: var(--accent-color); color: white; width: 100%; padding: 15px; font-size: 1.1rem; margin-bottom: 20px; }
-        .btn-prepare:hover { background: #5b4cc4; transform: translateY(-2px); }
-        .btn-prepare:disabled { background: #95a5a6; cursor: not-allowed; }
-        .btn-join { background: var(--success-color); color: white; flex: 1; }
-        .btn-join:hover { background: #229954; }
-        .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
-        .status-active { background: var(--success-color); }
-        .status-inactive { background: #bdc3c7; }
-        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .command-center {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        /* HEADER */
+        .cc-header {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .cc-header-left h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cc-header-info {
+            color: #636e72;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #ffebee;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--danger);
+        }
+
+        .live-indicator.active {
+            background: #ffebee;
+            animation: pulse 2s infinite;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* CONTROL BAR */
+        .cc-control-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .btn-control {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #5b4cc4; transform: translateY(-2px); }
+
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #00a383; transform: translateY(-2px); }
+
+        .btn-warning { background: var(--warning); color: var(--dark); }
+        .btn-warning:hover { background: #f39c12; transform: translateY(-2px); }
+
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
+
+        .btn-control:disabled {
+            background: #b2bec3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* MAIN CONTENT - 3 COLUMNS */
+        .cc-main {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr var(--chat-width);
+            gap: 15px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* COLUMN 1: ROOMS */
+        .cc-rooms {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .cc-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #636e72;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .room-item {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .room-item:hover { background: #f8f9fa; transform: translateX(5px); }
+        .room-item.active { background: #f0f2f5; border-left-color: var(--primary); }
+
+        .room-item-main { border-left-color: var(--primary); }
+        .room-item-green { border-left-color: var(--warning); }
+        .room-item-broadcast { border-left-color: var(--danger); }
+        .room-item-staff { border-left-color: #636e72; }
+
+        .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
+        .room-count {
+            background: var(--light);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .waiting-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f2f5;
+        }
+
+        .waiting-item {
+            padding: 10px;
+            background: #fff8dc;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .waiting-item i { color: var(--warning); margin-right: 8px; }
+
+        /* COLUMN 2: PARTICIPANTS */
+        .cc-participants {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .participant-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .participant-card {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .participant-card:hover {
+            background: #f0f2f5;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .participant-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .audio-indicator {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .audio-speaking { background: var(--success); animation: pulse-audio 1s infinite; }
+        .audio-muted { background: #b2bec3; }
+        .audio-hand { background: var(--warning); animation: blink 0.5s infinite; }
+        .audio-waiting { background: var(--info); }
+
+        @keyframes pulse-audio {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .participant-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .participant-role {
+            font-size: 0.75rem;
+            color: #636e72;
+        }
+
+        .participant-timer {
+            font-size: 0.8rem;
+            color: var(--warning);
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        /* COLUMN 3: CHAT */
+        .cc-chat {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 2px solid #f0f2f5;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafbfc;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message-me {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-other {
+            background: white;
+            color: var(--dark);
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-meta {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 2px solid #f0f2f5;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-send {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover {
+            background: #5b4cc4;
+            transform: scale(1.1) rotate(-10deg);
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1200px) {
+            .cc-main {
+                grid-template-columns: 1fr;
+            }
+            .cc-rooms, .cc-chat {
+                display: none;
+            }
+            .cc-rooms.active, .cc-chat.active {
+                display: block;
+            }
+        }
+
+        /* CONTEXT MENU */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 8px 0;
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .context-menu-item:hover {
+            background: #f0f2f5;
+        }
+
+        .context-menu-item.danger {
+            color: var(--danger);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body>
-<div class="efir-container">
 
-    <!-- Блок для отримання JWT токена через REST API -->
-    <div class="card mt-4 border-warning">
-        <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-key"></i> JWT Токен (для тестування API)</span>
-            <button class="btn btn-sm btn-outline-dark" onclick="fetchToken()" title="Оновити токен">
-                <i class="fas fa-sync-alt"></i> Оновити
-            </button>
+<div class="command-center">
+    <!-- HEADER -->
+    <div class="cc-header">
+        <div class="cc-header-left">
+            <h1>
+                <i class="fas fa-broadcast-tower"></i>
+                <th:block th:text="${station.name}">Радіостанція</th:block>
+            </h1>
+            <div class="cc-header-info">
+                <strong>UUID:</strong> <th:block th:text="${stationUuid}">uuid</th:block> |
+                <strong>Модератор:</strong> <th:block th:text="${curusername}">Ім'я</th:block>
+            </div>
         </div>
-        <div class="card-body">
-            <p class="text-muted small mb-2">
-                Отримує токен для поточної сесії. Використовуйте його для запуску скрипта <code>test_broadcast.sh</code>.
-            </p>
-            <div class="input-group">
-                <input type="text" class="form-control font-monospace small" id="jwtTokenDisplay"
-                       readonly value="Натисніть 'Оновити' для отримання..." style="background-color: #f8f9fa;">
-                <button class="btn btn-outline-warning" type="button" onclick="copyToken()" title="Копіювати токен">
-                    <i class="fas fa-copy"></i> Копіювати
-                </button>
-            </div>
-            <div id="copyFeedback" class="text-success small mt-1" style="display: none;">
-                <i class="fas fa-check-circle"></i> Токен успішно скопійовано в буфер обміну!
-            </div>
+        <div class="live-indicator" id="liveIndicator">
+            <div class="live-dot"></div>
+            <span id="liveStatus">OFFLINE</span>
+            <span id="efirTimer" style="margin-left: 10px; font-family: monospace;">00:00:00</span>
         </div>
     </div>
 
-    <!-- Заголовок -->
-    <div class="efir-header mt-4">
-        <h1><i class="fas fa-broadcast-tower"></i> Модератор прямого ефіру</h1>
-        <div class="station-info">
-            <strong>Станція:</strong> <span th:text="${station.name}">Назва станції</span> |
-            <strong>UUID:</strong> <span th:text="${stationUuid}">uuid</span> |
-            <strong>Модератор:</strong> <span th:text="${curusername}">Ім'я</span>
-        </div>
+    <!-- CONTROL BAR -->
+    <div class="cc-control-bar">
+        <button class="btn-control btn-primary" id="btnPrepare" onclick="prepareEfir()">
+            <i class="fas fa-cog"></i> Підготувати ефір
+        </button>
+        <button class="btn-control btn-success" id="btnStart" onclick="startEfir()" disabled>
+            <i class="fas fa-play"></i> Запустити ефір
+        </button>
+        <button class="btn-control btn-warning" id="btnPause" onclick="pauseEfir()" disabled>
+            <i class="fas fa-pause"></i> Пауза
+        </button>
+        <button class="btn-control btn-danger" id="btnStop" onclick="stopEfir()" disabled>
+            <i class="fas fa-stop"></i> Зупинити
+        </button>
     </div>
 
-    <!-- Повідомлення про статус операцій -->
-    <div id="alertBox" class="alert"></div>
-
-    <!-- Кнопка підготовки ефіру -->
-    <button id="btnPrepareEfir" class="btn-efir btn-prepare"
-            th:data-station-uuid="${stationUuid}"
-            onclick="prepareBroadcast(this.dataset.stationUuid)">
-        <i class="fas fa-play-circle"></i> Підготувати ефір
-    </button>
-
-    <!-- Сітка кімнат -->
-    <div class="rooms-grid">
-        <!-- Головна кімната -->
-        <div class="room-card" th:if="${mainRoom != null}">
-            <h3><i class="fas fa-comments"></i> <span th:text="${mainRoom.roomname}">Головна кімната</span></h3>
-            <div class="room-status">
-                <span class="status-indicator" th:classappend="${mainRoom.roomOnlineStatus} ? 'status-active' : 'status-inactive'"></span>
-                <span th:text="${mainRoom.roomOnlineStatus} ? 'Онлайн' : 'Офлайн'">Статус</span>
+    <!-- MAIN CONTENT -->
+    <div class="cc-main">
+        <!-- COLUMN 1: ROOMS -->
+        <div class="cc-rooms">
+            <div class="cc-section-title">
+                <i class="fas fa-door-open"></i> Кімнати
             </div>
-            <div class="room-actions">
-                <button class="btn-efir btn-join"
-                        th:data-uuid="${mainRoom.uuid}"
-                        th:data-name="${mainRoom.roomname}"
-                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
-                    <i class="fas fa-sign-in-alt"></i> Увійти
-                </button>
+
+            <div class="room-item room-item-main active" onclick="selectRoom('main')">
+                <div class="room-name"><i class="fas fa-comments"></i> Основна</div>
+                <div class="room-count" id="countMain">0</div>
+            </div>
+
+            <div class="room-item room-item-green" th:if="${greenRoom != null}" onclick="selectRoom('green')">
+                <div class="room-name"><i class="fas fa-door-open"></i> Green Room</div>
+                <div class="room-count" id="countGreen">0</div>
+            </div>
+
+            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}" onclick="selectRoom('broadcast')">
+                <div class="room-name"><i class="fas fa-broadcast-tower"></i> Ефір</div>
+                <div class="room-count" id="countBroadcast">0</div>
+            </div>
+
+            <div class="room-item room-item-staff" th:if="${staffRoom != null}" onclick="selectRoom('staff')">
+                <div class="room-name"><i class="fas fa-users-cog"></i> Staff</div>
+                <div class="room-count" id="countStaff">0</div>
+            </div>
+
+            <div class="waiting-list" id="waitingList" style="display: none;">
+                <div class="cc-section-title">
+                    <i class="fas fa-hand-paper"></i> Очікують
+                </div>
+                <div id="waitingItems"></div>
             </div>
         </div>
 
-        <!-- Green Room -->
-        <div class="room-card green" th:if="${greenRoom != null}">
-            <h3><i class="fas fa-door-open"></i> <span th:text="${greenRoom.roomname}">Green Room</span></h3>
-            <div class="room-status">
-                <span class="status-indicator status-inactive"></span>
-                Очікує гостей
+        <!-- COLUMN 2: PARTICIPANTS -->
+        <div class="cc-participants">
+            <div class="cc-section-title">
+                <i class="fas fa-users"></i> Учасники активної кімнати
             </div>
-            <div class="room-actions">
-                <button class="btn-efir btn-join"
-                        th:data-uuid="${greenRoom.uuid}"
-                        th:data-name="${greenRoom.roomname}"
-                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
-                    <i class="fas fa-sign-in-alt"></i> Увійти
-                </button>
+            <div class="participant-list" id="participantList">
+                <!-- Participants will be rendered here -->
             </div>
         </div>
 
-        <!-- Broadcast Room (Ефір) -->
-        <div class="room-card broadcast" th:if="${broadcastRoom != null}">
-            <h3><i class="fas fa-broadcast-tower"></i> <span th:text="${broadcastRoom.roomname}">Ефір</span></h3>
-            <div class="room-status">
-                <span class="status-indicator status-inactive"></span>
-                Не в ефірі
+        <!-- COLUMN 3: CHAT -->
+        <div class="cc-chat">
+            <div class="chat-header">
+                <i class="fas fa-comment-dots"></i> Чат кімнати
             </div>
-            <div class="room-actions">
-                <button class="btn-efir btn-join"
-                        th:data-uuid="${broadcastRoom.uuid}"
-                        th:data-name="${broadcastRoom.roomname}"
-                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
-                    <i class="fas fa-sign-in-alt"></i> Увійти
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be rendered here -->
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Напишіть повідомлення..." onkeypress="handleChatKey(event)">
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
-
-        <!-- Staff Room -->
-        <div class="room-card staff" th:if="${staffRoom != null}">
-            <h3><i class="fas fa-users-cog"></i> <span th:text="${staffRoom.roomname}">Staff Room</span></h3>
-            <div class="room-status">
-                <span class="status-indicator status-inactive"></span>
-                Тільки персонал
-            </div>
-            <div class="room-actions">
-                <button class="btn-efir btn-join"
-                        th:data-uuid="${staffRoom.uuid}"
-                        th:data-name="${staffRoom.roomname}"
-                        onclick="joinRoom(this.dataset.uuid, this.dataset.name)">
-                    <i class="fas fa-sign-in-alt"></i> Увійти
-                </button>
-            </div>
-        </div>
-    </div> <!-- Кінець rooms-grid -->
-
-    <!-- Повідомлення, якщо кімнати ще не створені -->
-    <div th:if="${greenRoom == null}" style="background: white; padding: 20px; border-radius: 10px; text-align: center; color: #7f8c8d; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
-        <p class="mb-0">Кімнати для прямого ефіру ще не створені. Натисніть кнопку "Підготувати ефір" вище.</p>
     </div>
+</div>
 
+<!-- CONTEXT MENU -->
+<div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" onclick="contextAction('mute')">
+        <i class="fas fa-microphone-slash"></i> <span id="muteText">Mute</span>
+    </div>
+    <div class="context-menu-item" onclick="contextAction('giveWord')">
+        <i class="fas fa-hand-paper"></i> Дати слово
+    </div>
+    <div class="context-menu-item" onclick="contextAction('move')">
+        <i class="fas fa-exchange-alt"></i> Перемістити
+    </div>
+    <div class="context-menu-item" onclick="contextAction('timer')">
+        <i class="fas fa-clock"></i> Таймер
+    </div>
+    <div class="context-menu-item danger" onclick="contextAction('kick')">
+        <i class="fas fa-ban"></i> Kick
+    </div>
 </div>
 
 <script th:inline="javascript">
+    // Global variables
     const stationUuid = /*[[${stationUuid}]]*/ '';
+    const curuuid = /*[[${curuuid}]]*/ '';
+    const curusername = /*[[${curusername}]]*/ '';
+
     let stompClient = null;
+    let currentRoom = 'main';
+    let selectedParticipant = null;
+    let efirStartTime = null;
+    let efirTimerInterval = null;
 
-    // ==========================================
-    // 1. Логіка отримання та копіювання токена
-    // ==========================================
-    function fetchToken() {
-        const tokenDisplay = document.getElementById('jwtTokenDisplay');
-        tokenDisplay.value = 'Завантаження...';
-        tokenDisplay.classList.remove('text-danger');
+    // Room UUIDs from backend
+    const rooms = {
+        main: /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/,
+        green: /*[[${greenRoom != null ? greenRoom.uuid : 'null'}]]*/,
+        broadcast: /*[[${broadcastRoom != null ? broadcastRoom.uuid : 'null'}]]*/,
+        staff: /*[[${staffRoom != null ? staffRoom.uuid : 'null'}]]*/
+    };
 
-        fetch('/api/v1/auth/current-token', {
-            method: 'GET',
-            credentials: 'same-origin' // Важливо: відправляємо cookie сесії
-        })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.token) {
-                    tokenDisplay.value = data.token;
-                } else {
-                    tokenDisplay.value = 'Помилка: ' + (data.error || 'Не авторизовано');
-                    tokenDisplay.classList.add('text-danger');
-                }
-            })
-            .catch(error => {
-                console.error('Помилка отримання токена:', error);
-                tokenDisplay.value = 'Помилка мережі або сервера';
-                tokenDisplay.classList.add('text-danger');
-            });
-    }
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        connectSTOMP();
+        loadInitialData();
+    });
 
-    function copyToken() {
-        const copyText = document.getElementById("jwtTokenDisplay");
-        if (copyText.value.includes('Завантаження') || copyText.value.includes('Помилка')) {
-            alert('Спочатку отримайте дійсний токен, натиснувши "Оновити".');
-            return;
-        }
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value).then(() => {
-            const feedback = document.getElementById('copyFeedback');
-            feedback.style.display = 'block';
-            setTimeout(() => { feedback.style.display = 'none'; }, 3000);
-        }).catch(err => {
-            alert('Не вдалося скопіювати автоматично. Виділіть текст вручну.');
-        });
-    }
-
-    // ==========================================
-    // 2. Логіка управління ефіром
-    // ==========================================
-    function prepareBroadcast(uuid) {
-        const btn = document.getElementById('btnPrepareEfir');
-        const alertBox = document.getElementById('alertBox');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
-        alertBox.style.display = 'none';
-
-        fetch(`/api/v1/broadcast/prepare/${uuid}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('success', '✅ ' + data.message);
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showAlert('error', '❌ ' + (data.error || 'Помилка сервера'));
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play-circle"></i> Підготувати ефір';
-                }
-            })
-            .catch(error => {
-                console.error('Помилка:', error);
-                showAlert('error', '❌ Помилка мережі.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-play-circle"></i> Підготувати ефір';
-            });
-    }
-
-    function joinRoom(uuid, name) {
-        window.location.href = `/chat?room=${uuid}`;
-    }
-
-    function showAlert(type, message) {
-        const alertBox = document.getElementById('alertBox');
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        alertBox.style.display = 'block';
-        setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
-    }
-
-    // ==========================================
-    // 3. Логіка WebSocket (STOMP)
-    // ==========================================
-    function connect() {
+    function connectSTOMP() {
         const socket = new SockJS('/rfachat');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, onConnected, onError);
     }
 
     function onConnected() {
-        console.log('✅ Підключено до STOMP');
+        console.log('✅ Connected to STOMP');
+        // Subscribe to presence updates
         stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
+        // Subscribe to control events
+        stompClient.subscribe(`/topic/efir.${stationUuid}.control`, onControlEvent);
+        // Load initial data
+        loadParticipants();
     }
 
     function onError(error) {
-        console.error('❌ Помилка STOMP:', error);
-        setTimeout(connect, 5000);
+        console.error('❌ STOMP Error:', error);
+        setTimeout(connectSTOMP, 5000);
     }
 
-    function onPresenceUpdate(message) {
-        console.log('🔄 Оновлення присутності:', message.body);
+    // ROOM SELECTION
+    function selectRoom(roomType) {
+        currentRoom = roomType;
+        // Update UI
+        document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.room-item-${roomType}`).classList.add('active');
+        // Load participants for this room
+        loadParticipants();
     }
 
-    // Ініціалізація при завантаженні сторінки
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchToken(); // Одразу пробуємо отримати токен
-        connect();    // Підключаємо WebSocket
+    // PARTICIPANTS
+    function loadParticipants() {
+        // This will be implemented via REST API call
+        fetch(`/api/v1/broadcast/${stationUuid}/status`)
+            .then(r => r.json())
+            .then(data => {
+                renderParticipants(data);
+            });
+    }
+
+    function renderParticipants(data) {
+        const list = document.getElementById('participantList');
+        list.innerHTML = '';
+
+        // Find the current room
+        const room = data.rooms.find(r => {
+            if (currentRoom === 'main') return r.type === 'MAIN';
+            if (currentRoom === 'green') return r.type === 'GREEN';
+            if (currentRoom === 'broadcast') return r.type === 'BROADCAST';
+            if (currentRoom === 'staff') return r.type === 'STAFF';
+            return false;
+        });
+
+        if (!room || !room.participants) return;
+
+        room.participants.forEach(p => {
+            const card = createParticipantCard(p, room.janusRoomId);
+            list.appendChild(card);
+        });
+
+        // Update room count
+        const countEl = document.getElementById(`count${currentRoom.charAt(0).toUpperCase() + currentRoom.slice(1)}`);
+        if (countEl) countEl.textContent = room.participants.length;
+    }
+
+    function createParticipantCard(p, roomId) {
+        const card = document.createElement('div');
+        card.className = 'participant-card';
+        card.onclick = (e) => {
+            if (e.target.closest('.context-menu')) return;
+            showContextMenu(p, roomId);
+        };
+
+        const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+
+        let audioClass = 'audio-muted';
+        if (p.talking) audioClass = 'audio-speaking';
+        else if (p.handRaised) audioClass = 'audio-hand';
+
+        card.innerHTML = `
+            <div class="participant-avatar">
+                ${initials}
+                <div class="audio-indicator ${audioClass}"></div>
+            </div>
+            <div class="participant-info">
+                <div class="participant-name">${p.display || 'Unknown'}</div>
+                <div class="participant-role">Учасник</div>
+            </div>
+            ${p.timer ? `<div class="participant-timer">${formatTime(p.timer)}</div>` : ''}
+        `;
+
+        return card;
+    }
+
+    // CONTEXT MENU
+    function showContextMenu(participant, roomId) {
+        selectedParticipant = { ...participant, roomId };
+        const menu = document.getElementById('contextMenu');
+        menu.style.display = 'block';
+        menu.style.left = `${event.pageX}px`;
+        menu.style.top = `${event.pageY}px`;
+
+        document.getElementById('muteText').textContent = participant.muted ? 'Unmute' : 'Mute';
+    }
+
+    function contextAction(action) {
+        if (!selectedParticipant) return;
+
+        const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
+        const body = {};
+
+        if (action === 'mute') {
+            body.roomId = selectedParticipant.roomId;
+            body.participantId = selectedParticipant.id;
+            body.muted = !selectedParticipant.muted;
+        } else if (action === 'kick') {
+            body.roomId = selectedParticipant.roomId;
+            body.participantId = selectedParticipant.id;
+        } else if (action === 'move') {
+            body.participantId = selectedParticipant.id;
+            body.targetRoomUuid = prompt('Введіть UUID цільової кімнати:');
+        } else if (action === 'timer') {
+            const minutes = prompt('Таймер (хвилин):', '5');
+            if (minutes) {
+                // Implement timer logic
+            }
+            return;
+        } else if (action === 'giveWord') {
+            // Move to broadcast room
+            body.participantId = selectedParticipant.id;
+            body.targetRoomUuid = rooms.broadcast;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+            .then(() => {
+                loadParticipants();
+            });
+
+        document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    // CHAT
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !stompClient) return;
+
+        stompClient.send('/app/public', {}, JSON.stringify({
+            uuid: curuuid,
+            send: Date.now(),
+            fromname: curusername,
+            fromuuid: curuuid,
+            body: text,
+            roomuuid: rooms[currentRoom]
+        }));
+
+        input.value = '';
+    }
+
+    function handleChatKey(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    }
+
+    // CONTROL BUTTONS
+    function prepareEfir() {
+        const btn = document.getElementById('btnPrepare');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
+
+        fetch(`/api/v1/broadcast/prepare/${stationUuid}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Помилка: ' + data.error);
+                    btn.disabled = false;
+                }
+            });
+    }
+
+    function startEfir() {
+        // Implement start logic
+        document.getElementById('liveIndicator').classList.add('active');
+        document.getElementById('liveStatus').textContent = 'LIVE';
+        startTimer();
+    }
+
+    function pauseEfir() {
+        // Implement pause logic
+    }
+
+    function stopEfir() {
+        // Implement stop logic
+        document.getElementById('liveIndicator').classList.remove('active');
+        document.getElementById('liveStatus').textContent = 'OFFLINE';
+        stopTimer();
+    }
+
+    function startTimer() {
+        efirStartTime = Date.now();
+        efirTimerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - efirStartTime) / 1000);
+            document.getElementById('efirTimer').textContent = formatTime(elapsed);
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (efirTimerInterval) clearInterval(efirTimerInterval);
+        document.getElementById('efirTimer').textContent = '00:00:00';
+    }
+
+    // HELPERS
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function onPresenceUpdate(msg) {
+        console.log('Presence update:', msg);
+        loadParticipants();
+    }
+
+    function onControlEvent(msg) {
+        console.log('Control event:', msg);
+        loadParticipants();
+    }
+
+    function loadInitialData() {
+        // Load initial room status
+    }
+
+    // Close context menu on click outside
+    document.addEventListener('click', () => {
+        document.getElementById('contextMenu').style.display = 'none';
     });
 </script>
+
 </body>
 </html>
