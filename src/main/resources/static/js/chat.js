@@ -1,11 +1,9 @@
 'use strict';
-
 /**
- * Логіка сучасного чату RFA
- * Включає підтримку WebSockets (STOMP), Емодзі та адаптивний рендеринг повідомлень у вигляді бульбашок.
- * Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
+ Логіка сучасного чату RFA
+ Включає підтримку WebSockets (STOMP), Емодзі та адаптивний рендеринг повідомлень у вигляді бульбашок.
+ Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
  */
-
 var stompClient = null;
 var clientuuid = null; // Поточний UUID співрозмовника (якщо приватний чат)
 var toclientname = null;
@@ -16,28 +14,23 @@ var subusers = null;
 var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
-
 var reconnectTimeout = null;
 var reconnectDelay = 1000; // Початкова затримка перепідключення 1с
-
 const messagesArea = document.getElementById('mainMessagesArea');
 
 /**
- * Встановлення з'єднання через SockJS та STOMP
+ Встановлення з'єднання через SockJS та STOMP
  */
 function connect() {
     // Якщо вже підключені — нічого не робимо
     if (stompClient && stompClient.connected) return;
-
     console.log("Attempting to connect to STOMP...");
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
-    
     // Вмикаємо логи для діагностики
     stompClient.debug = function(str) {
         console.log("STOMP: " + str);
     };
-
     stompClient.connect({
         heartbeatIncoming: 8000,
         heartbeatOutgoing: 8000
@@ -45,17 +38,25 @@ function connect() {
 }
 
 /**
- * Callback при успішному підключенні
+ Callback при успішному підключенні
+ ✅ ВАЖЛИВО: Спочатку реєструємо сесію через /app/hello, і тільки потім робимо підписки.
+ Це дозволяє ChatRoomPresenceInterceptor отримати правильний UUID користувача.
  */
 function onConnected() {
     console.log("Connected to STOMP cluster");
     reconnectDelay = 1000; // Скидаємо затримку при успішному вході
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
-
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
-    // Підписки на канали (використовуємо стандартизовані RabbitMQ префікси)
+    // 1. Спочатку вітаємося з сервером для реєстрації сесії та отримання історії
+    stompClient.send("/app/hello", {}, JSON.stringify({
+        uuid: curuuid,
+        roomuuid: curroom,
+        send: Date.now()
+    }));
+
+    // 2. Тепер підписки на канали (UUID вже зареєстрований для цієї сесії)
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
     subpublic = stompClient.subscribe('/topic/chat.public.' + curuuid, onPublicMessageReceived);
     subprivate = stompClient.subscribe('/topic/chat.private.' + curuuid, onPrivateMessageReceived);
@@ -64,27 +65,18 @@ function onConnected() {
     subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
     subMediaToPublic = stompClient.subscribe('/topic/chat.media', onMediaPublic);
 
-    // Вітаємося з сервером для реєстрації сесії та отримання історії
-    stompClient.send("/app/hello", {}, JSON.stringify({
-        uuid: curuuid,
-        roomuuid: curroom,
-        send: Date.now()
-    }));
-
     // Початкове завантаження списків
     getuserlist();
     getroomlist();
 }
 
 /**
- * Обробка помилок та розриву з'єднання
+ Обробка помилок та розриву з'єднання
  */
-function onError(error) { 
+function onError(error) {
     console.error("STOMP Error/Disconnect:", error);
-    
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="fas fa-sync-alt fa-spin me-1"></i> Відключено. Перепідключення...</span>';
-    
     // Exponential backoff для перепідключення
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
     reconnectTimeout = setTimeout(() => {
@@ -94,7 +86,7 @@ function onError(error) {
 }
 
 /**
- * Детекція повернення користувача на вкладку (критично для мобільних пристроїв)
+ Детекція повернення користувача на вкладку (критично для мобільних пристроїв)
  */
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
@@ -112,7 +104,7 @@ function onPresenceUpdate(msg) {
 }
 
 /**
- * Рендеринг повідомлення у вигляді бульбашки (bubble)
+ Рендеринг повідомлення у вигляді бульбашки (bubble)
  */
 function renderBubble(msg, isPrivate = false) {
     // Унікальний ID для запобігання дублікатам (особливо при завантаженні історії або перепідключенні)
@@ -123,20 +115,20 @@ function renderBubble(msg, isPrivate = false) {
     const bubble = document.createElement('div');
     bubble.id = msgId;
     bubble.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'} animate__animated animate__fadeInUp animate__faster`;
-    
+
     // Текст або HTML (для медіа)
     const content = document.createElement('div');
     content.innerHTML = msg.body;
-    
+
     // Мета-інформація (час, ім'я)
     const meta = document.createElement('div');
     meta.className = 'bubble-meta';
     const time = date2string(msg.send);
     meta.innerHTML = `<span>${isMe ? '' : msg.fromname + ' • '}</span><span>${time}</span>`;
-    
+
     bubble.appendChild(content);
     bubble.appendChild(meta);
-    
+
     const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
     if (container) {
         container.appendChild(bubble);
@@ -146,7 +138,7 @@ function renderBubble(msg, isPrivate = false) {
 }
 
 /**
- * Обробка вхідних публічних повідомлень
+ Обробка вхідних публічних повідомлень
  */
 function onPublicMessageReceived(payload) {
     try {
@@ -156,7 +148,7 @@ function onPublicMessageReceived(payload) {
 }
 
 /**
- * Обробка вхідних приватних повідомлень
+ Обробка вхідних приватних повідомлень
  */
 function onPrivateMessageReceived(payload) {
     try {
@@ -174,7 +166,7 @@ function onPrivateMessageReceived(payload) {
 }
 
 /**
- * Оновлення списку користувачів
+ Оновлення списку користувачів
  */
 function onUserList(payload) {
     try {
@@ -182,17 +174,16 @@ function onUserList(payload) {
         const container = document.getElementById('userlist');
         if (!container) return;
         container.innerHTML = '';
-        
+
         let users = JSON.parse(jbody.body);
         users.forEach(function(uJson) {
             let u = JSON.parse(uJson);
             const item = document.createElement('div');
             item.className = `chat-item list-group-item ${clientuuid === u.uuid ? 'active' : ''}`;
-            
             const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
             const badge = u.unreadCount > 0 ? `<span class="badge rounded-pill bg-danger animate__animated animate__pulse animate__infinite" style="font-size: 0.7rem;">${u.unreadCount}</span>` : '';
             const displayName = u.name || 'Користувач';
-            
+
             item.innerHTML = `
                 <div class="chat-avatar">${initials}</div>
                 <div class="chat-info flex-grow-1">
@@ -201,7 +192,6 @@ function onUserList(payload) {
                 </div>
                 <div class="chat-meta">${badge}</div>
             `;
-            
             item.onclick = () => selectuserFromPublic(u.uuid, u.name);
             container.appendChild(item);
         });
@@ -209,7 +199,7 @@ function onUserList(payload) {
 }
 
 /**
- * Оновлення списку кімнат
+ Оновлення списку кімнат
  */
 function onRoomList(payload) {
     try {
@@ -217,7 +207,7 @@ function onRoomList(payload) {
         const container = document.getElementById('roomlist');
         if (!container) return;
         container.innerHTML = '';
-        
+
         let rooms = JSON.parse(jbody.body);
         rooms.forEach(function(rJson) {
             let r = JSON.parse(rJson);
@@ -225,7 +215,6 @@ function onRoomList(payload) {
             // Підсвічуємо кімнату тільки якщо ми НЕ в приватному чаті
             const isActive = curroom === r.uuid && !clientuuid;
             item.className = `chat-item list-group-item ${isActive ? 'active' : ''}`;
-            
             item.innerHTML = `
                 <div class="chat-avatar"><i class="fas fa-hashtag"></i></div>
                 <div class="chat-info">
@@ -233,7 +222,6 @@ function onRoomList(payload) {
                     <div class="chat-status">Публічна кімната</div>
                 </div>
             `;
-            
             item.onclick = () => selectroom(r.uuid, r.name);
             container.appendChild(item);
         });
@@ -241,25 +229,24 @@ function onRoomList(payload) {
 }
 
 /**
- * Вибір кімнати
+ Вибір кімнати
  */
 function selectroom(uuid, name) {
     if (curroom === uuid && !clientuuid) return;
-    
     if (subcurroom) subcurroom.unsubscribe();
+
     curroom = uuid;
-    
     document.getElementById('publicarea').innerHTML = '';
     document.getElementById('privatearea').innerHTML = '';
     document.getElementById('chatTitle').innerText = name;
-    
+
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
-    
+
     // Скидаємо приватний режим
     clientuuid = null;
     toclientname = null;
-    
+
     if (stompClient && stompClient.connected) {
         subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
         stompClient.send("/app/room/history", {}, JSON.stringify({
@@ -267,24 +254,22 @@ function selectroom(uuid, name) {
             roomuuid: curroom
         }));
     }
-    
     // Оновлюємо обидва списки для коректної підсвітки
     getroomlist();
     getuserlist();
-    
+
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
 /**
- * Вибір користувача для приватного чату
+ Вибір користувача для приватного чату
  */
 function selectuserFromPublic(uuid, name) {
     if (clientuuid === uuid) return;
-
     clientuuid = uuid;
     toclientname = name;
-    
     document.getElementById('chatTitle').innerText = `Чат з ${name}`;
+
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-lock me-1"></i> Приватний канал';
 
@@ -297,16 +282,15 @@ function selectuserFromPublic(uuid, name) {
             touuid: clientuuid
         }));
     }
-    
     // Оновлюємо обидва списки для коректної підсвітки
     getuserlist();
     getroomlist();
-    
+
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
 /**
- * Відправка публічного повідомлення
+ Відправка публічного повідомлення
  */
 function sendpublic() {
     const input = document.getElementById('newmessage');
@@ -324,7 +308,7 @@ function sendpublic() {
 }
 
 /**
- * Відправка приватного повідомлення
+ Відправка приватного повідомлення
  */
 function sendprivate() {
     const input = document.getElementById('newmessage');
@@ -343,7 +327,7 @@ function sendprivate() {
 }
 
 /**
- * Завантаження зображення
+ Завантаження зображення
  */
 async function uploadImage(file) {
     if (!file) return;
@@ -351,7 +335,6 @@ async function uploadImage(file) {
         alert('Можна завантажувати лише зображення');
         return;
     }
-
     const formData = new FormData();
     formData.append('file', file);
     const input = document.getElementById('newmessage');
@@ -360,10 +343,9 @@ async function uploadImage(file) {
     try {
         const response = await fetch('/api/chat/upload-image', { method: 'POST', body: formData });
         const result = await response.json();
-        
+
         if (result.success && stompClient && stompClient.connected) {
             const imgHtml = `<img src="${result.url}" class="img-fluid rounded-3 mt-2 mb-2" style="max-height: 300px; cursor: pointer;" onclick="window.open('${result.url}', '_blank')">`;
-            
             if (clientuuid) {
                 stompClient.send("/app/private", {}, JSON.stringify({
                     uuid: curuuid, send: Date.now(), fromname: curusername, fromuuid: curuuid,
@@ -381,33 +363,28 @@ async function uploadImage(file) {
 }
 
 // Допоміжні функції
-function getuserlist() { 
+function getuserlist() {
     if (stompClient && stompClient.connected) {
-        stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() })); 
-    }
-}
-function getroomlist() { 
-    if (stompClient && stompClient.connected) {
-        stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() })); 
+        stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() }));
     }
 }
 
-// function date2string(idate) {
-//     let d = new Date(idate);
-//     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-// }
+function getroomlist() {
+    if (stompClient && stompClient.connected) {
+        stompClient.send("/app/roomslist", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+    }
+}
+
 function date2string(idate) {
     let d = new Date(idate);
-
     let day = String(d.getDate()).padStart(2, '0');
     let month = String(d.getMonth() + 1).padStart(2, '0'); // Місяці починаються з 0
     let year = d.getFullYear();
-
     let hours = String(d.getHours()).padStart(2, '0');
     let minutes = String(d.getMinutes()).padStart(2, '0');
-
     return `${day}.${month}.${year} ${hours}:${minutes}`;
 }
+
 function onMediaPublic(payload) {
     try {
         var msg = JSON.parse(payload.body);
@@ -429,6 +406,6 @@ window.toggleSidebar = function() {
 // Ініціалізація при завантаженні
 window.addEventListener('DOMContentLoaded', () => {
     connect();
-    setInterval(getuserlist, 15000); 
+    setInterval(getuserlist, 15000);
     setInterval(getroomlist, 15000);
 });

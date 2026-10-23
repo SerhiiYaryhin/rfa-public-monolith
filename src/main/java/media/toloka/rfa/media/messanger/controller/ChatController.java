@@ -60,10 +60,13 @@ public class ChatController {
     @MessageMapping("/hello")
     public void GetChatMessage(ChatMessage inmsg, @Header("simpSessionId") String sessionId) {
         try {
+            // Реєструємо сесію для відстеження відключення
             sessionListener.registerSession(sessionId, inmsg.getUuid());
+
             Clientdetail cd = clientService.GetClientDetailByUUID(inmsg.getUuid());
             String fullName = cd != null ? cd.getCustname() + " " + cd.getCustsurname() : "Unknown";
 
+            // Публікуємо подію в RabbitMQ
             presenceService.publishPresenceEvent(
                     ChatPresenceEvent.EventType.USER_CONNECTED,
                     inmsg.getUuid(),
@@ -166,18 +169,24 @@ public class ChatController {
 
             // Отримуємо UUID учасників з нашого сервісу відстеження
             Set<String> participantUuids = chatRoomPresenceService.getRoomParticipants(roomUuid);
+            logger.info("📋 Запит учасників для кімнати {}. Знайдено UUID: {}", roomUuid, participantUuids);
 
             List<Map<String, String>> userList = new ArrayList<>();
             for (String userUuid : participantUuids) {
                 Map<String, String> user = new HashMap<>();
                 user.put("uuid", userUuid);
 
-                // Отримуємо ім'я користувача з БД
+                // Отримуємо ім'я користувача з БД (спробуємо обидва варіанти назви методу для безпеки)
                 Clientdetail cd = clientService.GetClientDetailByUuid(userUuid);
+                if (cd == null) {
+                    cd = clientService.GetClientDetailByUUID(userUuid);
+                }
+
                 if (cd != null) {
                     user.put("name", cd.getCustname() + " " + cd.getCustsurname());
                 } else {
-                    user.put("name", "Unknown (" + userUuid.substring(0, 8) + "...)");
+                    logger.warn("⚠️ Не вдалося знайти Clientdetail для userUuid: {}", userUuid);
+                    user.put("name", "Unknown (" + userUuid.substring(0, Math.min(8, userUuid.length())) + "...)");
                 }
                 userList.add(user);
             }
@@ -189,7 +198,7 @@ public class ChatController {
             response.setBody(new GsonBuilder().create().toJson(userList));
 
             this.template.convertAndSend("/topic/chat.room.participants." + inmsg.getUuid(), response);
-            logger.debug("📋 Учасники кімнати {}: {}", roomUuid, userList.size());
+            logger.info("✅ Відправлено список учасників ({}) для {}", userList.size(), inmsg.getUuid());
 
         } catch (Exception e) {
             logger.error("Error getting room participants", e);
