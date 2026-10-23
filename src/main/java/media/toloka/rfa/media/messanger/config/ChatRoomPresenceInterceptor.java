@@ -53,10 +53,14 @@ public class ChatRoomPresenceInterceptor implements ChannelInterceptor {
 
             if (potentialRoomUuid.matches(UUID_REGEX)) {
                 if (command == StompCommand.SUBSCRIBE) {
-                    log.info("📡 Користувач {} (Session: {}) підписався на кімнату {}", userUuid, sessionId, potentialRoomUuid);
-                    presenceService.addUserToRoom(userUuid, potentialRoomUuid);
+                    log.info("📡 Користувач {} (Session: {}) підписався на кімнату {}",
+                            userUuid, sessionId, potentialRoomUuid);
+                    // ✅ ВИКОРИСТОВУЄМО moveUserToRoom замість addUserToRoom
+                    // Це автоматично видалить користувача з усіх інших кімнат
+                    presenceService.moveUserToRoom(userUuid, potentialRoomUuid);
                 } else if (command == StompCommand.UNSUBSCRIBE) {
-                    log.info("🔌 Користувач {} (Session: {}) відписався від кімнати {}", userUuid, sessionId, potentialRoomUuid);
+                    log.info("🔌 Користувач {} (Session: {}) відписався від кімнати {}",
+                            userUuid, sessionId, potentialRoomUuid);
                     presenceService.removeUserFromRoom(userUuid, potentialRoomUuid);
                 }
             }
