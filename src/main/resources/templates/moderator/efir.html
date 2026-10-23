@@ -12,18 +12,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
-    <!-- 1. Спочатку бібліотеки -->
+    <!-- 1. Бібліотеки -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
 
-    <!-- 2. Оголошуємо змінні ДО підключення chat.js, щоб він їх бачив -->
+    <!-- 2. Глобальні змінні ДО chat.js -->
     <script th:inline="javascript">
         var curuuid = /*[[${curuuid}]]*/ '';
         var curusername = /*[[${curusername}]]*/ '';
         var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
         var stationUuid = /*[[${stationUuid}]]*/ '';
         var currentRoomType = 'main';
+        var clientuuid = null; // Для сумісності з chat.js
 
         const rooms = {
             main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -33,82 +34,36 @@
         };
     </script>
 
-    <!-- 3. ПІДКЛЮЧАЄМО ІСНУЮЧИЙ chat.js (він автоматично викличе connect() і налаштує все) -->
+    <!-- 3. ПІДКЛЮЧАЄМО РОБОЧИЙ chat.js -->
     <script src="/js/chat.js"></script>
 
     <style>
         :root {
-            --primary: #6c5ce7;
-            --success: #00b894;
-            --warning: #fdcb6e;
-            --danger: #d63031;
-            --info: #0984e3;
-            --dark: #2d3436;
-            --light: #dfe6e9;
-            --sidebar-width: 280px;
-            --chat-width: 400px;
+            --primary: #6c5ce7; --success: #00b894; --warning: #fdcb6e;
+            --danger: #d63031; --dark: #2d3436; --light: #dfe6e9;
+            --sidebar-width: 280px; --chat-width: 400px;
         }
-
         * { box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .command-center {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 15px;
-            gap: 15px;
-        }
-
-        .cc-header {
-            background: white; border-radius: 12px; padding: 15px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex;
-            justify-content: space-between; align-items: center; flex-shrink: 0;
-        }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; padding: 0; height: 100vh; overflow: hidden; }
+        .command-center { display: flex; flex-direction: column; height: 100vh; padding: 15px; gap: 15px; }
+        .cc-header { background: white; border-radius: 12px; padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .cc-header-left h1 { margin: 0; font-size: 1.5rem; color: var(--dark); display: flex; align-items: center; gap: 10px; }
         .cc-header-info { color: #636e72; font-size: 0.85rem; margin-top: 5px; }
         .live-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #ffebee; border-radius: 20px; font-weight: 600; color: var(--danger); }
         .live-indicator.active { animation: pulse 2s infinite; }
         .live-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
-        .cc-control-bar {
-            background: white; border-radius: 12px; padding: 15px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap;
-        }
-        .btn-control {
-            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s; display: flex; align-items: center;
-            gap: 8px; flex: 1; min-width: 150px; justify-content: center; color: white;
-        }
+        .cc-control-bar { background: white; border-radius: 12px; padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+        .btn-control { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex: 1; min-width: 150px; justify-content: center; color: white; }
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: #5b4cc4; transform: translateY(-2px); }
         .btn-success { background: var(--success); } .btn-success:hover { background: #00a383; transform: translateY(-2px); }
         .btn-warning { background: var(--warning); color: var(--dark); } .btn-warning:hover { background: #f39c12; transform: translateY(-2px); }
         .btn-danger { background: var(--danger); } .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
         .btn-control:disabled { background: #b2bec3; cursor: not-allowed; transform: none; }
-
-        .cc-main {
-            display: grid; grid-template-columns: var(--sidebar-width) 1fr var(--chat-width);
-            gap: 15px; flex: 1; min-height: 0; overflow: hidden;
-        }
-
-        .cc-rooms {
-            background: white; border-radius: 12px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto;
-        }
+        .cc-main { display: grid; grid-template-columns: var(--sidebar-width) 1fr var(--chat-width); gap: 15px; flex: 1; min-height: 0; overflow: hidden; }
+        .cc-rooms { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; }
         .cc-section-title { font-size: 0.9rem; font-weight: 600; color: #636e72; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .room-item {
-            padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer;
-            transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between;
-        }
+        .room-item { padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between; }
         .room-item:hover { background: #f8f9fa; transform: translateX(5px); }
         .room-item.active { background: #f0f2f5; border-left-color: var(--primary); }
         .room-item-main { border-left-color: var(--primary); }
@@ -117,45 +72,27 @@
         .room-item-staff { border-left-color: #636e72; }
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
         .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-
-        .cc-participants {
-            background: white; border-radius: 12px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column;
-        }
+        .cc-participants { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column; }
         .participant-list { flex: 1; overflow-y: auto; }
-        .participant-card {
-            padding: 15px; border-radius: 10px; margin-bottom: 10px; background: #f8f9fa;
-            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px;
-        }
+        .participant-card { padding: 15px; border-radius: 10px; margin-bottom: 10px; background: #f8f9fa; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
         .participant-card:hover { background: #f0f2f5; transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .participant-avatar {
-            width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white;
-            display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; position: relative;
-        }
+        .participant-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; position: relative; }
         .audio-indicator { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; }
         .audio-speaking { background: var(--success); animation: pulse-audio 1s infinite; }
         .audio-muted { background: #b2bec3; }
-        .audio-hand { background: var(--warning); animation: blink 0.5s infinite; }
         @keyframes pulse-audio { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .participant-info { flex: 1; min-width: 0; }
         .participant-name { font-weight: 600; color: var(--dark); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .participant-role { font-size: 0.75rem; color: #636e72; }
-
-        .cc-chat {
-            background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        .chat-header { padding: 15px 20px; border-bottom: 2px solid #f0f2f5; font-weight: 600; color: var(--dark); display: flex; justify-content: space-between; align-items: center;}
+        .cc-chat { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { padding: 15px 20px; border-bottom: 2px solid #f0f2f5; font-weight: 600; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #fafbfc; display: flex; flex-direction: column; gap: 15px; }
-
         .bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeInUp 0.3s ease; }
         .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
         .bubble-me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
         .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.7; display: flex; align-items: center; gap: 5px; }
         .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .chat-input-area { padding: 15px; border-top: 2px solid #f0f2f5; display: flex; align-items: center; gap: 12px; background: #fff; }
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; width: 100%; }
@@ -164,15 +101,12 @@
         .btn-emoji:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
         .btn-send { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
         .btn-send:hover { transform: scale(1.05) rotate(-10deg); background: #5b4cc4; }
-
         emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
         emoji-picker.visible { display: block; }
-
         .context-menu { position: absolute; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 8px 0; min-width: 200px; z-index: 1000; display: none; }
         .context-menu-item { padding: 10px 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
         .context-menu-item:hover { background: #f0f2f5; }
         .context-menu-item.danger { color: var(--danger); }
-
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -197,48 +131,28 @@
     </div>
 
     <div class="cc-control-bar">
-        <button class="btn-control btn-primary" id="btnPrepare" onclick="prepareEfir()">
-            <i class="fas fa-cog"></i> Підготувати ефір
-        </button>
-        <button class="btn-control btn-success" id="btnStart" onclick="startEfir()" disabled>
-            <i class="fas fa-play"></i> Запустити ефір
-        </button>
-        <button class="btn-control btn-warning" id="btnPause" onclick="pauseEfir()" disabled>
-            <i class="fas fa-pause"></i> Пауза
-        </button>
-        <button class="btn-control btn-danger" id="btnStop" onclick="stopEfir()" disabled>
-            <i class="fas fa-stop"></i> Зупинити
-        </button>
+        <button class="btn-control btn-primary" id="btnPrepare" onclick="prepareEfir()"><i class="fas fa-cog"></i> Підготувати ефір</button>
+        <button class="btn-control btn-success" id="btnStart" onclick="startEfir()" disabled><i class="fas fa-play"></i> Запустити ефір</button>
+        <button class="btn-control btn-warning" id="btnPause" onclick="pauseEfir()" disabled><i class="fas fa-pause"></i> Пауза</button>
+        <button class="btn-control btn-danger" id="btnStop" onclick="stopEfir()" disabled><i class="fas fa-stop"></i> Зупинити</button>
     </div>
 
     <div class="cc-main">
         <div class="cc-rooms">
             <div class="cc-section-title"><i class="fas fa-door-open"></i> Кімнати</div>
-            <div class="room-item room-item-main active"
-                 data-room-type="main"
-                 th:data-room-uuid="${mainRoom != null ? mainRoom.uuid : ''}"
-                 th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
+            <div class="room-item room-item-main active" data-room-type="main" th:data-room-uuid="${mainRoom != null ? mainRoom.uuid : ''}" th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
                 <div class="room-name"><i class="fas fa-comments"></i> Основна</div>
                 <div class="room-count" id="countMain">0</div>
             </div>
-            <div class="room-item room-item-green" th:if="${greenRoom != null}"
-                 data-room-type="green"
-                 th:data-room-uuid="${greenRoom.uuid}"
-                 th:data-room-name="${greenRoom.roomname}">
+            <div class="room-item room-item-green" th:if="${greenRoom != null}" data-room-type="green" th:data-room-uuid="${greenRoom.uuid}" th:data-room-name="${greenRoom.roomname}">
                 <div class="room-name"><i class="fas fa-door-open"></i> Green Room</div>
                 <div class="room-count" id="countGreen">0</div>
             </div>
-            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}"
-                 data-room-type="broadcast"
-                 th:data-room-uuid="${broadcastRoom.uuid}"
-                 th:data-room-name="${broadcastRoom.roomname}">
+            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}" data-room-type="broadcast" th:data-room-uuid="${broadcastRoom.uuid}" th:data-room-name="${broadcastRoom.roomname}">
                 <div class="room-name"><i class="fas fa-broadcast-tower"></i> Ефір</div>
                 <div class="room-count" id="countBroadcast">0</div>
             </div>
-            <div class="room-item room-item-staff" th:if="${staffRoom != null}"
-                 data-room-type="staff"
-                 th:data-room-uuid="${staffRoom.uuid}"
-                 th:data-room-name="${staffRoom.roomname}">
+            <div class="room-item room-item-staff" th:if="${staffRoom != null}" data-room-type="staff" th:data-room-uuid="${staffRoom.uuid}" th:data-room-name="${staffRoom.roomname}">
                 <div class="room-name"><i class="fas fa-users-cog"></i> Staff</div>
                 <div class="room-count" id="countStaff">0</div>
             </div>
@@ -246,11 +160,9 @@
 
         <div class="cc-participants">
             <div class="cc-section-title"><i class="fas fa-users"></i> Учасники</div>
-            <!-- Використовуємо id="userlist", щоб chat.js міг сюди писати, або ми перекриємо це нижче -->
+            <!-- ВАЖЛИВО: id="userlist" використовується chat.js, але ми його перевизначимо через JS нижче -->
             <div class="participant-list" id="userlist">
-                <div style="text-align: center; color: #636e72; padding: 20px;">
-                    <i class="fas fa-spinner fa-spin"></i> Завантаження...
-                </div>
+                <div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>
             </div>
         </div>
 
@@ -259,6 +171,7 @@
                 <span><i class="fas fa-comment-dots"></i> <span id="chatTitle">Публічний чат</span></span>
                 <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
             </div>
+            <!-- Структура ідентична messenger.html для сумісності з chat.js -->
             <div class="chat-messages" id="mainMessagesArea">
                 <div id="publicarea" class="d-flex flex-column gap-3"></div>
                 <div id="privatearea" class="d-flex flex-column gap-3"></div>
@@ -271,13 +184,11 @@
                     <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
                 </div>
                 <div class="input-group-custom">
-                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off" onkeypress="if(event.key==='Enter') sendpublic()">
+                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off" onkeypress="if(event.key==='Enter') handleSend()">
                     <button class="btn-emoji" id="emojiToggle">😀</button>
                 </div>
                 <emoji-picker id="picker"></emoji-picker>
-                <button class="btn-send" onclick="sendpublic()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <button class="btn-send" onclick="handleSend()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -292,42 +203,34 @@
 </div>
 
 <script th:inline="javascript">
-    // ==========================================
-    // Інтеграція з chat.js та специфіка модератора
-    // ==========================================
-
+    // Специфічна логіка модератора (перевизначаємо поведінку userlist для показу WebRTC учасників)
     document.addEventListener('DOMContentLoaded', () => {
-        // chat.js вже має свій слухач DOMContentLoaded, який викликає connect().
-        // Ми просто додаємо обробники для кліку по кімнатах.
+        // Обробники кліку по кімнатах
         document.querySelectorAll('.room-item').forEach(item => {
             item.addEventListener('click', function() {
                 const roomType = this.dataset.roomType;
                 const roomUuid = this.dataset.roomUuid;
                 const roomName = this.dataset.roomName;
-
                 if (roomType && roomUuid) {
-                    // 1. Оновлюємо UI
                     document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
                     this.classList.add('active');
                     document.getElementById('chatTitle').innerText = roomName || 'Чат';
                     currentRoomType = roomType;
 
-                    // 2. ВИКОРИСТОВУЄМО готову функцію з chat.js!
+                    // Викликаємо рідну функцію з chat.js
                     selectroom(roomUuid, roomName);
 
-                    // 3. Оновлюємо список учасників для нової кімнати
+                    // Оновлюємо список WebRTC учасників
                     loadModeratorParticipants();
                 }
             });
         });
 
-        // Ініціалізуємо Emoji Picker
+        // Emoji picker
         const picker = document.getElementById('picker');
         const input = document.getElementById('newmessage');
         const emojiToggle = document.getElementById('emojiToggle');
-        if (emojiToggle) {
-            emojiToggle.onclick = (e) => { e.stopPropagation(); picker.classList.toggle('visible'); };
-        }
+        if (emojiToggle) emojiToggle.onclick = (e) => { e.stopPropagation(); picker.classList.toggle('visible'); };
         if (picker) {
             picker.addEventListener('emoji-click', event => {
                 input.value += event.detail.unicode;
@@ -337,26 +240,18 @@
         }
         document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
 
-        // Первинне завантаження учасників
-        loadModeratorParticipants();
+        // Початкове завантаження учасників
+        setTimeout(loadModeratorParticipants, 1000); // Невелика затримка, щоб chat.js встиг ініціалізуватися
     });
 
-    // Специфічна логіка модератора: отримуємо реальних WebRTC учасників з Janus
     function loadModeratorParticipants() {
-        const list = document.getElementById('userlist'); // Використовуємо той самий ID, що й chat.js
+        const list = document.getElementById('userlist');
         if (!list) return;
 
-        list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>';
-
         fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
+            .then(r => r.ok ? r.json() : Promise.reject('Error'))
             .then(data => {
-                list.innerHTML = ''; // Очищаємо
-
-                // Знаходимо потрібну кімнату в відповіді
+                list.innerHTML = '';
                 const room = data.rooms.find(r => {
                     if (currentRoomType === 'main') return r.type === 'MAIN';
                     if (currentRoomType === 'green') return r.type === 'GREEN';
@@ -370,19 +265,15 @@
                     return;
                 }
 
-                // Оновлюємо лічильник
                 const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
                 if (countEl) countEl.textContent = room.participants.length;
 
-                // Рендеримо картки учасників
                 room.participants.forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'participant-card';
                     card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p, room.janusRoomId); };
-
                     const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
-                    let audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
-
+                    const audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
                     card.innerHTML = `
                         <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
                         <div class="participant-info">
@@ -392,15 +283,11 @@
                     list.appendChild(card);
                 });
             })
-            .catch(error => {
-                console.error('Error loading participants:', error);
-                list.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 20px;">
-                    <i class="fas fa-exclamation-triangle"></i> Помилка завантаження
-                </div>`;
+            .catch(() => {
+                list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Помилка</div>';
             });
     }
 
-    // Context Menu для учасників
     var selectedParticipant = null;
     function showContextMenu(participant, roomId) {
         selectedParticipant = { ...participant, roomId };
@@ -413,53 +300,21 @@
 
     function contextAction(action) {
         if (!selectedParticipant) return;
-
         const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
         const body = {};
+        if (action === 'mute') { body.roomId = selectedParticipant.roomId; body.participantId = selectedParticipant.id; body.muted = !selectedParticipant.muted; }
+        else if (action === 'kick') { body.roomId = selectedParticipant.roomId; body.participantId = selectedParticipant.id; }
+        else if (action === 'move') { body.participantId = selectedParticipant.id; body.targetRoomUuid = prompt('UUID цільової кімнати:'); }
+        else if (action === 'timer') { alert('Таймер буде реалізовано'); return; }
+        else if (action === 'giveWord') { body.participantId = selectedParticipant.id; body.targetRoomUuid = rooms.broadcast; }
 
-        if (action === 'mute') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-            body.muted = !selectedParticipant.muted;
-        } else if (action === 'kick') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-        } else if (action === 'move') {
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = prompt('Введіть UUID цільової кімнати:');
-        } else if (action === 'timer') {
-            const minutes = prompt('Таймер (хвилин):', '5');
-            if (minutes) alert(`Таймер ${minutes} хв для ${selectedParticipant.display} (буде реалізовано)`);
-            return;
-        } else if (action === 'giveWord') {
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = rooms.broadcast;
-        }
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadModeratorParticipants(); // Оновлюємо список після дії
-                } else {
-                    alert('Помилка: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Помилка виконання дії');
-            });
-
+        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+            .then(r => r.json()).then(data => { if (data.success) loadModeratorParticipants(); else alert('Помилка: ' + data.error); })
+            .catch(() => alert('Помилка мережі'));
         document.getElementById('contextMenu').style.display = 'none';
     }
-
     document.addEventListener('click', () => { document.getElementById('contextMenu').style.display = 'none'; });
 
-    // Control buttons
     function prepareEfir() {
         const btn = document.getElementById('btnPrepare');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
