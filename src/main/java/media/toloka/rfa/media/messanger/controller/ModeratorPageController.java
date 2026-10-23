@@ -68,6 +68,6 @@ public class ModeratorPageController {
 
         // 5. Повертаємо ім'я HTML-шаблону (без розширення .html)
         // Spring автоматично шукає файл у src/main/resources/templates/moderator/efir.html
-        return "moderator/efir";
+        return "/moderator/efir";
     }
 }
