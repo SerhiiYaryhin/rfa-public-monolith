@@ -237,6 +237,45 @@
             flex-grow: 1;
         }
 
+        .participant-actions {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .btn-participant {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-invite-green {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        .btn-invite-green:hover {
+            background: #f39c12;
+            transform: scale(1.1);
+        }
+
+        .btn-invite-broadcast {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-invite-broadcast:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
         .cc-chat {
             background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: flex; flex-direction: column; overflow: hidden;
@@ -328,7 +367,7 @@
         </div>
 
         <div class="cc-participants">
-            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники</div>
+            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники чату</div>
             <div class="participant-list" id="efirParticipantList">
                 <div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>
             </div>
@@ -370,6 +409,10 @@
 </div>
 
 <script th:inline="javascript">
+    // Глобальні змінні для WebRTC
+    var webrtcConnected = false;
+    var currentWebrtcRoom = null;
+
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.room-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -382,7 +425,11 @@
                     document.getElementById('chatTitle').innerText = roomName || 'Чат';
                     currentRoomType = roomType;
                     selectroom(roomUuid, roomName);
-                    loadModeratorParticipants();
+
+                    // Підключаємо модератора до WebRTC кімнати
+                    connectModeratorToWebrtc(roomType, roomUuid);
+
+                    setTimeout(loadModeratorParticipants, 500);
                 }
             });
         });
@@ -403,50 +450,114 @@
         setTimeout(() => {
             loadModeratorParticipants();
             loadWaitingGuests();
+            connectModeratorToWebrtc('main', rooms.main);
         }, 1000);
     });
 
+    // Підключення модератора до WebRTC кімнати
+    function connectModeratorToWebrtc(roomType, roomUuid) {
+        if (!roomUuid || roomUuid === currentWebrtcRoom) return;
+
+        console.log(`️ Підключення модератора до WebRTC кімнати: ${roomType} (${roomUuid})`);
+
+        // TODO: Реалізувати WebRTC підключення через Janus
+        // Для поки що просто зберігаємо стан
+        currentWebrtcRoom = roomUuid;
+        webrtcConnected = true;
+
+        // В реальній реалізації тут буде:
+        // 1. Створення Janus сесії
+        // 2. Підключення до AudioBridge
+        // 3. Отримання WebRTC stream
+    }
+
+    // Завантаження учасників чату (з STOMP)
     function loadModeratorParticipants() {
         const list = document.getElementById('efirParticipantList');
         if (!list) return;
 
-        fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
-            .then(data => {
-                list.innerHTML = '';
+        // Отримуємо список користувачів з STOMP
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/userslist", {}, JSON.stringify({
+                uuid: curuuid,
+                send: Date.now()
+            }));
+        }
+    }
 
-                const room = data.rooms.find(r => {
-                    if (currentRoomType === 'main') return r.type === 'MAIN';
-                    if (currentRoomType === 'green') return r.type === 'GREEN';
-                    if (currentRoomType === 'broadcast') return r.type === 'BROADCAST';
-                    if (currentRoomType === 'staff') return r.type === 'STAFF';
-                    return false;
-                });
+    // Обробка списку учасників чату (перевизначаємо з chat.js)
+    function onUserListForModerator(payload) {
+        const list = document.getElementById('efirParticipantList');
+        if (!list) return;
 
-                if (!room || !room.participants || room.participants.length === 0) {
-                    list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px; font-size: 0.9rem;">Немає учасників</div>';
-                    return;
-                }
+        try {
+            let jbody = JSON.parse(payload.body);
+            let users = JSON.parse(jbody.body);
 
-                const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
-                if (countEl) countEl.textContent = room.participants.length;
+            list.innerHTML = '';
 
-                room.participants.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = 'efir-participant-item';
-                    if (p.talking) item.classList.add('efir-participant-talking');
-                    item.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p, room.janusRoomId); };
-                    item.innerHTML = `<div class="efir-participant-name" title="${p.display || 'Unknown'}">${p.display || 'Unknown'}</div>`;
-                    list.appendChild(item);
-                });
-            })
-            .catch(err => {
-                console.error('Error loading participants:', err);
-                list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px; font-size: 0.9rem;"><i class="fas fa-exclamation-triangle"></i> Помилка завантаження</div>';
+            if (!users || users.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px; font-size: 0.9rem;">Немає учасників</div>';
+                return;
+            }
+
+            const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
+            if (countEl) countEl.textContent = users.length;
+
+            users.forEach(function(uJson) {
+                let u = JSON.parse(uJson);
+
+                const item = document.createElement('div');
+                item.className = 'efir-participant-item';
+
+                item.innerHTML = `
+                    <div class="efir-participant-name" title="${u.name || 'Unknown'}">${u.name || 'Unknown'}</div>
+                    <div class="participant-actions">
+                        <button class="btn-participant btn-invite-green" onclick="inviteToGreenRoom('${u.uuid}', '${u.name}')" title="Запросити в Green Room">
+                            <i class="fas fa-door-open"></i>
+                        </button>
+                        <button class="btn-participant btn-invite-broadcast" onclick="inviteToBroadcast('${u.uuid}', '${u.name}')" title="Запросити в Ефір">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
             });
+        } catch (e) {
+            console.error('Error parsing participants:', e);
+        }
+    }
+
+    // Запросити користувача в Green Room
+    function inviteToGreenRoom(userUuid, userName) {
+        if (!rooms.green) {
+            alert('Green Room ще не створено. Натисніть "Підготувати ефір".');
+            return;
+        }
+
+        console.log(`📢 Запрошення ${userName} в Green Room`);
+
+        // TODO: Реалізувати через REST API
+        // 1. Створити WebRTC учасника в Janus Green Room
+        // 2. Надіслати STOMP повідомлення користувачу з запрошенням
+
+        alert(`Запрошення ${userName} в Green Room (буде реалізовано)`);
+    }
+
+    // Запросити користувача в Ефір
+    function inviteToBroadcast(userUuid, userName) {
+        if (!rooms.broadcast) {
+            alert('Ефір ще не створено. Натисніть "Підготувати ефір".');
+            return;
+        }
+
+        console.log(`📢 Запрошення ${userName} в Ефір`);
+
+        // TODO: Реалізувати через REST API
+        // 1. Створити WebRTC учасника в Janus Broadcast Room
+        // 2. Надіслати STOMP повідомлення користувачу з запрошенням
+
+        alert(`Запрошення ${userName} в Ефір (буде реалізовано)`);
     }
 
     function loadWaitingGuests() {
@@ -455,95 +566,8 @@
         const waitingCount = document.getElementById('waitingCount');
         if (!waitingList) return;
 
-        fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
-            .then(data => {
-                waitingList.innerHTML = '';
-
-                const greenRoom = data.rooms.find(r => r.type === 'GREEN');
-
-                if (!greenRoom || !greenRoom.participants || greenRoom.participants.length === 0) {
-                    waitingSection.style.display = 'none';
-                    return;
-                }
-
-                const waitingGuests = greenRoom.participants;
-
-                if (waitingGuests.length === 0) {
-                    waitingSection.style.display = 'none';
-                    return;
-                }
-
-                waitingSection.style.display = 'block';
-                waitingCount.textContent = waitingGuests.length;
-
-                waitingGuests.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = 'waiting-item';
-                    item.innerHTML = `
-                        <div class="waiting-name" title="${p.display || 'Unknown'}">
-                            <i class="fas fa-hand-paper text-warning me-2"></i>
-                            ${p.display || 'Unknown'}
-                        </div>
-                        <div class="waiting-actions">
-                            <button class="btn-waiting btn-accept" onclick="acceptGuest(${p.id}, '${p.display}')" title="Прийняти в ефір">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn-waiting btn-decline" onclick="declineGuest(${p.id}, '${p.display}')" title="Відхилити">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                    waitingList.appendChild(item);
-                });
-            })
-            .catch(err => {
-                console.error('Error loading waiting guests:', err);
-            });
-    }
-
-    function acceptGuest(participantId, participantName) {
-        fetch(`/api/v1/broadcast/${stationUuid}/moderation/move`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                participantId: participantId,
-                targetRoomUuid: rooms.broadcast
-            })
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadModeratorParticipants();
-                    loadWaitingGuests();
-                } else {
-                    alert('Помилка: ' + data.error);
-                }
-            })
-            .catch(() => alert('Помилка мережі'));
-    }
-
-    function declineGuest(participantId, participantName) {
-        fetch(`/api/v1/broadcast/${stationUuid}/moderation/kick`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                roomId: rooms.green,
-                participantId: participantId
-            })
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadWaitingGuests();
-                } else {
-                    alert('Помилка: ' + data.error);
-                }
-            })
-            .catch(() => alert('Помилка мережі'));
+        // Поки що порожньо - буде реалізовано коли з'явиться механізм підняття руки
+        waitingSection.style.display = 'none';
     }
 
     var selectedParticipant = null;
@@ -558,17 +582,21 @@
 
     function contextAction(action) {
         if (!selectedParticipant) return;
-        const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
-        const body = {};
-        if (action === 'mute') { body.roomId = selectedParticipant.roomId; body.participantId = selectedParticipant.id; body.muted = !selectedParticipant.muted; }
-        else if (action === 'kick') { body.roomId = selectedParticipant.roomId; body.participantId = selectedParticipant.id; }
-        else if (action === 'move') { body.participantId = selectedParticipant.id; body.targetRoomUuid = prompt('UUID цільової кімнати:'); }
-        else if (action === 'timer') { alert('Таймер буде реалізовано'); return; }
-        else if (action === 'giveWord') { body.participantId = selectedParticipant.id; body.targetRoomUuid = rooms.broadcast; }
 
-        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-            .then(r => r.json()).then(data => { if (data.success) { loadModeratorParticipants(); loadWaitingGuests(); } else alert('Помилка: ' + data.error); })
-            .catch(() => alert('Помилка мережі'));
+        if (action === 'mute') {
+            alert('Mute/Unmute буде реалізовано для WebRTC учасників');
+        } else if (action === 'giveWord') {
+            inviteToBroadcast(selectedParticipant.uuid, selectedParticipant.name);
+        } else if (action === 'move') {
+            alert('Переміщення буде реалізовано');
+        } else if (action === 'timer') {
+            alert('Таймер буде реалізовано');
+        } else if (action === 'kick') {
+            if (confirm(`Вигнати ${selectedParticipant.name} з кімнати?`)) {
+                alert('Функція буде реалізована');
+            }
+        }
+
         document.getElementById('contextMenu').style.display = 'none';
     }
     document.addEventListener('click', () => { document.getElementById('contextMenu').style.display = 'none'; });
