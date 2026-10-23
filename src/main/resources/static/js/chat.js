@@ -49,12 +49,7 @@ function onConnected() {
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
-    // 1. Спочатку вітаємося з сервером для реєстрації сесії та отримання історії
-    stompClient.send("/app/hello", {}, JSON.stringify({
-        uuid: curuuid,
-        roomuuid: curroom,
-        send: Date.now()
-    }));
+
 
     // 2. Тепер підписки на канали (UUID вже зареєстрований для цієї сесії)
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
@@ -64,6 +59,13 @@ function onConnected() {
     subroom = stompClient.subscribe('/topic/chat.roomslist.' + curuuid, onRoomList);
     subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
     subMediaToPublic = stompClient.subscribe('/topic/chat.media', onMediaPublic);
+
+    // 1. Спочатку вітаємося з сервером для реєстрації сесії та отримання історії
+    stompClient.send("/app/hello", {}, JSON.stringify({
+        uuid: curuuid,
+        roomuuid: curroom,
+        send: Date.now()
+    }));
 
     // Початкове завантаження списків
     getuserlist();
