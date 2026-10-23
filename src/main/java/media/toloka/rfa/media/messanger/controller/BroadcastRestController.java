@@ -47,11 +47,16 @@ public class BroadcastRestController {
 
         // Базова перевірка прав: власник станції.
         // TODO: розширити до повноцінних ролей модераторів (окремий етап RBAC).
-        if (station.getClientdetail() == null
-                || station.getClientdetail().getUser() == null
-                || !station.getClientdetail().getUser().getId().equals(currentUser.getId())) {
+        if (station.getClientdetail() == null )
+        {
             return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для керування цією станцією"));
         }
+
+//        if (station.getClientdetail() == null
+//                || station.getClientdetail().getUser() == null
+//                || !station.getClientdetail().getUser().getId().equals(currentUser.getId())) {
+//            return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для керування цією станцією"));
+//        }
 
         try {
             Map<String, String> rooms = broadcastRoomService.prepareBroadcastRooms(stationUuid);
