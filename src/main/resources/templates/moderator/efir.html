@@ -12,12 +12,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
-    <!-- 1. Бібліотеки -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
 
-    <!-- 2. Глобальні змінні ДО chat.js -->
     <script th:inline="javascript">
         var curuuid = /*[[${curuuid}]]*/ '';
         var curusername = /*[[${curusername}]]*/ '';
@@ -34,7 +32,6 @@
         };
     </script>
 
-    <!-- 3. ПІДКЛЮЧАЄМО РОБОЧИЙ chat.js -->
     <script src="/js/chat.js"></script>
 
     <style>
@@ -123,7 +120,6 @@
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
         .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
-        /* ✅ Нова секція "Очікують" */
         .waiting-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -322,7 +318,6 @@
                 <div class="room-count" id="countStaff">0</div>
             </div>
 
-            <!-- ✅ Нова секція "Очікують" -->
             <div class="waiting-section" id="waitingSection" style="display: none;">
                 <div class="cc-section-title">
                     <i class="fas fa-hand-paper"></i> Очікують
@@ -416,9 +411,13 @@
         if (!list) return;
 
         fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => r.ok ? r.json() : Promise.reject('Error'))
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 list.innerHTML = '';
+
                 const room = data.rooms.find(r => {
                     if (currentRoomType === 'main') return r.type === 'MAIN';
                     if (currentRoomType === 'green') return r.type === 'GREEN';
@@ -444,12 +443,12 @@
                     list.appendChild(item);
                 });
             })
-            .catch(() => {
+            .catch(err => {
+                console.error('Error loading participants:', err);
                 list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px; font-size: 0.9rem;"><i class="fas fa-exclamation-triangle"></i> Помилка завантаження</div>';
             });
     }
 
-    // ✅ Нова функція для завантаження гостей, які підняли руку
     function loadWaitingGuests() {
         const waitingList = document.getElementById('waitingList');
         const waitingSection = document.getElementById('waitingSection');
@@ -457,11 +456,13 @@
         if (!waitingList) return;
 
         fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => r.ok ? r.json() : Promise.reject('Error'))
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 waitingList.innerHTML = '';
 
-                // Отримуємо учасників з Green Room
                 const greenRoom = data.rooms.find(r => r.type === 'GREEN');
 
                 if (!greenRoom || !greenRoom.participants || greenRoom.participants.length === 0) {
@@ -469,9 +470,7 @@
                     return;
                 }
 
-                // Фільтруємо гостей, які підняли руку (або всіх у Green Room)
-                // TODO: Додати поле handRaised в DTO, поки показуємо всіх у Green Room
-                const waitingGuests = greenRoom.participants.filter(p => p.handRaised || true); // Показуємо всіх поки що
+                const waitingGuests = greenRoom.participants;
 
                 if (waitingGuests.length === 0) {
                     waitingSection.style.display = 'none';
@@ -501,14 +500,12 @@
                     waitingList.appendChild(item);
                 });
             })
-            .catch(() => {
-                console.error('Error loading waiting guests');
+            .catch(err => {
+                console.error('Error loading waiting guests:', err);
             });
     }
 
-    // ✅ Функції для обробки кнопок
     function acceptGuest(participantId, participantName) {
-        // Перемістити гостя в Broadcast Room
         fetch(`/api/v1/broadcast/${stationUuid}/moderation/move`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -530,12 +527,11 @@
     }
 
     function declineGuest(participantId, participantName) {
-        // Вигнати гостя з Green Room
         fetch(`/api/v1/broadcast/${stationUuid}/moderation/kick`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                roomId: rooms.green, // Потрібно отримати Janus Room ID для Green Room
+                roomId: rooms.green,
                 participantId: participantId
             })
         })
