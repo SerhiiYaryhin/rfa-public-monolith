@@ -7,6 +7,7 @@ import media.toloka.rfa.media.webrtc.service.v2.EfirModerationService;
 import media.toloka.rfa.radio.client.service.ClientService;
 import media.toloka.rfa.radio.model.Station;
 import media.toloka.rfa.radio.repository.StationRepo;
+import media.toloka.rfa.security.model.ERole;
 import media.toloka.rfa.security.model.Users;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,26 @@ public class EfirModeratorController {
     @GetMapping("/{stationUuid}/status")
     public ResponseEntity<?> status(@PathVariable String stationUuid) {
         Users user = clientService.GetCurrentUser();
-        if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Необхідна авторизація"));
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Необхідна авторизація"));
+        }
+
+        Station station = stationRepo.getStationByUuid(stationUuid);
+        if (station == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Станцію не знайдено"));
+        }
+
+        // Перевірка прав: власник АБО адмін/модератор
+        boolean isOwner = station.getClientdetail() != null
+                && station.getClientdetail().getUser() != null
+                && station.getClientdetail().getUser().getId().equals(user.getId());
+
+        boolean hasAdminRole = user.getRoles().stream()
+                .anyMatch(r -> r.getRole() == ERole.ROLE_ADMIN || r.getRole() == ERole.ROLE_MODERATOR);
+
+        if (!isOwner && !hasAdminRole) {
+            return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для цієї станції"));
+        }
 
         try {
             return ResponseEntity.ok(efirModerationService.getStatus(stationUuid));
@@ -102,31 +122,29 @@ public class EfirModeratorController {
     // ---------------- GUARD / DTO ----------------
 
     /**
-     * Базова перевірка: користувач авторизований і є власником станції.
-     * TODO: розширити до ролей модераторів (окремий етап RBAC).
-     */
-    // ---------------- GUARD / DTO ----------------
-    /**
-     * Базова перевірка: користувач авторизований і є власником станції АБО має права адміністратора.
+     * Базова перевірка: користувач авторизований і є власником станції АБО має роль ADMIN/MODERATOR.
      */
     private ResponseEntity<?> guard(String stationUuid) {
         Users user = clientService.GetCurrentUser();
-        if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Необхідна авторизація"));
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Необхідна авторизація"));
+        }
 
         Station station = stationRepo.getStationByUuid(stationUuid);
-        if (station == null) return ResponseEntity.status(404).body(Map.of("error", "Станцію не знайдено"));
+        if (station == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Станцію не знайдено"));
+        }
 
+        // Перевірка власника
         boolean isOwner = station.getClientdetail() != null
                 && station.getClientdetail().getUser() != null
                 && station.getClientdetail().getUser().getId().equals(user.getId());
 
-        // УВАГА: Замініть цю умову на те, як саме у вашій системі перевіряється роль адміна.
-//        boolean isAdmin = user.getRole() != null && user.getRole().contains("ADMIN");
-//        boolean isAdmin = user.getAuthorities().stream()
-//                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-        boolean isAdmin = true; // todo 261023 тимчасова правка. Зробити коректну перевірку прав.
+        // Перевірка ролей ADMIN або MODERATOR
+        boolean hasAdminRole = user.getRoles().stream()
+                .anyMatch(r -> r.getRole() == ERole.ROLE_ADMIN || r.getRole() == ERole.ROLE_MODERATOR);
 
-        if (!isOwner && !isAdmin) {
+        if (!isOwner && !hasAdminRole) {
             return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для керування цією станцією"));
         }
 
