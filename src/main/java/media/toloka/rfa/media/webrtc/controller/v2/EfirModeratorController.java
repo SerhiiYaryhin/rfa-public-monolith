@@ -105,6 +105,10 @@ public class EfirModeratorController {
      * Базова перевірка: користувач авторизований і є власником станції.
      * TODO: розширити до ролей модераторів (окремий етап RBAC).
      */
+    // ---------------- GUARD / DTO ----------------
+    /**
+     * Базова перевірка: користувач авторизований і є власником станції АБО має права адміністратора.
+     */
     private ResponseEntity<?> guard(String stationUuid) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Необхідна авторизація"));
@@ -112,13 +116,21 @@ public class EfirModeratorController {
         Station station = stationRepo.getStationByUuid(stationUuid);
         if (station == null) return ResponseEntity.status(404).body(Map.of("error", "Станцію не знайдено"));
 
-        if (station.getClientdetail() == null
-                || station.getClientdetail().getUser() == null
-                || !station.getClientdetail().getUser().getId().equals(user.getId())) {
+        boolean isOwner = station.getClientdetail() != null
+                && station.getClientdetail().getUser() != null
+                && station.getClientdetail().getUser().getId().equals(user.getId());
+
+        // УВАГА: Замініть цю умову на те, як саме у вашій системі перевіряється роль адміна.
+//        boolean isAdmin = user.getRole() != null && user.getRole().contains("ADMIN");
+//        boolean isAdmin = user.getAuthorities().stream()
+//                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = true; // todo 261023 тимчасова правка. Зробити коректну перевірку прав.
+
+        if (!isOwner && !isAdmin) {
             return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для керування цією станцією"));
         }
 
-        return null;
+        return null; // Доступ дозволено
     }
 
     @Data

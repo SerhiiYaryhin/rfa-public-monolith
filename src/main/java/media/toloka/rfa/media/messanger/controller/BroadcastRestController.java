@@ -46,11 +46,8 @@ public class BroadcastRestController {
         }
 
         // Базова перевірка прав: власник станції.
-        // TODO: розширити до повноцінних ролей модераторів (окремий етап RBAC).
-        if (station.getClientdetail() == null )
-        {
-            return ResponseEntity.status(403).body(Map.of("error", "Недостатньо прав для керування цією станцією"));
-        }
+        // TODO: 261023 розширити до повноцінних ролей модераторів (окремий етап RBAC).
+
 
 //        if (station.getClientdetail() == null
 //                || station.getClientdetail().getUser() == null
