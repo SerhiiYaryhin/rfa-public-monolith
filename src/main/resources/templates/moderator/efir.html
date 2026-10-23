@@ -16,24 +16,6 @@
     <script src="/js/stomp.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
 
-    <script th:inline="javascript">
-        var curuuid = /*[[${curuuid}]]*/ '';
-        var curusername = /*[[${curusername}]]*/ '';
-        var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
-        var stationUuid = /*[[${stationUuid}]]*/ '';
-        var currentRoomType = 'main';
-        var clientuuid = null;
-
-        const rooms = {
-            main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
-            green: /*[[${greenRoom != null ? greenRoom.uuid : null}]]*/,
-            broadcast: /*[[${broadcastRoom != null ? broadcastRoom.uuid : null}]]*/,
-            staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
-        };
-    </script>
-
-    <script src="/js/chat.js"></script>
-
     <style>
         :root {
             --primary: #6c5ce7;
@@ -408,8 +390,8 @@
     <div class="context-menu-item danger" onclick="contextAction('kick')"><i class="fas fa-ban"></i> Kick</div>
 </div>
 
+<!-- ✅ ОДИН блок скриптів з усіма змінними -->
 <script th:inline="javascript">
-    // Глобальні змінні
     var curuuid = /*[[${curuuid}]]*/ '';
     var curusername = /*[[${curusername}]]*/ '';
     var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
@@ -426,7 +408,6 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Обробники кліку по кімнатах
         document.querySelectorAll('.room-item').forEach(item => {
             item.addEventListener('click', function() {
                 const roomType = this.dataset.roomType;
@@ -437,13 +418,14 @@
                     this.classList.add('active');
                     document.getElementById('chatTitle').innerText = roomName || 'Чат';
                     currentRoomType = roomType;
-                    selectroom(roomUuid, roomName);
+                    if (typeof selectroom === 'function') {
+                        selectroom(roomUuid, roomName);
+                    }
                     setTimeout(loadModeratorParticipants, 500);
                 }
             });
         });
 
-        // Emoji picker
         const picker = document.getElementById('picker');
         const input = document.getElementById('newmessage');
         const emojiToggle = document.getElementById('emojiToggle');
@@ -457,17 +439,12 @@
         }
         document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
 
-        // Початкове завантаження
         setTimeout(() => {
             loadModeratorParticipants();
             loadWaitingGuests();
         }, 1500);
     });
 
-    /**
-     * 🎯 Завантаження учасників конкретної кімнати через новий STOMP ендпоінт.
-     * Отримує тільки тих, хто зараз підписаний на /topic/{roomUuid}.
-     */
     function loadModeratorParticipants() {
         const list = document.getElementById('efirParticipantList');
         if (!list) return;
@@ -479,7 +456,6 @@
         }
 
         if (stompClient && stompClient.connected) {
-            // Підписуємося на відповідь (один раз)
             if (!subRoomParticipants) {
                 subRoomParticipants = stompClient.subscribe(
                     '/topic/chat.room.participants.' + curuuid,
@@ -487,7 +463,6 @@
                 );
             }
 
-            // Запитуємо список учасників
             stompClient.send("/app/room/participants", {}, JSON.stringify({
                 uuid: curuuid,
                 roomuuid: activeRoomUuid,
@@ -496,9 +471,6 @@
         }
     }
 
-    /**
-     * Обробка списку учасників кімнати.
-     */
     function onRoomParticipantsReceived(payload) {
         const list = document.getElementById('efirParticipantList');
         if (!list) return;
@@ -540,10 +512,6 @@
         }
     }
 
-    /**
-     * Запросити користувача в Green Room.
-     * TODO: Реалізувати через REST API + STOMP запрошення.
-     */
     function inviteToGreenRoom(userUuid, userName) {
         if (!rooms.green) {
             alert('Green Room ще не створено. Натисніть "Підготувати ефір".');
@@ -553,10 +521,6 @@
         alert(`Запрошення ${userName} в Green Room (буде реалізовано на наступному етапі)`);
     }
 
-    /**
-     * Запросити користувача в Ефір.
-     * TODO: Реалізувати через REST API + STOMP запрошення.
-     */
     function inviteToBroadcast(userUuid, userName) {
         if (!rooms.broadcast) {
             alert('Ефір ще не створено. Натисніть "Підготувати ефір".');
@@ -603,5 +567,6 @@
     function pauseEfir() {}
     function stopEfir() { document.getElementById('liveIndicator').classList.remove('active'); document.getElementById('liveStatus').textContent = 'OFFLINE'; }
 </script>
+<script src="/js/chat.js"></script>
 </body>
 </html>

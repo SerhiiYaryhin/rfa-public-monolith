@@ -5,7 +5,7 @@
  Реалізовано стійкість до розривів з'єднання на мобільних пристроях.
  */
 var stompClient = null;
-var clientuuid = null; // Поточний UUID співрозмовника (якщо приватний чат)
+var clientuuid = null;
 var toclientname = null;
 var subcurroom = null;
 var subprivate = null;
@@ -15,19 +15,16 @@ var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
 var reconnectTimeout = null;
-var reconnectDelay = 1000; // Початкова затримка перепідключення 1с
-const messagesArea = document.getElementById('mainMessagesArea');
+var reconnectDelay = 1000;
 
-/**
- Встановлення з'єднання через SockJS та STOMP
- */
+// ✅ ВИПРАВЛЕНО: Отримуємо елемент тільки коли DOM готовий
+let messagesArea = null;
+
 function connect() {
-    // Якщо вже підключені — нічого не робимо
     if (stompClient && stompClient.connected) return;
     console.log("Attempting to connect to STOMP...");
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
-    // Вмикаємо логи для діагностики
     stompClient.debug = function(str) {
         console.log("STOMP: " + str);
     };
@@ -37,21 +34,13 @@ function connect() {
     }, onConnected, onError);
 }
 
-/**
- Callback при успішному підключенні
- ✅ ВАЖЛИВО: Спочатку реєструємо сесію через /app/hello, і тільки потім робимо підписки.
- Це дозволяє ChatRoomPresenceInterceptor отримати правильний UUID користувача.
- */
 function onConnected() {
     console.log("Connected to STOMP cluster");
-    reconnectDelay = 1000; // Скидаємо затримку при успішному вході
+    reconnectDelay = 1000;
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
-
-
-    // 2. Тепер підписки на канали (UUID вже зареєстрований для цієї сесії)
     subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
     subpublic = stompClient.subscribe('/topic/chat.public.' + curuuid, onPublicMessageReceived);
     subprivate = stompClient.subscribe('/topic/chat.private.' + curuuid, onPrivateMessageReceived);
@@ -60,36 +49,27 @@ function onConnected() {
     subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
     subMediaToPublic = stompClient.subscribe('/topic/chat.media', onMediaPublic);
 
-    // 1. Спочатку вітаємося з сервером для реєстрації сесії та отримання історії
     stompClient.send("/app/hello", {}, JSON.stringify({
         uuid: curuuid,
         roomuuid: curroom,
         send: Date.now()
     }));
 
-    // Початкове завантаження списків
     getuserlist();
     getroomlist();
 }
 
-/**
- Обробка помилок та розриву з'єднання
- */
 function onError(error) {
     console.error("STOMP Error/Disconnect:", error);
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="fas fa-sync-alt fa-spin me-1"></i> Відключено. Перепідключення...</span>';
-    // Exponential backoff для перепідключення
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
     reconnectTimeout = setTimeout(() => {
-        reconnectDelay = Math.min(reconnectDelay * 2, 30000); // Не більше 30 секунд між спробами
+        reconnectDelay = Math.min(reconnectDelay * 2, 30000);
         connect();
     }, reconnectDelay);
 }
 
-/**
- Детекція повернення користувача на вкладку (критично для мобільних пристроїв)
- */
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         console.log("App wake up. Checking connection...");
@@ -105,11 +85,7 @@ function onPresenceUpdate(msg) {
     getroomlist();
 }
 
-/**
- Рендеринг повідомлення у вигляді бульбашки (bubble)
- */
 function renderBubble(msg, isPrivate = false) {
-    // Унікальний ID для запобігання дублікатам (особливо при завантаженні історії або перепідключенні)
     const msgId = `msg-${msg.send}-${msg.fromuuid}`;
     if (document.getElementById(msgId)) return;
 
@@ -118,11 +94,9 @@ function renderBubble(msg, isPrivate = false) {
     bubble.id = msgId;
     bubble.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'} animate__animated animate__fadeInUp animate__faster`;
 
-    // Текст або HTML (для медіа)
     const content = document.createElement('div');
     content.innerHTML = msg.body;
 
-    // Мета-інформація (час, ім'я)
     const meta = document.createElement('div');
     meta.className = 'bubble-meta';
     const time = date2string(msg.send);
@@ -134,14 +108,17 @@ function renderBubble(msg, isPrivate = false) {
     const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
     if (container) {
         container.appendChild(bubble);
-        // Плавна автопрокрутка
-        messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+
+        // ✅ ВИПРАВЛЕНО: Отримуємо messagesArea тут, а не на початку файлу
+        if (!messagesArea) {
+            messagesArea = document.getElementById('mainMessagesArea');
+        }
+        if (messagesArea) {
+            messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+        }
     }
 }
 
-/**
- Обробка вхідних публічних повідомлень
- */
 function onPublicMessageReceived(payload) {
     try {
         var msg = JSON.parse(payload.body);
@@ -149,27 +126,18 @@ function onPublicMessageReceived(payload) {
     } catch (e) { console.error("Error parsing public message", e); }
 }
 
-/**
- Обробка вхідних приватних повідомлень
- */
 function onPrivateMessageReceived(payload) {
     try {
         var msg = JSON.parse(payload.body);
-        // Показуємо повідомлення лише якщо ми в приватному чаті з цією людиною
         if (clientuuid && (msg.fromuuid === clientuuid || msg.touuid === clientuuid)) {
             renderBubble(msg, true);
         } else if (msg.fromuuid !== curuuid) {
-            // Нотифікація про повідомлення в іншому діалозі
             if (window.toastr) toastr.info('Нове повідомлення від ' + msg.fromname);
-            // Оновлюємо список користувачів, щоб побачити бейдж
             getuserlist();
         }
     } catch (e) { console.error("Error parsing private message", e); }
 }
 
-/**
- Оновлення списку користувачів
- */
 function onUserList(payload) {
     try {
         let jbody = JSON.parse(payload.body);
@@ -200,9 +168,6 @@ function onUserList(payload) {
     } catch (e) { console.error("Error updating user list", e); }
 }
 
-/**
- Оновлення списку кімнат
- */
 function onRoomList(payload) {
     try {
         let jbody = JSON.parse(payload.body);
@@ -214,7 +179,6 @@ function onRoomList(payload) {
         rooms.forEach(function(rJson) {
             let r = JSON.parse(rJson);
             const item = document.createElement('div');
-            // Підсвічуємо кімнату тільки якщо ми НЕ в приватному чаті
             const isActive = curroom === r.uuid && !clientuuid;
             item.className = `chat-item list-group-item ${isActive ? 'active' : ''}`;
             item.innerHTML = `
@@ -230,9 +194,6 @@ function onRoomList(payload) {
     } catch (e) { console.error("Error updating room list", e); }
 }
 
-/**
- Вибір кімнати
- */
 function selectroom(uuid, name) {
     if (curroom === uuid && !clientuuid) return;
     if (subcurroom) subcurroom.unsubscribe();
@@ -245,7 +206,6 @@ function selectroom(uuid, name) {
     const statusEl = document.getElementById('connectstatus');
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
 
-    // Скидаємо приватний режим
     clientuuid = null;
     toclientname = null;
 
@@ -256,16 +216,12 @@ function selectroom(uuid, name) {
             roomuuid: curroom
         }));
     }
-    // Оновлюємо обидва списки для коректної підсвітки
     getroomlist();
     getuserlist();
 
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
-/**
- Вибір користувача для приватного чату
- */
 function selectuserFromPublic(uuid, name) {
     if (clientuuid === uuid) return;
     clientuuid = uuid;
@@ -284,16 +240,12 @@ function selectuserFromPublic(uuid, name) {
             touuid: clientuuid
         }));
     }
-    // Оновлюємо обидва списки для коректної підсвітки
     getuserlist();
     getroomlist();
 
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
-/**
- Відправка публічного повідомлення
- */
 function sendpublic() {
     const input = document.getElementById('newmessage');
     if (!input || !input.value.trim() || !stompClient || !stompClient.connected) return;
@@ -309,9 +261,6 @@ function sendpublic() {
     input.value = "";
 }
 
-/**
- Відправка приватного повідомлення
- */
 function sendprivate() {
     const input = document.getElementById('newmessage');
     if (!input || !input.value.trim() || !clientuuid || !stompClient || !stompClient.connected) return;
@@ -328,9 +277,6 @@ function sendprivate() {
     input.value = "";
 }
 
-/**
- Завантаження зображення
- */
 async function uploadImage(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -364,7 +310,6 @@ async function uploadImage(file) {
     finally { if (input) input.placeholder = 'Напишіть повідомлення...'; }
 }
 
-// Допоміжні функції
 function getuserlist() {
     if (stompClient && stompClient.connected) {
         stompClient.send("/app/userslist", {}, JSON.stringify({ uuid: curuuid, send: Date.now() }));
@@ -380,7 +325,7 @@ function getroomlist() {
 function date2string(idate) {
     let d = new Date(idate);
     let day = String(d.getDate()).padStart(2, '0');
-    let month = String(d.getMonth() + 1).padStart(2, '0'); // Місяці починаються з 0
+    let month = String(d.getMonth() + 1).padStart(2, '0');
     let year = d.getFullYear();
     let hours = String(d.getHours()).padStart(2, '0');
     let minutes = String(d.getMinutes()).padStart(2, '0');
@@ -394,7 +339,6 @@ function onMediaPublic(payload) {
     } catch (e) { console.error("Error media parse", e); }
 }
 
-// Експортуємо функції у глобальну область для HTML
 window.sendpublic = sendpublic;
 window.sendprivate = sendprivate;
 window.uploadImage = uploadImage;
@@ -405,8 +349,9 @@ window.toggleSidebar = function() {
     if (sidebar) sidebar.classList.toggle('hidden');
 };
 
-// Ініціалізація при завантаженні
 window.addEventListener('DOMContentLoaded', () => {
+    // ✅ Ініціалізуємо messagesArea коли DOM готовий
+    messagesArea = document.getElementById('mainMessagesArea');
     connect();
     setInterval(getuserlist, 15000);
     setInterval(getroomlist, 15000);
