@@ -28,6 +28,51 @@ public class JanusParticipantService {
         this.sessionManager = sessionManager;
     }
 
+    /**
+     * 🆕 Отримання списку учасників аудіокімнати (Janus AudioBridge "listparticipants").
+     * Використовується панеллю модератора для сітки учасників та аудіо-індикаторів.
+     *
+     * @param roomId числовий ID кімнати Janus (= MessageRoom.id)
+     * @return список мап з полями: id, display, setup, muted, talking, token;
+     *         порожній список, якщо кімната порожня або сталася помилка
+     */
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> listParticipants(Long roomId) {
+        log.info("Отримання списку учасників кімнати {}", roomId);
+        try {
+            return sessionManager.executeInSession((sessionId, handleId) -> {
+                String transactionId = amqpClient.generateTransactionId("list-participants");
+                Map<String, Object> request = amqpClient.createBaseRequest("message", transactionId, apiSecret);
+                request.put("session_id", sessionId);
+                request.put("handle_id", handleId);
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("request", "listparticipants");
+                body.put("room", roomId);
+                request.put("body", body);
+
+                Map<String, Object> response = amqpClient.sendAndReceive(request);
+                amqpClient.validatePluginResponse(response);
+
+                // Розбираємо відповідь: plugindata -> data -> participants
+                Map<String, Object> plugindata = (Map<String, Object>) response.get("plugindata");
+                if (plugindata == null) {
+                    log.warn("Janus не повернув plugindata для listparticipants кімнати {}", roomId);
+                    return List.of();
+                }
+                Map<String, Object> data = (Map<String, Object>) plugindata.get("data");
+                if (data == null || !(data.get("participants") instanceof List)) {
+                    return List.of();
+                }
+                return (List<Map<String, Object>>) data.get("participants");
+            });
+        } catch (Exception e) {
+            // Панель модератора не має падати через недоступний Janus — повертаємо порожній список
+            log.error("Помилка отримання учасників кімнати {}: {}", roomId, e.getMessage());
+            return List.of();
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public Map<String, Object> joinAsRtpParticipant(Long sessionId, Long handleId, Long roomId, String display, String ip, Integer rtpPort) {
         log.info("Приєднання Plain RTP до кімнати {} на порт джерела {}", roomId, rtpPort);
@@ -41,7 +86,6 @@ public class JanusParticipantService {
         body.put("room", roomId);
         body.put("display", display);
         body.put("secret", apiSecret);
-
         body.put("muted", false);
 
         Map<String, Object> rtpData = new HashMap<>();
@@ -51,8 +95,8 @@ public class JanusParticipantService {
         rtpData.put("pt", 100);
         rtpData.put("rtp_port", 0);
         body.put("rtp", rtpData);
-        request.put("body", body);
 
+        request.put("body", body);
         Map<String, Object> response = amqpClient.sendAndReceive(request);
         amqpClient.validatePluginResponse(response);
         return response;
@@ -92,7 +136,6 @@ public class JanusParticipantService {
                     kickRequest.put("session_id", sessionId);
                     kickRequest.put("handle_id", handleId);
                     kickRequest.put("body", Map.of("request", "kick", "room", roomId, "id", janusParticipantId));
-
                     Map<String, Object> kickResponse = amqpClient.sendAndReceive(kickRequest);
                     amqpClient.validatePluginResponse(kickResponse);
                     log.info("Користувача видалено з кімнати {}", roomId);
