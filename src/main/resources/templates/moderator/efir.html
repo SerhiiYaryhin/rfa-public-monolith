@@ -399,6 +399,7 @@
     var currentRoomType = 'main';
     var clientuuid = null;
     var subRoomParticipants = null;
+    var subPresenceUpdate = null; // ✅ НОВА ПІДПИСКА
 
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -439,11 +440,57 @@
         }
         document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
 
+        // ✅ Налаштовуємо підписку на оновлення учасників
+        setupModeratorPresenceSubscription();
+
         setTimeout(() => {
             loadModeratorParticipants();
             loadWaitingGuests();
         }, 1500);
     });
+
+    /**
+     * ✅ НОВА ФУНКЦІЯ: Підписка на топік сповіщень про зміни в складі учасників.
+     * Коли будь-який користувач переходить між кімнатами в чаті,
+     * ChatRoomPresenceService публікує подію в /topic/efir.room.presence,
+     * і ця функція автоматично оновлює список у панелі модератора.
+     */
+    function setupModeratorPresenceSubscription() {
+        const trySubscribe = () => {
+            if (stompClient && stompClient.connected && !subPresenceUpdate) {
+                subPresenceUpdate = stompClient.subscribe(
+                    '/topic/efir.room.presence',
+                    (payload) => {
+                        console.log('🔔 Отримано сповіщення про зміну учасників');
+                        // Невелика затримка, щоб сервер встиг оновити стан
+                        setTimeout(loadModeratorParticipants, 200);
+                    }
+                );
+                console.log('✅ Підписано на /topic/efir.room.presence');
+                return true;
+            }
+            return false;
+        };
+
+        if (!trySubscribe()) {
+            // Якщо STOMP ще не підключений, пробуємо кожні 500мс
+            const interval = setInterval(() => {
+                if (trySubscribe()) {
+                    clearInterval(interval);
+                }
+            }, 500);
+
+            // Зупиняємо спроби через 30 секунд
+            setTimeout(() => clearInterval(interval), 30000);
+        }
+
+        // ✅ Fallback: періодичне опитування кожні 10 секунд (для надійності)
+        setInterval(() => {
+            if (stompClient && stompClient.connected) {
+                loadModeratorParticipants();
+            }
+        }, 10000);
+    }
 
     function loadModeratorParticipants() {
         const list = document.getElementById('efirParticipantList');
@@ -567,6 +614,8 @@
     function pauseEfir() {}
     function stopEfir() { document.getElementById('liveIndicator').classList.remove('active'); document.getElementById('liveStatus').textContent = 'OFFLINE'; }
 </script>
+
 <script src="/js/chat.js"></script>
+
 </body>
 </html>

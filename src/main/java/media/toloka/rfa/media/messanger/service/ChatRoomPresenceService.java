@@ -1,6 +1,9 @@
 package media.toloka.rfa.media.messanger.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -15,18 +18,37 @@ public class ChatRoomPresenceService {
     private final Map<String, Set<String>> roomParticipants = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> userRooms = new ConcurrentHashMap<>();
 
+    /**
+     * @Lazy необхідний для розриву циклічної залежності з WebSocket конфігурацією.
+     */
+    @Lazy
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    /** Окремий топік для сповіщення панелі модератора про зміни в складі учасників. */
+    private static final String EFIR_PRESENCE_TOPIC = "/topic/efir.room.presence";
+
     public void addUserToRoom(String userIdentifier, String roomUuid) {
-        roomParticipants.computeIfAbsent(roomUuid, k -> ConcurrentHashMap.newKeySet())
+        if (userIdentifier == null || roomUuid == null) return;
+
+        boolean changed = roomParticipants.computeIfAbsent(roomUuid, k -> ConcurrentHashMap.newKeySet())
                 .add(userIdentifier);
         userRooms.computeIfAbsent(userIdentifier, k -> ConcurrentHashMap.newKeySet())
                 .add(roomUuid);
-        log.debug("✅ Додано {} в кімнату {}", userIdentifier, roomUuid);
+
+        if (changed) {
+            log.debug("✅ Додано {} в кімнату {}", userIdentifier, roomUuid);
+            notifyModerators();
+        }
     }
 
     public void removeUserFromRoom(String userIdentifier, String roomUuid) {
+        if (userIdentifier == null || roomUuid == null) return;
+
         Set<String> participants = roomParticipants.get(roomUuid);
+        boolean changed = false;
         if (participants != null) {
-            participants.remove(userIdentifier);
+            changed = participants.remove(userIdentifier);
             if (participants.isEmpty()) {
                 roomParticipants.remove(roomUuid);
             }
@@ -38,12 +60,18 @@ public class ChatRoomPresenceService {
                 userRooms.remove(userIdentifier);
             }
         }
-        log.debug("❌ Видалено {} з кімнати {}", userIdentifier, roomUuid);
+
+        if (changed) {
+            log.debug("❌ Видалено {} з кімнати {}", userIdentifier, roomUuid);
+            notifyModerators();
+        }
     }
 
     public void removeUserFromAllRooms(String userIdentifier) {
+        if (userIdentifier == null) return;
+
         Set<String> rooms = userRooms.remove(userIdentifier);
-        if (rooms != null) {
+        if (rooms != null && !rooms.isEmpty()) {
             for (String roomUuid : rooms) {
                 Set<String> participants = roomParticipants.get(roomUuid);
                 if (participants != null) {
@@ -53,39 +81,50 @@ public class ChatRoomPresenceService {
                     }
                 }
             }
+            log.debug("👋 Видалено {} з усіх кімнат", userIdentifier);
+            notifyModerators();
         }
-        log.debug("👋 Видалено {} з усіх кімнат", userIdentifier);
     }
 
     /**
-     * ✅ НОВИЙ МЕТОД: Переміщує користувача в нову кімнату,
-     * автоматично видаляючи його з усіх інших кімнат.
-     *
-     * Це вирішує проблему, коли STOMP UNSUBSCRIBE приходить без destination.
-     * Оскільки користувач в чаті може бути тільки в одній кімнаті одночасно,
-     * ми просто "переносимо" його при кожному новому SUBSCRIBE.
+     * Переміщує користувача в нову кімнату, автоматично видаляючи його з усіх інших.
+     * Вирішує проблему, коли STOMP UNSUBSCRIBE приходить без destination.
      */
     public void moveUserToRoom(String userIdentifier, String newRoomUuid) {
         if (userIdentifier == null || newRoomUuid == null) return;
 
-        // 1. Видаляємо користувача з усіх поточних кімнат
         Set<String> currentRooms = userRooms.get(userIdentifier);
-        if (currentRooms != null) {
-            // Створюємо копію, щоб уникнути ConcurrentModificationException
+        boolean changed = false;
+
+        if (currentRooms != null && !currentRooms.isEmpty()) {
             Set<String> roomsCopy = ConcurrentHashMap.newKeySet();
             roomsCopy.addAll(currentRooms);
 
             for (String roomUuid : roomsCopy) {
                 if (!roomUuid.equals(newRoomUuid)) {
-                    removeUserFromRoom(userIdentifier, roomUuid);
-                    log.info("🔄 Користувач {} переміщений з кімнати {} в {}",
-                            userIdentifier, roomUuid, newRoomUuid);
+                    Set<String> participants = roomParticipants.get(roomUuid);
+                    if (participants != null && participants.remove(userIdentifier)) {
+                        if (participants.isEmpty()) {
+                            roomParticipants.remove(roomUuid);
+                        }
+                        log.info("🔄 Користувач {} переміщений з кімнати {} в {}",
+                                userIdentifier, roomUuid, newRoomUuid);
+                        changed = true;
+                    }
+                    currentRooms.remove(roomUuid);
                 }
             }
         }
 
-        // 2. Додаємо користувача в нову кімнату (якщо його там ще немає)
-        addUserToRoom(userIdentifier, newRoomUuid);
+        // Додаємо користувача в нову кімнату
+        boolean added = roomParticipants.computeIfAbsent(newRoomUuid, k -> ConcurrentHashMap.newKeySet())
+                .add(userIdentifier);
+        userRooms.computeIfAbsent(userIdentifier, k -> ConcurrentHashMap.newKeySet())
+                .add(newRoomUuid);
+
+        if (added || changed) {
+            notifyModerators();
+        }
     }
 
     public Set<String> getRoomParticipants(String roomUuid) {
@@ -96,20 +135,18 @@ public class ChatRoomPresenceService {
         return userRooms.getOrDefault(userIdentifier, Collections.emptySet());
     }
 
-    /**
-     * Замінює всі входження email на UUID у всіх кімнатах.
-     * Викликається з /app/hello, коли стає відомий справжній UUID користувача.
-     */
     public void replaceEmailWithUuid(String email, String uuid) {
         if (email == null || uuid == null || email.equals(uuid)) {
             return;
         }
 
+        boolean changed = false;
         for (Map.Entry<String, Set<String>> entry : roomParticipants.entrySet()) {
             Set<String> participants = entry.getValue();
             if (participants.remove(email)) {
                 participants.add(uuid);
                 log.info("🔄 Замінено email {} на UUID {} в кімнаті {}", email, uuid, entry.getKey());
+                changed = true;
             }
         }
 
@@ -117,6 +154,26 @@ public class ChatRoomPresenceService {
         if (rooms != null) {
             userRooms.put(uuid, rooms);
             log.debug("🔄 Оновлено індекс: {} -> {}", email, uuid);
+            changed = true;
+        }
+
+        if (changed) {
+            notifyModerators();
+        }
+    }
+
+    /**
+     * ✅ Сповіщаємо всіх клієнтів (включно з панеллю модератора) про зміну в складі учасників.
+     * Панель модератора підписана на цей топік і автоматично оновлює список.
+     */
+    private void notifyModerators() {
+        if (messagingTemplate != null) {
+            try {
+                messagingTemplate.convertAndSend(EFIR_PRESENCE_TOPIC, "REFRESH");
+                log.debug("📣 Опубліковано сповіщення про оновлення учасників");
+            } catch (Exception e) {
+                log.warn("⚠️ Не вдалося опублікувати сповіщення: {}", e.getMessage());
+            }
         }
     }
 }
