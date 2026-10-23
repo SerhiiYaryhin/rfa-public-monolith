@@ -24,7 +24,7 @@
         var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
         var stationUuid = /*[[${stationUuid}]]*/ '';
         var currentRoomType = 'main';
-        var clientuuid = null; // Для сумісності з chat.js
+        var clientuuid = null;
 
         const rooms = {
             main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -39,31 +39,80 @@
 
     <style>
         :root {
-            --primary: #6c5ce7; --success: #00b894; --warning: #fdcb6e;
-            --danger: #d63031; --dark: #2d3436; --light: #dfe6e9;
-            --sidebar-width: 280px; --chat-width: 400px;
+            --primary: #6c5ce7;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --dark: #2d3436;
+            --light: #f0f2f5;
+            --sidebar-width: 280px;
         }
+
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; padding: 0; height: 100vh; overflow: hidden; }
-        .command-center { display: flex; flex-direction: column; height: 100vh; padding: 15px; gap: 15px; }
-        .cc-header { background: white; border-radius: 12px; padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .command-center {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .cc-header {
+            background: white; border-radius: 12px; padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex;
+            justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
         .cc-header-left h1 { margin: 0; font-size: 1.5rem; color: var(--dark); display: flex; align-items: center; gap: 10px; }
         .cc-header-info { color: #636e72; font-size: 0.85rem; margin-top: 5px; }
         .live-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #ffebee; border-radius: 20px; font-weight: 600; color: var(--danger); }
         .live-indicator.active { animation: pulse 2s infinite; }
         .live-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .cc-control-bar { background: white; border-radius: 12px; padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
-        .btn-control { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex: 1; min-width: 150px; justify-content: center; color: white; }
+
+        .cc-control-bar {
+            background: white; border-radius: 12px; padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap;
+        }
+        .btn-control {
+            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center;
+            gap: 8px; flex: 1; min-width: 150px; justify-content: center; color: white;
+        }
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: #5b4cc4; transform: translateY(-2px); }
         .btn-success { background: var(--success); } .btn-success:hover { background: #00a383; transform: translateY(-2px); }
         .btn-warning { background: var(--warning); color: var(--dark); } .btn-warning:hover { background: #f39c12; transform: translateY(-2px); }
         .btn-danger { background: var(--danger); } .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
         .btn-control:disabled { background: #b2bec3; cursor: not-allowed; transform: none; }
-        .cc-main { display: grid; grid-template-columns: var(--sidebar-width) 1fr var(--chat-width); gap: 15px; flex: 1; min-height: 0; overflow: hidden; }
-        .cc-rooms { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; }
+
+        .cc-main {
+            /* ✅ Друга і третя колонки однакової ширини (1fr 1fr) */
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .cc-rooms {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto;
+        }
         .cc-section-title { font-size: 0.9rem; font-weight: 600; color: #636e72; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .room-item { padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between; }
+        .room-item {
+            padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer;
+            transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between;
+        }
         .room-item:hover { background: #f8f9fa; transform: translateX(5px); }
         .room-item.active { background: #f0f2f5; border-left-color: var(--primary); }
         .room-item-main { border-left-color: var(--primary); }
@@ -72,27 +121,63 @@
         .room-item-staff { border-left-color: #636e72; }
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
         .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-        .cc-participants { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column; }
+
+        .cc-participants {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column;
+        }
         .participant-list { flex: 1; overflow-y: auto; }
-        .participant-card { padding: 15px; border-radius: 10px; margin-bottom: 10px; background: #f8f9fa; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
-        .participant-card:hover { background: #f0f2f5; transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .participant-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; position: relative; }
-        .audio-indicator { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; }
-        .audio-speaking { background: var(--success); animation: pulse-audio 1s infinite; }
-        .audio-muted { background: #b2bec3; }
-        @keyframes pulse-audio { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-        .participant-info { flex: 1; min-width: 0; }
-        .participant-name { font-weight: 600; color: var(--dark); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .participant-role { font-size: 0.75rem; color: #636e72; }
-        .cc-chat { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+
+        /* ✅ Оновлений стиль учасника: без аватара, без ліній, з кольоровим виділенням */
+        .efir-participant-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        .efir-participant-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* ✅ Виділення кольором, якщо учасник говорить */
+        .efir-participant-talking {
+            background-color: rgba(0, 184, 148, 0.15); /* М'який зелений фон */
+            border-left: 3px solid var(--success);
+        }
+
+        .efir-participant-talking .efir-participant-name {
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .efir-participant-name {
+            font-size: 0.95rem;
+            color: var(--dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+
+        .cc-chat {
+            background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
         .chat-header { padding: 15px 20px; border-bottom: 2px solid #f0f2f5; font-weight: 600; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #fafbfc; display: flex; flex-direction: column; gap: 15px; }
+
         .bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeInUp 0.3s ease; }
         .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
         .bubble-me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
         .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.7; display: flex; align-items: center; gap: 5px; }
         .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .chat-input-area { padding: 15px; border-top: 2px solid #f0f2f5; display: flex; align-items: center; gap: 12px; background: #fff; }
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; width: 100%; }
@@ -101,12 +186,15 @@
         .btn-emoji:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
         .btn-send { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
         .btn-send:hover { transform: scale(1.05) rotate(-10deg); background: #5b4cc4; }
+
         emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
         emoji-picker.visible { display: block; }
+
         .context-menu { position: absolute; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 8px 0; min-width: 200px; z-index: 1000; display: none; }
         .context-menu-item { padding: 10px 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
         .context-menu-item:hover { background: #f0f2f5; }
         .context-menu-item.danger { color: var(--danger); }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -160,8 +248,8 @@
 
         <div class="cc-participants">
             <div class="cc-section-title"><i class="fas fa-users"></i> Учасники</div>
-            <!-- ВАЖЛИВО: id="userlist" використовується chat.js, але ми його перевизначимо через JS нижче -->
-            <div class="participant-list" id="userlist">
+            <!-- Унікальний ID, щоб chat.js не перезаписував цей блок -->
+            <div class="participant-list" id="efirParticipantList">
                 <div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>
             </div>
         </div>
@@ -171,7 +259,6 @@
                 <span><i class="fas fa-comment-dots"></i> <span id="chatTitle">Публічний чат</span></span>
                 <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
             </div>
-            <!-- Структура ідентична messenger.html для сумісності з chat.js -->
             <div class="chat-messages" id="mainMessagesArea">
                 <div id="publicarea" class="d-flex flex-column gap-3"></div>
                 <div id="privatearea" class="d-flex flex-column gap-3"></div>
@@ -203,7 +290,7 @@
 </div>
 
 <script th:inline="javascript">
-    // Специфічна логіка модератора (перевизначаємо поведінку userlist для показу WebRTC учасників)
+    // Специфічна логіка модератора
     document.addEventListener('DOMContentLoaded', () => {
         // Обробники кліку по кімнатах
         document.querySelectorAll('.room-item').forEach(item => {
@@ -217,7 +304,7 @@
                     document.getElementById('chatTitle').innerText = roomName || 'Чат';
                     currentRoomType = roomType;
 
-                    // Викликаємо рідну функцію з chat.js
+                    // Викликаємо рідну функцію з chat.js для перемикання чату
                     selectroom(roomUuid, roomName);
 
                     // Оновлюємо список WebRTC учасників
@@ -240,12 +327,12 @@
         }
         document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
 
-        // Початкове завантаження учасників
-        setTimeout(loadModeratorParticipants, 1000); // Невелика затримка, щоб chat.js встиг ініціалізуватися
+        // Початкове завантаження учасників з невеликою затримкою, щоб chat.js встиг ініціалізуватися
+        setTimeout(loadModeratorParticipants, 1000);
     });
 
     function loadModeratorParticipants() {
-        const list = document.getElementById('userlist');
+        const list = document.getElementById('efirParticipantList');
         if (!list) return;
 
         fetch(`/api/v1/broadcast/${stationUuid}/status`)
@@ -261,7 +348,7 @@
                 });
 
                 if (!room || !room.participants || room.participants.length === 0) {
-                    list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Немає учасників</div>';
+                    list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px; font-size: 0.9rem;">Немає учасників</div>';
                     return;
                 }
 
@@ -269,22 +356,29 @@
                 if (countEl) countEl.textContent = room.participants.length;
 
                 room.participants.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = 'participant-card';
-                    card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p, room.janusRoomId); };
-                    const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
-                    const audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
-                    card.innerHTML = `
-                        <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
-                        <div class="participant-info">
-                            <div class="participant-name">${p.display || 'Unknown'}</div>
-                            <div class="participant-role">Учасник</div>
-                        </div>`;
-                    list.appendChild(card);
+                    const item = document.createElement('div');
+                    item.className = 'efir-participant-item';
+
+                    // ✅ Якщо учасник говорить, додаємо клас для кольорового виділення
+                    if (p.talking) {
+                        item.classList.add('efir-participant-talking');
+                    }
+
+                    item.onclick = (e) => {
+                        if (!e.target.closest('.context-menu')) showContextMenu(p, room.janusRoomId);
+                    };
+
+                    // ✅ Тільки ім'я, без аватара та індикаторів
+                    item.innerHTML = `
+                        <div class="efir-participant-name" title="${p.display || 'Unknown'}">
+                            ${p.display || 'Unknown'}
+                        </div>
+                    `;
+                    list.appendChild(item);
                 });
             })
             .catch(() => {
-                list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Помилка</div>';
+                list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px; font-size: 0.9rem;"><i class="fas fa-exclamation-triangle"></i> Помилка завантаження</div>';
             });
     }
 
