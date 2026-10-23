@@ -202,6 +202,75 @@ public class ChatController {
         }
     }
 
+    // ========================================================================
+// ✅ НОВИЙ МЕТОД: Batch-запит учасників для кількох кімнат одразу
+// ========================================================================
+    /**
+     * Повертає учасників для всіх переданих кімнат одним запитом.
+     * Payload: { "uuid": "user-uuid", "roomUuids": ["uuid1", "uuid2", ...] }
+     * Response: { "uuid": "user-uuid", "body": "{\"uuid1\": [...], \"uuid2\": [...]}" }
+     */
+    @MessageMapping("/rooms/batch-participants")
+    public void getBatchRoomParticipants(ChatMessage inmsg) {
+        try {
+            String bodyJson = inmsg.getBody();
+            if (bodyJson == null || bodyJson.isEmpty()) {
+                logger.warn("getBatchRoomParticipants: body is empty");
+                return;
+            }
+
+            // Парсимо body як JSON з масивом roomUuids
+            com.google.gson.JsonObject request = new com.google.gson.JsonParser()
+                    .parse(bodyJson).getAsJsonObject();
+            com.google.gson.JsonArray roomUuidsArray = request.getAsJsonArray("roomUuids");
+
+            if (roomUuidsArray == null) {
+                logger.warn("getBatchRoomParticipants: roomUuids array is missing");
+                return;
+            }
+
+            // Будуємо мапу roomUuid -> список учасників
+            java.util.Map<String, java.util.List<java.util.Map<String, String>>> result = new java.util.HashMap<>();
+
+            for (com.google.gson.JsonElement el : roomUuidsArray) {
+                String roomUuid = el.getAsString();
+                if (roomUuid == null || roomUuid.isEmpty()) continue;
+
+                java.util.Set<String> participantUuids = chatRoomPresenceService.getRoomParticipants(roomUuid);
+                java.util.List<java.util.Map<String, String>> userList = new java.util.ArrayList<>();
+
+                for (String userUuid : participantUuids) {
+                    java.util.Map<String, String> user = new java.util.HashMap<>();
+                    user.put("uuid", userUuid);
+
+                    Clientdetail cd = clientService.GetClientDetailByUuid(userUuid);
+                    if (cd == null) {
+                        cd = clientService.GetClientDetailByUUID(userUuid);
+                    }
+
+                    if (cd != null) {
+                        user.put("name", cd.getCustname() + " " + cd.getCustsurname());
+                    } else {
+                        user.put("name", "Unknown (" + userUuid.substring(0, Math.min(8, userUuid.length())) + "...)");
+                    }
+                    userList.add(user);
+                }
+                result.put(roomUuid, userList);
+            }
+
+            ChatMessage response = new ChatMessage();
+            response.setUuid(inmsg.getUuid());
+            response.setBody(new GsonBuilder().create().toJson(result));
+
+            this.template.convertAndSend("/topic/chat.rooms.batch." + inmsg.getUuid(), response);
+            logger.debug("📋 Batch-учасники для {} кімнат", result.size());
+
+        } catch (Exception e) {
+            logger.error("Error getting batch room participants", e);
+        }
+    }
+// ========================================================================
+
     @MessageMapping("/room/history")
     public void getRoomHistory(ChatMessage inmsg) {
         try {

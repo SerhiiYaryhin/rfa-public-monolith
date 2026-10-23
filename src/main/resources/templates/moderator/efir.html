@@ -88,7 +88,11 @@
             display: flex;
             flex-direction: column;
         }
-        .cc-section-title { font-size: 0.9rem; font-weight: 600; color: #636e72; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cc-section-title {
+            font-size: 0.9rem; font-weight: 600; color: #636e72;
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 8px;
+        }
         .room-item {
             padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer;
             transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between;
@@ -102,6 +106,7 @@
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
         .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
+        /* ✅ Секція "Очікують" */
         .waiting-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -110,73 +115,62 @@
             display: flex;
             flex-direction: column;
         }
-
+        .waiting-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
         .waiting-item {
             display: flex;
             align-items: center;
-            padding: 10px 12px;
+            padding: 8px 10px;
             background: #fff8dc;
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-left: 3px solid var(--warning);
+            gap: 8px;
             animation: slideIn 0.3s ease;
         }
-
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(-10px); }
             to { opacity: 1; transform: translateX(0); }
         }
-
-        .waiting-item:hover {
-            background: #fff3cd;
-        }
-
-        .waiting-name {
-            flex-grow: 1;
-            font-size: 0.9rem;
+        .waiting-item:hover { background: #fff3cd; }
+        .waiting-item-name {
+            flex: 1;
+            font-size: 0.85rem;
             font-weight: 500;
             color: var(--dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .waiting-actions {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
-
         .btn-waiting {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             transition: all 0.2s;
         }
-
-        .btn-accept {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-accept:hover {
-            background: #00a383;
-            transform: scale(1.1);
-        }
-
-        .btn-decline {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-decline:hover {
-            background: #c0392b;
-            transform: scale(1.1);
+        .btn-accept { background: var(--success); color: white; }
+        .btn-accept:hover { background: #00a383; transform: scale(1.1); }
+        .btn-decline { background: #e74c3c; color: white; }
+        .btn-decline:hover { background: #c0392b; transform: scale(1.1); }
+        .waiting-empty {
+            text-align: center;
+            color: #b2bec3;
+            font-size: 0.8rem;
+            padding: 15px 10px;
+            font-style: italic;
         }
 
         .cc-participants {
@@ -185,77 +179,100 @@
         }
         .participant-list { flex: 1; overflow-y: auto; }
 
-        .efir-participant-item {
+        /* ✅ Горизонтальна сітка учасників (чіпси) */
+        .participant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 8px;
+            padding: 4px;
+        }
+
+        .participant-chip {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            transition: all 0.2s ease;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-radius: 20px;
             cursor: pointer;
-            background-color: transparent;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            min-width: 0;
+        }
+        .participant-chip:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
 
-        .efir-participant-item:hover {
-            background-color: #f8f9fa;
+        /* Підсвічення, коли учасник говорить */
+        .participant-chip.talking {
+            background: rgba(0, 184, 148, 0.15);
+            border-color: var(--success);
         }
-
-        .efir-participant-talking {
-            background-color: rgba(0, 184, 148, 0.15);
-            border-left: 3px solid var(--success);
-        }
-
-        .efir-participant-talking .efir-participant-name {
+        .participant-chip.talking .participant-chip-name {
             font-weight: 700;
             color: var(--success);
         }
+        .participant-chip.talking .participant-chip-avatar {
+            background: var(--success);
+        }
 
-        .efir-participant-name {
-            font-size: 0.95rem;
+        .participant-chip-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .participant-chip-name {
+            font-size: 0.85rem;
             color: var(--dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex-grow: 1;
+            flex: 1;
+            min-width: 0;
         }
 
-        .participant-actions {
-            display: flex;
-            gap: 5px;
-            margin-left: 10px;
-        }
-
-        .btn-participant {
-            width: 32px;
-            height: 32px;
+        .participant-chip-menu {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: none;
+            background: transparent;
+            color: #b2bec3;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.8rem;
+            flex-shrink: 0;
             transition: all 0.2s;
         }
-
-        .btn-invite-green {
-            background: var(--warning);
+        .participant-chip-menu:hover {
+            background: #dfe6e9;
             color: var(--dark);
         }
 
-        .btn-invite-green:hover {
-            background: #f39c12;
-            transform: scale(1.1);
+        .participants-empty {
+            text-align: center;
+            color: #b2bec3;
+            padding: 40px 20px;
+            font-size: 0.9rem;
         }
-
-        .btn-invite-broadcast {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-invite-broadcast:hover {
-            background: #c0392b;
-            transform: scale(1.1);
+        .participants-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.5;
         }
 
         .cc-chat {
@@ -320,6 +337,7 @@
     </div>
 
     <div class="cc-main">
+        <!-- Ліва колонка: Кімнати + Очікують -->
         <div class="cc-rooms">
             <div class="cc-section-title"><i class="fas fa-door-open"></i> Кімнати</div>
             <div class="room-item room-item-main active" data-room-type="main" th:data-room-uuid="${mainRoom != null ? mainRoom.uuid : ''}" th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
@@ -339,22 +357,35 @@
                 <div class="room-count" id="countStaff">0</div>
             </div>
 
-            <div class="waiting-section" id="waitingSection" style="display: none;">
+            <!-- ✅ Секція "Очікують" -->
+            <div class="waiting-section">
                 <div class="cc-section-title">
                     <i class="fas fa-hand-paper"></i> Очікують
-                    <span class="badge rounded-pill bg-warning text-dark" id="waitingCount">0</span>
+                    <span class="badge rounded-pill bg-warning text-dark" id="waitingCount" style="margin-left: auto;">0</span>
                 </div>
-                <div id="waitingList"></div>
+                <div class="waiting-list" id="waitingList">
+                    <div class="waiting-empty">Немає гостей</div>
+                </div>
             </div>
         </div>
 
+        <!-- Центральна колонка: Учасники (сітка чіпсів) -->
         <div class="cc-participants">
-            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники чату</div>
+            <div class="cc-section-title">
+                <i class="fas fa-users"></i> Учасники
+                <span class="badge rounded-pill bg-primary" id="activeRoomCount" style="margin-left: auto;">0</span>
+            </div>
             <div class="participant-list" id="efirParticipantList">
-                <div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>
+                <div class="participant-grid" id="participantGrid">
+                    <div class="participants-empty" style="grid-column: 1 / -1;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Завантаження...
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Права колонка: Чат -->
         <div class="cc-chat">
             <div class="chat-header">
                 <span><i class="fas fa-comment-dots"></i> <span id="chatTitle">Публічний чат</span></span>
@@ -390,7 +421,6 @@
     <div class="context-menu-item danger" onclick="contextAction('kick')"><i class="fas fa-ban"></i> Kick</div>
 </div>
 
-<!-- ✅ ОДИН блок скриптів з усіма змінними -->
 <script th:inline="javascript">
     var curuuid = /*[[${curuuid}]]*/ '';
     var curusername = /*[[${curusername}]]*/ '';
@@ -399,7 +429,8 @@
     var currentRoomType = 'main';
     var clientuuid = null;
     var subRoomParticipants = null;
-    var subPresenceUpdate = null; // ✅ НОВА ПІДПИСКА
+    var subBatchParticipants = null;
+    var subPresenceUpdate = null;
 
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
@@ -407,6 +438,9 @@
         broadcast: /*[[${broadcastRoom != null ? broadcastRoom.uuid : null}]]*/,
         staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
     };
+
+    // Кеш останніх даних про учасників для кожної кімнати
+    var participantsCache = {};
 
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.room-item').forEach(item => {
@@ -422,7 +456,8 @@
                     if (typeof selectroom === 'function') {
                         selectroom(roomUuid, roomName);
                     }
-                    setTimeout(loadModeratorParticipants, 500);
+                    // Оновлюємо список учасників для нової активної кімнати
+                    renderActiveRoomParticipants();
                 }
             });
         });
@@ -438,168 +473,234 @@
                 input.focus();
             });
         }
-        document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
+        document.addEventListener('click', (e) => {
+            if (picker) picker.classList.remove('visible');
+            if (!e.target.closest('.context-menu') && !e.target.closest('.participant-chip-menu')) {
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+        });
 
-        // ✅ Налаштовуємо підписку на оновлення учасників
-        setupModeratorPresenceSubscription();
+        setupModeratorSubscriptions();
 
         setTimeout(() => {
-            loadModeratorParticipants();
-            loadWaitingGuests();
+            requestBatchParticipants();
         }, 1500);
     });
 
     /**
-     * ✅ НОВА ФУНКЦІЯ: Підписка на топік сповіщень про зміни в складі учасників.
-     * Коли будь-який користувач переходить між кімнатами в чаті,
-     * ChatRoomPresenceService публікує подію в /topic/efir.room.presence,
-     * і ця функція автоматично оновлює список у панелі модератора.
+     * ✅ Налаштування всіх підписок для оновлення в реальному часі
      */
-    function setupModeratorPresenceSubscription() {
+    function setupModeratorSubscriptions() {
         const trySubscribe = () => {
-            if (stompClient && stompClient.connected && !subPresenceUpdate) {
+            if (!stompClient || !stompClient.connected) return false;
+
+            // Підписка на batch-відповідь
+            if (!subBatchParticipants) {
+                subBatchParticipants = stompClient.subscribe(
+                    '/topic/chat.rooms.batch.' + curuuid,
+                    onBatchParticipantsReceived
+                );
+            }
+
+            // Підписка на глобальне сповіщення про зміну складу учасників
+            if (!subPresenceUpdate) {
                 subPresenceUpdate = stompClient.subscribe(
                     '/topic/efir.room.presence',
-                    (payload) => {
-                        console.log('🔔 Отримано сповіщення про зміну учасників');
-                        // Невелика затримка, щоб сервер встиг оновити стан
-                        setTimeout(loadModeratorParticipants, 200);
+                    () => {
+                        console.log('🔔 Presence update received, requesting batch...');
+                        setTimeout(requestBatchParticipants, 150);
                     }
                 );
-                console.log('✅ Підписано на /topic/efir.room.presence');
-                return true;
             }
-            return false;
+
+            console.log('✅ Moderator subscriptions established');
+            return true;
         };
 
         if (!trySubscribe()) {
-            // Якщо STOMP ще не підключений, пробуємо кожні 500мс
             const interval = setInterval(() => {
-                if (trySubscribe()) {
-                    clearInterval(interval);
-                }
+                if (trySubscribe()) clearInterval(interval);
             }, 500);
-
-            // Зупиняємо спроби через 30 секунд
             setTimeout(() => clearInterval(interval), 30000);
         }
 
-        // ✅ Fallback: періодичне опитування кожні 10 секунд (для надійності)
+        // Fallback: періодичне оновлення кожні 10 секунд
         setInterval(() => {
             if (stompClient && stompClient.connected) {
-                loadModeratorParticipants();
+                requestBatchParticipants();
             }
         }, 10000);
     }
 
-    function loadModeratorParticipants() {
-        const list = document.getElementById('efirParticipantList');
-        if (!list) return;
+    /**
+     * ✅ Запитуємо учасників для ВСІХ кімнат станції одним запитом
+     */
+    function requestBatchParticipants() {
+        if (!stompClient || !stompClient.connected) return;
 
-        const activeRoomUuid = rooms[currentRoomType];
-        if (!activeRoomUuid) {
-            list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Кімната не вибрана</div>';
-            return;
-        }
+        const roomUuids = Object.values(rooms).filter(uuid => uuid && uuid !== 'null');
+        if (roomUuids.length === 0) return;
 
-        if (stompClient && stompClient.connected) {
-            if (!subRoomParticipants) {
-                subRoomParticipants = stompClient.subscribe(
-                    '/topic/chat.room.participants.' + curuuid,
-                    onRoomParticipantsReceived
-                );
-            }
-
-            stompClient.send("/app/room/participants", {}, JSON.stringify({
-                uuid: curuuid,
-                roomuuid: activeRoomUuid,
-                send: Date.now()
-            }));
-        }
+        stompClient.send("/app/rooms/batch-participants", {}, JSON.stringify({
+            uuid: curuuid,
+            body: JSON.stringify({ roomUuids: roomUuids })
+        }));
     }
 
-    function onRoomParticipantsReceived(payload) {
-        const list = document.getElementById('efirParticipantList');
-        if (!list) return;
-
+    /**
+     * ✅ Обробка batch-відповіді: оновлюємо всі лічильники + кеш
+     */
+    function onBatchParticipantsReceived(payload) {
         try {
             const data = JSON.parse(payload.body);
-            const participants = JSON.parse(data.body);
+            const batchData = JSON.parse(data.body); // { roomUuid: [...participants] }
 
-            list.innerHTML = '';
+            // Оновлюємо кеш
+            participantsCache = batchData;
 
-            if (!participants || participants.length === 0) {
-                list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px; font-size: 0.9rem;">Немає учасників</div>';
-                return;
-            }
+            // Оновлюємо лічильник кожної кімнати
+            updateRoomCount('main', batchData[rooms.main] || []);
+            updateRoomCount('green', batchData[rooms.green] || []);
+            updateRoomCount('broadcast', batchData[rooms.broadcast] || []);
+            updateRoomCount('staff', batchData[rooms.staff] || []);
 
-            const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
-            if (countEl) countEl.textContent = participants.length;
+            // Оновлюємо список учасників для активної кімнати
+            renderActiveRoomParticipants();
 
-            participants.forEach(u => {
-                const item = document.createElement('div');
-                item.className = 'efir-participant-item';
+            // Оновлюємо секцію "Очікують" (гості з Green Room)
+            renderWaitingGuests(batchData[rooms.green] || []);
 
-                item.innerHTML = `
-                    <div class="efir-participant-name" title="${u.name}">${u.name}</div>
-                    <div class="participant-actions">
-                        <button class="btn-participant btn-invite-green" onclick="inviteToGreenRoom('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Запросити в Green Room">
-                            <i class="fas fa-door-open"></i>
-                        </button>
-                        <button class="btn-participant btn-invite-broadcast" onclick="inviteToBroadcast('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Запросити в Ефір">
-                            <i class="fas fa-broadcast-tower"></i>
-                        </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
         } catch (e) {
-            console.error('Error parsing room participants:', e);
-            list.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 20px;">Помилка завантаження</div>';
+            console.error('Error parsing batch participants:', e);
         }
     }
 
-    function inviteToGreenRoom(userUuid, userName) {
-        if (!rooms.green) {
-            alert('Green Room ще не створено. Натисніть "Підготувати ефір".');
+    function updateRoomCount(roomType, participants) {
+        const countEl = document.getElementById(`count${roomType.charAt(0).toUpperCase() + roomType.slice(1)}`);
+        if (countEl) countEl.textContent = participants.length;
+    }
+
+    /**
+     * ✅ Рендеринг учасників активної кімнати у вигляді сітки чіпсів
+     */
+    function renderActiveRoomParticipants() {
+        const grid = document.getElementById('participantGrid');
+        const activeCountBadge = document.getElementById('activeRoomCount');
+        if (!grid) return;
+
+        const activeRoomUuid = rooms[currentRoomType];
+        const participants = (activeRoomUuid && participantsCache[activeRoomUuid]) || [];
+
+        if (activeCountBadge) activeCountBadge.textContent = participants.length;
+
+        if (participants.length === 0) {
+            grid.innerHTML = `
+                <div class="participants-empty" style="grid-column: 1 / -1;">
+                    <i class="fas fa-user-slash"></i>
+                    Немає учасників
+                </div>
+            `;
             return;
         }
-        console.log(`📢 Запрошення ${userName} в Green Room (${userUuid})`);
-        alert(`Запрошення ${userName} в Green Room (буде реалізовано на наступному етапі)`);
+
+        grid.innerHTML = '';
+        participants.forEach(u => {
+            const chip = document.createElement('div');
+            chip.className = 'participant-chip';
+            chip.dataset.uuid = u.uuid;
+
+            const initials = u.name
+                ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                : '??';
+
+            chip.innerHTML = `
+                <div class="participant-chip-avatar">${initials}</div>
+                <div class="participant-chip-name" title="${u.name}">${u.name}</div>
+                <button class="participant-chip-menu" onclick="event.stopPropagation(); showChipMenu(event, '${u.uuid}', '${u.name.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            `;
+            grid.appendChild(chip);
+        });
     }
 
-    function inviteToBroadcast(userUuid, userName) {
+    /**
+     * ✅ Рендеринг гостей, які підняли руку (з Green Room)
+     */
+    function renderWaitingGuests(greenRoomParticipants) {
+        const list = document.getElementById('waitingList');
+        const countBadge = document.getElementById('waitingCount');
+        if (!list) return;
+
+        // Поки що вважаємо всіх у Green Room "очікуючими"
+        // В майбутньому тут буде фільтр за полем handRaised
+        const waitingGuests = greenRoomParticipants;
+
+        if (countBadge) countBadge.textContent = waitingGuests.length;
+
+        if (waitingGuests.length === 0) {
+            list.innerHTML = '<div class="waiting-empty">Немає гостей</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        waitingGuests.forEach(u => {
+            const item = document.createElement('div');
+            item.className = 'waiting-item';
+            item.innerHTML = `
+                <i class="fas fa-hand-paper" style="color: var(--warning); flex-shrink: 0;"></i>
+                <div class="waiting-item-name" title="${u.name}">${u.name}</div>
+                <div class="waiting-actions">
+                    <button class="btn-waiting btn-accept" onclick="acceptGuest('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Запросити в ефір">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn-waiting btn-decline" onclick="declineGuest('${u.uuid}', '${u.name.replace(/'/g, "\\'")}')" title="Відхилити">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    /**
+     * Контекстне меню для чіпса учасника
+     */
+    function showChipMenu(event, userUuid, userName) {
+        event.stopPropagation();
+        selectedParticipant = { uuid: userUuid, name: userName };
+        const menu = document.getElementById('contextMenu');
+        menu.style.display = 'block';
+
+        // Розміщуємо меню біля кнопки
+        const rect = event.currentTarget.getBoundingClientRect();
+        menu.style.left = `${rect.left}px`;
+        menu.style.top = `${rect.bottom + 5}px`;
+    }
+
+    function acceptGuest(userUuid, userName) {
         if (!rooms.broadcast) {
             alert('Ефір ще не створено. Натисніть "Підготувати ефір".');
             return;
         }
-        console.log(`📢 Запрошення ${userName} в Ефір (${userUuid})`);
-        alert(`Запрошення ${userName} в Ефір (буде реалізовано на наступному етапі)`);
+        console.log(`✅ Запрошення ${userName} в Ефір`);
+        alert(`${userName} запрошений в ефір (функція буде реалізована)`);
+        // TODO: fetch(`/api/v1/broadcast/${stationUuid}/moderation/invite`, ...)
     }
 
-    function loadWaitingGuests() {
-        const waitingList = document.getElementById('waitingList');
-        const waitingSection = document.getElementById('waitingSection');
-        if (!waitingList) return;
-        waitingSection.style.display = 'none';
+    function declineGuest(userUuid, userName) {
+        if (!rooms.green) return;
+        console.log(`❌ Відхилення ${userName}`);
+        alert(`${userName} відхилений (функція буде реалізована)`);
+        // TODO: fetch(`/api/v1/broadcast/${stationUuid}/moderation/kick`, ...)
     }
 
     var selectedParticipant = null;
-    function showContextMenu(participant, roomId) {
-        selectedParticipant = { ...participant, roomId };
-        const menu = document.getElementById('contextMenu');
-        menu.style.display = 'block';
-        menu.style.left = `${event.pageX}px`;
-        menu.style.top = `${event.pageY}px`;
-        document.getElementById('muteText').textContent = participant.muted ? 'Unmute' : 'Mute';
-    }
-
     function contextAction(action) {
         if (!selectedParticipant) return;
-        alert(`Дія "${action}" буде реалізована на наступному етапі`);
+        alert(`Дія "${action}" для ${selectedParticipant.name} буде реалізована`);
         document.getElementById('contextMenu').style.display = 'none';
     }
-    document.addEventListener('click', () => { document.getElementById('contextMenu').style.display = 'none'; });
 
     function prepareEfir() {
         const btn = document.getElementById('btnPrepare');
@@ -614,8 +715,6 @@
     function pauseEfir() {}
     function stopEfir() { document.getElementById('liveIndicator').classList.remove('active'); document.getElementById('liveStatus').textContent = 'OFFLINE'; }
 </script>
-
 <script src="/js/chat.js"></script>
-
 </body>
 </html>
