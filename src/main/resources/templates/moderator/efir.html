@@ -12,9 +12,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
+    <!-- 1. Спочатку бібліотеки -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
+
+    <!-- 2. Оголошуємо змінні ДО підключення chat.js, щоб він їх бачив -->
+    <script th:inline="javascript">
+        var curuuid = /*[[${curuuid}]]*/ '';
+        var curusername = /*[[${curusername}]]*/ '';
+        var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
+        var stationUuid = /*[[${stationUuid}]]*/ '';
+        var currentRoomType = 'main';
+
+        const rooms = {
+            main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
+            green: /*[[${greenRoom != null ? greenRoom.uuid : null}]]*/,
+            broadcast: /*[[${broadcastRoom != null ? broadcastRoom.uuid : null}]]*/,
+            staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
+        };
+    </script>
+
+    <!-- 3. ПІДКЛЮЧАЄМО ІСНУЮЧИЙ chat.js (він автоматично викличе connect() і налаштує все) -->
+    <script src="/js/chat.js"></script>
 
     <style>
         :root {
@@ -194,7 +214,6 @@
     <div class="cc-main">
         <div class="cc-rooms">
             <div class="cc-section-title"><i class="fas fa-door-open"></i> Кімнати</div>
-            <!-- ✅ ВИПРАВЛЕНО: встановлено правильний UUID для основної кімнати -->
             <div class="room-item room-item-main active"
                  data-room-type="main"
                  th:data-room-uuid="${mainRoom != null ? mainRoom.uuid : ''}"
@@ -227,7 +246,8 @@
 
         <div class="cc-participants">
             <div class="cc-section-title"><i class="fas fa-users"></i> Учасники</div>
-            <div class="participant-list" id="participantList">
+            <!-- Використовуємо id="userlist", щоб chat.js міг сюди писати, або ми перекриємо це нижче -->
+            <div class="participant-list" id="userlist">
                 <div style="text-align: center; color: #636e72; padding: 20px;">
                     <i class="fas fa-spinner fa-spin"></i> Завантаження...
                 </div>
@@ -272,71 +292,36 @@
 </div>
 
 <script th:inline="javascript">
-    // Глобальні змінні
-    var curuuid = /*[[${curuuid}]]*/ '';
-    var curusername = /*[[${curusername}]]*/ '';
-    var stationUuid = /*[[${stationUuid}]]*/ '';
-    var curroom = /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/;
-    var currentRoomType = 'main';
-
-    const rooms = {
-        main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
-        green: /*[[${greenRoom != null ? greenRoom.uuid : null}]]*/,
-        broadcast: /*[[${broadcastRoom != null ? broadcastRoom.uuid : null}]]*/,
-        staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
-    };
+    // ==========================================
+    // Інтеграція з chat.js та специфіка модератора
+    // ==========================================
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ✅ ВИКОРИСТОВУЄМО ІСНУЮЧУ функцію connect() з chat.js
-        connect();
-
-        // Додаємо обробники кліку на кімнати
+        // chat.js вже має свій слухач DOMContentLoaded, який викликає connect().
+        // Ми просто додаємо обробники для кліку по кімнатах.
         document.querySelectorAll('.room-item').forEach(item => {
             item.addEventListener('click', function() {
                 const roomType = this.dataset.roomType;
                 const roomUuid = this.dataset.roomUuid;
                 const roomName = this.dataset.roomName;
-                if (roomType) {
-                    selectModeratorRoom(roomType, roomUuid, roomName);
+
+                if (roomType && roomUuid) {
+                    // 1. Оновлюємо UI
+                    document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('chatTitle').innerText = roomName || 'Чат';
+                    currentRoomType = roomType;
+
+                    // 2. ВИКОРИСТОВУЄМО готову функцію з chat.js!
+                    selectroom(roomUuid, roomName);
+
+                    // 3. Оновлюємо список учасників для нової кімнати
+                    loadModeratorParticipants();
                 }
             });
         });
 
-        initEmojiPicker();
-        loadModeratorParticipants();
-    });
-
-    // ✅ ВИКОРИСТОВУЄМО ІСНУЮЧУ функцію selectroom() з chat.js
-    function selectModeratorRoom(roomType, roomUuid, roomName) {
-        // Оновлюємо UI
-        document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
-        const activeItem = document.querySelector(`[data-room-type="${roomType}"]`);
-        if (activeItem) activeItem.classList.add('active');
-
-        document.getElementById('chatTitle').innerText = roomName || 'Чат';
-        currentRoomType = roomType;
-
-        // ✅ ВИКЛИКАЄМО ІСНУЮЧУ функцію з chat.js
-        if (roomUuid) {
-            selectroom(roomUuid, roomName);
-        }
-
-        // Оновлюємо список учасників для нової кімнати
-        loadModeratorParticipants();
-    }
-
-    // Специфічна логіка модератора - завантаження учасників
-    function loadModeratorParticipants() {
-        // Тут тільки логіка для учасників (не дублюємо чат!)
-        const list = document.getElementById('participantList');
-        list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>';
-
-        // TODO: реалізувати отримання учасників
-        console.log('Loading participants for room type:', currentRoomType);
-    }
-
-    // ✅ ВИКОРИСТОВУЄМО ІСНУЮЧІ функції з chat.js
-    function initEmojiPicker() {
+        // Ініціалізуємо Emoji Picker
         const picker = document.getElementById('picker');
         const input = document.getElementById('newmessage');
         const emojiToggle = document.getElementById('emojiToggle');
@@ -351,9 +336,130 @@
             });
         }
         document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
+
+        // Первинне завантаження учасників
+        loadModeratorParticipants();
+    });
+
+    // Специфічна логіка модератора: отримуємо реальних WebRTC учасників з Janus
+    function loadModeratorParticipants() {
+        const list = document.getElementById('userlist'); // Використовуємо той самий ID, що й chat.js
+        if (!list) return;
+
+        list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Завантаження...</div>';
+
+        fetch(`/api/v1/broadcast/${stationUuid}/status`)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                list.innerHTML = ''; // Очищаємо
+
+                // Знаходимо потрібну кімнату в відповіді
+                const room = data.rooms.find(r => {
+                    if (currentRoomType === 'main') return r.type === 'MAIN';
+                    if (currentRoomType === 'green') return r.type === 'GREEN';
+                    if (currentRoomType === 'broadcast') return r.type === 'BROADCAST';
+                    if (currentRoomType === 'staff') return r.type === 'STAFF';
+                    return false;
+                });
+
+                if (!room || !room.participants || room.participants.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; color: #636e72; padding: 20px;">Немає учасників</div>';
+                    return;
+                }
+
+                // Оновлюємо лічильник
+                const countEl = document.getElementById(`count${currentRoomType.charAt(0).toUpperCase() + currentRoomType.slice(1)}`);
+                if (countEl) countEl.textContent = room.participants.length;
+
+                // Рендеримо картки учасників
+                room.participants.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'participant-card';
+                    card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p, room.janusRoomId); };
+
+                    const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
+                    let audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
+
+                    card.innerHTML = `
+                        <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
+                        <div class="participant-info">
+                            <div class="participant-name">${p.display || 'Unknown'}</div>
+                            <div class="participant-role">Учасник</div>
+                        </div>`;
+                    list.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading participants:', error);
+                list.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 20px;">
+                    <i class="fas fa-exclamation-triangle"></i> Помилка завантаження
+                </div>`;
+            });
     }
 
-    // Control buttons (специфічні для модератора)
+    // Context Menu для учасників
+    var selectedParticipant = null;
+    function showContextMenu(participant, roomId) {
+        selectedParticipant = { ...participant, roomId };
+        const menu = document.getElementById('contextMenu');
+        menu.style.display = 'block';
+        menu.style.left = `${event.pageX}px`;
+        menu.style.top = `${event.pageY}px`;
+        document.getElementById('muteText').textContent = participant.muted ? 'Unmute' : 'Mute';
+    }
+
+    function contextAction(action) {
+        if (!selectedParticipant) return;
+
+        const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
+        const body = {};
+
+        if (action === 'mute') {
+            body.roomId = selectedParticipant.roomId;
+            body.participantId = selectedParticipant.id;
+            body.muted = !selectedParticipant.muted;
+        } else if (action === 'kick') {
+            body.roomId = selectedParticipant.roomId;
+            body.participantId = selectedParticipant.id;
+        } else if (action === 'move') {
+            body.participantId = selectedParticipant.id;
+            body.targetRoomUuid = prompt('Введіть UUID цільової кімнати:');
+        } else if (action === 'timer') {
+            const minutes = prompt('Таймер (хвилин):', '5');
+            if (minutes) alert(`Таймер ${minutes} хв для ${selectedParticipant.display} (буде реалізовано)`);
+            return;
+        } else if (action === 'giveWord') {
+            body.participantId = selectedParticipant.id;
+            body.targetRoomUuid = rooms.broadcast;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadModeratorParticipants(); // Оновлюємо список після дії
+                } else {
+                    alert('Помилка: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Помилка виконання дії');
+            });
+
+        document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    document.addEventListener('click', () => { document.getElementById('contextMenu').style.display = 'none'; });
+
+    // Control buttons
     function prepareEfir() {
         const btn = document.getElementById('btnPrepare');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
