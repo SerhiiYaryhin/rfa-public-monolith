@@ -46,7 +46,6 @@ public class ChatController {
     @Autowired
     private WebSocketEventListener sessionListener;
 
-    // ✅ ДОДАНО: Сервіс для відстеження учасників кімнат
     @Autowired
     private ChatRoomPresenceService chatRoomPresenceService;
 
@@ -60,13 +59,17 @@ public class ChatController {
     @MessageMapping("/hello")
     public void GetChatMessage(ChatMessage inmsg, @Header("simpSessionId") String sessionId) {
         try {
-            // Реєструємо сесію для відстеження відключення
             sessionListener.registerSession(sessionId, inmsg.getUuid());
 
             Clientdetail cd = clientService.GetClientDetailByUUID(inmsg.getUuid());
             String fullName = cd != null ? cd.getCustname() + " " + cd.getCustsurname() : "Unknown";
 
-            // Публікуємо подію в RabbitMQ
+            // ✅ НОВО: Отримуємо email користувача і замінюємо його на UUID у ChatRoomPresenceService
+            if (cd != null && cd.getUser() != null) {
+                String email = cd.getUser().getEmail();
+                chatRoomPresenceService.replaceEmailWithUuid(email, inmsg.getUuid());
+            }
+
             presenceService.publishPresenceEvent(
                     ChatPresenceEvent.EventType.USER_CONNECTED,
                     inmsg.getUuid(),
@@ -155,9 +158,6 @@ public class ChatController {
         }
     }
 
-    // ========================================================================
-    // ✅ НОВИЙ МЕТОД: Відповідь на запит фронтенду про учасників кімнати
-    // ========================================================================
     @MessageMapping("/room/participants")
     public void getRoomParticipants(ChatMessage inmsg) {
         try {
@@ -167,7 +167,6 @@ public class ChatController {
                 return;
             }
 
-            // Отримуємо UUID учасників з нашого сервісу відстеження
             Set<String> participantUuids = chatRoomPresenceService.getRoomParticipants(roomUuid);
             logger.info("📋 Запит учасників для кімнати {}. Знайдено UUID: {}", roomUuid, participantUuids);
 
@@ -176,7 +175,6 @@ public class ChatController {
                 Map<String, String> user = new HashMap<>();
                 user.put("uuid", userUuid);
 
-                // Отримуємо ім'я користувача з БД (спробуємо обидва варіанти назви методу для безпеки)
                 Clientdetail cd = clientService.GetClientDetailByUuid(userUuid);
                 if (cd == null) {
                     cd = clientService.GetClientDetailByUUID(userUuid);
@@ -191,7 +189,6 @@ public class ChatController {
                 userList.add(user);
             }
 
-            // Відправляємо результат назад конкретному користувачу
             ChatMessage response = new ChatMessage();
             response.setUuid(inmsg.getUuid());
             response.setRoomuuid(roomUuid);
@@ -204,7 +201,6 @@ public class ChatController {
             logger.error("Error getting room participants", e);
         }
     }
-    // ========================================================================
 
     @MessageMapping("/room/history")
     public void getRoomHistory(ChatMessage inmsg) {

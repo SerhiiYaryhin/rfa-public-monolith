@@ -4,117 +4,84 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 🎯 Сервіс для відстеження учасників конкретних кімнат чату.
- *
- * Відстежує STOMP підписки на /topic/{roomUuid} та зберігає в пам'яті.
- * Кожен вузол кластера має власну копію цього сервісу, але оскільки
- * підписки йдуть через RabbitMQ STOMP Relay, інтерцептор спрацьовує
- * на тому вузлі, до якого підключений клієнт.
- *
- * ️ Обмеження: у кластері кожен вузол бачить тільки тих користувачів,
- * які підключені до нього. Для повного списку потрібен Redis або
- * централізоване сховище (реалізується окремим етапом).
- */
 @Slf4j
 @Service
 public class ChatRoomPresenceService {
 
-    /** roomUuid → Set<userUuid> */
-    private final ConcurrentHashMap<String, Set<String>> roomParticipants = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> roomParticipants = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> userRooms = new ConcurrentHashMap<>();
 
-    /** userUuid → Set<roomUuid> (для швидкого видалення при відключенні) */
-    private final ConcurrentHashMap<String, Set<String>> userRooms = new ConcurrentHashMap<>();
-
-    /**
-     * Додати користувача в кімнату (при STOMP SUBSCRIBE на /topic/{roomUuid}).
-     */
-    public void addUserToRoom(String userUuid, String roomUuid) {
-        if (userUuid == null || roomUuid == null) return;
-
-        roomParticipants.computeIfAbsent(roomUuid, k -> ConcurrentHashMap.newKeySet()).add(userUuid);
-        userRooms.computeIfAbsent(userUuid, k -> ConcurrentHashMap.newKeySet()).add(roomUuid);
-
-        log.debug("✅ Користувач {} доданий в кімнату {}", userUuid, roomUuid);
+    public void addUserToRoom(String userIdentifier, String roomUuid) {
+        roomParticipants.computeIfAbsent(roomUuid, k -> ConcurrentHashMap.newKeySet())
+                .add(userIdentifier);
+        userRooms.computeIfAbsent(userIdentifier, k -> ConcurrentHashMap.newKeySet())
+                .add(roomUuid);
+        log.debug("✅ Додано {} в кімнату {}", userIdentifier, roomUuid);
     }
 
-    /**
-     * Видалити користувача з кімнати (при STOMP UNSUBSCRIBE).
-     */
-    public void removeUserFromRoom(String userUuid, String roomUuid) {
-        if (userUuid == null || roomUuid == null) return;
-
+    public void removeUserFromRoom(String userIdentifier, String roomUuid) {
         Set<String> participants = roomParticipants.get(roomUuid);
         if (participants != null) {
-            participants.remove(userUuid);
+            participants.remove(userIdentifier);
             if (participants.isEmpty()) {
                 roomParticipants.remove(roomUuid);
             }
         }
-
-        Set<String> rooms = userRooms.get(userUuid);
+        Set<String> rooms = userRooms.get(userIdentifier);
         if (rooms != null) {
             rooms.remove(roomUuid);
             if (rooms.isEmpty()) {
-                userRooms.remove(userUuid);
+                userRooms.remove(userIdentifier);
             }
         }
-
-        log.debug("❌ Користувач {} видалений з кімнати {}", userUuid, roomUuid);
+        log.debug("❌ Видалено {} з кімнати {}", userIdentifier, roomUuid);
     }
 
-    /**
-     * Видалити користувача з ВСІХ кімнат (при відключенні WebSocket).
-     */
-    public void removeUserFromAllRooms(String userUuid) {
-        if (userUuid == null) return;
-
-        Set<String> rooms = userRooms.remove(userUuid);
+    public void removeUserFromAllRooms(String userIdentifier) {
+        Set<String> rooms = userRooms.remove(userIdentifier);
         if (rooms != null) {
             for (String roomUuid : rooms) {
-                Set<String> participants = roomParticipants.get(roomUuid);
-                if (participants != null) {
-                    participants.remove(userUuid);
-                    if (participants.isEmpty()) {
-                        roomParticipants.remove(roomUuid);
-                    }
-                }
+                removeUserFromRoom(userIdentifier, roomUuid);
             }
         }
-
-        log.debug(" Користувач {} видалений з усіх кімнат", userUuid);
+        log.debug("👋 Видалено {} з усіх кімнат", userIdentifier);
     }
 
-    /**
-     * Отримати список учасників кімнати.
-     */
     public Set<String> getRoomParticipants(String roomUuid) {
         return roomParticipants.getOrDefault(roomUuid, Collections.emptySet());
     }
 
-    /**
-     * Отримати список кімнат користувача.
-     */
-    public Set<String> getUserRooms(String userUuid) {
-        return userRooms.getOrDefault(userUuid, Collections.emptySet());
+    public Set<String> getUserRooms(String userIdentifier) {
+        return userRooms.getOrDefault(userIdentifier, Collections.emptySet());
     }
 
     /**
-     * Перевірити, чи користувач у кімнаті.
+     * ✅ НОВИЙ МЕТОД: Замінює всі входження email на UUID у всіх кімнатах.
+     * Викликається з /app/hello, коли стає відомий справжній UUID користувача.
      */
-    public boolean isUserInRoom(String userUuid, String roomUuid) {
-        Set<String> participants = roomParticipants.get(roomUuid);
-        return participants != null && participants.contains(userUuid);
-    }
+    public void replaceEmailWithUuid(String email, String uuid) {
+        if (email == null || uuid == null || email.equals(uuid)) {
+            return;
+        }
 
-    /**
-     * Отримати кількість учасників кімнати (для лічильників).
-     */
-    public int getRoomParticipantsCount(String roomUuid) {
-        Set<String> participants = roomParticipants.get(roomUuid);
-        return participants == null ? 0 : participants.size();
+        // Перебираємо всі кімнати
+        for (Map.Entry<String, Set<String>> entry : roomParticipants.entrySet()) {
+            Set<String> participants = entry.getValue();
+            if (participants.remove(email)) {
+                participants.add(uuid);
+                log.info("🔄 Замінено email {} на UUID {} в кімнаті {}", email, uuid, entry.getKey());
+            }
+        }
+
+        // Оновлюємо зворотний індекс
+        Set<String> rooms = userRooms.remove(email);
+        if (rooms != null) {
+            userRooms.put(uuid, rooms);
+            log.debug("🔄 Оновлено індекс: {} -> {}", email, uuid);
+        }
     }
 }
