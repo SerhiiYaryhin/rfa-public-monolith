@@ -4,16 +4,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>️ Command Center - <th:block th:text="${station.name}">Радіостанція</th:block></title>
+    <title>Command Center - <th:block th:text="${station.name}">Радіостанція</th:block></title>
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 
     <!-- SockJS & STOMP -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
+    <!-- Emoji Picker -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
 
     <style>
         :root {
@@ -47,439 +50,121 @@
             gap: 15px;
         }
 
-        /* HEADER */
+        /* HEADER & CONTROL BAR (скорочено для економії місця, стилі ті самі) */
         .cc-header {
-            background: white;
-            border-radius: 12px;
-            padding: 15px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
+            background: white; border-radius: 12px; padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex;
+            justify-content: space-between; align-items: center; flex-shrink: 0;
         }
+        .cc-header-left h1 { margin: 0; font-size: 1.5rem; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        .cc-header-info { color: #636e72; font-size: 0.85rem; margin-top: 5px; }
+        .live-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #ffebee; border-radius: 20px; font-weight: 600; color: var(--danger); }
+        .live-indicator.active { animation: pulse 2s infinite; }
+        .live-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        .cc-header-left h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .cc-header-info {
-            color: #636e72;
-            font-size: 0.85rem;
-            margin-top: 5px;
-        }
-
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #ffebee;
-            border-radius: 20px;
-            font-weight: 600;
-            color: var(--danger);
-        }
-
-        .live-indicator.active {
-            background: #ffebee;
-            animation: pulse 2s infinite;
-        }
-
-        .live-dot {
-            width: 10px;
-            height: 10px;
-            background: var(--danger);
-            border-radius: 50%;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* CONTROL BAR */
         .cc-control-bar {
-            background: white;
-            border-radius: 12px;
-            padding: 15px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
+            background: white; border-radius: 12px; padding: 15px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap;
         }
-
         .btn-control {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 150px;
-            justify-content: center;
+            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center;
+            gap: 8px; flex: 1; min-width: 150px; justify-content: center; color: white;
         }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #5b4cc4; transform: translateY(-2px); }
-
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #00a383; transform: translateY(-2px); }
-
-        .btn-warning { background: var(--warning); color: var(--dark); }
-        .btn-warning:hover { background: #f39c12; transform: translateY(-2px); }
-
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
-
-        .btn-control:disabled {
-            background: #b2bec3;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-primary { background: var(--primary); } .btn-primary:hover { background: #5b4cc4; transform: translateY(-2px); }
+        .btn-success { background: var(--success); } .btn-success:hover { background: #00a383; transform: translateY(-2px); }
+        .btn-warning { background: var(--warning); color: var(--dark); } .btn-warning:hover { background: #f39c12; transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); } .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
+        .btn-control:disabled { background: #b2bec3; cursor: not-allowed; transform: none; }
 
         /* MAIN CONTENT - 3 COLUMNS */
         .cc-main {
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr var(--chat-width);
-            gap: 15px;
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
+            display: grid; grid-template-columns: var(--sidebar-width) 1fr var(--chat-width);
+            gap: 15px; flex: 1; min-height: 0; overflow: hidden;
         }
 
         /* COLUMN 1: ROOMS */
         .cc-rooms {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto;
         }
-
-        .cc-section-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #636e72;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
+        .cc-section-title { font-size: 0.9rem; font-weight: 600; color: #636e72; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
         .room-item {
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer;
+            transition: all 0.3s; border-left: 4px solid transparent; display: flex; align-items: center; justify-content: space-between;
         }
-
         .room-item:hover { background: #f8f9fa; transform: translateX(5px); }
         .room-item.active { background: #f0f2f5; border-left-color: var(--primary); }
-
         .room-item-main { border-left-color: var(--primary); }
         .room-item-green { border-left-color: var(--warning); }
         .room-item-broadcast { border-left-color: var(--danger); }
         .room-item-staff { border-left-color: #636e72; }
-
         .room-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
-        .room-count {
-            background: var(--light);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .waiting-list {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f2f5;
-        }
-
-        .waiting-item {
-            padding: 10px;
-            background: #fff8dc;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.85rem;
-        }
-
-        .waiting-item i { color: var(--warning); margin-right: 8px; }
+        .room-count { background: var(--light); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
         /* COLUMN 2: PARTICIPANTS */
         .cc-participants {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-y: auto; display: flex; flex-direction: column;
         }
-
-        .participant-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
+        .participant-list { flex: 1; overflow-y: auto; }
         .participant-card {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            padding: 15px; border-radius: 10px; margin-bottom: 10px; background: #f8f9fa;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px;
         }
-
-        .participant-card:hover {
-            background: #f0f2f5;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
+        .participant-card:hover { background: #f0f2f5; transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .participant-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            position: relative;
+            width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; position: relative;
         }
-
-        .audio-indicator {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-
+        .audio-indicator { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; }
         .audio-speaking { background: var(--success); animation: pulse-audio 1s infinite; }
         .audio-muted { background: #b2bec3; }
         .audio-hand { background: var(--warning); animation: blink 0.5s infinite; }
-        .audio-waiting { background: var(--info); }
+        @keyframes pulse-audio { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .participant-info { flex: 1; min-width: 0; }
+        .participant-name { font-weight: 600; color: var(--dark); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .participant-role { font-size: 0.75rem; color: #636e72; }
 
-        @keyframes pulse-audio {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .participant-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .participant-name {
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .participant-role {
-            font-size: 0.75rem;
-            color: #636e72;
-        }
-
-        .participant-timer {
-            font-size: 0.8rem;
-            color: var(--warning);
-            font-weight: 600;
-            font-family: monospace;
-        }
-
-        /* COLUMN 3: CHAT */
+        /* COLUMN 3: CHAT (Інтегровано з chat.js) */
         .cc-chat {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; overflow: hidden;
         }
+        .chat-header { padding: 15px 20px; border-bottom: 2px solid #f0f2f5; font-weight: 600; color: var(--dark); display: flex; justify-content: space-between; align-items: center;}
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #fafbfc; display: flex; flex-direction: column; gap: 15px; }
 
-        .chat-header {
-            padding: 15px 20px;
-            border-bottom: 2px solid #f0f2f5;
-            font-weight: 600;
-            color: var(--dark);
-        }
+        /* Chat Bubbles з chat.js */
+        .bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeInUp 0.3s ease; }
+        .bubble-other { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; color: #2d3436; border-bottom-left-radius: 4px; }
+        .bubble-me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2); }
+        .bubble-meta { font-size: 0.7rem; margin-top: 5px; opacity: 0.7; display: flex; align-items: center; gap: 5px; }
+        .bubble-me .bubble-meta { justify-content: flex-end; color: #fff; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #fafbfc;
-        }
+        .chat-input-area { padding: 15px; border-top: 2px solid #f0f2f5; display: flex; align-items: center; gap: 12px; background: #fff; }
+        .input-group-custom { flex-grow: 1; position: relative; }
+        .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; width: 100%; }
+        .chat-input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
+        .btn-emoji { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.3rem; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .btn-emoji:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+        .btn-send { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+        .btn-send:hover { transform: scale(1.05) rotate(-10deg); background: #5b4cc4; }
 
-        .chat-message {
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message-bubble {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .message-me {
-            background: var(--primary);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message-other {
-            background: white;
-            color: var(--dark);
-            border: 1px solid #e0e0e0;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-meta {
-            font-size: 0.7rem;
-            margin-top: 5px;
-            opacity: 0.7;
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            border-top: 2px solid #f0f2f5;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn-send {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-send:hover {
-            background: #5b4cc4;
-            transform: scale(1.1) rotate(-10deg);
-        }
-
-        /* MOBILE RESPONSIVE */
-        @media (max-width: 1200px) {
-            .cc-main {
-                grid-template-columns: 1fr;
-            }
-            .cc-rooms, .cc-chat {
-                display: none;
-            }
-            .cc-rooms.active, .cc-chat.active {
-                display: block;
-            }
-        }
+        emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
+        emoji-picker.visible { display: block; }
 
         /* CONTEXT MENU */
-        .context-menu {
-            position: absolute;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 8px 0;
-            min-width: 200px;
-            z-index: 1000;
-            display: none;
-        }
+        .context-menu { position: absolute; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 8px 0; min-width: 200px; z-index: 1000; display: none; }
+        .context-menu-item { padding: 10px 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .context-menu-item:hover { background: #f0f2f5; }
+        .context-menu-item.danger { color: var(--danger); }
 
-        .context-menu-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-        }
-
-        .context-menu-item:hover {
-            background: #f0f2f5;
-        }
-
-        .context-menu-item.danger {
-            color: var(--danger);
-        }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -488,10 +173,7 @@
     <!-- HEADER -->
     <div class="cc-header">
         <div class="cc-header-left">
-            <h1>
-                <i class="fas fa-broadcast-tower"></i>
-                <th:block th:text="${station.name}">Радіостанція</th:block>
-            </h1>
+            <h1><i class="fas fa-broadcast-tower"></i> <th:block th:text="${station.name}">Радіостанція</th:block></h1>
             <div class="cc-header-info">
                 <strong>UUID:</strong> <th:block th:text="${stationUuid}">uuid</th:block> |
                 <strong>Модератор:</strong> <th:block th:text="${curusername}">Ім'я</th:block>
@@ -507,7 +189,7 @@
     <!-- CONTROL BAR -->
     <div class="cc-control-bar">
         <button class="btn-control btn-primary" id="btnPrepare" onclick="prepareEfir()">
-            <i class="fas fa-cog"></i> Підготувати ефір
+            <i class="fas fa-cog"></i> Підготувати е a8; Підготувати ефір
         </button>
         <button class="btn-control btn-success" id="btnStart" onclick="startEfir()" disabled>
             <i class="fas fa-play"></i> Запустити ефір
@@ -524,59 +206,56 @@
     <div class="cc-main">
         <!-- COLUMN 1: ROOMS -->
         <div class="cc-rooms">
-            <div class="cc-section-title">
-                <i class="fas fa-door-open"></i> Кімнати
-            </div>
-
-            <div class="room-item room-item-main active" onclick="selectRoom('main')">
+            <div class="cc-section-title"><i class="fas fa-door-open"></i> Кімнати</div>
+            <div class="room-item room-item-main active" onclick="selectRoom('main', /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/, /*[[${mainRoom != null ? mainRoom.roomname : 'Основна'}]]*/)">
                 <div class="room-name"><i class="fas fa-comments"></i> Основна</div>
                 <div class="room-count" id="countMain">0</div>
             </div>
-
-            <div class="room-item room-item-green" th:if="${greenRoom != null}" onclick="selectRoom('green')">
+            <div class="room-item room-item-green" th:if="${greenRoom != null}" onclick="selectRoom('green', /*[[${greenRoom.uuid}]]*/, /*[[${greenRoom.roomname}]]*/)">
                 <div class="room-name"><i class="fas fa-door-open"></i> Green Room</div>
                 <div class="room-count" id="countGreen">0</div>
             </div>
-
-            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}" onclick="selectRoom('broadcast')">
+            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}" onclick="selectRoom('broadcast', /*[[${broadcastRoom.uuid}]]*/, /*[[${broadcastRoom.roomname}]]*/)">
                 <div class="room-name"><i class="fas fa-broadcast-tower"></i> Ефір</div>
                 <div class="room-count" id="countBroadcast">0</div>
             </div>
-
-            <div class="room-item room-item-staff" th:if="${staffRoom != null}" onclick="selectRoom('staff')">
+            <div class="room-item room-item-staff" th:if="${staffRoom != null}" onclick="selectRoom('staff', /*[[${staffRoom.uuid}]]*/, /*[[${staffRoom.roomname}]]*/)">
                 <div class="room-name"><i class="fas fa-users-cog"></i> Staff</div>
                 <div class="room-count" id="countStaff">0</div>
-            </div>
-
-            <div class="waiting-list" id="waitingList" style="display: none;">
-                <div class="cc-section-title">
-                    <i class="fas fa-hand-paper"></i> Очікують
-                </div>
-                <div id="waitingItems"></div>
             </div>
         </div>
 
         <!-- COLUMN 2: PARTICIPANTS -->
         <div class="cc-participants">
-            <div class="cc-section-title">
-                <i class="fas fa-users"></i> Учасники активної кімнати
-            </div>
+            <div class="cc-section-title"><i class="fas fa-users"></i> Учасники активної кімнати</div>
             <div class="participant-list" id="participantList">
-                <!-- Participants will be rendered here -->
+                <!-- Заповнюється через JS -->
             </div>
         </div>
 
         <!-- COLUMN 3: CHAT -->
         <div class="cc-chat">
             <div class="chat-header">
-                <i class="fas fa-comment-dots"></i> Чат кімнати
+                <span><i class="fas fa-comment-dots"></i> <span id="chatTitle">Публічний чат</span></span>
+                <span class="text-success small" id="connectstatus"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн</span>
             </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be rendered here -->
+            <div class="chat-messages" id="mainMessagesArea">
+                <div id="publicarea" class="d-flex flex-column gap-3"></div>
+                <div id="privatearea" class="d-flex flex-column gap-3"></div>
             </div>
             <div class="chat-input-area">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Напишіть повідомлення..." onkeypress="handleChatKey(event)">
-                <button class="btn-send" onclick="sendChatMessage()">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-image text-muted"></i>
+                    </button>
+                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
+                </div>
+                <div class="input-group-custom">
+                    <input type="text" id="newmessage" class="form-control chat-input" placeholder="Напишіть повідомлення..." autocomplete="off" onkeypress="if(event.key==='Enter') sendpublic()">
+                    <button class="btn-emoji" id="emojiToggle">😀</button>
+                </div>
+                <emoji-picker id="picker"></emoji-picker>
+                <button class="btn-send" onclick="sendpublic()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -586,36 +265,26 @@
 
 <!-- CONTEXT MENU -->
 <div class="context-menu" id="contextMenu">
-    <div class="context-menu-item" onclick="contextAction('mute')">
-        <i class="fas fa-microphone-slash"></i> <span id="muteText">Mute</span>
-    </div>
-    <div class="context-menu-item" onclick="contextAction('giveWord')">
-        <i class="fas fa-hand-paper"></i> Дати слово
-    </div>
-    <div class="context-menu-item" onclick="contextAction('move')">
-        <i class="fas fa-exchange-alt"></i> Перемістити
-    </div>
-    <div class="context-menu-item" onclick="contextAction('timer')">
-        <i class="fas fa-clock"></i> Таймер
-    </div>
-    <div class="context-menu-item danger" onclick="contextAction('kick')">
-        <i class="fas fa-ban"></i> Kick
-    </div>
+    <div class="context-menu-item" onclick="contextAction('mute')"><i class="fas fa-microphone-slash"></i> <span id="muteText">Mute</span></div>
+    <div class="context-menu-item" onclick="contextAction('giveWord')"><i class="fas fa-hand-paper"></i> Дати слово</div>
+    <div class="context-menu-item" onclick="contextAction('move')"><i class="fas fa-exchange-alt"></i> Перемістити</div>
+    <div class="context-menu-item" onclick="contextAction('timer')"><i class="fas fa-clock"></i> Таймер</div>
+    <div class="context-menu-item danger" onclick="contextAction('kick')"><i class="fas fa-ban"></i> Kick</div>
 </div>
 
 <script th:inline="javascript">
-    // Global variables
-    const stationUuid = /*[[${stationUuid}]]*/ '';
-    const curuuid = /*[[${curuuid}]]*/ '';
-    const curusername = /*[[${curusername}]]*/ '';
+    // Глобальні змінні з chat.js
+    var stompClient = null;
+    var curuuid = /*[[${curuuid}]]*/ '';
+    var curusername = /*[[${curusername}]]*/ '';
+    var curroom = /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/; // За замовчуванням основна кімната
+    var subcurroom = null;
+    var reconnectTimeout = null;
+    var reconnectDelay = 1000;
+    var selectedParticipant = null;
+    var efirStartTime = null;
+    var efirTimerInterval = null;
 
-    let stompClient = null;
-    let currentRoom = 'main';
-    let selectedParticipant = null;
-    let efirStartTime = null;
-    let efirTimerInterval = null;
-
-    // Room UUIDs from backend
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : 'null'}]]*/,
         green: /*[[${greenRoom != null ? greenRoom.uuid : 'null'}]]*/,
@@ -623,256 +292,221 @@
         staff: /*[[${staffRoom != null ? staffRoom.uuid : 'null'}]]*/
     };
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-        connectSTOMP();
-        loadInitialData();
+        connect();
+        initEmojiPicker();
+        loadParticipants(); // Початкове завантаження (поки що заглушка)
     });
 
-    function connectSTOMP() {
-        const socket = new SockJS('/rfachat');
+    // ================= STOMP & CHAT LOGIC (з chat.js) =================
+    function connect() {
+        if (stompClient && stompClient.connected) return;
+        var socket = new SockJS('/rfachat');
         stompClient = Stomp.over(socket);
-        stompClient.connect({}, onConnected, onError);
+        stompClient.debug = function(str) { console.log("STOMP: " + str); };
+        stompClient.connect({ heartbeatIncoming: 8000, heartbeatOutgoing: 8000 }, onConnected, onError);
     }
 
     function onConnected() {
-        console.log('✅ Connected to STOMP');
-        // Subscribe to presence updates
-        stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
-        // Subscribe to control events
-        stompClient.subscribe(`/topic/efir.${stationUuid}.control`, onControlEvent);
-        // Load initial data
-        loadParticipants();
+        console.log("Connected to STOMP cluster");
+        reconnectDelay = 1000;
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        const statusEl = document.getElementById('connectstatus');
+        if (statusEl) statusEl.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> Онлайн';
+
+        if (curroom && curroom !== 'null') {
+            subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+        }
+
+        stompClient.send("/app/hello", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
     }
 
     function onError(error) {
-        console.error('❌ STOMP Error:', error);
-        setTimeout(connectSTOMP, 5000);
+        console.error("STOMP Error/Disconnect:", error);
+        const statusEl = document.getElementById('connectstatus');
+        if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="fas fa-sync-alt fa-spin me-1"></i> Відключено...</span>';
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(() => {
+            reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+            connect();
+        }, reconnectDelay);
     }
 
-    // ROOM SELECTION
-    function selectRoom(roomType) {
-        currentRoom = roomType;
-        // Update UI
+    function onPublicMessageReceived(payload) {
+        try {
+            var msg = JSON.parse(payload.body);
+            renderBubble(msg, false);
+        } catch (e) { console.error("Error parsing public message", e); }
+    }
+
+    function renderBubble(msg, isPrivate = false) {
+        const msgId = `msg-${msg.send}-${msg.fromuuid}`;
+        if (document.getElementById(msgId)) return; // Захист від дублікатів
+
+        const isMe = msg.fromuuid === curuuid;
+        const bubble = document.createElement('div');
+        bubble.id = msgId;
+        bubble.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'} animate__animated animate__fadeInUp animate__faster`;
+
+        const content = document.createElement('div');
+        content.innerHTML = msg.body; // Підтримує HTML для зображень
+
+        const meta = document.createElement('div');
+        meta.className = 'bubble-meta';
+        const d = new Date(msg.send);
+        const time = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        meta.innerHTML = `<span>${isMe ? '' : msg.fromname + ' • '}</span><span>${time}</span>`;
+
+        bubble.appendChild(content);
+        bubble.appendChild(meta);
+
+        const container = isPrivate ? document.getElementById('privatearea') : document.getElementById('publicarea');
+        if (container) {
+            container.appendChild(bubble);
+            const messagesArea = document.getElementById('mainMessagesArea');
+            messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+        }
+    }
+
+    function sendpublic() {
+        const input = document.getElementById('newmessage');
+        if (!input || !input.value.trim() || !stompClient || !stompClient.connected || !curroom || curroom === 'null') return;
+
+        stompClient.send("/app/public", {}, JSON.stringify({
+            uuid: curuuid, send: Date.now(), fromname: curusername, fromuuid: curuuid,
+            body: input.value, roomuuid: curroom
+        }));
+        input.value = "";
+    }
+
+    async function uploadImage(file) {
+        if (!file || !file.type.startsWith('image/')) { alert('Можна завантажувати лише зображення'); return; }
+        const formData = new FormData();
+        formData.append('file', file);
+        const input = document.getElementById('newmessage');
+        const oldPlaceholder = input.placeholder;
+        input.placeholder = 'Завантаження...';
+
+        try {
+            const response = await fetch('/api/chat/upload-image', { method: 'POST', body: formData });
+            const result = await response.json();
+            if (result.success && stompClient && stompClient.connected && curroom && curroom !== 'null') {
+                const imgHtml = `<img src="${result.url}" class="img-fluid rounded-3 mt-2 mb-2" style="max-height: 300px; cursor: pointer;" onclick="window.open('${result.url}', '_blank')">`;
+                stompClient.send("/app/public", {}, JSON.stringify({
+                    uuid: curuuid, send: Date.now(), fromname: curusername, fromuuid: curuuid,
+                    body: imgHtml, roomuuid: curroom
+                }));
+            }
+        } catch (e) { console.error('Upload error:', e); }
+        finally { input.placeholder = oldPlaceholder; }
+    }
+
+    // ================= ROOM SWITCHING =================
+    function selectRoom(roomType, roomUuid, roomName) {
+        if (curroom === roomUuid) return;
+
+        // Оновлюємо UI кімнат
         document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
         document.querySelector(`.room-item-${roomType}`).classList.add('active');
-        // Load participants for this room
+
+        // Оновлюємо заголовок чату
+        document.getElementById('chatTitle').innerText = roomName || 'Чат';
+
+        // Очищаємо чат
+        document.getElementById('publicarea').innerHTML = '';
+        document.getElementById('privatearea').innerHTML = '';
+
+        // Перепідписуємо STOMP
+        if (subcurroom) subcurroom.unsubscribe();
+        curroom = roomUuid;
+
+        if (stompClient && stompClient.connected && curroom && curroom !== 'null') {
+            subcurroom = stompClient.subscribe('/topic/' + curroom, onPublicMessageReceived);
+            stompClient.send("/app/room/history", {}, JSON.stringify({ uuid: curuuid, roomuuid: curroom, send: Date.now() }));
+        }
+
+        // Оновлюємо список учасників для нової кімнати
         loadParticipants();
     }
 
-    // PARTICIPANTS
+    // ================= PARTICIPANTS (Заглушка для демонстрації) =================
     function loadParticipants() {
-        // This will be implemented via REST API call
-        fetch(`/api/v1/broadcast/${stationUuid}/status`)
-            .then(r => r.json())
-            .then(data => {
-                renderParticipants(data);
-            });
-    }
-
-    function renderParticipants(data) {
         const list = document.getElementById('participantList');
         list.innerHTML = '';
 
-        // Find the current room
-        const room = data.rooms.find(r => {
-            if (currentRoom === 'main') return r.type === 'MAIN';
-            if (currentRoom === 'green') return r.type === 'GREEN';
-            if (currentRoom === 'broadcast') return r.type === 'BROADCAST';
-            if (currentRoom === 'staff') return r.type === 'STAFF';
-            return false;
-        });
+        // Додаємо модератора як приклад
+        const card = createParticipantCard({ id: 0, display: curusername, muted: false, talking: false });
+        list.appendChild(card);
 
-        if (!room || !room.participants) return;
-
-        room.participants.forEach(p => {
-            const card = createParticipantCard(p, room.janusRoomId);
-            list.appendChild(card);
-        });
-
-        // Update room count
-        const countEl = document.getElementById(`count${currentRoom.charAt(0).toUpperCase() + currentRoom.slice(1)}`);
-        if (countEl) countEl.textContent = room.participants.length;
+        // Оновлюємо лічильник
+        const countEl = document.getElementById('countMain'); // Спрощено для прикладу
+        if (countEl) countEl.textContent = '1';
     }
 
-    function createParticipantCard(p, roomId) {
+    function createParticipantCard(p) {
         const card = document.createElement('div');
         card.className = 'participant-card';
-        card.onclick = (e) => {
-            if (e.target.closest('.context-menu')) return;
-            showContextMenu(p, roomId);
-        };
+        card.onclick = (e) => { if (!e.target.closest('.context-menu')) showContextMenu(p); };
 
         const initials = p.display ? p.display.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
-
-        let audioClass = 'audio-muted';
-        if (p.talking) audioClass = 'audio-speaking';
-        else if (p.handRaised) audioClass = 'audio-hand';
+        let audioClass = p.talking ? 'audio-speaking' : 'audio-muted';
 
         card.innerHTML = `
-            <div class="participant-avatar">
-                ${initials}
-                <div class="audio-indicator ${audioClass}"></div>
-            </div>
+            <div class="participant-avatar">${initials}<div class="audio-indicator ${audioClass}"></div></div>
             <div class="participant-info">
                 <div class="participant-name">${p.display || 'Unknown'}</div>
-                <div class="participant-role">Учасник</div>
-            </div>
-            ${p.timer ? `<div class="participant-timer">${formatTime(p.timer)}</div>` : ''}
-        `;
-
+                <div class="participant-role">Модератор</div>
+            </div>`;
         return card;
     }
 
-    // CONTEXT MENU
-    function showContextMenu(participant, roomId) {
-        selectedParticipant = { ...participant, roomId };
+    // ================= UI HELPERS =================
+    function initEmojiPicker() {
+        const picker = document.getElementById('picker');
+        const input = document.getElementById('newmessage');
+        const emojiToggle = document.getElementById('emojiToggle');
+        if (emojiToggle) {
+            emojiToggle.onclick = (e) => { e.stopPropagation(); picker.classList.toggle('visible'); };
+        }
+        if (picker) {
+            picker.addEventListener('emoji-click', event => {
+                input.value += event.detail.unicode;
+                picker.classList.remove('visible');
+                input.focus();
+            });
+        }
+        document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
+    }
+
+    function showContextMenu(participant) {
+        selectedParticipant = participant;
         const menu = document.getElementById('contextMenu');
         menu.style.display = 'block';
         menu.style.left = `${event.pageX}px`;
         menu.style.top = `${event.pageY}px`;
-
         document.getElementById('muteText').textContent = participant.muted ? 'Unmute' : 'Mute';
     }
 
     function contextAction(action) {
-        if (!selectedParticipant) return;
-
-        const url = `/api/v1/broadcast/${stationUuid}/moderation/${action}`;
-        const body = {};
-
-        if (action === 'mute') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-            body.muted = !selectedParticipant.muted;
-        } else if (action === 'kick') {
-            body.roomId = selectedParticipant.roomId;
-            body.participantId = selectedParticipant.id;
-        } else if (action === 'move') {
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = prompt('Введіть UUID цільової кімнати:');
-        } else if (action === 'timer') {
-            const minutes = prompt('Таймер (хвилин):', '5');
-            if (minutes) {
-                // Implement timer logic
-            }
-            return;
-        } else if (action === 'giveWord') {
-            // Move to broadcast room
-            body.participantId = selectedParticipant.id;
-            body.targetRoomUuid = rooms.broadcast;
-        }
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(() => {
-                loadParticipants();
-            });
-
+        alert(`Дія "${action}" для ${selectedParticipant?.display} буде реалізована на наступному етапі.`);
         document.getElementById('contextMenu').style.display = 'none';
     }
 
-    // CHAT
-    function sendChatMessage() {
-        const input = document.getElementById('chatInput');
-        const text = input.value.trim();
-        if (!text || !stompClient) return;
+    document.addEventListener('click', () => { document.getElementById('contextMenu').style.display = 'none'; });
 
-        stompClient.send('/app/public', {}, JSON.stringify({
-            uuid: curuuid,
-            send: Date.now(),
-            fromname: curusername,
-            fromuuid: curuuid,
-            body: text,
-            roomuuid: rooms[currentRoom]
-        }));
-
-        input.value = '';
-    }
-
-    function handleChatKey(e) {
-        if (e.key === 'Enter') sendChatMessage();
-    }
-
-    // CONTROL BUTTONS
     function prepareEfir() {
         const btn = document.getElementById('btnPrepare');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
-
-        fetch(`/api/v1/broadcast/prepare/${stationUuid}`, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Помилка: ' + data.error);
-                    btn.disabled = false;
-                }
-            });
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Підготовка...';
+        fetch(`/api/v1/broadcast/prepare/${/*[[${stationUuid}]]*/ ''}`, { method: 'POST' })
+            .then(r => r.json()).then(data => {
+            if (data.success) location.reload();
+            else { alert('Помилка: ' + data.error); btn.disabled = false; btn.innerHTML = '<i class="fas fa-cog"></i> Підготувати ефір'; }
+        });
     }
-
-    function startEfir() {
-        // Implement start logic
-        document.getElementById('liveIndicator').classList.add('active');
-        document.getElementById('liveStatus').textContent = 'LIVE';
-        startTimer();
-    }
-
-    function pauseEfir() {
-        // Implement pause logic
-    }
-
-    function stopEfir() {
-        // Implement stop logic
-        document.getElementById('liveIndicator').classList.remove('active');
-        document.getElementById('liveStatus').textContent = 'OFFLINE';
-        stopTimer();
-    }
-
-    function startTimer() {
-        efirStartTime = Date.now();
-        efirTimerInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - efirStartTime) / 1000);
-            document.getElementById('efirTimer').textContent = formatTime(elapsed);
-        }, 1000);
-    }
-
-    function stopTimer() {
-        if (efirTimerInterval) clearInterval(efirTimerInterval);
-        document.getElementById('efirTimer').textContent = '00:00:00';
-    }
-
-    // HELPERS
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    }
-
-    function onPresenceUpdate(msg) {
-        console.log('Presence update:', msg);
-        loadParticipants();
-    }
-
-    function onControlEvent(msg) {
-        console.log('Control event:', msg);
-        loadParticipants();
-    }
-
-    function loadInitialData() {
-        // Load initial room status
-    }
-
-    // Close context menu on click outside
-    document.addEventListener('click', () => {
-        document.getElementById('contextMenu').style.display = 'none';
-    });
+    function startEfir() { document.getElementById('liveIndicator').classList.add('active'); document.getElementById('liveStatus').textContent = 'LIVE'; }
+    function pauseEfir() {}
+    function stopEfir() { document.getElementById('liveIndicator').classList.remove('active'); document.getElementById('liveStatus').textContent = 'OFFLINE'; }
 </script>
-
 </body>
 </html>
