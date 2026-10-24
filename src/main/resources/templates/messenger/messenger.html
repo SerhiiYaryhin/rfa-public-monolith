@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
->
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,6 +16,9 @@
     <!-- SockJS & STOMP -->
     <script src="/js/sockjs.min.js"></script>
     <script src="/js/stomp.js"></script>
+
+    <!-- ✅ Janus Gateway Library -->
+    <script src="/js/janus.js"></script>
 
     <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
@@ -120,6 +122,10 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; }
@@ -134,22 +140,113 @@
         emoji-picker { position: absolute; bottom: 85px; right: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 15px; display: none; }
         emoji-picker.visible { display: block; }
 
-        /* ✅ CSS для анімації піднятої руки */
-        .hand-raised-active {
-            animation: handPulse 1.5s ease-in-out infinite;
-            border-width: 2px !important;
+        /* ✅ GREEN ROOM / BROADCAST MODAL OVERLAY */
+        .green-room-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .green-room-overlay.active { display: flex; }
+
+        .green-room-card {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.4s ease;
         }
 
-        @keyframes handPulse {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
-                transform: rotate(0deg);
-            }
-            50% {
-                box-shadow: 0 0 0 8px rgba(231, 76, 60, 0);
-                transform: rotate(-10deg);
-            }
+        .green-room-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
         }
+        .green-room-subtitle {
+            font-size: 0.85rem;
+            color: #a0a0b0;
+            margin-bottom: 25px;
+        }
+
+        .audio-visualizer-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .viz-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            max-width: 180px;
+        }
+        .viz-label {
+            font-size: 0.7rem;
+            color: #a0a0b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .viz-bar-track {
+            width: 100%;
+            height: 8px;
+            background: #2d2d44;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .viz-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.1s ease;
+        }
+        .viz-pct {
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 35px;
+        }
+
+        .green-room-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .gr-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .gr-btn:hover { transform: translateY(-2px); }
+        .gr-btn-mic-on { background: #00b894; color: white; }
+        .gr-btn-mic-off { background: #d63031; color: white; }
+        .gr-btn-leave { background: #636e72; color: white; }
+        .gr-btn-leave:hover { background: #d63031; }
+
+        .gr-status {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #a0a0b0;
+        }
+        .gr-status.connected { color: #00b894; }
+        .gr-status.error { color: #d63031; }
 
         @media (max-width: 768px) {
             .chat-sidebar { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform: translateX(0); }
@@ -158,6 +255,7 @@
             .btn-back { display: block !important; }
             .bubble { max-width: 85%; }
             header { position: sticky; top: 0; }
+            .green-room-card { width: 95%; padding: 20px; }
         }
 
         .btn-back { display: none; background: none; border: none; font-size: 1.2rem; margin-right: 10px; }
@@ -174,20 +272,17 @@
 </header>
 
 <div class="chat-container">
-    <!-- Sidebar -->
     <aside class="chat-sidebar" id="chatSidebar">
         <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
             <h5 class="fw-bold mb-0">Чати</h5>
             <button class="btn btn-sm btn-light rounded-pill"><i class="fas fa-search"></i></button>
         </div>
-
         <div class="flex-grow-1 overflow-y-auto">
             <div th:insert="~{/fragments/msgframents :: listroom}"/>
             <div th:insert="~{/fragments/msgframents :: listuser}"/>
         </div>
     </aside>
 
-    <!-- Main Chat -->
     <main class="chat-main">
         <header class="chat-header">
             <div class="d-flex align-items-center overflow-hidden">
@@ -204,18 +299,15 @@
                     <li><a class="dropdown-item py-2" href="/user/usereditinfo"><i class="fas fa-user-circle me-2 text-secondary"></i>Профайл</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-info-circle me-2"></i>Інфо</a></li>
-                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-ban me-2"></i>Очистити чат</a></li>
                 </ul>
             </div>
         </header>
 
-        <!-- Unified Message Area -->
         <div class="messages-area" id="mainMessagesArea">
             <div id="publicarea" class="d-flex flex-column gap-3"></div>
             <div id="privatearea" class="d-flex flex-column gap-3"></div>
         </div>
 
-        <!-- Input Area з кнопкою "Підняти руку" -->
         <footer class="input-area">
             <div class="d-flex gap-2">
                 <button class="btn btn-light rounded-circle" onclick="document.getElementById('imageInput').click()" title="Завантажити зображення">
@@ -253,34 +345,62 @@
     </main>
 </div>
 
+<!-- ✅ GREEN ROOM / BROADCAST MODAL OVERLAY -->
+<div class="green-room-overlay" id="greenRoomOverlay">
+    <div class="green-room-card">
+        <div class="green-room-title" id="grTitle">🟡 Green Room</div>
+        <div class="green-room-subtitle" id="grSubtitle">Підготовка до ефіру. Перевірте мікрофон.</div>
+
+        <div class="audio-visualizer-container">
+            <div class="viz-column">
+                <div class="viz-label">Мікрофон</div>
+                <div class="viz-bar-track">
+                    <div class="viz-bar-fill" id="mic-visualizer" style="background: #3498db;"></div>
+                </div>
+                <div class="viz-pct" id="mic-level-text">0%</div>
+            </div>
+            <div class="viz-column">
+                <div class="viz-label">Ефір</div>
+                <div class="viz-bar-track">
+                    <div class="viz-bar-fill" id="audio-visualizer" style="background: #27ae60;"></div>
+                </div>
+                <div class="viz-pct" id="audio-level-text">0%</div>
+            </div>
+        </div>
+
+        <div class="green-room-actions">
+            <button class="gr-btn gr-btn-mic-on" id="grMicBtn" onclick="GreenRoomUI.toggleMic()">
+                <i class="fas fa-microphone"></i> <span id="grMicText">Мікрофон ON</span>
+            </button>
+            <button class="gr-btn gr-btn-leave" onclick="GreenRoomUI.leaveRoom()">
+                <i class="fas fa-sign-out-alt"></i> Повернутися в чат
+            </button>
+        </div>
+
+        <div class="gr-status" id="grStatus">⏳ Підключення до аудіокімнати...</div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     /*<![CDATA[*/
     var curuuid = /*[[${curuuid}]]*/ '';
     var curusername = /*[[${curusername}]]*/ '';
     var curroom = /*[[${curroom}]]*/ '';
     var stationUuid = /*[[${stationUuid != null ? stationUuid : ''}]]*/ '';
-
-    // stationUuid може бути не доступний на загальній сторінці чату,
-    // тому chat.js використає fallback або значення з URL
     /*]]>*/
 
     function toggleSidebar() {
         document.getElementById('chatSidebar').classList.toggle('hidden');
     }
 
-    // Emoji Picker Logic
     document.addEventListener('DOMContentLoaded', () => {
         const picker = document.getElementById('picker');
         const input = document.getElementById('newmessage');
         const emojiToggle = document.getElementById('emojiToggle');
 
         if (emojiToggle) {
-            emojiToggle.onclick = (e) => {
-                e.stopPropagation();
-                picker.classList.toggle('visible');
-            };
+            emojiToggle.onclick = (e) => { e.stopPropagation(); picker.classList.toggle('visible'); };
         }
-
         if (picker) {
             picker.addEventListener('emoji-click', event => {
                 input.value += event.detail.unicode;
@@ -288,17 +408,14 @@
                 input.focus();
             });
         }
-
-        document.addEventListener('click', () => {
-            if (picker) picker.classList.remove('visible');
-        });
+        document.addEventListener('click', () => { if (picker) picker.classList.remove('visible'); });
         if (picker) picker.onclick = (e) => e.stopPropagation();
 
         if (input) {
             input.addEventListener('focus', () => {
                 setTimeout(() => {
                     const area = document.getElementById('mainMessagesArea');
-                    area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+                    if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
                 }, 300);
             });
         }
@@ -314,6 +431,177 @@
 </script>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ WebRTC Modules (order matters!) -->
+<script src="/js/logger.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/audio-monitor.js"></script>
+<script src="/js/janus-connection.js"></script>
+<script src="/js/room-manager.js"></script>
+<script src="/js/network-monitor.js"></script>
+<script src="/js/websocket-signaling.js"></script>
+
+<!-- ✅ Green Room UI Controller -->
+<script>
+    /**
+     * 🎙️ GreenRoomUI — керує модальним вікном Green Room / Broadcast
+     * для гостя в messenger.html
+     */
+    const GreenRoomUI = {
+        isActive: false,
+        currentJanusRoomId: null,
+        isMuted: false,
+        previousChatRoom: null,
+
+        /**
+         * Відкрити модальне вікно та підключитися до Janus AudioBridge
+         */
+        async enter(janusRoomId, roomName, autoMute) {
+            if (this.isActive) return;
+            this.isActive = true;
+            this.currentJanusRoomId = janusRoomId;
+            this.isMuted = !!autoMute;
+            this.previousChatRoom = (typeof curroom !== 'undefined') ? curroom : null;
+
+            // Оновлюємо UI модалки
+            const overlay = document.getElementById('greenRoomOverlay');
+            const title = document.getElementById('grTitle');
+            const subtitle = document.getElementById('grSubtitle');
+            const status = document.getElementById('grStatus');
+
+            overlay.classList.add('active');
+            title.textContent = roomName || '🎙️ Аудіокімната';
+            subtitle.textContent = autoMute
+                ? 'Ви в прямому ефірі. Мікрофон вимкнено. Модератор надасть вам слово.'
+                : 'Підготовка до ефіру. Перевірте мікрофон.';
+            status.textContent = '⏳ Підключення до аудіокімнати...';
+            status.className = 'gr-status';
+
+            this.updateMicButton();
+
+            try {
+                // Ініціалізуємо Janus якщо ще не ініціалізовано
+                if (!JanusConnection.currentSessionToken) {
+                    const tokenReady = await JanusConnection.initUserSession();
+                    if (!tokenReady) throw new Error('Не вдалося отримати токен');
+                }
+
+                if (!JanusConnection.isJanusReady) {
+                    await JanusConnection.initJanusConnection();
+                }
+
+                // Підключаємо WebSocket сигналізацію для команд модератора
+                if (!WebSocketSignaling.isConnected) {
+                    WebSocketSignaling.connect(JanusConnection.currentSessionToken);
+                }
+
+                status.textContent = '✅ Підключено до аудіокімнати';
+                status.className = 'gr-status connected';
+
+                // Перемикаємося в потрібну кімнату Janus
+                await RoomManager.switchRoom(janusRoomId);
+
+                // Якщо autoMute — вимикаємо мікрофон
+                if (autoMute && JanusConnection.audioBridge) {
+                    JanusConnection.audioBridge.send({
+                        message: { request: 'configure', muted: true }
+                    });
+                    this.isMuted = true;
+                    this.updateMicButton();
+                }
+
+                // Запускаємо ICE моніторинг
+                if (typeof NetworkMonitor !== 'undefined') {
+                    NetworkMonitor.startIceMonitoring();
+                }
+
+            } catch (error) {
+                console.error('GreenRoomUI enter error:', error);
+                status.textContent = '❌ Помилка підключення: ' + error.message;
+                status.className = 'gr-status error';
+            }
+        },
+
+        /**
+         * Залишити аудіокімнату та повернутися в текстовий чат
+         */
+        leaveRoom() {
+            if (!this.isActive) return;
+
+            console.log('🚪 Вихід з аудіокімнати...');
+
+            // Зупиняємо ICE моніторинг
+            if (typeof NetworkMonitor !== 'undefined') {
+                NetworkMonitor.stopIceMonitoring();
+            }
+
+            // Detach AudioBridge plugin
+            if (JanusConnection.audioBridge) {
+                try {
+                    JanusConnection.audioBridge.detach();
+                } catch (e) {
+                    console.warn('Detach error:', e);
+                }
+                JanusConnection.audioBridge = null;
+                JanusConnection.isJanusReady = false;
+            }
+
+            // Зупиняємо AudioMonitor
+            if (typeof AudioMonitor !== 'undefined') {
+                AudioMonitor.stop();
+            }
+
+            // Закриваємо модалку
+            document.getElementById('greenRoomOverlay').classList.remove('active');
+            this.isActive = false;
+            this.currentJanusRoomId = null;
+
+            // Повертаємося в попередню текстову кімнату
+            if (this.previousChatRoom && typeof selectroom === 'function') {
+                selectroom(this.previousChatRoom, 'Основна');
+            }
+
+            showEfirNotification('Ви повернулися в текстовий чат', 'info');
+        },
+
+        /**
+         * Toggle мікрофона в аудіокімнаті
+         */
+        toggleMic() {
+            if (!JanusConnection.audioBridge) {
+                console.warn('AudioBridge not ready');
+                return;
+            }
+
+            this.isMuted = !this.isMuted;
+            JanusConnection.audioBridge.send({
+                message: { request: 'configure', muted: this.isMuted }
+            });
+
+            this.updateMicButton();
+            console.log(`🎙️ Mic ${this.isMuted ? 'OFF' : 'ON'}`);
+        },
+
+        updateMicButton() {
+            const btn = document.getElementById('grMicBtn');
+            const textSpan = document.getElementById('grMicText');
+            if (!btn) return;
+
+            if (this.isMuted) {
+                btn.className = 'gr-btn gr-btn-mic-off';
+                btn.innerHTML = '<i class="fas fa-microphone-slash"></i> <span id="grMicText">Мікрофон OFF</span>';
+            } else {
+                btn.className = 'gr-btn gr-btn-mic-on';
+                btn.innerHTML = '<i class="fas fa-microphone"></i> <span id="grMicText">Мікрофон ON</span>';
+            }
+        }
+    };
+
+    // Експорт у глобальну область
+    window.GreenRoomUI = GreenRoomUI;
+</script>
+
+<!-- Chat.js (STOMP текстовий чат + hand raise + efir control + GreenRoom integration) -->
 <script src="/js/chat.js"></script>
 </body>
 </html>

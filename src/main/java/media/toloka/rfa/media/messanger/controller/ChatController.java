@@ -212,22 +212,38 @@ public class ChatController {
     public void moveUserToRoom(ChatMessage inmsg) {
         try {
             String targetRoomUuid = inmsg.getRoomuuid();
-            if (targetRoomUuid == null || targetRoomUuid.isEmpty()) return;
+            if (targetRoomUuid == null || targetRoomUuid.isEmpty()) {
+                logger.warn("moveUserToRoom: targetRoomUuid is empty");
+                return;
+            }
             com.google.gson.JsonObject body = com.google.gson.JsonParser.parseString(inmsg.getBody()).getAsJsonObject();
             String targetUserUuid = body.get("targetUserUuid").getAsString();
-            if (targetUserUuid == null || targetUserUuid.isEmpty()) return;
+            boolean autoMute = body.has("autoMute") && body.get("autoMute").getAsBoolean();
+
+            if (targetUserUuid == null || targetUserUuid.isEmpty()) {
+                logger.warn("moveUserToRoom: targetUserUuid is empty");
+                return;
+            }
 
             chatRoomPresenceService.moveUserToRoom(targetUserUuid, targetRoomUuid);
+
+            // ✅ Отримуємо числовий Janus Room ID для WebRTC
+            MessageRoom targetRoom = messangerService.getRoomByUuid(targetRoomUuid);
+            Long targetJanusRoomId = (targetRoom != null) ? targetRoom.getId() : null;
+            String targetRoomName = (targetRoom != null) ? targetRoom.getRoomname() : "Кімната ефіру";
 
             Map<String, Object> controlPayload = new HashMap<>();
             controlPayload.put("action", "MOVE_YOURSELF");
             controlPayload.put("targetRoomUuid", targetRoomUuid);
             controlPayload.put("targetUserUuid", targetUserUuid);
-            controlPayload.put("autoMute", body.has("autoMute") && body.get("autoMute").getAsBoolean());
+            controlPayload.put("autoMute", autoMute);
+            controlPayload.put("targetJanusRoomId", targetJanusRoomId);
+            controlPayload.put("targetRoomName", targetRoomName);
+
             this.template.convertAndSend("/topic/efir.control", controlPayload);
 
-            logger.info("🎛️ Модератор {} перемістив користувача {} в кімнату {}",
-                    inmsg.getUuid(), targetUserUuid, targetRoomUuid);
+            logger.info("🎛️ Модератор {} перемістив користувача {} в кімнату {} (Janus ID: {})",
+                    inmsg.getUuid(), targetUserUuid, targetRoomUuid, targetJanusRoomId);
         } catch (Exception e) {
             logger.error("Error moving user to room", e);
         }

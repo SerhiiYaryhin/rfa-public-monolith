@@ -2,7 +2,8 @@
 /**
  Логіка сучасного чату RFA
  Включає підтримку WebSockets (STOMP), Емодзі, адаптивний рендеринг повідомлень,
- механізм "підняття руки" та зворотний зв'язок від модератора.
+ механізм "підняття руки", зворотний зв'язок від модератора,
+ та інтеграцію з GreenRoomUI для Janus WebRTC.
  */
 
 var stompClient = null;
@@ -16,11 +17,11 @@ var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
 var subEfirControl = null;
-var subHandStatus = null; // ✅ НОВА ПІДПИСКА
+var subHandStatus = null;
 var reconnectTimeout = null;
 var reconnectDelay = 1000;
 
-// ✅ Стан "піднятої руки" для поточного користувача
+// Стан "піднятої руки" для поточного користувача
 var handRaised = false;
 var handRaiseTimeout = null;
 var myMuted = false;
@@ -57,8 +58,7 @@ function onConnected() {
     // ✅ Команди керування ефіром від модератора (переміщення, mute)
     subEfirControl = stompClient.subscribe('/topic/efir.control', onEfirControl);
 
-// ✅ Сповіщення про зміну статусу руки (прийнято/відхилено модератором)
-// Використовуємо той самий fallback, що й у raiseHand/lowerHand
+    // ✅ Сповіщення про зміну статусу руки (прийнято/відхилено модератором)
     const handStatusStationUuid = (typeof stationUuid !== 'undefined' && stationUuid)
         ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
     subHandStatus = stompClient.subscribe(`/topic/efir.${handStatusStationUuid}.hand.status`, onHandStatusUpdate);
@@ -103,17 +103,30 @@ function onEfirControl(payload) {
         switch (cmd.action) {
             case 'MOVE_YOURSELF':
                 if (cmd.targetUserUuid === curuuid && cmd.targetRoomUuid && cmd.targetRoomUuid !== curroom) {
+                    // 1. Опускаємо руку якщо піднята
                     if (handRaised) lowerHand();
-                    selectroom(cmd.targetRoomUuid, 'Кімната ефіру');
-                    if (cmd.autoMute) {
-                        myMuted = true;
-                        updateMyMicrophoneUI();
-                        showEfirNotification("🎙️ Вас переміщено в Ефір. Мікрофон вимкнено.", 'info');
+
+                    // 2. Перемикаємо текстовий чат
+                    selectroom(cmd.targetRoomUuid, cmd.targetRoomName || 'Кімната ефіру');
+
+                    // 3. ✅ Відкриваємо модальне вікно з Janus AudioBridge
+                    const janusRoomId = cmd.targetJanusRoomId;
+                    if (janusRoomId && typeof GreenRoomUI !== 'undefined') {
+                        const roomLabel = cmd.autoMute ? '🔴 Прямий ефір' : '🟡 Green Room';
+                        GreenRoomUI.enter(janusRoomId, roomLabel, !!cmd.autoMute);
                     } else {
-                        showEfirNotification("🎙️ Вас переміщено в Green Room", 'success');
+                        // Fallback: якщо Janus недоступний
+                        if (cmd.autoMute) {
+                            myMuted = true;
+                            updateMyMicrophoneUI();
+                            showEfirNotification("🎙️ Вас переміщено в Ефір. Мікрофон вимкнено.", 'info');
+                        } else {
+                            showEfirNotification("🎙️ Вас переміщено в Green Room", 'success');
+                        }
                     }
                 }
                 break;
+
             case 'MUTE_YOURSELF':
                 if (cmd.targetUserUuid === curuuid) {
                     myMuted = true;
@@ -121,6 +134,7 @@ function onEfirControl(payload) {
                     showEfirNotification("🔇 Модератор вимкнув ваш мікрофон", 'warning');
                 }
                 break;
+
             case 'UNMUTE_YOURSELF':
                 if (cmd.targetUserUuid === curuuid) {
                     myMuted = false;
@@ -128,6 +142,7 @@ function onEfirControl(payload) {
                     showEfirNotification("🔊 Вам надано слово!", 'success');
                 }
                 break;
+
             case 'MUTE_ALL_IN_ROOM':
                 if (curroom === cmd.roomUuid) {
                     myMuted = true;
@@ -135,6 +150,7 @@ function onEfirControl(payload) {
                     showEfirNotification("🔇 Модератор вимкнув мікрофони всім", 'warning');
                 }
                 break;
+
             case 'UNMUTE_ALL_IN_ROOM':
                 if (curroom === cmd.roomUuid) {
                     myMuted = false;
@@ -148,12 +164,11 @@ function onEfirControl(payload) {
     }
 }
 
-// ================ ✅ ЗВОРОТНІЙ ЗВ'ЯЗОК ПРО СТАТУС РУКИ ================
+// ================ ЗВОРОТНІЙ ЗВ'ЯЗОК ПРО СТАТУС РУКИ ================
 function onHandStatusUpdate(payload) {
     try {
         const data = typeof payload.body === 'string' ? JSON.parse(payload.body) : payload.body;
 
-        // Обробляємо тільки якщо це стосується поточного користувача
         if (data.targetUserUuid !== curuuid) return;
 
         console.log("🙋 Статус руки змінено:", data.status, data.message);
@@ -230,13 +245,7 @@ function onUserList(payload) {
             item.className = `chat-item list-group-item ${clientuuid === u.uuid ? 'active' : ''}`;
             const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '??';
             const badge = u.unreadCount > 0 ? `<span class="badge rounded-pill bg-danger" style="font-size: 0.7rem;">${u.unreadCount}</span>` : '';
-            item.innerHTML = `
-                <div class="chat-avatar">${initials}</div>
-                <div class="chat-info flex-grow-1">
-                    <div class="chat-name">${u.name || 'Користувач'}</div>
-                    <div class="chat-status">Написати особисто</div>
-                </div>
-                <div class="chat-meta">${badge}</div>`;
+            item.innerHTML = `<div class="chat-avatar">${initials}</div> <div class="chat-info flex-grow-1"> <div class="chat-name">${u.name || 'Користувач'}</div> <div class="chat-status">Написати особисто</div> </div> <div class="chat-meta">${badge}</div>`;
             item.onclick = () => selectuserFromPublic(u.uuid, u.name);
             container.appendChild(item);
         });
@@ -255,12 +264,7 @@ function onRoomList(payload) {
             const item = document.createElement('div');
             const isActive = curroom === r.uuid && !clientuuid;
             item.className = `chat-item list-group-item ${isActive ? 'active' : ''}`;
-            item.innerHTML = `
-                <div class="chat-avatar"><i class="fas fa-hashtag"></i></div>
-                <div class="chat-info">
-                    <div class="chat-name">${r.name}</div>
-                    <div class="chat-status">Публічна кімната</div>
-                </div>`;
+            item.innerHTML = `<div class="chat-avatar"><i class="fas fa-hashtag"></i></div> <div class="chat-info"> <div class="chat-name">${r.name}</div> <div class="chat-status">Публічна кімната</div> </div>`;
             item.onclick = () => selectroom(r.uuid, r.name);
             container.appendChild(item);
         });
@@ -268,9 +272,8 @@ function onRoomList(payload) {
 }
 
 function selectroom(uuid, name) {
-    // ✅ Автоматично опускаємо руку при зміні кімнати
+    // Автоматично опускаємо руку при зміні кімнати
     if (handRaised) lowerHand();
-
     if (curroom === uuid && !clientuuid) return;
     if (subcurroom) subcurroom.unsubscribe();
     curroom = uuid;
@@ -438,13 +441,7 @@ function showEfirNotification(message, type = 'info') {
     } else {
         const colors = { success: '#00b894', warning: '#fdcb6e', error: '#d63031', info: '#6c5ce7' };
         const notif = document.createElement('div');
-        notif.style.cssText = `
-            position: fixed; top: 80px; right: 20px;
-            background: ${colors[type] || colors.info}; color: white;
-            padding: 15px 20px; border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 9999; font-weight: 500; max-width: 320px;
-            animation: slideInRight 0.3s ease;`;
+        notif.style.cssText = `position: fixed; top: 80px; right: 20px; background: ${colors[type] || colors.info}; color: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 9999; font-weight: 500; max-width: 320px; animation: slideInRight 0.3s ease;`;
         notif.textContent = message;
         document.body.appendChild(notif);
         setTimeout(() => {
@@ -483,6 +480,7 @@ window.toggleHand = toggleHand;
 window.raiseHand = raiseHand;
 window.lowerHand = lowerHand;
 window.toggleMyMicrophone = toggleMyMicrophone;
+window.showEfirNotification = showEfirNotification;
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('chatSidebar');
     if (sidebar) sidebar.classList.toggle('hidden');

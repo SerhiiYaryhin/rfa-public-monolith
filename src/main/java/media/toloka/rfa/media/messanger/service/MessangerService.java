@@ -177,6 +177,10 @@ public class MessangerService {
     public void moveUsersToMainChatRoom(Long janusRoomId) {
         logger.info(" ToDo Потрібно перевести людей в головну кімнату чату.");
     }
+
+    public MessageRoom getRoomByUuid(String uuid) {
+        return messageRoomRepository.getByUuid(uuid);
+    }
 //
 //    public List<MessageRoom> GetLiveChatRoomList() {
 //        return messageRoomRepository.findAll();
