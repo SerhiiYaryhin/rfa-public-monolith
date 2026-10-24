@@ -657,26 +657,53 @@
         menu.style.top = `${rect.bottom + 5}px`;
     }
 
+    /**
+     * Прийняти гостя — переміщення в Green Room + опускання руки з причиною ACCEPTED
+     */
     function acceptGuest(userUuid) {
-        if (!rooms.broadcast) {
-            alert('Ефір ще не створено. Натисніть "Підготувати ефір".');
+        if (!rooms.green) {
+            alert('Green Room не створено. Натисніть "Підготувати ефір".');
             return;
         }
         if (stompClient && stompClient.connected) {
+            // 1. Опускаємо руку з причиною ACCEPTED (сповістить гостя)
             stompClient.send("/app/hand/lower", {}, JSON.stringify({
                 uuid: curuuid,
-                body: JSON.stringify({ stationUuid: stationUuid, targetUuid: userUuid })
+                body: JSON.stringify({
+                    stationUuid: stationUuid,
+                    targetUuid: userUuid,
+                    reason: 'ACCEPTED'  // ✅ Гість отримає: "Модератор запросив вас в Green Room"
+                })
             }));
+
+            // 2. Переміщуємо в Green Room
+            stompClient.send("/app/room/move", {}, JSON.stringify({
+                uuid: curuuid,
+                roomuuid: rooms.green,
+                body: JSON.stringify({
+                    targetUserUuid: userUuid,
+                    autoMute: false
+                })
+            }));
+
+            console.log(`✅ Гість ${userUuid} прийнятий в Green Room`);
         }
-        alert(`Гість запрошений в ефір (WebRTC переміщення буде додано наступним кроком)`);
     }
 
+    /**
+     * Відхилити гостя — опускання руки з причиною DECLINED
+     */
     function declineGuest(userUuid) {
         if (stompClient && stompClient.connected) {
             stompClient.send("/app/hand/lower", {}, JSON.stringify({
                 uuid: curuuid,
-                body: JSON.stringify({ stationUuid: stationUuid, targetUuid: userUuid })
+                body: JSON.stringify({
+                    stationUuid: stationUuid,
+                    targetUuid: userUuid,
+                    reason: 'DECLINED'  // ✅ Гість отримає: "Модератор відхилив вашу руку"
+                })
             }));
+            console.log(`❌ Гість ${userUuid} відхилений`);
         }
     }
 

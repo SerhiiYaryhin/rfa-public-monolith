@@ -108,6 +108,19 @@
             flex-shrink: 0;
         }
 
+        .hand-raised-active {
+            animation: handPulse 1.5s ease-in-out infinite;
+            border-width: 2px !important;
+        }
+        @keyframes handPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); transform: rotate(0deg); }
+            50% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); transform: rotate(-10deg); }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         .input-group-custom { flex-grow: 1; position: relative; }
         .chat-input { border-radius: 30px; border: 2px solid #f1f5f9; padding: 12px 20px; padding-right: 50px; transition: 0.3s; font-size: 0.95rem; }
         .chat-input:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
@@ -210,13 +223,22 @@
                 </button>
                 <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
 
-                <!-- ✅ КНОПКА-ПЕРЕМИКАЧ: Підняти ↔ Опустити руку -->
+                <!-- 🙋 Кнопка підняття руки -->
                 <button id="handToggleButton"
                         class="btn btn-warning rounded-circle"
                         onclick="toggleHand()"
                         title="Підняти руку"
-                        style="width: 45px; height: 45px; position: relative;">
+                        style="width: 45px; height: 45px;">
                     <i class="fas fa-hand-paper"></i>
+                </button>
+
+                <!-- 🎙️ Кнопка мікрофона -->
+                <button id="microphoneToggleButton"
+                        class="btn btn-success rounded-circle"
+                        onclick="toggleMyMicrophone()"
+                        title="Мікрофон увімкнено"
+                        style="width: 45px; height: 45px;">
+                    <i class="fas fa-microphone"></i>
                 </button>
             </div>
 
@@ -226,10 +248,7 @@
             </div>
 
             <emoji-picker id="picker"></emoji-picker>
-
-            <button class="btn-send" onclick="handleSend()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+            <button class="btn-send" onclick="handleSend()"><i class="fas fa-paper-plane"></i></button>
         </footer>
     </main>
 </div>
