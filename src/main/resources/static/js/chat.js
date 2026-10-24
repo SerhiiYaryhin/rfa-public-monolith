@@ -1,4 +1,9 @@
 'use strict';
+/**
+ Логіка сучасного чату RFA
+ Включає підтримку WebSockets (STOMP), Емодзі, адаптивний рендеринг повідомлень,
+ механізм "підняття руки" та зворотний зв'язок від модератора.
+ */
 
 var stompClient = null;
 var clientuuid = null;
@@ -11,10 +16,11 @@ var subroom = null;
 var subPresence = null;
 var subMediaToPublic = null;
 var subEfirControl = null;
-var subHandStatus = null;
+var subHandStatus = null; // ✅ НОВА ПІДПИСКА
 var reconnectTimeout = null;
 var reconnectDelay = 1000;
 
+// ✅ Стан "піднятої руки" для поточного користувача
 var handRaised = false;
 var handRaiseTimeout = null;
 var myMuted = false;
@@ -27,7 +33,10 @@ function connect() {
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
     stompClient.debug = function(str) { console.log("STOMP: " + str); };
-    stompClient.connect({ heartbeatIncoming: 8000, heartbeatOutgoing: 8000 }, onConnected, onError);
+    stompClient.connect({
+        heartbeatIncoming: 8000,
+        heartbeatOutgoing: 8000
+    }, onConnected, onError);
 }
 
 function onConnected() {
@@ -45,12 +54,13 @@ function onConnected() {
     subPresence = stompClient.subscribe('/topic/presence-update', onPresenceUpdate);
     subMediaToPublic = stompClient.subscribe('/topic/chat.media', onMediaPublic);
 
-    // ✅ Команди керування ефіром від модератора
+    // ✅ Команди керування ефіром від модератора (переміщення, mute)
     subEfirControl = stompClient.subscribe('/topic/efir.control', onEfirControl);
 
     // ✅ Сповіщення про зміну статусу руки (прийнято/відхилено модератором)
     if (typeof stationUuid !== 'undefined' && stationUuid) {
         subHandStatus = stompClient.subscribe(`/topic/efir.${stationUuid}.hand.status`, onHandStatusUpdate);
+        console.log(`✅ Підписано на /topic/efir.${stationUuid}.hand.status`);
     }
 
     stompClient.send("/app/hello", {}, JSON.stringify({
@@ -137,10 +147,12 @@ function onEfirControl(payload) {
     }
 }
 
-// ================ ЗВОРОТНІЙ ЗВ'ЯЗОК ПРО СТАТУС РУКИ ================
+// ================ ✅ ЗВОРОТНІЙ ЗВ'ЯЗОК ПРО СТАТУС РУКИ ================
 function onHandStatusUpdate(payload) {
     try {
         const data = typeof payload.body === 'string' ? JSON.parse(payload.body) : payload.body;
+
+        // Обробляємо тільки якщо це стосується поточного користувача
         if (data.targetUserUuid !== curuuid) return;
 
         console.log("🙋 Статус руки змінено:", data.status, data.message);
@@ -255,7 +267,9 @@ function onRoomList(payload) {
 }
 
 function selectroom(uuid, name) {
+    // ✅ Автоматично опускаємо руку при зміні кімнати
     if (handRaised) lowerHand();
+
     if (curroom === uuid && !clientuuid) return;
     if (subcurroom) subcurroom.unsubscribe();
     curroom = uuid;
