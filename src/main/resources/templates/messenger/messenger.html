@@ -444,7 +444,9 @@
 <script src="/js/webrtc/v2/ui-renderer.js"></script>
 <script src="/js/webrtc/v2/audio-monitor.js"></script>
 <script src="/js/webrtc/v2/network-monitor.js"></script>
-<script src="/js/webrtc/v2/main.js"></script>
+<!-- ⚠️ main.js НЕ підключаємо тут, бо він автозапускає initJanusConnection()
+     при DOMContentLoaded, що конфліктує з GreenRoomUI.
+     Ініціалізація Janus відбувається через GreenRoomUI.enter() -->
 
 <!-- ✅ Green Room UI Controller -->
 <script>
