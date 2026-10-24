@@ -57,11 +57,12 @@ function onConnected() {
     // ✅ Команди керування ефіром від модератора (переміщення, mute)
     subEfirControl = stompClient.subscribe('/topic/efir.control', onEfirControl);
 
-    // ✅ Сповіщення про зміну статусу руки (прийнято/відхилено модератором)
-    if (typeof stationUuid !== 'undefined' && stationUuid) {
-        subHandStatus = stompClient.subscribe(`/topic/efir.${stationUuid}.hand.status`, onHandStatusUpdate);
-        console.log(`✅ Підписано на /topic/efir.${stationUuid}.hand.status`);
-    }
+// ✅ Сповіщення про зміну статусу руки (прийнято/відхилено модератором)
+// Використовуємо той самий fallback, що й у raiseHand/lowerHand
+    const handStatusStationUuid = (typeof stationUuid !== 'undefined' && stationUuid)
+        ? stationUuid : "e5044caa-6eba-4af7-9f95-788b1dd238a9";
+    subHandStatus = stompClient.subscribe(`/topic/efir.${handStatusStationUuid}.hand.status`, onHandStatusUpdate);
+    console.log(`✅ Підписано на /topic/efir.${handStatusStationUuid}.hand.status`);
 
     stompClient.send("/app/hello", {}, JSON.stringify({
         uuid: curuuid, roomuuid: curroom, send: Date.now()
