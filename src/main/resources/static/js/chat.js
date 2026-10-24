@@ -110,12 +110,13 @@ function onEfirControl(payload) {
                     selectroom(cmd.targetRoomUuid, cmd.targetRoomName || 'Кімната ефіру');
 
                     // 3. ✅ Відкриваємо модальне вікно з Janus AudioBridge
+                    // targetJanusRoomId = MessageRoom.id цільової кімнати (передається з бекенду)
                     const janusRoomId = cmd.targetJanusRoomId;
                     if (janusRoomId && typeof GreenRoomUI !== 'undefined') {
                         const roomLabel = cmd.autoMute ? '🔴 Прямий ефір' : '🟡 Green Room';
                         GreenRoomUI.enter(janusRoomId, roomLabel, !!cmd.autoMute);
                     } else {
-                        // Fallback: якщо Janus недоступний
+                        // Fallback: якщо Janus недоступний або targetJanusRoomId не передано
                         if (cmd.autoMute) {
                             myMuted = true;
                             updateMyMicrophoneUI();

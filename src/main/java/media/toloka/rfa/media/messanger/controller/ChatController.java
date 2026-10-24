@@ -376,17 +376,51 @@ public class ChatController {
         messangerService.SaveMessageFromChat(message);
     }
 
+    @Autowired
+    private media.toloka.rfa.radio.station.service.StationService stationService;
+
     @GetMapping(value = "/chat")
     public String getUserHome(Model model) {
         Users user = clientService.GetCurrentUser();
         if (user == null) return "redirect:/";
+
         Clientdetail cd = clientService.GetClientDetailByUser(user);
         List<Clientdetail> userlist = messangerService.FindAllCorrespondentsList(cd);
+
+        // Отримуємо поточну кімнату (ID=1 = головна кімната чату)
+        MessageRoom currentRoom = messangerService.GetChatRoomById(1L);
+
         model.addAttribute("userlist", userlist);
         model.addAttribute("curuuid", cd.getUuid());
         model.addAttribute("curusername", cd.getCustname() + " " + cd.getCustsurname());
-        model.addAttribute("curroom", messangerService.GetChatRoomById(1L).getUuid());
+        model.addAttribute("curroom", currentRoom.getUuid());
         model.addAttribute("roomlist", messangerService.GetChatRoomList());
+
+        // ✅ Визначаємо тип кімнати та stationUuid з БД
+        String roomType = currentRoom.getRoomtype() != null
+                ? currentRoom.getRoomtype().name() : "CHATROOM_TYPE_PUBLIC";
+        model.addAttribute("curRoomType", roomType);
+
+        // ✅ Janus Room ID = MessageRoom.id
+        model.addAttribute("curRoomJanusId", currentRoom.getId());
+
+        // ✅ Якщо це кімната станції — знаходимо stationUuid через GetStationWithChatRoom
+        String stationUuid = "";
+        if (!"CHATROOM_TYPE_PUBLIC".equals(roomType)) {
+            List<media.toloka.rfa.radio.model.Station> stationsWithRooms = stationService.GetStationWithChatRoom();
+            for (media.toloka.rfa.radio.model.Station s : stationsWithRooms) {
+                if (currentRoom.getUuid().equals(s.getRoomuuid())
+                        || currentRoom.getUuid().equals(s.getGreenRoomUuid())
+                        || currentRoom.getUuid().equals(s.getBroadcastRoomUuid())
+                        || currentRoom.getUuid().equals(s.getStaffRoomUuid())) {
+                    stationUuid = s.getUuid();
+                    break;
+                }
+            }
+        }
+        model.addAttribute("stationUuid", stationUuid);
+
         return "/messenger/messenger";
     }
+
 }
