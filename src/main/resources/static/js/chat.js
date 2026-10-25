@@ -33,7 +33,8 @@ function connect() {
     console.log("Attempting to connect to STOMP...");
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
-    stompClient.debug = function(str) { console.log("STOMP: " + str); };
+    // stompClient.debug = function(str) { console.log("STOMP: " + str); };
+    stompClient.debug = null;
     stompClient.connect({
         heartbeatIncoming: 8000,
         heartbeatOutgoing: 8000
