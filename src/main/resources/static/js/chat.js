@@ -597,6 +597,17 @@ function selectuserFromPublic(uuid, name) {
 // ============================================================================
 // 📤 НАДСИЛАННЯ ПОВІДОМЛЕНЬ
 // ============================================================================
+/**
+ * Надсилає повідомлення в правильний канал (публічний або приватний).
+ * Викликається з onclick="handleSend()" у messenger.html.
+ */
+function handleSend() {
+    if (clientuuid && typeof sendprivate === 'function') {
+        sendprivate();
+    } else if (typeof sendpublic === 'function') {
+        sendpublic();
+    }
+}
 
 /**
  * Надсилає публічне повідомлення в поточну кімнату.
@@ -920,6 +931,7 @@ window.raiseHand = raiseHand;
 window.lowerHand = lowerHand;
 window.toggleMyMicrophone = toggleMyMicrophone;
 window.showEfirNotification = showEfirNotification;
+window.handleSend = handleSend;
 
 /** Перемикає видимість сайдбару на мобільних пристроях */
 window.toggleSidebar = function() {

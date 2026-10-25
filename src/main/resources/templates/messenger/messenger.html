@@ -214,14 +214,6 @@
         }
     });
 
-    function handleSend() {
-        if (typeof window.sendprivate === 'function' && window.clientuuid) {
-            window.sendprivate();
-        } else if (typeof window.sendpublic === 'function') {
-            window.sendpublic();
-        }
-    }
-    window.toggleSidebar = toggleSidebar;
 </script>
 
 <!-- ✅ chat.js ПІСЛЯ Messenger.js — використовує GreenRoomUI та MainRoomAudio -->
