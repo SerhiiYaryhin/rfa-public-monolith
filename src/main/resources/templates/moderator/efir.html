@@ -7,8 +7,6 @@
     <title>Command Center - <th:block th:text="${station.name}">Радіостанція</th:block></title>
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-
-    <!-- CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -83,13 +81,16 @@
                  th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
                 <div style="flex:1;">
                     <div class="room-name"><i class="fas fa-comments"></i> Основна</div>
-                    <!-- Аудіо-панель модератора -->
+                    <!-- ✅ Аудіо-панель модератора -->
                     <div class="room-audio-panel" id="audioPanel-main">
                         <div class="audio-controls-row">
-                            <button class="btn-listen btn-listen-start" onclick="ModeratorAudio.startListening('main')">
+                            <button class="btn-listen btn-listen-start"
+                                    onclick="ModeratorAudio.startListening('main')">
                                 <i class="fas fa-headphones"></i> Слухати
                             </button>
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-main"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-main"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-main">Не підключено</div>
                     </div>
@@ -98,16 +99,21 @@
             </div>
 
             <!-- Green Room -->
-            <div class="room-item room-item-green" th:if="${greenRoom != null}" data-room-type="green"
-                 th:data-room-uuid="${greenRoom.uuid}" th:data-room-name="${greenRoom.roomname}">
+            <div class="room-item room-item-green" th:if="${greenRoom != null}"
+                 data-room-type="green"
+                 th:data-room-uuid="${greenRoom.uuid}"
+                 th:data-room-name="${greenRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name"><i class="fas fa-door-open"></i> Green Room</div>
                     <div class="room-audio-panel" id="audioPanel-green">
                         <div class="audio-controls-row">
-                            <button class="btn-listen btn-listen-start" onclick="ModeratorAudio.startListening('green')">
+                            <button class="btn-listen btn-listen-start"
+                                    onclick="ModeratorAudio.startListening('green')">
                                 <i class="fas fa-headphones"></i> Слухати
                             </button>
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-green"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-green"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-green">Не підключено</div>
                     </div>
@@ -116,16 +122,21 @@
             </div>
 
             <!-- Broadcast -->
-            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}" data-room-type="broadcast"
-                 th:data-room-uuid="${broadcastRoom.uuid}" th:data-room-name="${broadcastRoom.roomname}">
+            <div class="room-item room-item-broadcast" th:if="${broadcastRoom != null}"
+                 data-room-type="broadcast"
+                 th:data-room-uuid="${broadcastRoom.uuid}"
+                 th:data-room-name="${broadcastRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name"><i class="fas fa-broadcast-tower"></i> Ефір</div>
                     <div class="room-audio-panel" id="audioPanel-broadcast">
                         <div class="audio-controls-row">
-                            <button class="btn-listen btn-listen-start" onclick="ModeratorAudio.startListening('broadcast')">
+                            <button class="btn-listen btn-listen-start"
+                                    onclick="ModeratorAudio.startListening('broadcast')">
                                 <i class="fas fa-headphones"></i> Слухати
                             </button>
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-broadcast"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-broadcast"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-broadcast">Не підключено</div>
                     </div>
@@ -134,16 +145,21 @@
             </div>
 
             <!-- Staff -->
-            <div class="room-item room-item-staff" th:if="${staffRoom != null}" data-room-type="staff"
-                 th:data-room-uuid="${staffRoom.uuid}" th:data-room-name="${staffRoom.roomname}">
+            <div class="room-item room-item-staff" th:if="${staffRoom != null}"
+                 data-room-type="staff"
+                 th:data-room-uuid="${staffRoom.uuid}"
+                 th:data-room-name="${staffRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name"><i class="fas fa-users-cog"></i> Staff</div>
                     <div class="room-audio-panel" id="audioPanel-staff">
                         <div class="audio-controls-row">
-                            <button class="btn-listen btn-listen-start" onclick="ModeratorAudio.startListening('staff')">
+                            <button class="btn-listen btn-listen-start"
+                                    onclick="ModeratorAudio.startListening('staff')">
                                 <i class="fas fa-headphones"></i> Слухати
                             </button>
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-staff"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-staff"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-staff">Не підключено</div>
                     </div>
@@ -155,7 +171,8 @@
             <div class="waiting-section" id="waitingSection" style="display: none;">
                 <div class="cc-section-title">
                     <i class="fas fa-hand-paper"></i> Очікують
-                    <span class="badge rounded-pill bg-warning text-dark" id="waitingCount" style="margin-left: auto;">0</span>
+                    <span class="badge rounded-pill bg-warning text-dark" id="waitingCount"
+                          style="margin-left: auto;">0</span>
                 </div>
                 <div class="waiting-list" id="waitingList">
                     <div class="waiting-empty">Немає гостей</div>
@@ -167,7 +184,8 @@
         <div class="cc-participants">
             <div class="cc-section-title">
                 <i class="fas fa-users"></i> Учасники
-                <span class="badge rounded-pill bg-primary" id="activeRoomCount" style="margin-left: auto;">0</span>
+                <span class="badge rounded-pill bg-primary" id="activeRoomCount"
+                      style="margin-left: auto;">0</span>
             </div>
             <div class="participant-list" id="efirParticipantList">
                 <div class="participant-grid" id="participantGrid">
@@ -198,7 +216,8 @@
                             style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-image text-muted"></i>
                     </button>
-                    <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this.files[0])">
+                    <input type="file" id="imageInput" hidden accept="image/*"
+                           onchange="uploadImage(this.files[0])">
                 </div>
                 <div class="input-group-custom">
                     <input type="text" id="newmessage" class="form-control chat-input"
@@ -249,7 +268,7 @@
 <script type="text/javascript" src="/js/webrtc/v2/ui-renderer.js"></script>
 <script type="text/javascript" src="/js/webrtc/v2/audio-monitor.js"></script>
 <script type="text/javascript" src="/js/webrtc/v2/network-monitor.js"></script>
-<!-- ⚠️ main.js НЕ підключаємо — модератор використовує ручне керування через ModeratorAudio -->
+<!-- ⚠️ main.js НЕ підключаємо — модератор використовує ModeratorAudio -->
 
 <!-- ✅ Thymeleaf змінні (передаються з сервера) -->
 <script th:inline="javascript">
@@ -268,7 +287,7 @@
         staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
     };
 
-    // ✅ Числові ID кімнат Janus (для ModeratorAudio.startListening)
+    // ✅ Числові ID кімнат Janus (для ModeratorAudio)
     const janusRoomIds = {
         main: /*[[${mainRoom != null ? mainRoom.id : null}]]*/,
         green: /*[[${greenRoom != null ? greenRoom.id : null}]]*/,
@@ -278,7 +297,7 @@
     /*]]>*/
 </script>
 
-<!-- ✅ Логіка панелі модератора (STOMP, учасники, ModeratorAudio) -->
+<!-- ✅ ModeratorAudio контролер (специфічний для efir.html) -->
 <script type="text/javascript" src="/js/webrtc/efir.js"></script>
 
 <!-- ✅ Текстовий чат (sendpublic, sendprivate, selectroom, handleSend тощо) -->
