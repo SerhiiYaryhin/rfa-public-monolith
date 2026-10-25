@@ -46,9 +46,12 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // ✅ Додаємо resourceChain(true) + PathResourceResolver для коректного MIME-type
-        registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/js/")
+        // ✅ КЛЮЧОВА ЗМІНА: додано .setCachePeriod(3600).resourceChain(true)
+        // для ВСІХ resource handler'ів. Це активує PathResourceResolver,
+        // який коректно визначає Content-Type на основі розширення файлу.
+
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations("classpath:/static/assets/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
@@ -57,13 +60,14 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
-        registry.addResourceHandler("/assets/**")
-                .addResourceLocations("classpath:/static/assets/")
+        registry.addResourceHandler("/icons/**")
+                .addResourceLocations("classpath:/static/icons/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
-        registry.addResourceHandler("/icons/**")
-                .addResourceLocations("classpath:/static/icons/")
+        // ✅ /js/** покриває /js/janus.js, /js/webrtc/v2/*.js, /js/webrtc/messenger.js
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("classpath:/static/js/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
@@ -92,6 +96,7 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
                 .setCachePeriod(3600)
                 .resourceChain(true);
     }
+
     /* **************************************************************** */
     /*  THYMELEAF-SPECIFIC ARTIFACTS                                    */
     /* **************************************************************** */
