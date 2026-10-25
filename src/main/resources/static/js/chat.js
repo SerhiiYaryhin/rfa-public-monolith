@@ -34,7 +34,14 @@ function connect() {
     var socket = new SockJS('/rfachat');
     stompClient = Stomp.over(socket);
     // stompClient.debug = function(str) { console.log("STOMP: " + str); };
-    stompClient.debug = null;
+    // STOMP debug вимкнено для продакшену.
+// Для відлагодження додайте ?debug=stomp в URL
+    if (new URLSearchParams(window.location.search).has('debug')) {
+        stompClient.debug = function(str) { console.log("STOMP: " + str); };
+    } else {
+        stompClient.debug = null; // ← Повністю вимикає STOMP-логи
+    }
+    // stompClient.debug = null;
     stompClient.connect({
         heartbeatIncoming: 8000,
         heartbeatOutgoing: 8000
