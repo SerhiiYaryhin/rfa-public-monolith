@@ -45,12 +45,11 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
     }
 
     @Override
+    @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // ✅ ВИПРАВЛЕНО: Додано явний маппінг для /js/webrtc/**
-        // та встановлено cachePeriod + resourceChain для коректного MIME-type
-
-        registry.addResourceHandler("/assets/**")
-                .addResourceLocations("classpath:/static/assets/")
+        // ✅ Додаємо resourceChain(true) + PathResourceResolver для коректного MIME-type
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("classpath:/static/js/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
@@ -59,14 +58,13 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
-        registry.addResourceHandler("/icons/**")
-                .addResourceLocations("classpath:/static/icons/")
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations("classpath:/static/assets/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
-        // ✅ Основний JS + WebRTC модулі (покриття /js/** включає /js/webrtc/v2/**)
-        registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/js/")
+        registry.addResourceHandler("/icons/**")
+                .addResourceLocations("classpath:/static/icons/")
                 .setCachePeriod(3600)
                 .resourceChain(true);
 
@@ -95,7 +93,6 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
                 .setCachePeriod(3600)
                 .resourceChain(true);
     }
-
     /* **************************************************************** */
     /*  THYMELEAF-SPECIFIC ARTIFACTS                                    */
     /* **************************************************************** */
