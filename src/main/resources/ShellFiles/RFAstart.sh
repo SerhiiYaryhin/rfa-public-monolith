@@ -4,7 +4,7 @@ git switch current
 #git switch prodact
 git pull
 
-cp ~/prodact/src/main/resources/ShellFiles/* ~/bin/
+cp -r ~/prodact/src/main/resources/ShellFiles/* ~/bin/
 ./gradlew build -x test
 /bin/sh -c 'until ping -c1 8.8.8.8; do sleep 2; done;'
 /bin/sh -c 'until ping -c2 pg.rfa; do sleep 1; done;'
