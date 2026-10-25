@@ -17,17 +17,35 @@
  *   - janus.js (CDN) + webrtc-adapter
  *   - /js/webrtc/v2/*.js (WebRTC модулі)
  *   - /js/chat.js (текстовий чат)
+ *
+ * ГЛОБАЛЬНІ ЗМІННІ THYMELEAF (передаються з сервера через inline-скрипт):
+ *   - curuuid       : UUID поточного модератора
+ *   - curusername   : Відображуване ім'я модератора
+ *   - curroom       : UUID основної текстової кімнати
+ *   - stationUuid   : UUID станції
+ *   - rooms         : Об'єкт {main, green, broadcast, staff} → UUID кімнат
+ *   - janusRoomIds  : Об'єкт {main, green, broadcast, staff} → числові ID Janus
  */
 
 // ============================================================================
 // 📌 ГЛОБАЛЬНІ ЗМІННІ СТАНУ
 // ============================================================================
 
+/** @type {string} Поточний тип активної кімнати (main/green/broadcast/staff) */
 var currentRoomType = 'main';
+
+/** @type {string|null} UUID обраного користувача для контекстного меню */
 var selectedParticipant = null;
+
+/** @type {Object} Кеш учасників по кімнатах: { roomUuid: [participants] } */
 var participantsCache = {};
+
+// --- Підписки STOMP ---
+/** @type {Stomp.Subscription|null} */
 var subBatchParticipants = null;
+/** @type {Stomp.Subscription|null} */
 var subPresenceUpdate = null;
+/** @type {Stomp.Subscription|null} */
 var subWaitingGuests = null;
 
 
@@ -48,7 +66,7 @@ var subWaitingGuests = null;
 const ModeratorAudio = {
 
     /**
-     * Мапа активних підключень: roomType → { handle, sessionId, streamId }
+     * Мапа активних підключень: roomType → { handle, janusRoomId, audioElement }
      * Дозволяє тримати кілька AudioBridge handles одночасно.
      * @type {Object<string, Object>}
      */
@@ -103,7 +121,6 @@ const ModeratorAudio = {
             }
 
             // ✅ Створюємо ОКРЕМИЙ AudioBridge handle для цієї кімнати
-            // Це ключова відмінність від RoomManager.switchRoom()
             const handle = await this._createListenOnlyHandle(janusId, roomType);
 
             // Зберігаємо підключення
@@ -146,14 +163,19 @@ const ModeratorAudio = {
             }
         }
 
+        // Видаляємо аудіо-елемент
+        if (conn.audioElement) {
+            conn.audioElement.pause();
+            conn.audioElement.srcObject = null;
+            conn.audioElement.remove();
+        }
+
         // Видаляємо з мапи активних підключень
         delete this.activeConnections[roomType];
 
         this.updateStatus(roomType, 'disconnected', 'Не підключено');
         this.updateListenButton(roomType, false);
         this.hideAudioPanel(roomType);
-
-        // Скидаємо VU-метр
         this.updateVuMeter(roomType, 0);
 
         console.log(`✅ Відключено від ${roomType}`);
@@ -214,11 +236,6 @@ const ModeratorAudio = {
                     const event = msg.audiobridge;
                     if (event === 'joined') {
                         console.log(`✅ Модератор увійшов в кімнату ${roomType}`);
-                    } else if (event === 'talking') {
-                        // Хтось говорить — можна оновити VU-метр
-                        // (для повноцінного VU потрібен volume event)
-                    } else if (event === 'stopped_talking') {
-                        // Хтось перестав говорити
                     }
 
                     // Якщо прийшов JSEP (SDP answer) — обробляємо
@@ -241,7 +258,6 @@ const ModeratorAudio = {
 
                 onremotestream: (stream) => {
                     // ✅ Отримуємо аудіо-потік від кімнати
-                    // Створюємо аудіо-елемент для відтворення
                     const audioEl = document.createElement('audio');
                     audioEl.autoplay = true;
                     audioEl.muted = false;
@@ -250,8 +266,8 @@ const ModeratorAudio = {
                     document.body.appendChild(audioEl);
 
                     // Зберігаємо посилання для cleanup
-                    if (this.activeConnections[roomType]) {
-                        this.activeConnections[roomType].audioElement = audioEl;
+                    if (ModeratorAudio.activeConnections[roomType]) {
+                        ModeratorAudio.activeConnections[roomType].audioElement = audioEl;
                     }
 
                     console.log(`🔊 Remote stream отримано для ${roomType}`);
@@ -259,8 +275,7 @@ const ModeratorAudio = {
 
                 oncleanup: () => {
                     console.log(`🧹 Cleanup handle для ${roomType}`);
-                    // Видаляємо аудіо-елемент
-                    const conn = this.activeConnections[roomType];
+                    const conn = ModeratorAudio.activeConnections[roomType];
                     if (conn && conn.audioElement) {
                         conn.audioElement.pause();
                         conn.audioElement.srcObject = null;
@@ -275,16 +290,19 @@ const ModeratorAudio = {
     // UI HELPERS
     // ================================================================
 
+    /** Показати аудіо-панель для кімнати */
     showAudioPanel(roomType) {
         const panel = document.getElementById(`audioPanel-${roomType}`);
         if (panel) panel.classList.add('listening');
     },
 
+    /** Приховати аудіо-панель для кімнати */
     hideAudioPanel(roomType) {
         const panel = document.getElementById(`audioPanel-${roomType}`);
         if (panel) panel.classList.remove('listening');
     },
 
+    /** Оновити текст статусу підключення */
     updateStatus(roomType, state, text) {
         const statusEl = document.getElementById(`status-${roomType}`);
         if (!statusEl) return;
@@ -294,10 +312,12 @@ const ModeratorAudio = {
         if (state === 'error') statusEl.classList.add('error');
     },
 
+    /**
+     * Оновлює зовнішню кнопку Слухати/Стоп.
+     * Кнопка знаходиться ПОЗА панеллю audioPanel, тому шукаємо за ID.
+     */
     updateListenButton(roomType, isListening) {
-        const panel = document.getElementById(`audioPanel-${roomType}`);
-        if (!panel) return;
-        const btn = panel.querySelector('.btn-listen');
+        const btn = document.getElementById(`btn-listen-${roomType}`);
         if (!btn) return;
 
         if (isListening) {
@@ -337,6 +357,10 @@ window.addEventListener('beforeunload', () => {
 // 🔌 STOMP-ПІДПИСКИ МОДЕРАТОРА
 // ============================================================================
 
+/**
+ * Налаштовує STOMP-підписки специфічні для панелі модератора.
+ * Має retry-логіку на випадок, якщо STOMP ще не підключений.
+ */
 function setupModeratorSubscriptions() {
     const trySubscribe = () => {
         if (!stompClient || !stompClient.connected) return false;
@@ -384,6 +408,9 @@ function setupModeratorSubscriptions() {
     }, 10000);
 }
 
+/**
+ * Надсилає запит на отримання учасників усіх кімнат станції.
+ */
 function requestBatchParticipants() {
     if (!stompClient || !stompClient.connected) return;
 
@@ -396,6 +423,10 @@ function requestBatchParticipants() {
     }));
 }
 
+/**
+ * Обробник відповіді batch-participants.
+ * Оновлює кеш та лічильники кімнат.
+ */
 function onBatchParticipantsReceived(payload) {
     try {
         const data = JSON.parse(payload.body);
@@ -415,10 +446,11 @@ function onBatchParticipantsReceived(payload) {
     }
 }
 
+/**
+ * Оновлює лічильник учасників у картці кімнати.
+ */
 function updateRoomCount(roomType, participants) {
-    const countEl = document.getElementById(
-        `count${roomType.charAt(0).toUpperCase() + roomType.slice(1)}`
-    );
+    const countEl = document.getElementById(`count${roomType.charAt(0).toUpperCase() + roomType.slice(1)}`);
     if (countEl) countEl.textContent = participants.length;
 }
 
@@ -427,6 +459,9 @@ function updateRoomCount(roomType, participants) {
 // 👥 РЕНДЕРИНГ УЧАСНИКІВ
 // ============================================================================
 
+/**
+ * Рендерить сітку учасників активної кімнати.
+ */
 function renderActiveRoomParticipants() {
     const grid = document.getElementById('participantGrid');
     const activeCountBadge = document.getElementById('activeRoomCount');
@@ -467,6 +502,9 @@ function renderActiveRoomParticipants() {
     });
 }
 
+/**
+ * Безпечне екранування HTML-символів для вставки в onclick.
+ */
 function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -474,9 +512,12 @@ function escapeHtml(text) {
 
 
 // ============================================================================
-// 🙋 ЧЕРГА ОЧІКУВАННЯ
+// 🙋 ЧЕРГА ОЧІКУВАННЯ (WAITING GUESTS)
 // ============================================================================
 
+/**
+ * Обробник оновлення черги очікування.
+ */
 function onWaitingGuestsUpdate(payload) {
     try {
         const guests = JSON.parse(payload.body);
@@ -486,6 +527,9 @@ function onWaitingGuestsUpdate(payload) {
     }
 }
 
+/**
+ * Рендерить список гостей, які підняли руку.
+ */
 function renderWaitingGuests(guests) {
     const list = document.getElementById('waitingList');
     const section = document.getElementById('waitingSection');
@@ -527,6 +571,9 @@ function renderWaitingGuests(guests) {
 // 🎯 ДІЇ МОДЕРАТОРА
 // ============================================================================
 
+/**
+ * Показує контекстне меню біля учасника.
+ */
 function showChipMenu(event, userUuid, userName) {
     event.stopPropagation();
     selectedParticipant = { uuid: userUuid, name: userName };
@@ -538,12 +585,16 @@ function showChipMenu(event, userUuid, userName) {
     menu.style.top = `${rect.bottom + 5}px`;
 }
 
+/**
+ * Прийняти гостя — переміщення в Green Room + опускання руки з причиною ACCEPTED.
+ */
 function acceptGuest(userUuid) {
     if (!rooms.green) {
         alert('Green Room не створено. Натисніть "Підготувати ефір".');
         return;
     }
     if (stompClient && stompClient.connected) {
+        // 1. Опускаємо руку з причиною ACCEPTED
         stompClient.send("/app/hand/lower", {}, JSON.stringify({
             uuid: curuuid,
             body: JSON.stringify({
@@ -553,6 +604,7 @@ function acceptGuest(userUuid) {
             })
         }));
 
+        // 2. Переміщуємо в Green Room
         stompClient.send("/app/room/move", {}, JSON.stringify({
             uuid: curuuid,
             roomuuid: rooms.green,
@@ -566,6 +618,9 @@ function acceptGuest(userUuid) {
     }
 }
 
+/**
+ * Відхилити гостя — опускання руки з причиною DECLINED.
+ */
 function declineGuest(userUuid) {
     if (stompClient && stompClient.connected) {
         stompClient.send("/app/hand/lower", {}, JSON.stringify({
@@ -580,6 +635,9 @@ function declineGuest(userUuid) {
     }
 }
 
+/**
+ * Виконання дії з контекстного меню учасника.
+ */
 function contextAction(action) {
     if (!selectedParticipant) return;
     alert(`Дія "${action}" для ${selectedParticipant.name} буде реалізована`);
@@ -591,6 +649,9 @@ function contextAction(action) {
 // 🎬 КЕРУВАННЯ ЕФІРОМ
 // ============================================================================
 
+/**
+ * Підготовка ефіру: створення службових кімнат.
+ */
 function prepareEfir() {
     const btn = document.getElementById('btnPrepare');
     btn.disabled = true;
@@ -613,13 +674,16 @@ function prepareEfir() {
         });
 }
 
+/** Запустити ефір */
 function startEfir() {
     document.getElementById('liveIndicator').classList.add('active');
     document.getElementById('liveStatus').textContent = 'LIVE';
 }
 
+/** Пауза ефіру */
 function pauseEfir() { /* TODO */ }
 
+/** Зупинити ефір */
 function stopEfir() {
     document.getElementById('liveIndicator').classList.remove('active');
     document.getElementById('liveStatus').textContent = 'OFFLINE';
@@ -627,7 +691,7 @@ function stopEfir() {
 
 
 // ============================================================================
-// 🌍 ЕКСПОРТ У ГЛОБАЛЬНУ ОБЛАСТЬ
+// 🌍 ЕКСПОРТ У ГЛОБАЛЬНУ ОБЛАСТЬ ВИДИМОСТІ
 // ============================================================================
 
 window.setupModeratorSubscriptions = setupModeratorSubscriptions;
@@ -645,7 +709,7 @@ window.escapeHtml = escapeHtml;
 
 
 // ============================================================================
-// 🚀 ІНІЦІАЛІЗАЦІЯ
+// 🚀 ІНІЦІАЛІЗАЦІЯ ПРИ ЗАВАНТАЖЕННІ СТОРІНКИ
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {

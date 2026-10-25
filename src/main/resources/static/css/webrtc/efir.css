@@ -206,7 +206,9 @@ body {
 }
 
 /* ================================================================ */
-/* AUDIO PANEL (вбудована в картку кімнати)                          */
+/* ✅ AUDIO PANEL (вбудована в картку кімнати)                       */
+/* Кнопка "Слухати" завжди видима.                                   */
+/* Панель з VU-метром і статусом показується тільки при підключенні. */
 /* ================================================================ */
 
 .room-audio-panel {
@@ -249,10 +251,12 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    float: right;
+    margin-top: -2px;
 }
 
 .btn-listen-start { background: var(--success); color: white; }
