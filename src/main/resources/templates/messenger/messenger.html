@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="/css/webrtc/messenger.css">
 
-    <script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.2/adapter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
@@ -25,7 +24,9 @@
     <script type="text/javascript"  src="/js/stomp.js"></script>
 
     <!-- ✅ Janus Gateway Library -->
-    <script type="text/javascript"  src="/js/janus.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/meetecho/janus-gateway@v1.2.0/html/janus.js"></script>
+
+<!--    <script type="text/javascript"  src="/js/janus.js"></script>-->
 
     <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
@@ -162,7 +163,7 @@
      що конфліктує з GreenRoomUI та MainRoomAudio -->
 
 <!-- ✅ Messenger.js ПЕРЕД chat.js — визначає MainRoomAudio та GreenRoomUI -->
-<script type="text/javascript"   src="/js/webrtc/messenger.js"></script>
+<script type="text/javascript" src="/js/webrtc/messenger.js"></script>
 
 <!-- ✅ Thymeleaf змінні + DOMContentLoaded (після Messenger.js) -->
 <script th:inline="javascript">
