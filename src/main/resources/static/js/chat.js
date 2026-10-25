@@ -235,21 +235,20 @@ function onEfirControl(payload) {
             // ================================================================
             case 'MOVE_YOURSELF':
                 if (cmd.targetUserUuid === curuuid && cmd.targetRoomUuid && cmd.targetRoomUuid !== curroom) {
-
-                    // Крок 1: Опускаємо руку, якщо вона була піднята
+                    // 1. Опускаємо руку якщо піднята
                     if (handRaised) lowerHand();
 
-                    // Крок 2: ✅ СПОЧАТКУ відкриваємо модальне вікно GreenRoomUI
-                    //         GreenRoomUI.enter() зберігає previousChatRoom = curroom
-                    //         ПОКИ curroom ще містить UUID головної кімнати!
+                    // 2. ✅ СПОЧАТКУ відкриваємо модальне вікно GreenRoomUI
+                    //    GreenRoomUI.enter() зберігає previousChatRoom = curroom
+                    //    ПОКИ curroom ще містить UUID головної кімнати!
                     const janusRoomId = cmd.targetJanusRoomId;
                     if (janusRoomId && typeof GreenRoomUI !== 'undefined') {
                         const roomLabel = cmd.autoMute ? '🔴 Прямий ефір' : '🟡 Green Room';
                         GreenRoomUI.enter(janusRoomId, roomLabel, !!cmd.autoMute);
                     }
 
-                    // Крок 3: ✅ ПОТІМ перемикаємо текстовий чат на нову кімнату
-                    //         curroom зміниться тут, але previousChatRoom вже збережений
+                    // 3. ✅ ПОТІМ перемикаємо текстовий чат на нову кімнату
+                    //    curroom зміниться тут, але previousChatRoom вже збережений
                     selectroom(cmd.targetRoomUuid, cmd.targetRoomName || 'Кімната ефіру');
 
                     // Fallback: якщо Janus недоступний або targetJanusRoomId не передано
@@ -949,6 +948,6 @@ window.addEventListener('DOMContentLoaded', () => {
     connect();
 
     // Періодичне оновлення списків (кожні 15 секунд)
-    setInterval(getuserlist, 15000);
-    setInterval(getroomlist, 15000);
+    setInterval(getuserlist, 5000);
+    setInterval(getroomlist, 5000);
 });
