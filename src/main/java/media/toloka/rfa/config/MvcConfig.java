@@ -45,7 +45,6 @@ public class MvcConfig implements WebMvcConfigurer, ApplicationContextAware {
     }
 
     @Override
-    @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // ✅ Додаємо resourceChain(true) + PathResourceResolver для коректного MIME-type
         registry.addResourceHandler("/js/**")
