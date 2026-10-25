@@ -1,11 +1,13 @@
 package media.toloka.rfa.media.webrtc.service.v2;
 
-
+import media.toloka.rfa.media.messanger.model.MessageRoom;
+import media.toloka.rfa.media.messanger.repository.MessageRoomRepository;
 import media.toloka.rfa.media.messanger.service.MessangerService;
 import media.toloka.rfa.media.webrtc.model.JanusLiveStream;
 import media.toloka.rfa.media.webrtc.model.dto.StationDto;
 import media.toloka.rfa.media.webrtc.service.PortAllocationService;
-import media.toloka.rfa.radio.station.service.StationService;
+import media.toloka.rfa.radio.model.Station;
+import media.toloka.rfa.radio.repository.StationRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +18,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 🔄 Сервіс синхронізації кімнат з Janus Gateway.
- * Відповідає за отримання списку кімнат, видалення осиротілих кімнат та самовідновлення.
- *
- * Логіка визначення стану трансляції (LIVE індикатор):
- * - LIVE (stationstate=true): кімната є в Janus І є активний запис про стрім в БД
- * - НЕ LIVE (stationstate=false): кімнати немає в Janus, або немає запису в БД
+ 🔄 Сервіс синхронізації кімнат з Janus Gateway.
+ Відповідає за отримання списку кімнат, видалення осиротілих кімнат та самовідновлення.
+
+ ✅ ВИПРАВЛЕНО: validRoomIds тепер включає ВСІ кімнати станції
+ (main, green, broadcast, staff), а не тільки основну.
  */
 @Service
 public class RoomSynchronizationService {
@@ -37,7 +38,8 @@ public class RoomSynchronizationService {
     private final PortAllocationService portService;
     private final FfmpegCommandService ffmpegService;
     private final MessangerService messangerService;
-    private final StationService stationService;
+    private final StationRepo stationRepo;
+    private final MessageRoomRepository messageRoomRepository;
 
     public RoomSynchronizationService(
             JanusRoomService roomService,
@@ -46,32 +48,40 @@ public class RoomSynchronizationService {
             PortAllocationService portService,
             FfmpegCommandService ffmpegService,
             MessangerService messangerService,
-            StationService stationService) {
+            StationRepo stationRepo,
+            MessageRoomRepository messageRoomRepository) {
         this.roomService = roomService;
         this.participantService = participantService;
         this.sessionManager = sessionManager;
         this.portService = portService;
         this.ffmpegService = ffmpegService;
         this.messangerService = messangerService;
-        this.stationService = stationService;
+        this.stationRepo = stationRepo;
+        this.messageRoomRepository = messageRoomRepository;
     }
 
     /**
      * Отримання списку активних кімнат з синхронізацією та самовідновленням.
-     *
-     * Для кожної станції перевіряється:
-     * 1. Чи існує кімната в Janus Gateway
-     * 2. Чи є активний запис про стрім в БД (portService)
-     * 3. Якщо кімнати немає в Janus — запускається самовідновлення
      */
     @Transactional
     public List<StationDto> getActiveRoomsInfo() {
         log.debug("Отримання списку активних кімнат");
 
-        List<StationDto> activeStations = stationService.getActiveStations();
-        Set<Long> validRoomIds = activeStations.stream()
-                .map(StationDto::getId)
-                .collect(Collectors.toSet());
+        List<StationDto> activeStations = messangerService.getOnlineRoom().stream()
+                .map(room -> {
+                    StationDto dto = new StationDto();
+                    dto.setId(room.getId());
+                    dto.setRoomuuid(room.getUuid());
+                    dto.setRoomname(room.getRoomname());
+                    dto.setRoomOnlineStatus(room.getRoomOnlineStatus());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        // ✅ КЛЮЧОВА ЗМІНА: Збираємо ВСІ валідні Janus Room IDs
+        // включаючи main, green, broadcast, staff для кожної станції
+        Set<Long> validRoomIds = collectAllValidRoomIds();
+        log.debug("Валідні Janus Room IDs: {}", validRoomIds);
 
         // Отримання кімнат з Janus
         List<Map<String, Object>> janusRooms;
@@ -101,26 +111,63 @@ public class RoomSynchronizationService {
             String stationIdStr = String.valueOf(roomId);
             Map<String, Object> jRoomData = janusRoomsMap.get(roomId);
 
-            // Перевіряємо, чи є активний запис про стрім в БД
             Optional<JanusLiveStream> activeStream = portService.getStreamByStation(stationIdStr);
 
             if (jRoomData != null) {
-                // Кімната існує в Janus
                 if (activeStream.isPresent()) {
-                    // ✅ Кімната є в Janus І є активний стрім в БД → LIVE
                     enrichStationFromJanus(station, jRoomData, true);
                 } else {
-                    // ⚠️ Кімната є в Janus, але стрім не активний в БД → НЕ LIVE
-                    // (кімната може існувати для ручного підключення користувачів)
                     enrichStationFromJanus(station, jRoomData, false);
                 }
             } else {
-                // ❌ Кімнати немає в Janus → самовідновлення
                 recoverLostRoom(station, stationIdStr, roomId, activeStream);
             }
         }
 
         return activeStations;
+    }
+
+    /**
+     * ✅ НОВИЙ МЕТОД: Збирає ВСІ валідні Janus Room IDs.
+     * Включає основну кімнату + green + broadcast + staff для кожної онлайн-станції.
+     */
+    private Set<Long> collectAllValidRoomIds() {
+        Set<Long> validIds = new HashSet<>();
+
+        // Отримуємо всі станції з кімнатами
+        List<Station> stations = stationRepo.findByRoomuuidIsNotNull();
+
+        for (Station station : stations) {
+            // Додаємо основну кімнату
+            addRoomIdIfValid(validIds, station.getRoomuuid());
+
+            // ✅ Додаємо Green Room
+            addRoomIdIfValid(validIds, station.getGreenRoomUuid());
+
+            // ✅ Додаємо Broadcast Room
+            addRoomIdIfValid(validIds, station.getBroadcastRoomUuid());
+
+            // ✅ Додаємо Staff Room
+            addRoomIdIfValid(validIds, station.getStaffRoomUuid());
+        }
+
+        log.info("Зібрано {} валідних Janus Room IDs (включаючи green/broadcast/staff)", validIds.size());
+        return validIds;
+    }
+
+    /**
+     * Допоміжний метод: додає Janus Room ID за UUID кімнати, якщо вона існує.
+     */
+    private void addRoomIdIfValid(Set<Long> validIds, String roomUuid) {
+        if (roomUuid == null || roomUuid.isEmpty()) return;
+        try {
+            MessageRoom room = messageRoomRepository.getByUuid(roomUuid);
+            if (room != null && room.getId() != null) {
+                validIds.add(room.getId());
+            }
+        } catch (Exception e) {
+            log.warn("Не вдалося знайти MessageRoom для UUID {}: {}", roomUuid, e.getMessage());
+        }
     }
 
     /**
@@ -153,37 +200,22 @@ public class RoomSynchronizationService {
         }
     }
 
-    /**
-     * Збагачення даних станції інформацією з Janus.
-     *
-     * @param station Станція для оновлення
-     * @param jRoomData Дані кімнати з Janus
-     * @param isLive true якщо є активний стрім в БД (показувати LIVE індикатор)
-     */
     private void enrichStationFromJanus(StationDto station, Map<String, Object> jRoomData, boolean isLive) {
         station.setStationstate(isLive);
         List<Object> participants = (List<Object>) jRoomData.get("participants");
         station.setParticipants(participants != null ? participants : new ArrayList<>());
     }
 
-    /**
-     * Самовідновлення кімнати, яка пропала в Janus Gateway.
-     * Якщо в БД є активний стрім — відновлює Plain RTP учасника та перезапускає FFmpeg.
-     */
     private void recoverLostRoom(StationDto station, String stationIdStr, Long roomId,
                                  Optional<JanusLiveStream> activeStream) {
         log.info("Кімната {} відсутня в Janus. Створюємо...", roomId);
-
         try {
-            // Створюємо кімнату заново
-            roomService.createAudioBridgeRoom(roomId, station.getName());
+            roomService.createAudioBridgeRoom(roomId, station.getRoomname());
 
             if (activeStream.isPresent()) {
-                // Відновлюємо Plain RTP учасника та FFmpeg
                 recoverPlainRtpParticipant(stationIdStr, roomId, activeStream.get());
             }
 
-            // LIVE тільки якщо є активний стрім в БД
             station.setStationstate(activeStream.isPresent());
             station.setParticipants(new ArrayList<>());
         } catch (Exception e) {
@@ -192,13 +224,8 @@ public class RoomSynchronizationService {
         }
     }
 
-    /**
-     * Відновлення Plain RTP учасника для кімнати після її зникнення в Janus.
-     * Перезапускає FFmpeg на новий порт, який виділив Janus.
-     */
     private void recoverPlainRtpParticipant(String stationIdStr, Long roomId, JanusLiveStream stream) {
         log.info("Відновлюємо Plain RTP для станції {}", stationIdStr);
-
         try {
             Long sessionId = sessionManager.createSession();
             Long handleId = sessionManager.attachPlugin(sessionId, "janus.plugin.audiobridge");
@@ -212,12 +239,10 @@ public class RoomSynchronizationService {
             Map<String, Object> rtp = (Map<String, Object>) data.get("rtp");
             Integer janusRtpPort = ((Number) rtp.get("port")).intValue();
 
-            // Оновлюємо сесії в БД
             stream.setJanusSessionId(sessionId);
             stream.setJanusHandleId(handleId);
             portService.saveStream(stream);
 
-            // Перезапускаємо FFmpeg на новий порт Janus
             ffmpegService.sendStopCommand(stationIdStr);
             String rtpUrl = String.format("rtp://janus.rfa:%d?localport=%d&pkt_size=1200",
                     janusRtpPort, stream.getRtpPort());

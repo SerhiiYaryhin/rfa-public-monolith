@@ -37,6 +37,11 @@ public class UserConnectionService {
         this.clientService = clientService;
     }
 
+    /** Метод checkUserTokenInJanus() у JanusAdminService.java викликає list_tokens, який повертає всі
+    * зареєстровані токени з Janus, а потім шукає потрібний у списку.
+    * При великій кількості користувачів це може бути повільно.
+     */
+
     public String generateAndRegisterToken() {
         Clientdetail cd = clientService.GetClientDetailByUser(clientService.GetCurrentUser());
         if (cd == null) {
@@ -45,8 +50,17 @@ public class UserConnectionService {
         }
 
         String token = cd.getUuid();
-        log.info("Реєстрація токена користувача: {}", token);
-        adminService.registerUserToken(token);
+
+        // ✅ Перевіряємо, чи токен вже зареєстрований в Janus
+        boolean isRegistered = adminService.checkUserTokenInJanus(token);
+
+        if (!isRegistered) {
+            log.info("Токен {} НЕ знайдено в Janus. Реєструємо...", token);
+            adminService.registerUserToken(token);
+        } else {
+            log.debug("Токен {} вже зареєстрований в Janus. Пропускаємо реєстрацію.", token);
+        }
+
         return token;
     }
 
