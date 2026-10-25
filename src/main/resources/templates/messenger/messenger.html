@@ -23,8 +23,6 @@
 
     <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
-
-
 </head>
 <body>
 <header>
@@ -141,6 +139,26 @@
     </div>
 </div>
 
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ WebRTC Modules v2 (порядок важливий!) -->
+<script src="/js/webrtc/v2/config.js"></script>
+<script src="/js/webrtc/v2/logger.js"></script>
+<script src="/js/webrtc/v2/janus-connection.js"></script>
+<script src="/js/webrtc/v2/websocket-signaling.js"></script>
+<script src="/js/webrtc/v2/moderator.js"></script>
+<script src="/js/webrtc/v2/room-manager.js"></script>
+<script src="/js/webrtc/v2/stream-manager.js"></script>
+<script src="/js/webrtc/v2/ui-renderer.js"></script>
+<script src="/js/webrtc/v2/audio-monitor.js"></script>
+<script src="/js/webrtc/v2/network-monitor.js"></script>
+<!-- ⚠️ main.js НЕ підключаємо — він автозапускає initJanusConnection(),
+     що конфліктує з GreenRoomUI та MainRoomAudio -->
+
+<!-- ✅ Messenger.js ПЕРЕД chat.js — визначає MainRoomAudio та GreenRoomUI -->
+<script src="/js/webrtc/messenger.js"></script>
+
+<!-- ✅ Thymeleaf змінні + DOMContentLoaded (після Messenger.js) -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     var curuuid = /*[[${curuuid}]]*/ '';
@@ -183,6 +201,7 @@
         }
 
         // ✅ Автоматична ініціалізація WebRTC для кімнат станцій
+        // MainRoomAudio вже визначений в messenger.js (завантажений вище)
         if (typeof MainRoomAudio !== 'undefined') {
             MainRoomAudio.init();
         }
@@ -197,26 +216,8 @@
     }
 </script>
 
-<script src="/js/bootstrap.bundle.min.js"></script>
-
-<!-- ✅ WebRTC Modules v2 (порядок важливий!) -->
-<script src="/js/webrtc/v2/config.js"></script>
-<script src="/js/webrtc/v2/logger.js"></script>
-<script src="/js/webrtc/v2/janus-connection.js"></script>
-<script src="/js/webrtc/v2/websocket-signaling.js"></script>
-<script src="/js/webrtc/v2/moderator.js"></script>
-<script src="/js/webrtc/v2/room-manager.js"></script>
-<script src="/js/webrtc/v2/stream-manager.js"></script>
-<script src="/js/webrtc/v2/ui-renderer.js"></script>
-<script src="/js/webrtc/v2/audio-monitor.js"></script>
-<script src="/js/webrtc/v2/network-monitor.js"></script>
-<!-- ⚠️ main.js НЕ підключаємо — він автозапускає initJanusConnection(),
-     що конфліктує з GreenRoomUI. Ініціалізація відбувається через GreenRoomUI.enter() -->
-
-<!-- скрипти для messenger-->
-<script src="/js/webrtc/messenger.js"></script>
-
-<!-- Chat.js (STOMP текстовий чат + hand raise + efir control + GreenRoom integration) -->
+<!-- ✅ chat.js ПІСЛЯ Messenger.js — використовує GreenRoomUI та MainRoomAudio -->
 <script src="/js/chat.js"></script>
+
 </body>
 </html>
