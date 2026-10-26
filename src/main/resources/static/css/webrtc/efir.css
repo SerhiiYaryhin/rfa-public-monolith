@@ -195,6 +195,10 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .room-count {
@@ -207,8 +211,8 @@ body {
 
 /* ================================================================ */
 /* ✅ AUDIO PANEL (вбудована в картку кімнати)                       */
-/* Кнопка "Слухати" завжди видима.                                   */
-/* Панель з VU-метром і статусом показується тільки при підключенні. */
+/* Кнопка "Слухати" ЗАВЖИ видима (поза панеллю).                     */
+/* Панель з VU-метром і статусом показується при підключенні.        */
 /* ================================================================ */
 
 .room-audio-panel {
@@ -243,6 +247,7 @@ body {
     transition: width 0.1s ease;
 }
 
+/* Кнопка "Слухати" — в рядку з назвою кімнати */
 .btn-listen {
     padding: 4px 10px;
     border: none;
@@ -255,14 +260,13 @@ body {
     align-items: center;
     gap: 4px;
     white-space: nowrap;
-    float: right;
-    margin-top: -2px;
+    margin-left: auto; /* Притискаємо вправо */
 }
 
 .btn-listen-start { background: var(--success); color: white; }
-.btn-listen-start:hover { background: #00a383; }
+.btn-listen-start:hover { background: #00a383; transform: translateY(-1px); }
 .btn-listen-stop { background: var(--danger); color: white; }
-.btn-listen-stop:hover { background: #c0392b; }
+.btn-listen-stop:hover { background: #c0392b; transform: translateY(-1px); }
 
 .listen-status {
     font-size: 0.7rem;
@@ -270,8 +274,8 @@ body {
     margin-top: 4px;
 }
 
-.listen-status.connected { color: var(--success); }
-.listen-status.error { color: var(--danger); }
+.listen-status.connected { color: var(--success); font-weight: 600; }
+.listen-status.error { color: var(--danger); font-weight: 600; }
 
 /* ================================================================ */
 /* WAITING SECTION                                                   */

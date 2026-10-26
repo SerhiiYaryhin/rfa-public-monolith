@@ -32,9 +32,7 @@
 
 <div class="command-center">
 
-    <!-- ============================================================ -->
-    <!-- HEADER                                                        -->
-    <!-- ============================================================ -->
+    <!-- HEADER -->
     <div class="cc-header">
         <div class="cc-header-left">
             <h1><i class="fas fa-broadcast-tower"></i> <th:block th:text="${station.name}">Радіостанція</th:block></h1>
@@ -50,9 +48,7 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- CONTROL BAR                                                   -->
-    <!-- ============================================================ -->
+    <!-- CONTROL BAR -->
     <div class="cc-control-bar">
         <button class="btn-control btn-primary" id="btnPrepare" onclick="prepareEfir()">
             <i class="fas fa-cog"></i> Підготувати ефір
@@ -68,9 +64,7 @@
         </button>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- MAIN GRID                                                     -->
-    <!-- ============================================================ -->
+    <!-- MAIN GRID -->
     <div class="cc-main">
 
         <!-- ROOMS SIDEBAR -->
@@ -84,16 +78,18 @@
                 <div style="flex:1;">
                     <div class="room-name">
                         <i class="fas fa-comments"></i> Основна
-                        <!-- ✅ Кнопка ЗАВЖИ видима, поза прихованою панеллю -->
+                        <!-- ✅ Кнопка ЗАВЖИ видима (поза прихованою панеллю) -->
                         <button class="btn-listen btn-listen-start" id="btn-listen-main"
-                                onclick="ModeratorAudio.startListening('main')">
+                                onclick="event.stopPropagation(); ModeratorAudio.startListening('main')">
                             <i class="fas fa-headphones"></i> Слухати
                         </button>
                     </div>
                     <!-- Панель з VU-метром і статусом (прихована до підключення) -->
-                    <div class="room-audio-panel" id="audioPanel-main">
+                    <div class="room-audio-panel" id="audioPanel-main" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-main"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-main"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-main">Не підключено</div>
                     </div>
@@ -108,13 +104,15 @@
                     <div class="room-name">
                         <i class="fas fa-door-open"></i> Green Room
                         <button class="btn-listen btn-listen-start" id="btn-listen-green"
-                                onclick="ModeratorAudio.startListening('green')">
+                                onclick="event.stopPropagation(); ModeratorAudio.startListening('green')">
                             <i class="fas fa-headphones"></i> Слухати
                         </button>
                     </div>
-                    <div class="room-audio-panel" id="audioPanel-green">
+                    <div class="room-audio-panel" id="audioPanel-green" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-green"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-green"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-green">Не підключено</div>
                     </div>
@@ -129,13 +127,15 @@
                     <div class="room-name">
                         <i class="fas fa-broadcast-tower"></i> Ефір
                         <button class="btn-listen btn-listen-start" id="btn-listen-broadcast"
-                                onclick="ModeratorAudio.startListening('broadcast')">
+                                onclick="event.stopPropagation(); ModeratorAudio.startListening('broadcast')">
                             <i class="fas fa-headphones"></i> Слухати
                         </button>
                     </div>
-                    <div class="room-audio-panel" id="audioPanel-broadcast">
+                    <div class="room-audio-panel" id="audioPanel-broadcast" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-broadcast"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-broadcast"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-broadcast">Не підключено</div>
                     </div>
@@ -150,13 +150,15 @@
                     <div class="room-name">
                         <i class="fas fa-users-cog"></i> Staff
                         <button class="btn-listen btn-listen-start" id="btn-listen-staff"
-                                onclick="ModeratorAudio.startListening('staff')">
+                                onclick="event.stopPropagation(); ModeratorAudio.startListening('staff')">
                             <i class="fas fa-headphones"></i> Слухати
                         </button>
                     </div>
-                    <div class="room-audio-panel" id="audioPanel-staff">
+                    <div class="room-audio-panel" id="audioPanel-staff" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
-                            <div class="vu-meter-track"><div class="vu-meter-fill" id="vu-staff"></div></div>
+                            <div class="vu-meter-track">
+                                <div class="vu-meter-fill" id="vu-staff"></div>
+                            </div>
                         </div>
                         <div class="listen-status" id="status-staff">Не підключено</div>
                     </div>
@@ -291,11 +293,11 @@
     /*]]>*/
 </script>
 
-<!-- ✅ Логіка панелі модератора (STOMP, учасники, ModeratorAudio) -->
-<script type="text/javascript" src="/js/webrtc/efir.js"></script>
+<!-- ✅ Логіка панелі модератора (МІСТИТЬ ModeratorAudio) -->
+<script type="text/javascript" src="/js/webrtc/efir.js?v=3"></script>
 
-<!-- ✅ Текстовий чат (sendpublic, sendprivate, selectroom, handleSend тощо) -->
-<script type="text/javascript" src="/js/chat.js"></script>
+<!-- ✅ Текстовий чат (ПІСЛЯ efir.js) -->
+<script type="text/javascript" src="/js/chat.js?v=3"></script>
 
 </body>
 </html>
