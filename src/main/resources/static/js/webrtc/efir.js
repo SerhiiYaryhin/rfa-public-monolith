@@ -332,13 +332,17 @@ function updateRoomCount(roomType, participants) {
 // 👥 РЕНДЕРИНГ УЧАСНИКІВ
 // ============================================================================
 
+/** Рендерить сітку учасників активної кімнати з індикатором муту */
 function renderActiveRoomParticipants() {
     const grid = document.getElementById('participantGrid');
     const activeCountBadge = document.getElementById('activeRoomCount');
     if (!grid) return;
+
     const activeRoomUuid = rooms[currentRoomType];
     const participants = (activeRoomUuid && participantsCache[activeRoomUuid]) || [];
+
     if (activeCountBadge) activeCountBadge.textContent = participants.length;
+
     if (participants.length === 0) {
         grid.innerHTML = `
             <div class="participants-empty" style="grid-column: 1 / -1;">
@@ -347,17 +351,30 @@ function renderActiveRoomParticipants() {
             </div>`;
         return;
     }
+
     grid.innerHTML = '';
     participants.forEach(u => {
         const chip = document.createElement('div');
         chip.className = 'participant-chip';
         chip.dataset.uuid = u.uuid;
+
+        // Додаємо клас "muted" якщо модератор вимкнув мікрофон
+        if (u.mutedByModerator) {
+            chip.classList.add('muted');
+        }
+
         const initials = u.name
             ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
             : '??';
+
+        // Індикатор муту
+        const muteIndicator = u.mutedByModerator
+            ? '<i class="fas fa-microphone-slash" style="color: var(--danger); margin-left: 4px;" title="Мікрофон вимкнено модератором"></i>'
+            : '';
+
         chip.innerHTML = `
             <div class="participant-chip-avatar">${initials}</div>
-            <div class="participant-chip-name" title="${u.name}">${u.name}</div>
+            <div class="participant-chip-name" title="${u.name}">${u.name}${muteIndicator}</div>
             <button class="participant-chip-menu"
                     onclick="event.stopPropagation(); showChipMenu(event, '${u.uuid}', '${escapeHtml(u.name)}')">
                 <i class="fas fa-ellipsis-v"></i>
@@ -472,12 +489,126 @@ function declineGuest(userUuid) {
     }
 }
 
+/**
+ * Виконання дії з контекстного меню учасника.
+ * ✅ Реалізовано: mute, giveWord (unmute), kick
+ *
+ * Використовує STOMP-команди через /app/room/mute та /app/room/move,
+ * оскільки Moderator.muteUser() вимагає participantId (Janus ID),
+ * якого немає в participantsCache (тільки UUID).
+ *
+ * @param {string} action - Дія: 'mute' | 'giveWord' | 'kick' | 'move' | 'timer'
+ */
 function contextAction(action) {
     if (!selectedParticipant) return;
-    alert(`Дія "${action}" для ${selectedParticipant.name} буде реалізована`);
+
+    const userUuid = selectedParticipant.uuid;
+    const userName = selectedParticipant.name;
+    const currentRoomUuid = rooms[currentRoomType];
+
+    console.log(`🎯 Дія "${action}" для ${userName} (${userUuid.substring(0, 8)}...)`);
+
+    if (!stompClient || !stompClient.connected) {
+        alert('Немає з\'єднання з сервером');
+        document.getElementById('contextMenu').style.display = 'none';
+        return;
+    }
+
+    switch (action) {
+        // ================================================================
+        // 🔇 MUTE: Вимкнути мікрофон гостя
+        // ================================================================
+        case 'mute':
+            // Надсилаємо команду через /app/room/mute
+            // Backend обробляє це в ChatController.roomMute()
+            // і транслює MUTE_YOURSELF через /topic/efir.control
+            stompClient.send("/app/room/mute", {}, JSON.stringify({
+                uuid: curuuid,
+                body: JSON.stringify({
+                    targetUserUuid: userUuid,
+                    muted: true
+                })
+            }));
+
+            // Оновлюємо локальний кеш (для UI індикатора)
+            if (participantsCache[currentRoomUuid]) {
+                const participant = participantsCache[currentRoomUuid].find(u => u.uuid === userUuid);
+                if (participant) {
+                    participant.mutedByModerator = true;
+                }
+            }
+            renderActiveRoomParticipants();
+            console.log(`🔇 Команду MUTE надіслано для ${userName}`);
+            break;
+
+        // ================================================================
+        // 🔊 GIVE WORD (UNMUTE): Увімкнути мікрофон гостя
+        // ================================================================
+        case 'giveWord':
+            stompClient.send("/app/room/mute", {}, JSON.stringify({
+                uuid: curuuid,
+                body: JSON.stringify({
+                    targetUserUuid: userUuid,
+                    muted: false
+                })
+            }));
+
+            // Оновлюємо локальний кеш
+            if (participantsCache[currentRoomUuid]) {
+                const participant = participantsCache[currentRoomUuid].find(u => u.uuid === userUuid);
+                if (participant) {
+                    participant.mutedByModerator = false;
+                }
+            }
+            renderActiveRoomParticipants();
+            console.log(`🔊 Команду UNMUTE (надати слово) надіслано для ${userName}`);
+            break;
+
+        // ================================================================
+        // ❌ KICK: Вигнати гостя з кімнати (переміщення в основну)
+        // ================================================================
+        case 'kick':
+            if (!confirm(`Вигнати ${userName} з кімнати "${document.getElementById('chatTitle').innerText}"?`)) {
+                break;
+            }
+
+            // Переміщуємо в основну кімнату (фактично "вигнання" з ефіру)
+            if (rooms.main && currentRoomUuid !== rooms.main) {
+                stompClient.send("/app/room/move", {}, JSON.stringify({
+                    uuid: curuuid,
+                    roomuuid: rooms.main,
+                    body: JSON.stringify({
+                        targetUserUuid: userUuid,
+                        autoMute: false
+                    })
+                }));
+                console.log(`❌ Гість ${userName} переміщений в основну кімнату`);
+            } else {
+                alert('Неможливо вигнати з основної кімнати');
+            }
+            break;
+
+        // ================================================================
+        // 🔄 MOVE: Перемістити в іншу кімнату (TODO: діалог вибору)
+        // ================================================================
+        case 'move':
+            alert(`Переміщення ${userName} буде реалізовано в наступній ітерації (діалог вибору кімнати)`);
+            break;
+
+        // ================================================================
+        // ⏱️ TIMER: Таймер для учасника (TODO)
+        // ================================================================
+        case 'timer':
+            alert(`Таймер для ${userName} буде реалізовано в наступній ітерації`);
+            break;
+
+        default:
+            console.warn(`Невідома дія: ${action}`);
+    }
+
+    // Закриваємо контекстне меню
     document.getElementById('contextMenu').style.display = 'none';
 }
-
 
 // ============================================================================
 // 🎬 КЕРУВАННЯ ЕФІРОМ
