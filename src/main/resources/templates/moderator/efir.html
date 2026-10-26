@@ -84,9 +84,13 @@
                             <i class="fas fa-headphones"></i> Слухати
                         </button>
                     </div>
-                    <!-- Панель з VU-метром і статусом (прихована до підключення) -->
+                    <!-- Панель з VU-метром, статусом і мікрофоном (прихована до підключення) -->
                     <div class="room-audio-panel" id="audioPanel-main" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
+                            <button class="btn-mic btn-mic-off" id="btn-mic-main"
+                                    onclick="ModeratorAudio.toggleMic('main')">
+                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                            </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-main"></div>
                             </div>
@@ -110,6 +114,10 @@
                     </div>
                     <div class="room-audio-panel" id="audioPanel-green" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
+                            <button class="btn-mic btn-mic-off" id="btn-mic-green"
+                                    onclick="ModeratorAudio.toggleMic('green')">
+                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                            </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-green"></div>
                             </div>
@@ -133,6 +141,10 @@
                     </div>
                     <div class="room-audio-panel" id="audioPanel-broadcast" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
+                            <button class="btn-mic btn-mic-off" id="btn-mic-broadcast"
+                                    onclick="ModeratorAudio.toggleMic('broadcast')">
+                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                            </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-broadcast"></div>
                             </div>
@@ -156,6 +168,10 @@
                     </div>
                     <div class="room-audio-panel" id="audioPanel-staff" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
+                            <button class="btn-mic btn-mic-off" id="btn-mic-staff"
+                                    onclick="ModeratorAudio.toggleMic('staff')">
+                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                            </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-staff"></div>
                             </div>
@@ -294,10 +310,10 @@
 </script>
 
 <!-- ✅ Логіка панелі модератора (МІСТИТЬ ModeratorAudio) -->
-<script type="text/javascript" src="/js/webrtc/efir.js?v=3"></script>
+<script type="text/javascript" src="/js/webrtc/efir.js?v=4"></script>
 
 <!-- ✅ Текстовий чат (ПІСЛЯ efir.js) -->
-<script type="text/javascript" src="/js/chat.js?v=3"></script>
+<script type="text/javascript" src="/js/chat.js?v=4"></script>
 
 </body>
 </html>

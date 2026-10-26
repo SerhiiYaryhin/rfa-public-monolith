@@ -268,6 +268,26 @@ body {
 .btn-listen-stop { background: var(--danger); color: white; }
 .btn-listen-stop:hover { background: #c0392b; transform: translateY(-1px); }
 
+/* ✅ Кнопка мікрофона в аудіо-панелі */
+.btn-mic {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.btn-mic-off { background: #95a5a6; color: white; }
+.btn-mic-off:hover { background: #7f8c8d; }
+.btn-mic-on { background: var(--success); color: white; }
+.btn-mic-on:hover { background: #00a383; }
+
 .listen-status {
     font-size: 0.7rem;
     color: #636e72;

@@ -227,6 +227,9 @@ const ModeratorAudio = {
             message: { request: 'configure', muted: conn.isMuted }
         });
 
+        // Оновлюємо UI кнопки мікрофона
+        this.updateMicButton(roomType, conn.isMuted);
+
         console.log(`🎙️ Мікрофон модератора в ${roomType}: ${conn.isMuted ? 'OFF' : 'ON'}`);
     },
 
@@ -450,6 +453,24 @@ const ModeratorAudio = {
             btn.className = 'btn-listen btn-listen-start';
             btn.innerHTML = '<i class="fas fa-headphones"></i> Слухати';
             btn.onclick = () => ModeratorAudio.startListening(roomType);
+        }
+    },
+
+    /**
+     * Оновлює кнопку мікрофона в аудіо-панелі.
+     * @param {string} roomType - Тип кімнати
+     * @param {boolean} isMuted - Стан мікрофона
+     */
+    updateMicButton(roomType, isMuted) {
+        const btn = document.getElementById(`btn-mic-${roomType}`);
+        if (!btn) return;
+
+        if (isMuted) {
+            btn.className = 'btn-mic btn-mic-off';
+            btn.innerHTML = '<i class="fas fa-microphone-slash"></i> Мікрофон OFF';
+        } else {
+            btn.className = 'btn-mic btn-mic-on';
+            btn.innerHTML = '<i class="fas fa-microphone"></i> Мікрофон ON';
         }
     },
 
