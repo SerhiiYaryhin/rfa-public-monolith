@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * 🎛️ efir.css — Стилі панелі керування ефіром (Command Center)
+ * 🎛️ efir.css — Стилі панелі керування ефіром (v7)
  * ============================================================================
  */
 
@@ -197,7 +197,7 @@ body {
     color: var(--dark);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
@@ -210,9 +210,48 @@ body {
 }
 
 /* ================================================================ */
-/* ✅ AUDIO PANEL (вбудована в картку кімнати)                       */
-/* Кнопка "Слухати" ЗАВЖИ видима (поза панеллю).                     */
-/* Панель з VU-метром і статусом показується при підключенні.        */
+/* ✅ КОМПАКТНА ІКОНКА АУДІО (в рядку з назвою кімнати)              */
+/* ================================================================ */
+
+.btn-audio-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #b2bec3;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.btn-audio-icon:hover {
+    background: #e9ecef;
+    color: var(--dark);
+}
+
+.btn-audio-icon.active {
+    color: var(--success);
+    background: rgba(0, 184, 148, 0.15);
+    animation: pulse-audio 2s infinite;
+}
+
+.btn-audio-icon.connecting {
+    color: var(--warning);
+}
+
+@keyframes pulse-audio {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(0, 184, 148, 0.1); }
+}
+
+/* ================================================================ */
+/* AUDIO PANEL (прихована до підключення)                            */
 /* ================================================================ */
 
 .room-audio-panel {
@@ -220,7 +259,7 @@ body {
     padding: 8px 10px;
     background: #f8f9fa;
     border-radius: 6px;
-    display: none; /* Прихована за замовчуванням */
+    display: none;
 }
 
 .room-audio-panel.listening { display: block; }
@@ -247,40 +286,19 @@ body {
     transition: width 0.1s ease;
 }
 
-/* Кнопка "Слухати" — в рядку з назвою кімнати */
-.btn-listen {
-    padding: 4px 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    margin-left: auto; /* Притискаємо вправо */
-}
-
-.btn-listen-start { background: var(--success); color: white; }
-.btn-listen-start:hover { background: #00a383; transform: translateY(-1px); }
-.btn-listen-stop { background: var(--danger); color: white; }
-.btn-listen-stop:hover { background: #c0392b; transform: translateY(-1px); }
-
-/* ✅ Кнопка мікрофона в аудіо-панелі */
+/* Кнопка мікрофона в аудіо-панелі */
 .btn-mic {
-    padding: 4px 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     border: none;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 4px;
-    white-space: nowrap;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .btn-mic-off { background: #95a5a6; color: white; }

@@ -77,19 +77,20 @@
                  th:data-room-name="${mainRoom != null ? mainRoom.roomname : 'Основна'}">
                 <div style="flex:1;">
                     <div class="room-name">
-                        <i class="fas fa-comments"></i> Основна
-                        <!-- ✅ Кнопка ЗАВЖИ видима (поза прихованою панеллю) -->
-                        <button class="btn-listen btn-listen-start" id="btn-listen-main"
-                                onclick="event.stopPropagation(); ModeratorAudio.startListening('main')">
-                            <i class="fas fa-headphones"></i> Слухати
+                        <!-- ✅ Компактна іконка ПЕРША в рядку -->
+                        <button class="btn-audio-icon" id="btn-audio-main"
+                                onclick="event.stopPropagation(); ModeratorAudio.toggleListening('main')"
+                                title="Слухати аудіокімнату">
+                            <i class="fas fa-headphones"></i>
                         </button>
+                        <i class="fas fa-comments"></i> Основна
                     </div>
-                    <!-- Панель з VU-метром, статусом і мікрофоном (прихована до підключення) -->
                     <div class="room-audio-panel" id="audioPanel-main" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
                             <button class="btn-mic btn-mic-off" id="btn-mic-main"
-                                    onclick="ModeratorAudio.toggleMic('main')">
-                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                                    onclick="ModeratorAudio.toggleMic('main')"
+                                    title="Увімкнути мікрофон">
+                                <i class="fas fa-microphone-slash"></i>
                             </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-main"></div>
@@ -106,17 +107,19 @@
                  th:data-room-uuid="${greenRoom.uuid}" th:data-room-name="${greenRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name">
-                        <i class="fas fa-door-open"></i> Green Room
-                        <button class="btn-listen btn-listen-start" id="btn-listen-green"
-                                onclick="event.stopPropagation(); ModeratorAudio.startListening('green')">
-                            <i class="fas fa-headphones"></i> Слухати
+                        <button class="btn-audio-icon" id="btn-audio-green"
+                                onclick="event.stopPropagation(); ModeratorAudio.toggleListening('green')"
+                                title="Слухати аудіокімнату">
+                            <i class="fas fa-headphones"></i>
                         </button>
+                        <i class="fas fa-door-open"></i> Green Room
                     </div>
                     <div class="room-audio-panel" id="audioPanel-green" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
                             <button class="btn-mic btn-mic-off" id="btn-mic-green"
-                                    onclick="ModeratorAudio.toggleMic('green')">
-                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                                    onclick="ModeratorAudio.toggleMic('green')"
+                                    title="Увімкнути мікрофон">
+                                <i class="fas fa-microphone-slash"></i>
                             </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-green"></div>
@@ -133,17 +136,19 @@
                  th:data-room-uuid="${broadcastRoom.uuid}" th:data-room-name="${broadcastRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name">
-                        <i class="fas fa-broadcast-tower"></i> Ефір
-                        <button class="btn-listen btn-listen-start" id="btn-listen-broadcast"
-                                onclick="event.stopPropagation(); ModeratorAudio.startListening('broadcast')">
-                            <i class="fas fa-headphones"></i> Слухати
+                        <button class="btn-audio-icon" id="btn-audio-broadcast"
+                                onclick="event.stopPropagation(); ModeratorAudio.toggleListening('broadcast')"
+                                title="Слухати аудіокімнату">
+                            <i class="fas fa-headphones"></i>
                         </button>
+                        <i class="fas fa-broadcast-tower"></i> Ефір
                     </div>
                     <div class="room-audio-panel" id="audioPanel-broadcast" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
                             <button class="btn-mic btn-mic-off" id="btn-mic-broadcast"
-                                    onclick="ModeratorAudio.toggleMic('broadcast')">
-                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                                    onclick="ModeratorAudio.toggleMic('broadcast')"
+                                    title="Увімкнути мікрофон">
+                                <i class="fas fa-microphone-slash"></i>
                             </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-broadcast"></div>
@@ -160,17 +165,19 @@
                  th:data-room-uuid="${staffRoom.uuid}" th:data-room-name="${staffRoom.roomname}">
                 <div style="flex:1;">
                     <div class="room-name">
-                        <i class="fas fa-users-cog"></i> Staff
-                        <button class="btn-listen btn-listen-start" id="btn-listen-staff"
-                                onclick="event.stopPropagation(); ModeratorAudio.startListening('staff')">
-                            <i class="fas fa-headphones"></i> Слухати
+                        <button class="btn-audio-icon" id="btn-audio-staff"
+                                onclick="event.stopPropagation(); ModeratorAudio.toggleListening('staff')"
+                                title="Слухати аудіокімнату">
+                            <i class="fas fa-headphones"></i>
                         </button>
+                        <i class="fas fa-users-cog"></i> Staff
                     </div>
                     <div class="room-audio-panel" id="audioPanel-staff" onclick="event.stopPropagation();">
                         <div class="audio-controls-row">
                             <button class="btn-mic btn-mic-off" id="btn-mic-staff"
-                                    onclick="ModeratorAudio.toggleMic('staff')">
-                                <i class="fas fa-microphone-slash"></i> Мікрофон OFF
+                                    onclick="ModeratorAudio.toggleMic('staff')"
+                                    title="Увімкнути мікрофон">
+                                <i class="fas fa-microphone-slash"></i>
                             </button>
                             <div class="vu-meter-track">
                                 <div class="vu-meter-fill" id="vu-staff"></div>
@@ -280,7 +287,6 @@
 <script type="text/javascript" src="/js/webrtc/v2/ui-renderer.js"></script>
 <script type="text/javascript" src="/js/webrtc/v2/audio-monitor.js"></script>
 <script type="text/javascript" src="/js/webrtc/v2/network-monitor.js"></script>
-<!-- ⚠️ main.js НЕ підключаємо — модератор використовує ModeratorAudio -->
 
 <!-- ✅ Thymeleaf змінні (передаються з сервера) -->
 <script th:inline="javascript">
@@ -291,7 +297,6 @@
     var stationUuid = /*[[${stationUuid}]]*/ '';
     var clientuuid = null;
 
-    // UUID текстових кімнат (для STOMP-підписок та selectroom)
     const rooms = {
         main: /*[[${mainRoom != null ? mainRoom.uuid : null}]]*/,
         green: /*[[${greenRoom != null ? greenRoom.uuid : null}]]*/,
@@ -299,7 +304,6 @@
         staff: /*[[${staffRoom != null ? staffRoom.uuid : null}]]*/
     };
 
-    // ✅ Числові ID кімнат Janus (для ModeratorAudio)
     const janusRoomIds = {
         main: /*[[${mainRoom != null ? mainRoom.id : null}]]*/,
         green: /*[[${greenRoom != null ? greenRoom.id : null}]]*/,
@@ -310,10 +314,10 @@
 </script>
 
 <!-- ✅ Логіка панелі модератора (МІСТИТЬ ModeratorAudio) -->
-<script type="text/javascript" src="/js/webrtc/efir.js?v=4"></script>
+<script type="text/javascript" src="/js/webrtc/efir.js?v=7"></script>
 
 <!-- ✅ Текстовий чат (ПІСЛЯ efir.js) -->
-<script type="text/javascript" src="/js/chat.js?v=4"></script>
+<script type="text/javascript" src="/js/chat.js?v=7"></script>
 
 </body>
 </html>
